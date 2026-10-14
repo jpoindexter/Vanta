@@ -4,6 +4,7 @@
 //
 //   node tools/build-vanta.mjs && node tools/server-gaps-proof.mjs [--only=lanes,bots,settings,effort]
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 
 import { launchVanta, waitForShell } from "./vanta-app.mjs";
@@ -45,6 +46,14 @@ const side = page.locator('[data-tour="sessions-sidebar"]').first();
 async function filters() {
   await side.getByRole("button", { name: /^Filters$/ }).first().click();
   await page.waitForTimeout(300);
+}
+
+async function fresh() {
+  await closeMenus(page);
+  await page.reload();
+  await waitForShell(page);
+  await page.waitForTimeout(3000);
+  await page.getByRole("tab", { name: /^Sessions$/ }).first().click().catch(() => undefined);
 }
 
 try {
@@ -107,11 +116,7 @@ try {
     if (process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/bots.png` });
   }
   if (wants("settings")) {
-    await page.evaluate(() => {
-      const original = window.hermesDesktop.api.bind(window.hermesDesktop);
-      window.__failed = [];
-      window.hermesDesktop.api = (request) => original(request).catch((error) => { window.__failed.push(`${request.method ?? "GET"} ${request.path} -> ${String(error.message).slice(0, 80)}`); throw error; });
-    });
+    await fresh();
     await goHome(page);
     await page.getByTestId("titlebar-settings").click();
     await page.waitForTimeout(900);
@@ -138,7 +143,6 @@ try {
         const body = text.slice(text.indexOf("Settings |"));
         const failed = /failed to load|could not load/i.test(body);
         console.log(`SETTINGS ${section} > ${sub} :: ${failed ? "FAILED" : "loaded"} :: ${body.slice(body.indexOf(sub) >= 0 ? body.lastIndexOf(sub) : 0).slice(0, 330)}`);
-        console.log("   failed calls:", await page.evaluate(() => { const f = [...new Set(window.__failed)]; window.__failed = []; return f; }));
         if (process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/set-${section.replace(/\W+/g, "")}-${sub.replace(/\W+/g, "")}.png` });
       } catch (error) {
         console.log(`SETTINGS ${section} > ${sub} :: threw ${String(error.message).split("\n")[0].slice(0, 100)}`);
@@ -175,7 +179,92 @@ try {
     const stillAsk = (await api({ method: "GET", path: "/api/access-mode" })).mode;
     say("F-163x", /must be one of manual, smart/.test(toast) && stillAsk === "ask", `choosing Off is refused and says why: "${toast.slice(0, 200)}" (mode still ${stillAsk})`);
   }
+  if (wants("browser")) {
+    await fresh();
+    // A local web page that probes what a guest can reach, and reports it in its own title.
+    const PAGE = `<!doctype html><title>starting</title><body><h1 id="h">Fixture page</h1>
+<a id="blank" target="_blank" href="http://127.0.0.1:__PORT__/other">new window</a>
+<script>
+const out = {};
+out.bridge = typeof window.hermesDesktop + "/" + typeof window.vantaDesktop + "/" + typeof window.require + "/" + typeof window.process;
+Promise.all([
+  Notification.requestPermission().then((p) => (out.notify = p)),
+  new Promise((done) => navigator.geolocation.getCurrentPosition(() => { out.geo = "granted"; done(); }, (e) => { out.geo = "denied:" + e.code; done(); }, { timeout: 3000 })),
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(() => (out.mic = "granted"), (e) => (out.mic = "denied:" + e.name)),
+  fetch("http://127.0.0.1:__PORT__/ping").then((r) => r.text()).then((t) => (out.fetch = t)),
+]).then(() => { document.title = "probed:" + JSON.stringify(out); });
+</script>`;
+    let hits = [];
+    const server = http.createServer((req, res) => {
+      hits.push(req.url);
+      if (req.url === "/ping") return res.end("pong");
+      res.setHeader("content-type", "text/html");
+      res.end(PAGE.replaceAll("__PORT__", String(server.address().port)));
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const url = `http://127.0.0.1:${server.address().port}/`;
+    await installNativeStubs(app, { confirm: true, downloadDir: app.root, pickFolder: null, savePath: null });
+    await goHome(page);
+    await page.getByTestId("titlebar-browser").click();
+    const address = page.getByLabel("Address");
+    await address.waitFor({ state: "visible" });
+    await page.waitForTimeout(1500);
+    await closeMenus(page);
+    await page.waitForTimeout(1000);
+    await address.fill(url);
+    await address.press("Enter");
+    await page.waitForTimeout(1500);
+    const guestInfo = () => app.app.evaluate(async ({ webContents }) => {
+      const guest = webContents.getAllWebContents().find((w) => w.getType() === "webview");
+      if (!guest) return null;
+      const prefs = guest.getLastWebPreferences();
+      return { url: guest.getURL(), title: guest.getTitle(), persistent: guest.session.isPersistent(), nodeIntegration: prefs.nodeIntegration, contextIsolation: prefs.contextIsolation, sandbox: prefs.sandbox, preload: prefs.preload ?? null, webSecurity: prefs.webSecurity };
+    });
+    const info = await waitUntil(async () => { const g = await guestInfo(); return g && g.title.startsWith("probed:") ? g : null; }, 20000, 500);
+    say("F-105", Boolean(info) && info.url === url, `the Browser pane loaded the local page: url=${info?.url} title=${info?.title?.slice(0, 40)}`);
+    const probed = info ? JSON.parse(info.title.slice(7)) : {};
+    say("F-105s", info?.persistent === false && info?.nodeIntegration === false && info?.contextIsolation === true && info?.sandbox === true && info?.preload === null && info?.webSecurity !== false, `guest posture: persistent=${info?.persistent} nodeIntegration=${info?.nodeIntegration} contextIsolation=${info?.contextIsolation} sandbox=${info?.sandbox} preload=${info?.preload}`);
+    say("F-105b", probed.bridge === "undefined/undefined/undefined/undefined", `the page cannot see the bridge or Node: hermesDesktop/vantaDesktop/require/process = ${probed.bridge}`);
+    say("F-105p", probed.notify === "denied" && String(probed.geo).startsWith("denied") && String(probed.mic).startsWith("denied"), `permissions: notifications=${probed.notify} geolocation=${probed.geo} microphone=${probed.mic}`);
+    say("F-105n", probed.fetch === "pong", "an ordinary http fetch from the page still works");
+    // New-window links go to the system browser (stubbed shell.openExternal), never a popup.
+    const windowsBefore = await app.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    await app.app.evaluate(({ webContents }) => { const g = webContents.getAllWebContents().find((w) => w.getType() === "webview"); return g.executeJavaScript('document.getElementById("blank").click()', true); });
+    await page.waitForTimeout(1200);
+    const link = await app.app.evaluate(({ webContents }) => { const g = webContents.getAllWebContents().find((w) => w.getType() === "webview"); return g.executeJavaScript('(() => { const r = document.getElementById("blank").getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()'); });
+    const box = await page.evaluate(() => { const r = document.querySelector("webview").getBoundingClientRect(); return { x: r.x, y: r.y }; });
+    const pageBefore = (await guestInfo()).url;
+    // A real click (a pointer event reaches the guest), not a scripted one.
+    await page.mouse.click(box.x + link.x, box.y + link.y);
+    await page.waitForTimeout(1500);
+    const external = await app.app.evaluate(() => globalThis.__proof.external);
+    const windowsAfter = await app.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+    const stayed = (await guestInfo()).url === pageBefore;
+    say("F-105x", external.length === 1 && external[0] === `${url}other` && windowsAfter === windowsBefore && stayed, `a real click on a target=_blank link went to the system browser: ${JSON.stringify(external)}; windows ${windowsBefore} -> ${windowsAfter}; pane stayed on its page=${stayed}`);
+    // A page that opens links with no click (a script) opens nothing.
+    const afterClick = (await app.app.evaluate(() => globalThis.__proof.external)).length;
+    await page.waitForTimeout(2200);
+    await app.app.evaluate(({ webContents }) => { const g = webContents.getAllWebContents().find((w) => w.getType() === "webview"); return g.executeJavaScript('window.open("http://127.0.0.1:1/spam"); document.getElementById("blank").click()'); });
+    await page.waitForTimeout(1200);
+    const afterScript = (await app.app.evaluate(() => globalThis.__proof.external)).length;
+    say("F-105y", afterScript === afterClick, `scripted window.open and click with no real input opened nothing (system-browser opens ${afterClick} -> ${afterScript})`);
+    // A page that tries to leave the web stays where it is.
+    const before = (await guestInfo()).url;
+    const tries = [];
+    for (const target of ["file:///etc/hosts", "javascript:document.title='pwned'", "data:text/html,<title>pwned</title>", "vanta://connections/x"]) {
+      await app.app.evaluate(({ webContents }, t) => { const g = webContents.getAllWebContents().find((w) => w.getType() === "webview"); return g.executeJavaScript(`location.href = ${JSON.stringify(t)}`, true).catch(() => null); }, target);
+      await page.waitForTimeout(700);
+      const now = await guestInfo();
+      tries.push(`${target.split(":")[0]}:${now.url === before && !now.title.includes("pwned") ? "stayed" : "MOVED to " + now.url}`);
+    }
+    say("F-105f", tries.every((t) => t.endsWith("stayed")), `navigation away from the web refused: ${tries.join(", ")}`);
+    const reload = await page.getByRole("button", { name: "Reload page" }).isVisible().catch(() => false);
+    say("F-106", reload && (await page.getByRole("button", { name: "Show preview console" }).count()) > 0, "Back/Forward/Reload, console and DevTools buttons now act on a loaded page");
+    if (process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/browser.png` });
+    server.close();
+  }
   if (wants("queue-images")) {
+    await fresh();
     await installNativeStubs(app, { confirm: true, downloadDir: app.root, pickFolder: path.join(app.project, "pixel.png"), savePath: path.join(app.root, "saved.png") });
     await goHome(page);
     await startChat(page);
@@ -199,6 +288,7 @@ try {
     say("F-115r", left.length === 0, `queued image files left behind after it ran: ${left.length}`);
   }
   if (wants("effort")) {
+    await fresh();
     await goHome(page);
     await startChat(page);
     const none = await page.getByTestId("reasoning-pill").count();
