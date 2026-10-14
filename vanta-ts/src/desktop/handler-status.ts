@@ -36,6 +36,7 @@ export async function applyAccessMode(state: DesktopState, mode: DesktopAccessMo
   await saveDesktopAccessMode(state.root, mode);
   state.accessMode = mode;
   setPlanInstruction(live.convo.messages, mode === "plan");
+  applyToPeerChats(state, mode);
   const label = desktopAccessModeLabel(mode);
   const event = { label: `Access mode changed to ${label} for this project.`, ok: true };
   state.currentEvents?.push(event);
@@ -43,9 +44,18 @@ export async function applyAccessMode(state: DesktopState, mode: DesktopAccessMo
   await live.setup.safety.logEvent(JSON.stringify({ kind: "desktop_access_mode", mode, scope: "project" })).catch(() => {});
 }
 
+/** The mode is per project, not per chat: every other open chat on this root must enforce the new mode too. */
+function applyToPeerChats(state: DesktopState, mode: DesktopAccessMode): void {
+  for (const peer of state._sessions?.values() ?? []) {
+    if (peer === state || peer.root !== state.root) continue;
+    peer.accessMode = mode;
+    if (peer.convo) setPlanInstruction(peer.convo.messages, mode === "plan");
+  }
+}
+
 export async function handleAccessMode(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const live = await ensureDesktopConversation(state);
-  if (req.method === "GET") return sendJson(res, 200, { mode: live.accessMode, scope: "project" });
+  if (req.method === "GET") return sendJson(res, 200, { mode: live.accessMode, scope: "project", root: state.root });
   const body = await readJson(req) as { mode?: unknown };
   if (!isDesktopAccessMode(body.mode)) {
     return sendJson(res, 400, { error: "mode must be ask, approve, plan, auto, or full" });
