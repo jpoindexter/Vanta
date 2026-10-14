@@ -11,6 +11,7 @@ import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { clearProviderAuthRequired } from "./provider-auth-store.js";
+import { markSetupApplied } from "./setup-generation.js";
 
 export type DesktopSetupConfiguration = { provider: ProviderEntry; model: string; apiKey: string };
 type SetupInput = DesktopSetupConfiguration | { error: string };
@@ -101,5 +102,5 @@ async function persistSetup(state: DesktopState, input: Exclude<SetupInput, { er
   await writeFile(path, upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
   Object.assign(process.env, updates);
   await clearProviderAuthRequired(state.root);
-  state.setup = undefined; state.convo = undefined; state._setupError = undefined; state._providerAuthRequired = undefined;
+  markSetupApplied(state);
 }
