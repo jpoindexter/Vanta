@@ -46,6 +46,9 @@ const MessagingView = lazy(async () => ({ default: (await import('../messaging')
 const CapabilitiesView = lazy(async () => ({ default: (await import('../capabilities')).CapabilitiesView }))
 const CompanyView = lazy(async () => ({ default: (await import('../vanta/company/company-view')).CompanyView }))
 
+// Parity builds only (VITE_SHELL_FIXTURES): the staged pages, workbench and overlays drawn inside the real shell.
+const FixtureHost = import.meta.env.VITE_SHELL_FIXTURES ? lazy(() => import('@/dev/shell-fixture-host')) : null
+
 export function LegacySessionRedirect() {
   const { sessionId } = useParams()
 
@@ -227,7 +230,7 @@ export const ChatRoutesSurface = memo(function ChatRoutesSurface({
     </div>
   )
 
-  return (
+  const routes = (
     <Routes>
       <Route element={<HomeOrChat chat={chatView} actions={actions} />} index />
       <Route element={chatView} path=":sessionId" />
@@ -260,5 +263,13 @@ export const ChatRoutesSurface = memo(function ChatRoutesSurface({
       <Route element={<LegacySessionRedirect />} path="sessions/:sessionId" />
       <Route element={<Navigate replace to={NEW_CHAT_ROUTE} />} path="*" />
     </Routes>
+  )
+
+  return FixtureHost ? (
+    <Suspense fallback={null}>
+      <FixtureHost>{routes}</FixtureHost>
+    </Suspense>
+  ) : (
+    routes
   )
 })
