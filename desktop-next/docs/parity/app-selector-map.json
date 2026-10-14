@@ -294,72 +294,138 @@
    "textMode": "none"
   },
   "nav.new": {
-   "role": "button",
-   "name": "New session",
-   "within": "sidebar",
-   "textMode": "none",
-   "note": "label is 'New session', wireframe says 'New chat'"
+   "testId": "nav-new-session",
+   "textMode": "none"
   },
-  "nav.new.glyph": "UNMAPPED",
-  "nav.new.label": "UNMAPPED",
-  "nav.new.shortcut": {
-   "css": "[data-slot=\"kbd-group\"]",
+  "nav.new.glyph": {
+   "css": ":scope > :first-child",
+   "within": "nav.new",
+   "textMode": "none"
+  },
+  "nav.new.label": {
+   "css": "[data-tour^='sidebar-nav-']",
    "within": "nav.new"
   },
-  "nav.search": "UNMAPPED",
-  "nav.search.glyph": "UNMAPPED",
-  "nav.search.label": "UNMAPPED",
+  "nav.new.shortcut": {
+   "testId": "nav-shortcut"
+  },
+  "nav.search": {
+   "css": "[data-testid='sidebar-search'], [data-testid='nav-search']",
+   "textMode": "none"
+  },
+  "nav.search.glyph": {
+   "css": "svg, .vs-nav-glyph",
+   "within": "nav.search",
+   "textMode": "none"
+  },
+  "nav.search.label": {
+   "css": "input, .vs-nav-text",
+   "within": "nav.search",
+   "textMode": "none"
+  },
   "nav.search.shortcut": "UNMAPPED",
   "nav.home": {
-   "role": "button",
-   "name": "Home",
-   "within": "sidebar",
+   "testId": "nav-home",
    "textMode": "none"
   },
-  "nav.home.glyph": "UNMAPPED",
-  "nav.home.label": "UNMAPPED",
+  "nav.home.glyph": {
+   "css": ":scope > :first-child",
+   "within": "nav.home",
+   "textMode": "none"
+  },
+  "nav.home.label": {
+   "css": "[data-tour^='sidebar-nav-']",
+   "within": "nav.home"
+  },
   "nav.schedules": {
-   "role": "button",
-   "name": "Schedules",
-   "within": "sidebar",
+   "testId": "nav-cron",
    "textMode": "none"
   },
-  "nav.schedules.glyph": "UNMAPPED",
-  "nav.schedules.label": "UNMAPPED",
+  "nav.schedules.glyph": {
+   "css": ":scope > :first-child",
+   "within": "nav.schedules",
+   "textMode": "none"
+  },
+  "nav.schedules.label": {
+   "css": "[data-tour^='sidebar-nav-']",
+   "within": "nav.schedules"
+  },
   "nav.connections": {
-   "role": "button",
-   "name": "Connections",
-   "within": "sidebar",
+   "testId": "nav-messaging",
    "textMode": "none"
   },
-  "nav.connections.glyph": "UNMAPPED",
-  "nav.connections.label": "UNMAPPED",
+  "nav.connections.glyph": {
+   "css": ":scope > :first-child",
+   "within": "nav.connections",
+   "textMode": "none"
+  },
+  "nav.connections.label": {
+   "css": "[data-tour^='sidebar-nav-']",
+   "within": "nav.connections"
+  },
   "nav.skills": {
-   "role": "button",
-   "name": "Skills & tools",
-   "within": "sidebar",
+   "testId": "nav-capabilities",
    "textMode": "none"
   },
-  "nav.skills.glyph": "UNMAPPED",
-  "nav.skills.label": "UNMAPPED",
+  "nav.skills.glyph": {
+   "css": ":scope > :first-child",
+   "within": "nav.skills",
+   "textMode": "none"
+  },
+  "nav.skills.label": {
+   "css": "[data-tour^='sidebar-nav-']",
+   "within": "nav.skills"
+  },
   "nav.outputs": {
-   "role": "button",
-   "name": "Outputs",
-   "within": "sidebar",
+   "testId": "nav-artifacts",
    "textMode": "none"
   },
-  "nav.outputs.glyph": "UNMAPPED",
-  "nav.outputs.label": "UNMAPPED",
-  "needsYou.group": "UNMAPPED",
-  "needsYou.label": "UNMAPPED",
-  "needsYou.badge": "UNMAPPED",
-  "sidebar.groupLabel[]": "UNMAPPED",
-  "sidebar.groupName[]": "UNMAPPED",
-  "row.session[]": "UNMAPPED",
-  "row.session.status[]": "UNMAPPED",
-  "row.session.title[]": "UNMAPPED",
-  "row.session.time[]": "UNMAPPED",
-  "sidebar.footer": "UNMAPPED",
+  "nav.outputs.glyph": {
+   "css": ":scope > :first-child",
+   "within": "nav.outputs",
+   "textMode": "none"
+  },
+  "nav.outputs.label": {
+   "css": "[data-tour^='sidebar-nav-']",
+   "within": "nav.outputs"
+  },
+  "needsYou.group": {
+   "css": "[data-testid='sidebar-group-label']:has(.vs-badge)",
+   "textMode": "none"
+  },
+  "needsYou.label": {
+   "testId": "sidebar-group-name",
+   "within": "needsYou.group"
+  },
+  "needsYou.badge": {
+   "css": ".vs-badge",
+   "within": "sidebar"
+  },
+  "sidebar.groupLabel[]": {
+   "testId": "sidebar-group-label",
+   "textMode": "none"
+  },
+  "sidebar.groupName[]": {
+   "testId": "sidebar-group-name"
+  },
+  "row.session[]": {
+   "testId": "sidebar-row",
+   "textMode": "none"
+  },
+  "row.session.status[]": {
+   "css": "[data-testid='sidebar-row'] [data-testid='sidebar-row-lead']",
+   "textMode": "none"
+  },
+  "row.session.title[]": {
+   "testId": "sidebar-row-title"
+  },
+  "row.session.time[]": {
+   "testId": "sidebar-row-time"
+  },
+  "sidebar.footer": {
+   "css": "[data-slot='sidebar-footer']",
+   "textMode": "none"
+  },
   "sidebar.avatar": "UNMAPPED",
   "sidebar.userName": "UNMAPPED",
   "sidebar.userMeta": "UNMAPPED",
@@ -367,7 +433,10 @@
    "testId": "sidebar-settings",
    "textMode": "none"
   },
-  "main": "UNMAPPED",
+  "main": {
+   "css": "[data-fixture-main]",
+   "textMode": "none"
+  },
   "banner.offline": {
    "css": ".vs-banner",
    "textMode": "own"
@@ -395,11 +464,11 @@
    "hoverOnly": true
   },
   "msg.user.action[]": {
-   "css": "[data-vp=\"user-actions\"] button",
+   "css": "[data-vp=\"user-actions\"] button.vp-action",
    "hoverOnly": true
   },
   "msg.user.time[]": {
-   "css": "[data-vp=\"user-message\"] [data-slot=\"timeline-timestamp\"]",
+   "css": "[data-vp=\"user-actions\"] .vp-action-time",
    "hoverOnly": true
   },
   "msg.assistant[]": {
@@ -534,19 +603,15 @@
    "textMode": "none"
   },
   "composer.input": {
-   "css": "[data-vp=\"composer-input\"]"
+   "css": "[data-vp=\"composer-input\"], [data-testid=\"home-composer-input\"]"
   },
   "composer.attach": {
-   "role": "button",
-   "name": "Add context",
-   "textMode": "none",
-   "within": "composer"
+   "css": "[data-vp=\"composer-left\"] > button",
+   "textMode": "none"
   },
   "composer.dictate": {
-   "role": "button",
-   "name": "Voice dictation",
-   "textMode": "none",
-   "within": "composer"
+   "css": "[data-vp=\"composer-left\"] [data-slot=\"fan-menu-anchor\"] > button",
+   "textMode": "none"
   },
   "composer.model": {
    "css": "[data-vp=\"chip-model\"]"

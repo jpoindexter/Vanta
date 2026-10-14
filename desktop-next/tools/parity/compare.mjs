@@ -21,9 +21,9 @@ export function resolveTol({ specOpts = {}, appTol = {}, expected }) {
 
 export const globToRe = (glob) => new RegExp(`^${glob.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
 
-/** The first declared deviation covering (key, state, prop), or undefined. */
-export function findDeviation(deviations, { key, state, prop }) {
-  return deviations.find(
+/** Every declared deviation covering (key, state, prop), in file order. */
+export function findDeviations(deviations, { key, state, prop }) {
+  return deviations.filter(
     (d) =>
       !d.copy &&
       (d.props.includes("*") || d.props.includes(prop)) &&
@@ -32,14 +32,25 @@ export function findDeviation(deviations, { key, state, prop }) {
   );
 }
 
+/** The first declared deviation covering (key, state, prop), or undefined. */
+export const findDeviation = (deviations, where) => findDeviations(deviations, where)[0];
+
+const sameGlyphless = (a, b) => typeof a === "string" && typeof b === "string" && stripGlyphs(a) === stripGlyphs(b);
+
+/** Does this deviation excuse `actual` for a wireframe value of `expected`? */
+function excuses(dev, prop, expected, actual, equal) {
+  if (dev.transform === "ignore") return true;
+  if (dev.transform === "stripGlyphs") return sameGlyphless(expected, actual);
+  const delta = dev.shift?.[prop];
+  return dev.transform === "shift" && delta !== undefined && typeof expected === "number" && equal(expected + delta, actual);
+}
+
 function judge(ctx, prop, expected, actual, equal) {
   if (equal(expected, actual)) return { prop, status: "PASS" };
-  const dev = findDeviation(ctx.deviations, { key: ctx.key, state: ctx.state, prop: prop.split(".")[0] });
   const base = { prop, expected, actual: actual ?? null };
-  if (!dev) return { ...base, status: "FAIL" };
-  if (dev.transform === "ignore") return { ...base, status: "ALLOWED", deviation: dev.id };
-  const same = typeof expected === "string" && typeof actual === "string" && stripGlyphs(expected) === stripGlyphs(actual);
-  return same ? { ...base, status: "ALLOWED", deviation: dev.id } : { ...base, status: "FAIL" };
+  const devs = findDeviations(ctx.deviations, { key: ctx.key, state: ctx.state, prop: prop.split(".")[0] });
+  const dev = devs.find((d) => excuses(d, prop, expected, actual, equal));
+  return dev ? { ...base, status: "ALLOWED", deviation: dev.id } : { ...base, status: "FAIL" };
 }
 
 const within = (tol) => (a, b) => typeof a === "number" && typeof b === "number" && Math.abs(a - b) <= tol + 1e-9;
@@ -72,9 +83,9 @@ function textProps(ctx, expected, actual) {
 
 /** A visibility difference, ALLOWED only when a declared "ignore" deviation covers this key and state. */
 export function visibility(ctx, expected, actual) {
-  const dev = findDeviation(ctx.deviations ?? [], { key: ctx.key, state: ctx.state, prop: "visible" });
+  const dev = findDeviations(ctx.deviations ?? [], { key: ctx.key, state: ctx.state, prop: "visible" }).find((d) => d.transform === "ignore");
   const row = { prop: "visible", expected, actual };
-  return dev && dev.transform === "ignore" ? { ...row, status: "ALLOWED", deviation: dev.id } : { ...row, status: "FAIL" };
+  return dev ? { ...row, status: "ALLOWED", deviation: dev.id } : { ...row, status: "FAIL" };
 }
 
 const worst = (props) =>

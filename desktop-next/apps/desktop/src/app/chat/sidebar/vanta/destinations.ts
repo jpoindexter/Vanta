@@ -21,23 +21,26 @@ export interface ShellDestination {
   route: string
   /** Keybind action that opens it; its combo shows as the row hint. */
   actionId?: string
+  /** The id the Hermes sidebar rows use (`nav-<id>` test ids), so both sidebars expose the same hooks. */
+  navId: string
 }
 
 const BUILT_IN: readonly ShellDestination[] = [
-  { id: 'home', labelKey: 'home', icon: IconHome, route: NEW_CHAT_ROUTE, actionId: 'nav.home' },
-  { id: 'schedules', labelKey: 'schedules', icon: IconCalendarClock, route: CRON_ROUTE, actionId: 'nav.cron' },
+  { id: 'home', labelKey: 'home', icon: IconHome, navId: 'home', route: NEW_CHAT_ROUTE, actionId: 'nav.home' },
+  { id: 'schedules', labelKey: 'schedules', icon: IconCalendarClock, navId: 'cron', route: CRON_ROUTE, actionId: 'nav.cron' },
   {
     id: 'connections',
     labelKey: 'connections',
     icon: IconArrowsExchange,
+    navId: 'messaging',
     route: MESSAGING_ROUTE,
     actionId: 'nav.messaging'
   },
-  { id: 'skills', labelKey: 'skills', icon: IconSparkles, route: CAPABILITIES_ROUTE, actionId: 'nav.capabilities' },
-  { id: 'outputs', labelKey: 'outputs', icon: IconFiles, route: ARTIFACTS_ROUTE, actionId: 'nav.artifacts' }
+  { id: 'skills', labelKey: 'skills', icon: IconSparkles, navId: 'capabilities', route: CAPABILITIES_ROUTE, actionId: 'nav.capabilities' },
+  { id: 'outputs', labelKey: 'outputs', icon: IconFiles, navId: 'artifacts', route: ARTIFACTS_ROUTE, actionId: 'nav.artifacts' }
 ]
 
-const COMPANY: ShellDestination = { id: 'company', labelKey: 'company', icon: IconUsersGroup, route: COMPANY_ROUTE }
+const COMPANY: ShellDestination = { id: 'company', labelKey: 'company', icon: IconUsersGroup, navId: 'company', route: COMPANY_ROUTE }
 
 export interface DestinationOptions {
   /** Replaces the built-in Company entry (after Outputs). */

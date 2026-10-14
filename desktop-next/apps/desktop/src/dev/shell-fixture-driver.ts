@@ -37,7 +37,7 @@ function go(route: string): void {
 function applyChat(chat: ShellFixtureName, seed: Seeder, focusedId: string): void {
   seed(chat)
   closeHome()
-  go(`/${focusedId}`)
+  go(chat === 'empty' ? '/' : `/${focusedId}`)
 }
 
 function applyPage(page: FixturePage): void {

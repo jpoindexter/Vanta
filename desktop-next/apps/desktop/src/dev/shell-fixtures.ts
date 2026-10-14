@@ -14,9 +14,13 @@ import { seedClarify } from '@/dev/chat-fixtures/prompts'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { clearApprovalRequest, setApprovalRequest } from '@/store/prompts'
-import { $pinnedSessionIds } from '@/store/layout'
+import { $pinnedSessionIds, setSidebarSessionOrderIds, setSidebarSessionOrderManual } from '@/store/layout'
+import { latchSessionGone } from '@/store/session-gone-latch'
 import {
   $activeSessionId,
+  $currentCwd,
+  $currentModel,
+  $currentProvider,
   $gatewayState,
   $selectedStoredSessionId,
   $sessions,
@@ -50,10 +54,13 @@ const SEEDS: readonly Seed[] = [
 ]
 
 const FOCUSED = 's1'
+/** The model the composer pill names ("Sonnet 5.5"). */
+const MODEL = 'claude-sonnet-5-5'
+const PROVIDER = 'anthropic'
 const runtimeId = (id: string) => `rt-${id}`
 const nowSeconds = () => Date.now() / 1000
 
-function sessionRow(seed: Seed): SessionInfo {
+function sessionRow(seed: Seed, empty: boolean): SessionInfo {
   const at = nowSeconds() - seed.ageSeconds
 
   return {
@@ -64,7 +71,8 @@ function sessionRow(seed: Seed): SessionInfo {
     input_tokens: 0,
     is_active: seed.status === 'running',
     last_active: at,
-    message_count: 4,
+    // A chat the list says has history keeps the loader up until a transcript arrives; the empty chat has none.
+    message_count: empty && seed.id === FOCUSED ? 0 : 4,
     model: null,
     output_tokens: 0,
     pinned: seed.pinned === true,
@@ -114,6 +122,9 @@ function runtimeState(seed: Seed, status: Status, name: ShellFixtureName) {
 
   return {
     ...state,
+    cwd: `/work/${seed.project}`,
+    model: MODEL,
+    provider: PROVIDER,
     busy: status === 'running',
     needsInput: status === 'waiting' || status === 'blocked',
     turnLive: status === 'running',
@@ -136,9 +147,18 @@ export function applyShellFixture(name: ShellFixtureName): void {
 
   $sessionsLoading.set(false)
   $sessionsLoadError.set(false)
-  $sessions.set(SEEDS.map(sessionRow))
+  $sessions.set(SEEDS.map(seed => sessionRow(seed, name === 'empty')))
+  // The wireframe lists chats in authoring order, not by recency.
+  setSidebarSessionOrderIds(SEEDS.map(seed => seed.id))
+  setSidebarSessionOrderManual(true)
+  // No project folder, so the new chat has no git branch row above its composer.
+  $currentCwd.set(name === 'empty' ? '' : `/work/${SEEDS[0].project}`)
+  $currentModel.set(MODEL)
+  $currentProvider.set(PROVIDER)
   $pinnedSessionIds.set(SEEDS.filter(seed => seed.pinned).map(seed => seed.id))
   $sessionStates.set(states)
+  // The backend has never heard of the focused chat; latching it gone stops the session-controls poll from reporting that.
+  latchSessionGone(runtimeId(FOCUSED))
   clearApprovalRequest()
 
   for (const id of Object.keys(approvals)) {
@@ -151,8 +171,9 @@ export function applyShellFixture(name: ShellFixtureName): void {
   }
 
   seedClarify({ flags: new Set(), state: name, theme: 'light', width: 1440 }, runtimeId(FOCUSED))
-  $activeSessionId.set(runtimeId(FOCUSED))
-  $selectedStoredSessionId.set(FOCUSED)
+  // The empty state is a new chat: nothing selected, no runtime yet.
+  $activeSessionId.set(name === 'empty' ? null : runtimeId(FOCUSED))
+  $selectedStoredSessionId.set(name === 'empty' ? null : FOCUSED)
   $gatewayState.set(name === 'offline' ? 'closed' : 'open')
 }
 

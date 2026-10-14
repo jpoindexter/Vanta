@@ -3,13 +3,14 @@
 //
 //   node tools/parity/dom-outline.mjs --state w1440.chat-waiting --root "[data-vanta-titlebar];aside" [--depth 6] [--box]
 //   --root takes several selectors separated by ;
+//   --eval "<js expression>" prints its JSON result instead (e.g. computed styles)
 import path from "node:path";
 import { enterState } from "./runner.mjs";
 import { openTarget, prepareMap } from "./targets.mjs";
 import { DESKTOP_NEXT, PARITY_DOCS, parseArgs, rejectUnknown } from "./io.mjs";
 import { SelectorMap, Spec, loadJson } from "./schemas.mjs";
 
-const KNOWN = ["state", "root", "depth", "box"];
+const KNOWN = ["state", "root", "depth", "box", "eval"];
 
 /** Serialised into the page: no imports, no closures. */
 function outline({ rootSel, depth, box }) {
@@ -51,7 +52,8 @@ async function main() {
   try {
     const entered = await enterState({ target, map: appMap, state: { id: args.state, ...state }, options: { vars: {}, settleMs: 400 } });
     if (!entered.ok) throw new Error(entered.reason);
-    console.log(await target.page.evaluate(outline, { rootSel: args.root ?? "body", depth: Number(args.depth ?? 6), box: Boolean(args.box) }));
+    if (args.eval) console.log(JSON.stringify(await target.page.evaluate(args.eval), null, 1));
+    else console.log(await target.page.evaluate(outline, { rootSel: args.root ?? "body", depth: Number(args.depth ?? 6), box: Boolean(args.box) }));
   } finally {
     await target.close();
   }

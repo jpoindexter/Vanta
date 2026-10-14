@@ -3379,7 +3379,7 @@ export const en: Translations = {
   },
 
   composer: {
-    message: 'Message',
+    message: 'Message Vanta',
     wakingProfile: profile => `Waking up ${profile}…`,
     placeholderStarting: 'Starting Vanta...',
     placeholderReconnecting: 'Reconnecting to Vanta…',

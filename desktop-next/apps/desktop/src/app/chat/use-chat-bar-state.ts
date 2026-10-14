@@ -77,7 +77,7 @@ export function useChatBarState({
       },
       tools: {
         enabled: true,
-        label: 'Add context',
+        label: 'Attach',
         suggestions: contextSuggestions
       },
       voice: {

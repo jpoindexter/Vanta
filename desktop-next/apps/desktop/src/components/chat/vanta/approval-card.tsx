@@ -63,7 +63,7 @@ export function alwaysNote(approval: ApprovalPayload, projectName?: string): str
 /** The button names exactly the rule that gets saved: the tool, in this project. */
 export function alwaysLabel(approval: ApprovalPayload): string {
   return approval.request?.kind === 'bash'
-    ? 'Always allow shell commands in this project'
+    ? 'Always allow shell commands'
     : `Always allow ${toolOf(approval)} in this project`
 }
 

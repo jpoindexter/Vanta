@@ -134,7 +134,9 @@ export const Deviation = z
     props: z.array(z.string()).min(1),
     keys: z.array(z.string()).optional(),
     states: z.array(z.string()).optional(),
-    transform: z.enum(["stripGlyphs", "ignore"]),
+    transform: z.enum(["stripGlyphs", "ignore", "shift"]),
+    /** With transform "shift": the constant offset (px) the app adds to the wireframe value of each listed numeric prop. */
+    shift: z.record(z.string(), z.number()).optional(),
     /** The wireframe element has no counterpart in the app. Covered keys need no locator; their rows are ALLOWED. */
     na: z.boolean().optional(),
     /** Wireframe strings declared absent from the app (with `reason`); they are not counted as missing. */

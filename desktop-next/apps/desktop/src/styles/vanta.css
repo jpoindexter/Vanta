@@ -53,9 +53,9 @@
   --shadow-composer: none;
   --dt-input-inset: none;
 
-  /* Type: UI 14/20, chat body 15/24, captions 13/18, tool and meta rows 12. */
-  --conversation-text-base-size: 0.9375rem;
-  --conversation-base-line-height: 1.5rem;
+  /* Type: UI 14/20, chat body 14/20.3 (the wireframe's 14px at 1.45), captions 13/18, tool and meta rows 12. */
+  --conversation-text-base-size: 0.875rem;
+  --conversation-base-line-height: 1.26875rem;
   --conversation-caption-base-size: 0.8125rem;
   --conversation-caption-base-line-height: 1.125rem;
   --conversation-tool-base-size: 0.75rem;

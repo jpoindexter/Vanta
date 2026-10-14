@@ -148,7 +148,7 @@ export default function FixtureHost({ children }: { children: ReactNode }) {
   return (
     <>
       <div className="flex h-full min-h-0 w-full min-w-0">
-        <div className="relative h-full min-h-0 min-w-0 flex-1">
+        <div className="relative h-full min-h-0 min-w-0 flex-1" data-fixture-main="">
           {layers.page ? (
             <div className="vp-scroll vp h-full overflow-auto">
               <Page page={layers.page} />

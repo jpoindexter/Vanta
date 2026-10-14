@@ -255,7 +255,7 @@ describe('PendingApprovalStack', () => {
     setRequest('chmod -R 777 /tmp/x')
     render(<PendingApprovalStack />)
 
-    expect(screen.getByRole('button', { name: 'Always allow shell commands in this project' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Always allow shell commands' })).toBeTruthy()
     expect(screen.getByText(/Always covers every shell command Vanta runs in this project/)).toBeTruthy()
   })
 
@@ -292,7 +292,7 @@ describe('PendingApprovalStack', () => {
     setRequest('npm test', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
     render(<PendingApprovalStack />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Always allow shell commands in this project' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Always allow shell commands' }))
 
     await waitFor(() => expect(respond).toHaveBeenCalledWith({ choice: 'always' }))
   })

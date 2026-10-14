@@ -96,3 +96,11 @@ test("copy declared absent is not counted as missing and makes the row ALLOWED",
   assert.equal(r.declared, 1);
   assert.equal(r.found, 1);
 });
+
+test("a shift deviation excuses a constant offset and still fails a different one", () => {
+  const dev = [{ id: "bar", reason: "x", props: ["y"], transform: "shift", shift: { y: 28 } }];
+  const expected = el({ y: 100 });
+  assert.equal(compareElement({ expected, actual: el({ y: 128 }), tol: DEFAULT_TOL, ctx: ctx(dev) }).status, "ALLOWED");
+  assert.equal(compareElement({ expected, actual: el({ y: 135 }), tol: DEFAULT_TOL, ctx: ctx(dev) }).status, "FAIL");
+  assert.equal(compareElement({ expected, actual: el({ y: 128 }), tol: DEFAULT_TOL, ctx: ctx([]) }).status, "FAIL");
+});
