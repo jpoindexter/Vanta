@@ -1,0 +1,10 @@
+{
+  "again": {
+    "outcome": "finished",
+    "wrote": false,
+    "toolResults": [
+      "blocked: plan mode is active — read-only tools only. Leave plan mode or run /planmode approve to proceed."
+    ]
+  },
+  "savedAfterRestart": "plan"
+}
