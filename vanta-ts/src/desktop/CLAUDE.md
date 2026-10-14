@@ -112,6 +112,8 @@ Model. A *ticket* (`<project>/.vanta/tickets.json`) and its *task* (`~/.vanta/te
 | `work-products/approve` | `workProductId` | Approves the artifact and the ticket's `owner-review` stage; closes the ticket when nothing else blocks it. Idempotent |
 | `work-products/revise` | `workProductId, reason` | Rejects the stage, logs the revision and re-runs the producing task; the re-run updates the same work product. 409 if the ticket is already done |
 | `budgets/raise` | `scope, limitUsd` | **Needs fresh owner approval.** Never lowers (a lower or equal limit is a no-op). Journaled in the company activity log with before and after; not written to config-revisions (that file is `.env` history) |
+| `okrs/create` | `title, departmentId?, keyResults?[{name, target, current?=0}]` | Writes `~/.vanta/okrs.json`. Unknown `departmentId` answers 400. A repeated title gets its own id (`grow-2`). Journaled as `okr.created` |
+| `okrs/progress` | `objectiveId, name, current, target?` | Sets one key result's current value; `target` is required only to add a key result that does not exist yet (400 otherwise). 404 for an unknown objective. Journaled as `okr.progress` |
 | `tick` | `{}` | One `COFOUNDER-CADENCE-LOOP` beat; dispatch also starts the worker run. `warnings[]` explains an empty tick (no departments, no visible kernel goals) |
 
 Replies are `{ changed, ... }` plus the updated object. Errors are `{ "error": "..." }` with 400 (invalid), 403 (declined), 404 (unknown id), 409 (state conflict, pending approval, gate refusal), 503 (no worker runtime).
