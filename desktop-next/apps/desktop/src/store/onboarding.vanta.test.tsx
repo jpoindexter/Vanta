@@ -129,7 +129,8 @@ describe('first run with no model provider', () => {
     await refreshOnboarding(ctx)
 
     expect($desktopOnboarding.get()).toMatchObject({ configured: false, mode: 'apikey', providers: [] })
-    expect($desktopOnboarding.get().reason).toContain('is not set')
+    // Said in the app's words, not as the server's terminal instruction (`vanta setup`).
+    expect($desktopOnboarding.get().reason).toBe('No inference provider is configured.')
 
     render(<Picker ctx={ctx} />)
 
