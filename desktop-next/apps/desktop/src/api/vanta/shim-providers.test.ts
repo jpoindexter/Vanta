@@ -56,7 +56,7 @@ describe('provider keys over the env routes', () => {
     expect(Object.keys(env)).toEqual(['OPENAI_API_KEY', 'ANTHROPIC_API_KEY'])
     expect(env.OPENAI_API_KEY).toMatchObject({ is_set: false, provider: 'openai', redacted_value: null })
     expect(env.ANTHROPIC_API_KEY).toMatchObject({ is_set: true, provider: 'anthropic' })
-    expect(env.ANTHROPIC_API_KEY.redacted_value).toMatch(/^•+$/)
+    expect(env.ANTHROPIC_API_KEY?.redacted_value).toMatch(/^•+$/)
   })
 
   it('saves a key by connecting that provider through the setup route', async () => {

@@ -56,7 +56,7 @@ export const usageSchema = z.looseObject({
 export const chatResultSchema = z.looseObject({
   finalText: z.string().default(''),
   interrupted: z.boolean().optional(),
-  receipt: z.looseObject({ status: z.string().optional() }).optional(),
+  receipt: z.looseObject({ failureKind: z.string().optional(), status: z.string().optional() }).optional(),
   sessionId: z.string().optional(),
   usage: usageSchema.optional()
 })

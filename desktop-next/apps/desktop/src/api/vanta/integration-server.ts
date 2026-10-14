@@ -26,7 +26,8 @@ const TEST_ENV = {
   VANTA_PERMISSION_MODE: 'default',
   VANTA_PROVIDER: 'ollama'
 }
-const ENV_KEYS = ['VANTA_HOME', ...Object.keys(TEST_ENV)]
+// VANTA_MODEL: a provider setup (the reconnect path) writes it into the process environment.
+const ENV_KEYS = ['VANTA_HOME', 'VANTA_MODEL', ...Object.keys(TEST_ENV)]
 const savedEnv = new Map<string, string | undefined>()
 
 /** Put back the environment startRealServer changed. Call from afterAll. */
@@ -70,7 +71,7 @@ const SAFETY = {
 
 type RegistryCtor = new () => { register: (tool: unknown) => void }
 
-async function seedFor(): Promise<(state: Json) => Json> {
+async function seedFor(options: { expiredKey?: boolean }): Promise<(state: Json) => Json> {
   const { ToolRegistry } = (await import(/* @vite-ignore */ moduleUrl('src/tools/registry.ts'))) as {
     ToolRegistry: RegistryCtor
   }
@@ -78,20 +79,27 @@ async function seedFor(): Promise<(state: Json) => Json> {
     editFileTool: unknown
   }
 
-  return state => {
+  const fresh = (revoked: boolean) => {
     const registry = new ToolRegistry()
     registry.register(editFileTool)
 
-    return Object.assign(state, {
-      accessMode: 'ask',
-      setup: {
-        goals: [],
-        provider: scriptedProvider(),
-        registry,
-        safety: SAFETY,
-        systemPrompt: 'You are a test model.'
+    return { goals: [], provider: scriptedProvider({ revoked }), registry, safety: SAFETY, systemPrompt: 'You are a test model.' }
+  }
+
+  return state => {
+    // A provider setup clears `state.setup` so the server prepares a new one (needs the Rust kernel, absent in tests).
+    // Here the clear is answered with a working provider: the model after a successful reconnect.
+    let current: Json | undefined = fresh(options.expiredKey === true)
+    Object.defineProperty(state, 'setup', {
+      configurable: true,
+      enumerable: true,
+      get: () => current,
+      set: (value: Json | undefined) => {
+        current = value === undefined ? fresh(false) : value
       }
     })
+
+    return Object.assign(state, { accessMode: 'ask' })
   }
 }
 
@@ -99,7 +107,9 @@ async function seedFor(): Promise<(state: Json) => Json> {
  * Start the real server. `home` is VANTA_HOME (sessions, remembered approvals); pass the same one to a
  * second call to model an app restart that keeps the user's saved choices.
  */
-export async function startRealServer(options: { home?: string; projectRoot?: string } = {}): Promise<RealServer> {
+export async function startRealServer(
+  options: { expiredKey?: boolean; home?: string; projectRoot?: string } = {}
+): Promise<RealServer> {
   const home = options.home ?? (await mkdtemp(path.join(tmpdir(), 'vanta-int-home-')))
   const projectRoot = options.projectRoot ?? (await mkdtemp(path.join(tmpdir(), 'vanta-int-project-')))
 
@@ -111,7 +121,7 @@ export async function startRealServer(options: { home?: string; projectRoot?: st
   }
 
   await mkdir(projectRoot, { recursive: true })
-  const seed = await seedFor()
+  const seed = await seedFor(options)
 
   // Every new per-chat client id gets a runnable conversation, exactly where getSession() would create an empty one.
   class SeededSessions extends Map<string, Json> {

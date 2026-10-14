@@ -219,6 +219,13 @@ export function isApiKeyRejectedSurface(surface: ErrorSurface | null | undefined
   return surface?.layer === 'auth' && surface.authKind === 'api_key'
 }
 
+/** Vanta's own descriptor for a provider that refused the saved key (the gateway stamps `code: provider_auth`). */
+export const PROVIDER_AUTH_CODE = 'provider_auth'
+
+export function isProviderAuthSurface(surface: ErrorSurface | null | undefined): surface is ErrorSurface {
+  return surface?.layer === 'auth' && surface.code === PROVIDER_AUTH_CODE
+}
+
 /** Which copy entry the error card (and the matching toast) should read:
  *  the code table when the code is one we have words for, else the layer
  *  table, else `generic` (no descriptor — older backend). One resolver so the
@@ -252,6 +259,8 @@ export interface ErrorRecoveryPlan {
   openHermesFolder: boolean
   /** Settings → Keys deep link (auth, api_key). */
   updateApiKey: boolean
+  /** Vanta's own: the provider refused the saved key and the request is saved, so a new key resumes it. */
+  reconnect: boolean
   /** Re-run the provider's OAuth sign-in (auth, oauth). */
   signInAgain: boolean
   /** Open the free-tier sign-in dialog (free_tier_* codes): signing in is free and lifts the refusal. */
@@ -297,7 +306,9 @@ export function errorRecoveryPlan(surface: ErrorSurface | null | undefined): Err
     signInFreeTier: isFreeTierSurface(surface),
     startNewSession: false,
     switchProvider: surface != null && SWITCH_PROVIDER_LAYERS.includes(surface.layer),
-    updateApiKey: apiKeyRejected
+    // Reconnect replaces the Settings link: it takes the key here and resumes the request.
+    reconnect: isProviderAuthSurface(surface),
+    updateApiKey: apiKeyRejected && !isProviderAuthSurface(surface)
   }
 
   const key = errorCardKey(surface)

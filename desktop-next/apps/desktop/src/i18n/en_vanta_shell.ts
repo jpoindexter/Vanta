@@ -73,5 +73,20 @@ export const enVantaShell = {
   offline: {
     banner: 'Offline. Messages queue until Vanta reconnects.',
     retry: 'Retry now'
+  },
+  reconnect: {
+    action: 'Reconnect model',
+    title: (provider: string) => `Reconnect ${provider}`,
+    body: 'Your request is saved. Enter a new key and Vanta resumes it.',
+    keyLabel: 'API key',
+    keyEnvHint: (env: string) => `Saved as ${env} on this computer. Vanta does not show it again.`,
+    keylessBody: (provider: string) => `${provider} needs no key. Make sure it is running, then resume.`,
+    confirm: 'Reconnect and resume',
+    resume: 'Resume',
+    busy: 'Reconnecting',
+    cancel: 'Cancel',
+    missingKey: 'Enter the new key first.',
+    noKeyRoute: 'Vanta could not find where to save a key for this provider. Open Settings > Providers.',
+    failed: 'Could not reconnect.'
   }
 } satisfies Translations['vantaShell']

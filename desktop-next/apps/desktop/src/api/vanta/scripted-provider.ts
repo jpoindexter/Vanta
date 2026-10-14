@@ -41,8 +41,9 @@ async function* greet() {
 /**
  * A scripted stand-in for the model, chosen by the latest user message: "edit <file>" asks to edit that file,
  * "hang ..." streams a word and then waits to be stopped, anything else greets. After a tool result it wraps up.
+ * `revoked` makes it refuse every call like a provider whose key was revoked.
  */
-export function scriptedProvider() {
+export function scriptedProvider(options: { revoked?: boolean } = {}) {
   return {
     contextWindow: () => 100_000,
     modelId: () => 'stub-model',
@@ -50,6 +51,9 @@ export function scriptedProvider() {
       return { finishReason: 'stop', text: 'stub', toolCalls: [] }
     },
     stream(messages: Message[], _tools: unknown, config?: { signal?: AbortSignal }) {
+      // A key the provider has since revoked: every call is refused with the 401 a real provider sends.
+      if (options.revoked) throw Object.assign(new Error('401 Incorrect API key provided'), { status: 401 })
+
       const prompt = String([...messages].reverse().find(m => m.role === 'user')?.content ?? '')
       const edit = /^edit (\S+)/.exec(prompt)
 
