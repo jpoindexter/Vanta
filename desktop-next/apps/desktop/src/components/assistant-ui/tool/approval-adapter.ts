@@ -17,8 +17,27 @@ export const CHOICE_FOR_DECISION: Record<ApprovalDecision, ApprovalChoice> = {
 // change lives in `description`.
 const SYNTHETIC_COMMAND_RE = /^<[^>]+> \(/
 
-/** Present a gateway approval request in the shape of the server's approval payload. */
-export function approvalPayload(request: ApprovalRequest, canRemember: boolean): ApprovalPayload {
+/** The server's own exact-action request, with Always capped by what the gateway honors for this prompt. */
+function serverPayload(request: ApprovalRequest, canRemember: boolean): ApprovalPayload | null {
+  const sent = request.request
+
+  if (!sent) {
+    return null
+  }
+
+  const subject = sent.subject || request.command.trim()
+
+  return {
+    action: subject,
+    id: request.requestId ?? 'legacy',
+    reason: sent.reason || request.description.trim(),
+    request: { ...sent, canRemember: sent.canRemember === true && canRemember, subject },
+    toolName: sent.toolName ?? request.toolName
+  }
+}
+
+/** A Hermes-shaped prompt: only a command and a description, so a command is treated as shell. */
+function legacyPayload(request: ApprovalRequest, canRemember: boolean): ApprovalPayload {
   const command = request.command.trim()
   const description = request.description.trim()
   const isCommand = command.length > 0 && !SYNTHETIC_COMMAND_RE.test(command)
@@ -39,4 +58,9 @@ export function approvalPayload(request: ApprovalRequest, canRemember: boolean):
     },
     toolName: canRemember ? 'terminal' : undefined
   }
+}
+
+/** Present a gateway approval request in the shape of the server's approval payload. */
+export function approvalPayload(request: ApprovalRequest, canRemember: boolean): ApprovalPayload {
+  return serverPayload(request, canRemember) ?? legacyPayload(request, canRemember)
 }
