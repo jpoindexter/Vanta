@@ -15,6 +15,7 @@ import {
 } from '@/store/prompts'
 import { hasOpenServerRequest, rememberServerRequest, resetServerRequestsForTests } from '@/store/server-requests'
 import { $activeSessionId } from '@/store/session'
+import { $vantaToast, clearVantaToast } from '@/store/vanta-toast'
 import { stubMenuDomApis, stubResizeObserver } from '@/test/jsdom'
 
 import { PendingApprovalStack } from './approval'
@@ -295,6 +296,32 @@ describe('PendingApprovalStack', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Always allow shell commands' }))
 
     await waitFor(() => expect(respond).toHaveBeenCalledWith({ choice: 'always' }))
+  })
+
+  it('confirms a saved Always allow with a toast that names the rule', async () => {
+    clearVantaToast()
+    liveApproval()
+    mockGateway()
+    setRequest('npm test', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
+    render(<PendingApprovalStack />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Always allow shell commands' }))
+
+    await waitFor(() => expect($vantaToast.get()).toMatch(/^Saved: always allow shell commands in .*Manage in Settings\.$/))
+    clearVantaToast()
+  })
+
+  it('shows no toast for Allow once', async () => {
+    clearVantaToast()
+    const respond = liveApproval()
+    mockGateway()
+    setRequest('npm test', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
+    render(<PendingApprovalStack />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Allow once/ }))
+
+    await waitFor(() => expect(respond).toHaveBeenCalledWith({ choice: 'once' }))
+    expect($vantaToast.get()).toBe('')
   })
 
   it('keeps a failed request in front and releases held Enter until the user retries', async () => {
