@@ -88,7 +88,8 @@ async function runPath(how) {
   const running = await waitForListening(mainPid, box, 90_000);
   const kernelFile = await waitForKernelFile(box, 5000);
   const runDir = path.join(box.env.VANTA_HOME, "run");
-  const pidFilesWhileRunning = fs.existsSync(runDir) ? fs.readdirSync(runDir) : [];
+  const listRunDir = () => (fs.existsSync(runDir) ? fs.readdirSync(runDir) : []);
+  const pidFilesWhileRunning = listRunDir();
   const started = Date.now();
   await endApp(app, how).catch(() => undefined);
   let after = census(mainPid, box);
@@ -96,9 +97,10 @@ async function runPath(how) {
     await sleep(250);
     after = census(mainPid, box);
   }
+  const pidFilesAfter = listRunDir();
   const result = {
     exitPath: how, appPath: appPath.replace(process.env.HOME ?? "", "~"), running: tally(running), runningTotal: running.length,
-    pidFileWritten: Boolean(kernelFile), pidFilesWhileRunning, afterSeconds: Number(((Date.now() - started) / 1000).toFixed(1)),
+    pidFileWritten: Boolean(kernelFile), pidFilesWhileRunning, pidFilesAfter, pidFileGoneAfter: pidFilesAfter.length === 0, afterSeconds: Number(((Date.now() - started) / 1000).toFixed(1)),
     after: tally(after), afterTotal: after.length,
   };
   killAll(after);

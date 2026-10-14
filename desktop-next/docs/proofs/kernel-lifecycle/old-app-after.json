@@ -1,0 +1,58 @@
+{
+  "app": "vanta-ts/desktop-app/electron/main.mjs",
+  "results": [
+    {
+      "exitPath": "smoke",
+      "running": {
+        "electron-main": 2,
+        "electron-helper": 2,
+        "runtime": 1,
+        "kernel-guard": 1
+      },
+      "runningTotal": 6,
+      "pidFilesWhileRunning": [
+        "kernel-58887.json"
+      ],
+      "pidFilesAfter": [],
+      "afterSeconds": 0.1,
+      "after": {},
+      "afterTotal": 0
+    },
+    {
+      "exitPath": "sigterm",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel-guard": 1,
+        "kernel": 1
+      },
+      "runningTotal": 7,
+      "pidFilesWhileRunning": [
+        "kernel-58916.json"
+      ],
+      "pidFilesAfter": [],
+      "afterSeconds": 0.4,
+      "after": {},
+      "afterTotal": 0
+    },
+    {
+      "exitPath": "sigkill",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel-guard": 1,
+        "kernel": 1
+      },
+      "runningTotal": 7,
+      "pidFilesWhileRunning": [
+        "kernel-58936.json"
+      ],
+      "pidFilesAfter": [],
+      "afterSeconds": 0.7,
+      "after": {},
+      "afterTotal": 0
+    }
+  ]
+}
