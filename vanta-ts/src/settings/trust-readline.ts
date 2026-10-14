@@ -2,6 +2,7 @@ import type { Interface as Readline } from "node:readline/promises";
 import type { TrustConfirmer } from "./trust-gate.js";
 import type { TrustRequest } from "../ui/trust-dialog.js";
 import { fileSummary, previewBody, trustTitle } from "../ui/trust-dialog.js";
+import { unpinnedNote } from "../mcp/package-spec.js";
 
 // Readline-host trust confirmer for the non-Ink REPL fallback (resume / --no-tui /
 // non-TTY). The project default lists context-file names + line counts (not the
@@ -29,7 +30,9 @@ function mcpSummary(req: Extract<TrustRequest, { kind: "mcp" }>): string {
     const allowlist = req.tools.length > 0
       ? `\nDeclared tool allowlist: ${req.tools.map((tool) => tool.name).join(", ")}`
       : "\nTools will be inspected only after trust.";
-    return `This server must launch before its tool inventory can be inspected:\n  · ${target}${allowlist}`;
+    const unpinned = req.launch.command ? unpinnedNote(req.launch.command, req.launch.args ?? []) : null;
+    const warning = unpinned ? `\n  ⚠ ${unpinned}` : "";
+    return `This server must launch before its tool inventory can be inspected:\n  · ${target}${warning}${allowlist}`;
   }
   const shown = req.tools.slice(0, PREVIEW_TOOLS);
   const lines = shown.map((t) => `  · ${t.name}${t.description ? ` — ${t.description}` : ""}`);

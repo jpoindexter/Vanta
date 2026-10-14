@@ -1,5 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
+import { unpinnedNote } from "../mcp/package-spec.js";
 
 // First-time trust gate. Before a project's CLAUDE.md/VANTA.md context loads, or
 // before a new MCP server's tools mount, the operator confirms trust. The
@@ -87,10 +88,12 @@ function McpBody(props: { req: Extract<TrustRequest, { kind: "mcp" }> }): ReactE
   const shown = tools.slice(0, PREVIEW_TOOLS);
   if (launch) {
     const target = launch.url ?? [launch.command, ...(launch.args ?? [])].filter(Boolean).join(" ");
+    const unpinned = launch.command ? unpinnedNote(launch.command, launch.args ?? []) : null;
     return (
       <Box flexDirection="column">
         <Text dimColor>This server must launch before its tool inventory can be inspected:</Text>
         <Text bold>· {target}</Text>
+        {unpinned ? <Text color="yellow">{unpinned}</Text> : null}
         {tools.length > 0
           ? <Text dimColor>Declared tool allowlist: {tools.map((tool) => tool.name).join(", ")}</Text>
           : <Text dimColor>Tools will be inspected only after trust.</Text>}

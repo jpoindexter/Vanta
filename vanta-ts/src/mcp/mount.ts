@@ -26,6 +26,8 @@ import {
   type EffectGateContext,
 } from "../effects/execute-effect.js";
 import { applyMcpToolPolicy, mcpTrustDecisionKey } from "./tool-policy.js";
+import { guardLaunch } from "./package-guard.js";
+import { unpinnedNote } from "./package-spec.js";
 
 // Mount external MCP servers as Vanta tools. Config parsing + tool mapping are
 // pure helpers in mount-config.ts (re-exported below); this file owns the live
@@ -156,13 +158,28 @@ async function launchConfiguredMcp(opts: MountServerOptions) {
   return unwrapMcpLaunch(name, launched);
 }
 
+/** Runs BEFORE the trust prompt: a denied package is never offered for approval, so no remembered decision can cover it. */
+function refuseDeniedPackage(opts: MountServerOptions): void {
+  const { spec, cwd, env } = opts;
+  if (!spec.command) return;
+  const guard = guardLaunch(spec.command, resolveMcpStdioArgs(spec, cwd), env);
+  if (!guard.ok) throw new Error(guard.error);
+}
+
+function logLaunchAdvisories(opts: MountServerOptions): void {
+  const { name, spec, log } = opts;
+  if (!spec.command) return;
+  const unpinned = unpinnedNote(spec.command, spec.args ?? []);
+  if (unpinned) log(`  ⚠ mcp: "${name}" — ${unpinned}`);
+  const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
+  if (risk.risky) log(formatEgressWarning(name, risk.reason));
+}
+
 async function mountOneServer(opts: MountServerOptions): Promise<number> {
   const { name, spec, registry, deferred, log } = opts;
+  refuseDeniedPackage(opts);
   if (!(await confirmMcpTrust(opts))) return 0;
-  if (spec.command) {
-    const risk = detectMcpEgressRisk(spec.command, spec.args ?? []);
-    if (risk.risky) log(formatEgressWarning(name, risk.reason));
-  }
+  logLaunchAdvisories(opts);
   const { client, defs } = await launchConfiguredMcp(opts);
   const mountDefs = applyMcpToolPolicy(defs, spec.tools);
   for (const def of mountDefs) registry.register(mcpToolToVantaTool(client, name, def, { deferred }));
