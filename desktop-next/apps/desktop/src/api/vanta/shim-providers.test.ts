@@ -76,7 +76,7 @@ describe('provider keys over the env routes', () => {
     const before = $setupReadyTick.get()
     const refused = makeServer({ 'POST /api/setup': new Error('400: {"error":"placeholder"}') })
 
-    await vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: 'sk-secret' }, method: 'PUT', path: '/api/env' }, refused.send).catch(() => undefined)
+    await Promise.resolve(vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: 'sk-secret' }, method: 'PUT', path: '/api/env' }, refused.send)).catch(() => undefined)
     expect($setupReadyTick.get()).toBe(before)
 
     await vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: KEY }, method: 'PUT', path: '/api/env' }, makeServer().send)
@@ -101,7 +101,7 @@ describe('provider keys over the env routes', () => {
   it('removes the key from any server message before the page sees it', async () => {
     const { send } = makeServer({ 'POST /api/setup': new Error(`400: ${JSON.stringify({ error: `Could not verify OpenAI credentials: bad key ${KEY}` })}`) })
 
-    const failure = await vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: KEY }, method: 'PUT', path: '/api/env' }, send).catch(error => error as Error)
+    const failure = await Promise.resolve(vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: KEY }, method: 'PUT', path: '/api/env' }, send)).catch(error => error as Error)
 
     expect(failure).toBeInstanceOf(Error)
     expect((failure as Error).message).toContain('Could not verify OpenAI credentials')
