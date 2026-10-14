@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import type http from "node:http";
-import { access, mkdtemp, readFile, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +12,8 @@ import type { DesktopAccessMode } from "./access-mode.js";
 import type { RunSetup } from "../session.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { InMemoryToolRegistry } from "../tools/registry.js";
+import { editFileTool } from "../tools/edit-file.js";
+import { grantAlways } from "../permissions/grant.js";
 import { writeFileTool } from "../tools/write-file.js";
 
 const roots: string[] = [];
@@ -83,6 +85,24 @@ describe("desktop access mode is enforced by the server", () => {
     expect(execute).not.toHaveBeenCalled();
     expect(asked).toBe(0);
     expect(await exists(join(root, "probe.md"))).toBe(false);
+  });
+
+  it("Plan refuses edit_file even when an Always rule is saved for it", async () => {
+    const { state, root, registry, safety } = await openState("ask");
+    const edit = vi.fn(editFileTool.execute);
+    registry.register({ ...editFileTool, execute: edit });
+    await writeFile(join(root, "notes.md"), "before");
+    await grantAlways("edit_file", process.env, root);
+    let round = 0;
+    const provider = { ...scriptedProvider(), complete: async () => (++round === 1
+      ? { text: "", finishReason: "tool_calls", toolCalls: [{ id: "e1", name: "edit_file", arguments: { path: "notes.md", old_string: "before", new_string: "after" } }] }
+      : { text: "done", toolCalls: [], finishReason: "stop" }) };
+    const setup = { registry, provider, safety, goals: [], systemPrompt: "system" } as unknown as RunSetup;
+    attachConversation(state, setup);
+    await call(state, "POST", { mode: "plan" });
+    await turn(state);
+    expect(edit).not.toHaveBeenCalled();
+    expect(await readFile(join(root, "notes.md"), "utf8")).toBe("before");
   });
 
   it("Manual asks before the write tool runs, and a declined ask leaves the file unwritten", async () => {

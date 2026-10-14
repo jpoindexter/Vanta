@@ -6,7 +6,6 @@
 export const PLAN_MODE_ALLOWED_TOOLS = new Set([
   "apple_mail_audit",
   "read_file",
-  "edit_file",      // read-path is safe; write-path is blocked by this gate upstream
   "grep_files",
   "glob_files",
   "job_profile_scan",

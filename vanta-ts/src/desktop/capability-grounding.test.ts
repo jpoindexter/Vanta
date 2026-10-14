@@ -62,7 +62,7 @@ describe("capability catalog through real Desktop HTTP and slash routes", () => 
     vi.stubEnv("VANTA_OPERATING_MODE", "plan");
     for (const mode of ["ask", "approve", "auto", "full", "plan"]) {
       await request("/api/access-mode", mode);
-      const expected = mode === "plan" ? ["read_file", "grep_files", "edit_file"] : registered;
+      const expected = mode === "plan" ? ["read_file", "grep_files"] : registered;
       expect(await capabilityNames()).toEqual([...expected].sort());
       const gallery = await whatCanIDo("", { setup: state.setup, convo: state.convo, state: { planApproved: false } } as ReplCtx);
       expect(gallery.output).toContain(`Callable tool routes: ${expected.join(", ")}.`);
