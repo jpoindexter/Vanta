@@ -199,9 +199,21 @@ export function ambientOwnerConnectionId(): string | undefined {
  *  underneath it. (It used to omit the key for 'local', which made the pin
  *  unable to beat the ambient tag; helpers then had to bypass this wrapper.) */
 export function hermesApi<T>(request: HermesApiRequest): Promise<T> {
-  const send = (call: HermesApiRequest) => window.hermesDesktop.api<unknown>({ ...connectionScoped(), ...call })
+  return viaShim<T>(request, (call: HermesApiRequest) => window.hermesDesktop.api<unknown>({ ...connectionScoped(), ...call }))
+}
 
-  // Only the Vanta shell (preload exposes `vantaDesktop`) serves sessions and profiles from /api/sessions.
+/**
+ * `hermesApi` without the ambient connection tag, for the helpers that always pinned their own scope and
+ * called the bridge directly. They get the same Vanta shim, so a path Vanta serves differently is mapped
+ * wherever it is called from.
+ */
+export function rawApi<T>(request: HermesApiRequest): Promise<T> {
+  return viaShim<T>(request, (call: HermesApiRequest) => window.hermesDesktop.api<unknown>(call))
+}
+
+// Only the Vanta shell (preload exposes `vantaDesktop`) serves sessions, profiles, config and model settings
+// from what the Vanta server has; every other path passes through.
+function viaShim<T>(request: HermesApiRequest, send: (call: HermesApiRequest) => Promise<unknown>): Promise<T> {
   const shimmed = typeof window.vantaDesktop === 'undefined' ? null : vantaRestShim(request, send)
 
   return (shimmed ?? send(request)) as Promise<T>

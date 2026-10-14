@@ -23,11 +23,15 @@ export interface WindowHostOptions {
   preloadPath: string
 }
 
-/** Security posture shared by every window: isolated, sandboxed, no Node, no webview. */
+/**
+ * Security posture shared by every window: isolated, sandboxed, no Node. A window hosts `<webview>` guests
+ * only when it asks to (the main window, for the Browser pane), and then only through the webview guard.
+ */
 export function secureWebPreferences(
-  preloadPath: string
+  preloadPath: string,
+  { webviewTag = false }: { webviewTag?: boolean } = {}
 ): NonNullable<BrowserWindowConstructorOptions['webPreferences']> {
-  return { contextIsolation: true, nodeIntegration: false, preload: preloadPath, sandbox: true, webviewTag: false }
+  return { contextIsolation: true, nodeIntegration: false, preload: preloadPath, sandbox: true, webviewTag }
 }
 
 export function createMainWindow(options: WindowHostOptions): BrowserWindow {
@@ -48,7 +52,7 @@ export function createMainWindow(options: WindowHostOptions): BrowserWindow {
             titlebarHeight: TITLEBAR_HEIGHT
           })
         }),
-    webPreferences: secureWebPreferences(options.preloadPath),
+    webPreferences: secureWebPreferences(options.preloadPath, { webviewTag: true }),
     width: 1440
   })
 

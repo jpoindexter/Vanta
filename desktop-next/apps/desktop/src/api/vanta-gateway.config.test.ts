@@ -68,7 +68,9 @@ describe('VantaGateway dispatch table: config and catalogs', () => {
   })
 
   it('config.set reasoning posts /api/model-settings', async () => {
-    const transport = healthyTransport().ok('POST /api/model-settings', { modelSettings: {} })
+    const transport = healthyTransport()
+      .ok('GET /api/models', [{ current: true, id: 'openai', modelSettings: { effort: { options: ['low', 'high'] } } }])
+      .ok('POST /api/model-settings', { modelSettings: {} })
     const harness = await connectedHarness(transport)
     const chat = await newChat(harness)
 

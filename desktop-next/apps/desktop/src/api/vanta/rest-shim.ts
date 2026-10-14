@@ -3,50 +3,19 @@ import type { PaginatedSessions, SessionInfo } from '@/types/hermes'
 
 import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
+import { configRoutes } from './shim-config'
 import { cronRoutes } from './shim-cron'
+import { modelRoutes } from './shim-model'
 import { profileRoutes } from './shim-profiles'
+import { sessionInfoFromMeta } from './shim-session-row'
 import { sessionRoutes } from './shim-sessions'
 import { skillRoutes } from './shim-skills'
 
-const ROUTES: readonly ShimRoute[] = [...profileRoutes, ...cronRoutes, ...sessionRoutes, ...skillRoutes]
+const ROUTES: readonly ShimRoute[] = [...configRoutes, ...modelRoutes, ...profileRoutes, ...cronRoutes, ...sessionRoutes, ...skillRoutes]
 
 // The Hermes sidebar reads sessions and profiles over REST paths the Vanta server does not have
 // (`/api/profiles/sessions`, `/api/profiles`). The shim answers them from what Vanta does serve
 // (`/api/sessions`) so the restored list, pins and rename work; every other path passes through.
-
-const SECONDS = 1000
-
-const toSeconds = (iso: string | undefined): number => {
-  const ms = iso ? Date.parse(iso) : Number.NaN
-
-  return Number.isNaN(ms) ? 0 : ms / SECONDS
-}
-
-function toSessionInfo(meta: ReturnType<typeof sessionListSchema.parse>[number], cwd: null | string): SessionInfo {
-  const started = toSeconds(meta.started)
-
-  return {
-    archived: meta.archived === true,
-    cwd,
-    ended_at: null,
-    id: meta.id,
-    input_tokens: 0,
-    is_active: false,
-    last_active: toSeconds(meta.updated) || started,
-    message_count: (meta.turns ?? 0) * 2,
-    model: meta.modelId ?? null,
-    output_tokens: 0,
-    pinned: meta.pinned === true,
-    preview: null,
-    profile: 'default',
-    is_default_profile: true,
-    source: 'vanta',
-    started_at: started,
-    ...(meta.unread === true ? { unread: true } : {}),
-    title: meta.title ?? null,
-    tool_call_count: 0
-  }
-}
 
 function listPage(rows: SessionInfo[], query: URLSearchParams): PaginatedSessions {
   const limit = Number(query.get('limit') ?? rows.length) || rows.length
@@ -71,10 +40,7 @@ function listPage(rows: SessionInfo[], query: URLSearchParams): PaginatedSession
 }
 
 async function readSessions(send: Send): Promise<SessionInfo[]> {
-  const root = (await send({ path: '/api/status' }).catch(() => null)) as null | { root?: string }
-  const metas = sessionListSchema.parse(await send({ path: '/api/sessions' }))
-
-  return metas.map(meta => toSessionInfo(meta, root?.root ?? null))
+  return sessionListSchema.parse(await send({ path: '/api/sessions' })).map(sessionInfoFromMeta)
 }
 
 function sidebarSlices(rows: SessionInfo[], query: URLSearchParams) {

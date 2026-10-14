@@ -14,6 +14,8 @@ export type QueuedTurnTarget = {
 export type QueuedTurn = {
   id: string;
   instruction: string;
+  /** Images that travel with the instruction (kept in a file beside the queue, not in it). */
+  imageCount?: number;
   intent: "next" | "steer";
   status: "queued" | "starting" | "failed";
   failure?: {
@@ -118,14 +120,14 @@ export class DesktopTurnQueue {
     });
   }
 
-  async enqueue(input: { instruction: string; target: QueuedTurnTarget }): Promise<QueuedTurn> {
+  async enqueue(input: { instruction: string; target: QueuedTurnTarget; imageCount?: number }): Promise<QueuedTurn> {
     const instruction = input.instruction.trim();
     if (!instruction) throw new Error("message is required");
     return this.mutate((document) => {
       const positions = document.items.filter((item) => item.target.sessionId === input.target.sessionId).map((item) => item.position);
       const now = this.deps.now().toISOString();
       const item: QueuedTurn = {
-        id: this.deps.id(), instruction, intent: "next", status: "queued", target: input.target,
+        id: this.deps.id(), instruction, ...(input.imageCount ? { imageCount: input.imageCount } : {}), intent: "next", status: "queued", target: input.target,
         position: (positions.length ? Math.max(...positions) : 0) + 1,
         revision: 1, createdAt: now, updatedAt: now,
       };

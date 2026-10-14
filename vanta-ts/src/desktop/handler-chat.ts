@@ -4,7 +4,7 @@ import { clearChatExecution,respondAuthRequired,respondChatFailure,type ChatExec
 import { readJson,sendJson } from "./handler-http.js";
 import { queueSessionId } from "./handler-queue.js";
 import type { DesktopState } from "./handler-state.js";
-import { parseDesktopImageInput } from "./image-input.js";
+import { DESCRIBE_IMAGE,parseDesktopImageInput } from "./image-input.js";
 import { loadProviderAuthRequired } from "./provider-auth-store.js";
 import { pushSseEvent } from "./session-state.js";
 import { resetToolIds } from "./typed-emit.js";
@@ -35,7 +35,7 @@ function parseChatInput(body: { message?: unknown; images?: unknown; files?: unk
     return { error: "files must be a list of at most 50 project-relative paths" };
   }
   const message = typeof body.message === "string" ? body.message.trim() : "";
-  const instructionText = message || (parsedImages.images.length ? "Describe the attached image." : "");
+  const instructionText = message || (parsedImages.images.length ? DESCRIBE_IMAGE : "");
   if (!instructionText) return { error: "message or image is required" };
   return { instructionText, images: parsedImages.images, files: (body.files as string[] | undefined) ?? [], ...(typeof body.requestId === "string" ? { requestId: body.requestId } : {}) };
 }

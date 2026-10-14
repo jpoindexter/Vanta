@@ -49,8 +49,12 @@ function turnInput(params: Params): TurnInput {
 }
 
 // Queue a follow-up behind the running turn. Null when the turn ended in the meantime (the caller then starts one).
-async function enqueue(hub: GatewayHub, client: ChatClient, text: string) {
-  const result = await hub.caller.post(client, '/api/chat/queue', { action: 'enqueue', message: text })
+async function enqueue(hub: GatewayHub, client: ChatClient, text: string, images?: TurnInput['images']) {
+  const result = await hub.caller.post(client, '/api/chat/queue', {
+    action: 'enqueue',
+    ...(images?.length ? { images } : {}),
+    message: text
+  })
 
   if (result.status === 409) {
     return null
@@ -64,10 +68,10 @@ export const promptSubmit: Handler = async (hub, params) => {
   const input = turnInput(params)
 
   if (client.turn) {
-    const queued = await enqueue(hub, client, input.text)
+    const queued = await enqueue(hub, client, input.text, input.images)
 
     if (queued) {
-      client.transcript.push({ role: 'user', text: input.text })
+      client.transcript.push({ role: 'user', text: input.text || (input.images?.length ? 'Image attached' : '') })
 
       return { status: 'queued' }
     }

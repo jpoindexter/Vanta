@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
-import { readFile,writeFile } from "node:fs/promises";
+import { mkdir,readFile,writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 import http from "node:http";
 import { providerById } from "../providers/catalog.js";
 import { resolveProvider } from "../providers/index.js";
@@ -61,6 +62,7 @@ export async function handleSetModel(state: DesktopState, req: http.IncomingMess
 
 async function persistModelDefaults(root: string, updates: Record<string, string>): Promise<void> {
   const existing = existsSync(envPath(root)) ? await readFile(envPath(root), "utf8") : "";
+  await mkdir(dirname(envPath(root)), { recursive: true });
   await writeFile(envPath(root), upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
   Object.assign(process.env, updates);
 }
@@ -76,7 +78,7 @@ function applyProviderSelection(state: DesktopState, selection: ReturnType<typeo
   state.convo?.setProvider(selection.resolved, buildSummarizer(selection.resolved));
 }
 
-async function persistSettingsDefaults(root: string, settings: ReturnType<typeof normalizeProviderModelSettings>): Promise<void> {
+export async function persistSettingsDefaults(root: string, settings: ReturnType<typeof normalizeProviderModelSettings>): Promise<void> {
   const updates: Record<string, string> = {};
   if (settings.effortLevel) updates.VANTA_EFFORT_LEVEL = settings.effortLevel;
   if (settings.speed) updates.VANTA_SERVICE_TIER = settings.speed;
@@ -109,7 +111,7 @@ function modelErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function applyModelSettings(state: DesktopState, settings: ReturnType<typeof normalizeProviderModelSettings>): void {
+export function applyModelSettings(state: DesktopState, settings: ReturnType<typeof normalizeProviderModelSettings>): void {
   if (settings.effortLevel) state.effortLevel = settings.effortLevel;
   if (settings.speed) state.providerSpeed = settings.speed;
 }
