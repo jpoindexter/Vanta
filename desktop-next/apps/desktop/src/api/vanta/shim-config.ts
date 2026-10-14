@@ -4,7 +4,7 @@ import { get, post, type ShimRoute } from './shim-core'
 
 // Settings pages read and write one nested config record. Vanta serves the settings it applies at
 // `GET|POST /api/config`; a page saves a nested patch with PUT, which becomes the flat `set` Vanta takes.
-// Provider keys never travel this road: they are saved through Vanta's setup flow and are never read back.
+// Provider keys never travel this road: `shim-providers` saves them through Vanta's setup flow and never reads them back.
 
 const recordSchema = z.record(z.string(), z.unknown())
 const savedSchema = z.looseObject({ applied: z.array(z.string()).default([]) })
@@ -39,12 +39,6 @@ export function changedSettings(current: Tree, patch: Tree): Record<string, unkn
   )
 }
 
-const KEY_NOTE = 'Vanta saves provider keys through its setup flow (Settings > Providers) and never shows them again.'
-
-const refuse = (message: string) => async (): Promise<never> => {
-  throw new Error(message)
-}
-
 export const configRoutes: readonly ShimRoute[] = [
   {
     handle: async ({ body, send }) => {
@@ -62,8 +56,5 @@ export const configRoutes: readonly ShimRoute[] = [
     },
     method: 'PUT',
     path: /^\/api\/config$/
-  },
-  { handle: refuse(`Vanta does not store this value through the config. ${KEY_NOTE}`), method: 'PUT', path: /^\/api\/env$/ },
-  { handle: refuse(KEY_NOTE), method: 'DELETE', path: /^\/api\/env$/ },
-  { handle: refuse(KEY_NOTE), method: 'POST', path: /^\/api\/env\/reveal$/ }
+  }
 ]

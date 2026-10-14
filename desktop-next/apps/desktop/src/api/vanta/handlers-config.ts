@@ -208,6 +208,15 @@ export const completePath: Handler = async (hub, params) => {
   return { items }
 }
 
+const MISSING_KEY_REASON = /\bis not set\.|vanta setup/i
+
+/** The server's "OPENAI_API_KEY is not set. Run `vanta setup` ..." is a terminal instruction; the app's first run says it in its own words. */
+export const providerReason = (error: unknown): string => {
+  const message = error instanceof Error ? error.message : String(error)
+
+  return MISSING_KEY_REASON.test(message) ? 'No inference provider is configured.' : message
+}
+
 /** The Vanta server answering `/api/status` with a provider and model means a provider is configured:
  *  its conversation setup resolves one before it replies. A failure carries the server's own reason. */
 export const setupStatus: Handler = async hub => {
@@ -216,7 +225,7 @@ export const setupStatus: Handler = async hub => {
 
     return { provider: status.provider ?? '', provider_configured: Boolean(status.provider && status.model) }
   } catch (error) {
-    return { provider_configured: false, reason: error instanceof Error ? error.message : String(error) }
+    return { provider_configured: false, reason: providerReason(error) }
   }
 }
 
@@ -226,6 +235,6 @@ export const setupRuntimeCheck: Handler = async hub => {
 
     return { model: status.model ?? '', ok: Boolean(status.provider && status.model), provider: status.provider ?? '' }
   } catch (error) {
-    return { error: error instanceof Error ? error.message : String(error), ok: false }
+    return { error: providerReason(error), ok: false }
   }
 }

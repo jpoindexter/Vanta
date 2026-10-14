@@ -1,10 +1,14 @@
 import type { ChatClient } from './client-registry'
 import type { GatewayHub } from './hub'
 import type { UsagePayload } from './schemas'
-import { outcomeForStop, usagePayload } from './turn-outcome'
+import { type FailureKind, outcomeForStop, usagePayload } from './turn-outcome'
+
+export const PROVIDER_AUTH_CODE = 'provider_auth'
+const SERVER_AUTH_TEXT = /^Provider authentication required/
 
 export interface TurnResult {
   error?: string
+  failureKind?: FailureKind
   finalText: string
   status?: 'complete' | 'error' | 'interrupted'
   stoppedReason?: string
@@ -28,18 +32,39 @@ export function completeTurn(hub: GatewayHub, client: ChatClient, result: TurnRe
   client.stopApprovalPoll = null
   client.mapper.reset()
 
-  const outcome = result.status ? { error: result.error, status: result.status } : outcomeForStop(result.stoppedReason)
+  const outcome = result.status
+    ? { error: result.error, failureKind: result.failureKind, status: result.status }
+    : outcomeForStop(result.stoppedReason)
 
-  if (result.finalText) {
-    client.transcript.push({ role: 'assistant', text: result.finalText })
+  // The server's own "Provider authentication required ..." sentence would repeat the card that follows; real partial output stays.
+  const finalText = outcome.failureKind === 'provider_auth' && SERVER_AUTH_TEXT.test(result.finalText) ? '' : result.finalText
+
+  if (finalText) {
+    client.transcript.push({ role: 'assistant', text: finalText })
   }
 
   hub.emit(client.clientId, 'message.complete', {
     ...(outcome.error ? { error: outcome.error, failure_reason: outcome.error } : {}),
+    ...(outcome.failureKind === 'provider_auth' ? { error_surface: providerAuthSurface(client) } : {}),
     status: outcome.status,
-    text: result.finalText,
+    text: finalText,
     usage: usagePayload(result.usage)
   })
 
   return true
+}
+
+/**
+ * The structured descriptor the error card reads (`layer: auth` + `auth_kind: api_key` gives the "key was
+ * rejected" card with Retry). `code: provider_auth` is Vanta's own, so the card can also offer Reconnect.
+ */
+export function providerAuthSurface(client: ChatClient): Record<string, unknown> {
+  return {
+    auth_kind: 'api_key',
+    code: PROVIDER_AUTH_CODE,
+    layer: 'auth',
+    ...(client.model ? { model: client.model } : {}),
+    ...(client.provider ? { provider: client.provider } : {}),
+    retryable: true
+  }
 }

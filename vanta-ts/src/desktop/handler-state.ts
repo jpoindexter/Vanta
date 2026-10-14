@@ -19,6 +19,10 @@ export type DesktopState = {
   _setupPromise?: Promise<RunSetup>;
   _setupError?: { message: string; at: number };
   _providerAuthRequired?: ProviderAuthRequired;
+  /** The provider setup this state has caught up with (see setup-generation.ts). */
+  _setupGeneration?: number;
+  /** History carried across a provider setup, used once to rebuild the conversation. */
+  _resumeHistory?: Conversation["messages"];
   _chatActive?: boolean;
   _chatAbort?: AbortController;
   _chatDeltas?: string[];

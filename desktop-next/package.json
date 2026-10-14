@@ -17,6 +17,7 @@
     "vanta:build": "node tools/build-vanta.mjs",
     "vanta:app": "node tools/launch-vanta.mjs",
     "vanta:reach": "node tools/reachability.mjs",
+    "vanta:providers": "node tools/provider-proof/run.mjs",
     "vanta:shots": "node tools/shoot-restore.mjs && node tools/shoot-native.mjs",
     "vanta:package": "node tools/package-vanta.mjs",
     "vanta:package:test": "node --test tools/packaging/*.test.mjs",

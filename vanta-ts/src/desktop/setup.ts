@@ -11,6 +11,7 @@ import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { clearProviderAuthRequired } from "./provider-auth-store.js";
+import { markSetupApplied } from "./setup-generation.js";
 
 export type DesktopSetupConfiguration = { provider: ProviderEntry; model: string; apiKey: string };
 type SetupInput = DesktopSetupConfiguration | { error: string };
@@ -18,10 +19,15 @@ type SetupValidationDeps = { resolveProvider: (env: NodeJS.ProcessEnv) => LLMPro
 const PLACEHOLDER_KEY = /^(?:sk[-_]?secret|your[-_ ]?api[-_ ]?key|api[-_ ]?key|test|secret|placeholder|change[-_ ]?me|replace[-_ ]?me|x{3,})$/i;
 const LOCAL_PROVIDERS = new Set(["ollama", "lmstudio"]);
 
-export function desktopSetupOptions() {
+/**
+ * `envVar` is the variable NAME (public, documented in .env.example) so a client can show which credential a
+ * provider reads; `keyConfigured` says whether it is set. The value is never returned.
+ */
+export function desktopSetupOptions(env: NodeJS.ProcessEnv = process.env) {
   return PROVIDER_CATALOG.map((provider) => ({
     id: provider.id, label: provider.label, short: provider.short, models: provider.models,
     defaultModel: provider.defaultModel, requiresKey: !!provider.envVar,
+    envVar: provider.envVar, keyConfigured: provider.envVar ? Boolean(env[provider.envVar]?.trim()) : false,
     signupUrl: provider.signupUrl, note: provider.note,
   }));
 }
@@ -49,16 +55,24 @@ function setupInput(raw: unknown): SetupInput {
   return { provider, model, apiKey };
 }
 
+/** The key to probe with: the typed one, else the one already in env. Throws when a keyed provider has none or a placeholder. */
+function requireRealKey(input: DesktopSetupConfiguration, env: NodeJS.ProcessEnv): string {
+  const { provider } = input;
+  if (!provider.envVar) return input.apiKey;
+  const key = input.apiKey || env[provider.envVar] || "";
+  if (!key) throw new Error(`${provider.envVar} is required.`);
+  if (PLACEHOLDER_KEY.test(key.trim())) {
+    throw new Error(`${provider.label} credential looks like a placeholder. Add a real credential and test again.`);
+  }
+  return key;
+}
+
 export async function validateDesktopProviderSetup(
   input: DesktopSetupConfiguration,
   env: NodeJS.ProcessEnv = process.env,
   deps: SetupValidationDeps = { resolveProvider },
 ): Promise<void> {
-  const key = input.apiKey || (input.provider.envVar ? env[input.provider.envVar] : "") || "";
-  if (input.provider.envVar && !key) throw new Error(`${input.provider.envVar} is required.`);
-  if (input.provider.envVar && PLACEHOLDER_KEY.test(key.trim())) {
-    throw new Error(`${input.provider.label} credential looks like a placeholder. Add a real credential and test again.`);
-  }
+  const key = requireRealKey(input, env);
   if (LOCAL_PROVIDERS.has(input.provider.id)) return;
 
   const probeEnv = { ...env, ...buildEnvUpdates(input.provider, key, input.model) };
@@ -88,5 +102,5 @@ async function persistSetup(state: DesktopState, input: Exclude<SetupInput, { er
   await writeFile(path, upsertEnvMigratingLegacy(existing, updates), { mode: 0o600 });
   Object.assign(process.env, updates);
   await clearProviderAuthRequired(state.root);
-  state.setup = undefined; state.convo = undefined; state._setupError = undefined; state._providerAuthRequired = undefined;
+  markSetupApplied(state);
 }
