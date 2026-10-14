@@ -16,6 +16,8 @@ import {
 
 const POLL_MS = 900
 
+type Request = <T>(method: string, params?: Record<string, unknown>) => Promise<T>
+
 interface ActionResult {
   conflict: ServerQueueConflict | null
   snapshot: ServerQueueSnapshot
@@ -40,17 +42,15 @@ export interface ServerQueue {
 const messageOf = (reason: unknown) => (reason instanceof Error ? reason.message : String(reason))
 
 /**
- * The composer queue as the server's durable queue. It polls while a turn runs (the server moves messages
- * from queued to starting to gone), refreshes when the run starts or ends, and applies every change by
- * the item's revision. `sessionId` is the runtime chat id; null means no chat yet, so there is no queue.
+ * The list on screen: asked for when a chat opens and when a run starts or ends, and polled while a run is
+ * live (the server moves messages from queued to starting to gone). `null` means no chat yet.
  */
-export function useServerQueue(sessionId: null | string | undefined, busy: boolean): ServerQueue {
-  const { requestGateway } = useGatewayRequest()
+function useQueueFeed(sessionId: null | string | undefined, busy: boolean, request: Request) {
   const [snapshot, setSnapshot] = useState<ServerQueueSnapshot>(EMPTY_SERVER_QUEUE)
-  const [error, setError] = useState('')
   const sessionRef = useRef(sessionId)
   sessionRef.current = sessionId
 
+  // Only the chat on screen takes an answer, and an older list never replaces a newer one.
   const apply = useCallback((forSession: string, next: ServerQueueSnapshot) => {
     if (sessionRef.current === forSession) {
       setSnapshot(current => newerSnapshot(current, next))
@@ -63,19 +63,14 @@ export function useServerQueue(sessionId: null | string | undefined, busy: boole
     }
 
     try {
-      apply(sessionId, await requestGateway<ServerQueueSnapshot>('queue.list', { session_id: sessionId }))
+      apply(sessionId, await request<ServerQueueSnapshot>('queue.list', { session_id: sessionId }))
     } catch {
       // A missed poll changes nothing on screen; the next one tries again.
     }
-  }, [apply, requestGateway, sessionId])
+  }, [apply, request, sessionId])
 
-  // A different chat starts from an empty list, then asks the server.
-  useEffect(() => {
-    setSnapshot(EMPTY_SERVER_QUEUE)
-    setError('')
-  }, [sessionId])
+  useEffect(() => setSnapshot(EMPTY_SERVER_QUEUE), [sessionId])
 
-  // The run starting or ending changes the list (messages start, finish, or wait): ask, and keep asking while it runs.
   useEffect(() => {
     void refresh()
 
@@ -88,14 +83,30 @@ export function useServerQueue(sessionId: null | string | undefined, busy: boole
     return () => window.clearInterval(timer)
   }, [busy, refresh, sessionId])
 
-  const act = useCallback(
+  return { apply, refresh, snapshot }
+}
+
+type Feed = ReturnType<typeof useQueueFeed>
+
+interface CommandArgs {
+  feed: Feed
+  request: Request
+  sessionId: null | string | undefined
+  setError: (message: string) => void
+}
+
+/** One change by the message's revision; a refusal is a result with a plain reason, not an exception. */
+function useQueueAct({ feed, request, sessionId, setError }: CommandArgs) {
+  const { apply, refresh } = feed
+
+  return useCallback(
     async (action: ServerQueueAction) => {
       if (!sessionId) {
         return false
       }
 
       try {
-        const result = await requestGateway<ActionResult>('queue.action', { ...action, session_id: sessionId })
+        const result = await request<ActionResult>('queue.action', { ...action, session_id: sessionId })
         apply(sessionId, result.snapshot)
         setError(result.conflict ? conflictText(result.conflict) : '')
 
@@ -107,20 +118,21 @@ export function useServerQueue(sessionId: null | string | undefined, busy: boole
         return false
       }
     },
-    [apply, refresh, requestGateway, sessionId]
+    [apply, refresh, request, sessionId, setError]
   )
+}
 
-  const enqueue = useCallback(
+function useQueueEnqueue({ feed, request, sessionId, setError }: CommandArgs) {
+  const { apply } = feed
+
+  return useCallback(
     async (text: string) => {
       if (!sessionId) {
         return 'error' as const
       }
 
       try {
-        const result = await requestGateway<{ snapshot?: ServerQueueSnapshot; status: string }>('queue.enqueue', {
-          session_id: sessionId,
-          text
-        })
+        const result = await request<{ snapshot?: ServerQueueSnapshot; status: string }>('queue.enqueue', { session_id: sessionId, text })
 
         if (result.status !== 'queued') {
           return 'idle' as const
@@ -139,16 +151,18 @@ export function useServerQueue(sessionId: null | string | undefined, busy: boole
         return 'error' as const
       }
     },
-    [apply, requestGateway, sessionId]
+    [apply, request, sessionId, setError]
   )
+}
 
-  const run = useCallback(async () => {
+function useQueueRun({ request, sessionId, setError }: CommandArgs) {
+  return useCallback(async () => {
     if (!sessionId) {
       return false
     }
 
     try {
-      const result = await requestGateway<{ status: string }>('queue.run', { session_id: sessionId })
+      const result = await request<{ status: string }>('queue.run', { session_id: sessionId })
       setError(result.status === 'empty' ? 'Nothing is waiting in the queue.' : '')
 
       return result.status === 'streaming'
@@ -157,19 +171,27 @@ export function useServerQueue(sessionId: null | string | undefined, busy: boole
 
       return false
     }
-  }, [requestGateway, sessionId])
+  }, [request, sessionId, setError])
+}
 
-  const entries = useMemo(() => snapshot.items.map(toQueuedEntry), [snapshot])
+/**
+ * The composer queue as the server's durable queue. `sessionId` is the runtime chat id; null means no chat
+ * yet, so there is no queue.
+ */
+export function useServerQueue(sessionId: null | string | undefined, busy: boolean): ServerQueue {
+  const { requestGateway } = useGatewayRequest()
+  const feed = useQueueFeed(sessionId, busy, requestGateway)
+  const [error, setError] = useState('')
+
+  // A different chat starts without the last chat's complaint.
+  useEffect(() => setError(''), [sessionId])
+
+  const args: CommandArgs = { feed, request: requestGateway, sessionId, setError }
+  const act = useQueueAct(args)
+  const enqueue = useQueueEnqueue(args)
+  const run = useQueueRun(args)
+  const entries = useMemo(() => feed.snapshot.items.map(toQueuedEntry), [feed.snapshot])
   const clearError = useCallback(() => setError(''), [])
 
-  return {
-    act,
-    clearError,
-    enqueue,
-    entries,
-    error,
-    refresh,
-    run,
-    waiting: hasWaitingMessages(snapshot)
-  }
+  return { act, clearError, enqueue, entries, error, refresh: feed.refresh, run, waiting: hasWaitingMessages(feed.snapshot) }
 }
