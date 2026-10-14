@@ -20,7 +20,8 @@ export type AuxFunction =
   | "embed"       // text embedding (future; placeholder)
   | "classify"    // cheap classification / tagging
   | "prune"       // context pruning / token-scoring
-  | "code";       // code-specific model (e.g. deepseek-coder)
+  | "code"        // code-specific model (e.g. deepseek-coder)
+  | "learn";      // post-turn background forks: skill review, memory, critic, verifier
 
 /** Env var for each function type. Absent → fall back to active provider. */
 const AUX_ENV_VARS: Record<AuxFunction, string> = {
@@ -31,6 +32,7 @@ const AUX_ENV_VARS: Record<AuxFunction, string> = {
   classify: "VANTA_MODEL_CLASSIFY",
   prune:    "VANTA_MODEL_PRUNE",
   code:     "VANTA_MODEL_CODE",
+  learn:    "VANTA_MODEL_LEARN",
 };
 
 /** Optional provider override per function (e.g. vision on a different provider). */
@@ -42,7 +44,18 @@ const AUX_PROVIDER_ENV_VARS: Record<AuxFunction, string> = {
   classify: "VANTA_CLASSIFY_PROVIDER",
   prune:    "VANTA_PRUNE_PROVIDER",
   code:     "VANTA_CODE_PROVIDER",
+  learn:    "VANTA_LEARN_PROVIDER",
 };
+
+/** True when the operator configured a model or provider override for `fn`. */
+export function hasAuxOverride(fn: AuxFunction, env: NodeJS.ProcessEnv): boolean {
+  return Boolean(env[AUX_ENV_VARS[fn]] || env[AUX_PROVIDER_ENV_VARS[fn]]);
+}
+
+/** The env var names that route `fn`, for operator-facing messages. */
+export function auxEnvNames(fn: AuxFunction): { model: string; provider: string } {
+  return { model: AUX_ENV_VARS[fn], provider: AUX_PROVIDER_ENV_VARS[fn] };
+}
 
 /**
  * Resolve an LLM provider for an auxiliary function. Checks for a function-specific
