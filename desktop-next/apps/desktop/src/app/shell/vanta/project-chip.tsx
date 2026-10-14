@@ -2,6 +2,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -28,13 +29,13 @@ export function ProjectChip({ path, project }: ProjectChipProps) {
           aria-label={copy.projectMenu(project)}
           className="vs-chip"
           data-testid="titlebar-project-chip"
-          title={path}
           type="button"
         >
           {project}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" data-testid="project-chip-menu">
+        <DropdownMenuLabel className="max-w-72 truncate font-mono text-xs font-normal text-muted-foreground">{path}</DropdownMenuLabel>
         <DropdownMenuItem data-testid="project-switch" onSelect={() => void switchProjectFolder(path, copy)}>
           {copy.switchProject}
         </DropdownMenuItem>

@@ -8,6 +8,11 @@ export const STATUS_FILE_CAP = 200;
 const UNTRACKED_COUNT_FILES = 500;
 const TRUNK_CANDIDATES = ["origin/main", "origin/master", "main", "master"];
 
+/** Where Vanta puts extra worktrees. They are separate checkouts, not changes to this one. */
+const WORKTREE_DIR = ".worktrees";
+
+export const isWorktreePath = (rel: string): boolean => rel === WORKTREE_DIR || rel.startsWith(`${WORKTREE_DIR}/`);
+
 export async function statusOf(ctx: GitContext, cwd: string): Promise<null | ParsedStatus> {
   const result = await ctx.git.run(cwd, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"]);
 
@@ -17,7 +22,7 @@ export async function statusOf(ctx: GitContext, cwd: string): Promise<null | Par
 
   const parsed = parseStatus(result.stdout);
 
-  return { ...parsed, entries: parsed.entries.filter(item => !isSecretPath(item.path)) };
+  return { ...parsed, entries: parsed.entries.filter(item => !isSecretPath(item.path) && !isWorktreePath(item.path)) };
 }
 
 async function numstat(ctx: GitContext, cwd: string, refs: string[]): Promise<Map<string, { added: number; removed: number }>> {

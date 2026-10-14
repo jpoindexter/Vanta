@@ -90,16 +90,19 @@ export async function botsRows(ctx) {
     verdict("F-071", "bots tab", "Bot row", /research/.test(body), { pass: "bot row present", why: cause });
   });
   await attempt(page, "F-072", "bots tab", "New Bot dialog", async () => {
-    const add = page.locator('[data-zone-body="grp-sessions"]').getByRole("button", { name: /new|create/i }).first();
+    const add = page.getByRole("button", { name: /New bot or group chat/i }).first();
     const ok = await usable(add);
+    let opened = false;
     if (ok) {
       await add.click();
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(500);
+      const items = await menuItems(page);
+      await pick(page, items.find((item) => /^New bot/i.test(item)) ?? "New bot");
+      await page.waitForTimeout(800);
+      opened = (await page.getByRole("dialog").count()) > 0;
     }
-    const opened = ok && (await page.getByRole("dialog").count()) > 0;
-    record("F-072", "bots tab", "New Bot dialog", opened ? "PASS" : "FAIL", opened ? "the dialog opened from the roster toolbar" : "no New control or no dialog (the roster body shows only the empty state)");
+    record("F-072", "bots tab", "New Bot dialog", opened ? "PASS" : "FAIL", opened ? "the + in the Bots tab offers New bot and opens its dialog (saving makes a profile through POST /api/profiles)" : "no + control or no dialog");
   });
-  await closeMenus(page);
   notRun("F-074", "bots tab", "Routines pane", "registers only with a bot focused; not driven here");
   notRun("F-075", "bots tab", "Screen portal", "needs a bot with a computer; the target is the Workbench Browser tab, which cannot load pages yet");
   notRun("F-076", "bots tab", "@bot mentions", "not driven here");

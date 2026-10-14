@@ -11,7 +11,10 @@ import * as seeded from "./rows-seeded.mjs";
 import * as thread from "./rows-thread.mjs";
 import * as win from "./rows-window.mjs";
 import { dirtyProject } from "./rows-right.mjs";
-import { ensureChat } from "./kit.mjs";
+import { ensureChat, freshWindow } from "./kit.mjs";
+
+/** Rows that need an app with no chats: the empty sidebar. */
+export const EMPTY_RUN = chrome.emptyState;
 
 export const GROUPS = [
   {
@@ -95,6 +98,7 @@ export const GROUPS = [
   {
     name: "composer",
     run: async (ctx) => {
+      await freshWindow(ctx.page);
       await ensureChat(ctx.page);
       await composer.inputRows(ctx.page);
       await composer.attachRows(ctx);
@@ -105,6 +109,7 @@ export const GROUPS = [
   {
     name: "palette",
     run: async (ctx) => {
+      await freshWindow(ctx.page);
       await ensureChat(ctx.page);
       await palette.paletteRows(ctx.page);
       await palette.contextRows(ctx);
@@ -119,6 +124,7 @@ export const GROUPS = [
   {
     name: "pages",
     run: async (ctx) => {
+      await freshWindow(ctx.page);
       await ensureChat(ctx.page);
       await pages.capabilityRows(ctx.page);
       await pages.pageRows(ctx);

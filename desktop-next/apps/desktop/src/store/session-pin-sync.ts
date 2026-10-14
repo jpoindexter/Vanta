@@ -372,7 +372,7 @@ export function isPinReorder(prev: readonly string[], next: readonly string[]): 
 }
 
 function watchPinOrder(): void {
-  let last = $pinnedSessionIds.get()
+  let last: readonly string[] = $pinnedSessionIds.get()
 
   $pinnedSessionIds.listen(next => {
     if (isPinReorder(last, next)) {

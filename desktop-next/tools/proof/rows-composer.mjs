@@ -68,7 +68,7 @@ export async function attachRows(ctx) {
     await pick(page, "Folder…");
     await page.waitForTimeout(1500);
     const picked = (await readNativeLog(app)).dialogs.some((d) => d.picker);
-    const chip = (await page.locator('[data-slot="composer-root"]').innerText()).includes("beta-notes");
+    const chip = (await page.locator('[data-slot="composer-root"]').first().innerText()).includes("beta-notes");
     verdict("F-118", AREA, "Attachment chip after picking a folder", picked && chip, { pass: "Folder… opened the native picker (stubbed) and the folder became a chip; its remove control is the chip's ×", why: `picker=${picked} chip=${chip}` });
   });
   await attempt(page, "F-116", AREA, "+ menu: URL…, Prompt snippets…", async () => {
@@ -91,14 +91,16 @@ export async function pillRows(page) {
     verdict("F-120", AREA, "Model pill menu", /Vanta Proof/.test(text) && /Sonnet/.test(text), { pass: "lists the configured provider models and the custom endpoint's Vanta Proof", why: text.slice(0, 160) });
   });
   await closeMenus(page);
+  record("F-121", AREA, "Model switch confirm, picker overlay, visibility dialog", "NOT-RUN", "choosing another model would change the sandbox's provider (a key or endpoint is needed); the picker menu itself is F-120");
   await attempt(page, "F-122", AREA, "Reasoning pill", async () => {
     await page.getByRole("button", { name: /^Effort/ }).click();
     await page.waitForTimeout(500);
     const items = await menuItems(page);
-    await pick(page, "High");
-    await page.waitForTimeout(400);
-    const label = await page.locator('button[aria-label*="High"]').first().getAttribute("aria-label", { timeout: 3000 }).catch(() => "");
-    verdict("F-122", AREA, "Reasoning pill: Thinking … Ultra", items.includes("Max") && /High/.test(label ?? ""), { pass: `${items.join(" / ")}; choosing High changed the pill to "${label}"`, why: `items=${items.join("/")} label=${label}` });
+    await page.getByRole("menuitemradio", { name: "High", exact: true }).click();
+    await page.waitForTimeout(700);
+    const label = await page.locator('[data-slot="composer-root"] button[aria-label^="Effort"]').first().evaluate((b) => `${b.getAttribute("aria-label")} ${b.textContent}`).catch(() => "");
+    const changed = /High/.test(label ?? "");
+    record("F-122", AREA, "Reasoning pill: Thinking … Ultra", items.includes("Max") && changed ? "PASS" : items.includes("Max") ? "INERT" : "FAIL", changed ? `${items.join(" / ")}; choosing High changed the pill to "${label}"` : `the menu lists ${items.join(" / ")}, but choosing High leaves the pill on Medium: the server refuses it for this endpoint ("custom vanta-proof does not support effort high", POST /api/model-settings 400) and the pill says nothing. The model's supported efforts should limit the list (src/api/vanta model options, R3)`);
   });
   await closeMenus(page);
   await attempt(page, "F-123", AREA, "Permission chip", async () => {
@@ -115,7 +117,7 @@ export async function pillRows(page) {
   await closeMenus(page);
   await attempt(page, "F-128", AREA, "Status drawer toggle and coding row", async () => {
     const drawer = await usable(page.getByRole("button", { name: "Hide status stack" }));
-    const coding = (await page.locator('[data-slot="composer-root"]').innerText()).includes("main");
+    const coding = (await page.locator('[data-slot="composer-root"]').first().innerText()).includes("main");
     verdict("F-133", AREA, "Coding row: branch, changes", coding, { pass: "the composer shows the branch (main), Copy path, New branch and the changed-file count", why: "no coding row" });
     verdict("F-128", AREA, "Status drawer toggle", drawer, { pass: "Hide status stack is in the composer", why: "no status drawer toggle" });
   });
@@ -131,15 +133,16 @@ export async function runRows(page) {
     await editor(page).click();
     await page.keyboard.type("slow count to ten");
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(1500);
-    const stop = await usable(page.getByRole("button", { name: /^Stop/ }));
+    await page.waitForTimeout(400);
+    const stop = Boolean(await waitUntil(async () => (await page.locator('button[aria-label^="Stop"], button[title^="Stop"]').count()) > 0, 5000, 250));
     await editor(page).click();
     await page.keyboard.type("queued follow up");
     await page.keyboard.press("Meta+Enter");
     await page.waitForTimeout(800);
     const text = await page.locator("body").innerText();
     const queued = /queued follow up/i.test(text) && /Queue|queued/i.test(text);
-    verdict("F-124", AREA, "Send / Stop / Queue", stop && queued, { pass: "while a slow turn ran the Stop button showed and ⌘Enter queued a message", why: `stop=${stop} queued=${queued}` });
+    const labels = await page.locator('[data-slot="composer-root"] button').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") || e.textContent?.trim()));
+    verdict("F-124", AREA, "Send / Stop / Queue", stop && queued, { pass: "while a slow turn ran the Stop button showed and ⌘Enter queued a message", why: `stop=${stop} queued=${queued} buttons=${labels.join("|")}` });
     verdict("F-125", AREA, "Queue panel", queued, { pass: "the queued message sits above the composer", why: "no queue panel" });
     await page.getByRole("button", { name: /^Stop/ }).first().click().catch(() => undefined);
     await page.waitForTimeout(1000);

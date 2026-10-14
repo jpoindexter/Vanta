@@ -1,5 +1,5 @@
 // F-001..F-093 and the nav, palette and settings smoke rows: titlebar, sidebar, profile rail, Bots tab, status bar.
-import { absent, check, closeMenus, notRun, record, usable } from "./kit.mjs";
+import { absent, check, closeMenus, notRun, record, startChat as startKitChat, usable, waitUntil } from "./kit.mjs";
 
 const sidebar = (page) => page.locator('[data-tour="sessions-sidebar"]').first();
 
@@ -228,9 +228,14 @@ export async function statusBar(page) {
   await check("F-084", "status bar", "Agents chip", page.getByText("Agents", { exact: true }).last(), { inert: "subagent progress has no route; chip opens the overlay" });
   await check("F-085", "status bar", "Cron and Webhooks chips", page.getByText("Webhooks", { exact: true }).last());
   await check("F-086", "status bar", "Session timer", page.getByText(/Focused for/).first());
-  const barText = await page.locator("footer").last().innerText().catch(() => "");
+  // The meter follows the chat in front, so run a short turn and look at the bar.
+  await startKitChat(page, "meter probe");
+  const statusText = async () => (await page.locator("body").innerText().catch(() => "")).split("\n").slice(-30).join(" ");
+  await waitUntil(async () => /~?[\d.]+k?\/[\d.]+k/.test(await statusText()), 10000, 400);
+  const barText = await statusText();
+  await check("F-090", "status bar", "Approval-mode pill", page.getByText(/^(Smart|Manual)$/).last(), { note: "still in the status bar; the composer's Permission chip is the main control" });
   const meter = /~?[\d.]+k?\/[\d.]+k/.test(barText) || /\d+%/.test(barText);
-  record("F-087", "status bar", "Context meter", meter ? "PASS" : "FAIL", meter ? `the status bar shows the meter from the server's usage event: ${(barText.match(/~?[\d.]+k?\/[\d.]+k[^|]*/) ?? [""])[0].trim()}` : "no context meter after a finished turn");
+  record("F-087", "status bar", "Context meter", meter ? "PASS" : "FAIL", meter ? `the status bar shows the meter from the server's usage event: ${(barText.match(/~?[\d.]+k?\/[\d.]+k[^|]*/) ?? [""])[0].trim()}` : `no context meter after a finished turn; status text: ${barText.slice(-160)}`);
   record("F-088", "status bar", "Cache hit / tokens per second", "NOT-RUN", "hidden by default and the usage event carries no cache or speed figures");
   record("F-089", "status bar", "RAM / system resources", /RAM|\bMB\b|\bGB\b/.test(barText) ? "PASS" : "NOT-RUN", "shown only when /api/runtime reports memory; not in this sandbox");
   await check("F-091", "status bar", "Terminal toggle", page.getByRole("button", { name: /terminal/i }).last(), { note: "opens the terminal pane (a line terminal where every command asks first)" });
