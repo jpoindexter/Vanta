@@ -36,7 +36,7 @@ export async function respondAuthRequired(state: DesktopState, input: ChatInput,
   await finishRunCapture(state, "failed", finalText);
   await persistActiveSession(state);
   pushTurnComplete(state, { finalText, stoppedReason: "provider_auth" });
-  sendJson(res, 200, { finalText, events: receipt.events, sessionId: state.sessionId, receipt });
+  sendJson(res, 200, { finalText, events: receipt.events, sessionId: state.sessionId, stoppedReason: "provider_auth", receipt });
 }
 
 async function retainAuthFailure(context: ChatExecution): Promise<void> {
@@ -80,8 +80,9 @@ export async function respondChatFailure(context: ChatExecution, error: unknown,
     await finishRunCapture(state, wasInterrupted ? "interrupted" : "failed", finalText);
     await persistActiveSession(state);
   }
-  pushTurnComplete(state, { finalText, stoppedReason: failureStoppedReason(wasInterrupted, failureKind) });
-  sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, receipt });
+  const stoppedReason = failureStoppedReason(wasInterrupted, failureKind);
+  pushTurnComplete(state, { finalText, stoppedReason });
+  sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, stoppedReason, receipt });
 }
 
 export function clearChatExecution(state: DesktopState, controller: AbortController): void {
