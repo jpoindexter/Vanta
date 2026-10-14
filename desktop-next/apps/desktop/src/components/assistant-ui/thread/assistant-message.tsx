@@ -24,7 +24,9 @@ import {
   pickPrimaryPreviewTarget
 } from '@/components/assistant-ui/thread/content'
 import { MESSAGE_PARTS_COMPONENTS } from '@/components/assistant-ui/thread/message-parts'
+import { EditPreviousMessageAction } from '@/components/assistant-ui/thread/edit-previous-message'
 import { ErrorCardReconnect } from '@/components/assistant-ui/thread/provider-reconnect'
+import { RunRecoveryActions } from '@/components/assistant-ui/thread/run-recovery'
 import { ResponseMessageIds } from '@/components/assistant-ui/thread/response-group'
 import { ResponseLoadingIndicator, TurnActivityIndicator } from '@/components/assistant-ui/thread/status'
 import { threadMessageIndex } from '@/components/assistant-ui/thread/thread-message-index'
@@ -62,7 +64,6 @@ import { $activeGatewayProfile, normalizeProfileKey, requestFreshSession } from 
 import { sessionApprovalRequest } from '@/store/prompts'
 import { $connection, $currentModel, setModelPickerOpen } from '@/store/session'
 import { sessionTileDelegate } from '@/store/session-states'
-import { notifyThreadEditOpen } from '@/store/thread-scroll'
 
 // Stable empty identity for the settled-parts selector — a fresh [] per render
 // would re-derive the changed-files card on every message re-render.
@@ -298,7 +299,7 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
                     </TooltipIconButton>
                   )}
                 </div>
-                <ErrorRecoveryActions />
+                <ErrorActions />
               </ErrorPrimitive.Root>
             </MessagePrimitive.Error>
           </div>
@@ -603,47 +604,6 @@ const updateApiKeyRoute = (surface: ErrorSurface | undefined) => {
   return `${SETTINGS_ROUTE}?${params.toString()}`
 }
 
-// "Edit message" for a safety refusal: opens the preceding user message in
-// the edit composer, the same runtime call the bubble's own click performs
-// (user-message.tsx ActionBarPrimitive.Edit). Retry would reproduce the
-// refusal; changing the words is the only way forward.
-const EditPreviousMessageAction: FC<{ label: string }> = ({ label }) => {
-  const threadRuntime = useThreadRuntime()
-
-  const previousUserMessageId = useAuiState(s => {
-    const messages = s.thread.messages
-    const index = messages.findIndex(message => message.id === s.message.id)
-
-    for (let i = index - 1; i >= 0; i--) {
-      if (messages[i].role === 'user') {
-        return messages[i].id
-      }
-    }
-
-    return null
-  })
-
-  const beginEdit = useCallback(() => {
-    if (!previousUserMessageId) {
-      return
-    }
-
-    triggerHaptic('selection')
-    notifyThreadEditOpen()
-    threadRuntime.getMessageById(previousUserMessageId).composer.beginEdit()
-  }, [previousUserMessageId, threadRuntime])
-
-  if (!previousUserMessageId) {
-    return null
-  }
-
-  return (
-    <button className="aui-error-action" onClick={beginEdit} type="button">
-      {label}
-    </button>
-  )
-}
-
 // "Compress conversation" for a context overflow: runs /compress against the
 // failed turn's OWN session through the app's slash pipeline (the same
 // session.compress RPC path the typed command takes — slash.ts `compress`),
@@ -756,6 +716,14 @@ const ScheduledRetryAction: FC<{ resetsAt: number }> = ({ resetsAt }) => {
       {copy.errorRetryAtReset(formatResetClock(resetsAt))}
     </button>
   )
+}
+
+// A run that failed or stopped early: the recovery the server saved (retry the step, edit the request,
+// start from the checkpoint) in place of the generic buttons, with the partial output still above.
+const ErrorActions: FC = () => {
+  const recovery = useErrorSurface()?.recovery
+
+  return recovery?.actions.length ? <RunRecoveryActions recovery={recovery} /> : <ErrorRecoveryActions />
 }
 
 const ErrorRecoveryActions: FC = () => {

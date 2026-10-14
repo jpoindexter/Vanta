@@ -65,7 +65,7 @@ describe('a provider that refused the saved key', () => {
     expect(payload(seen.completes()[0])).toMatchObject({ error_surface: { code: 'provider_auth', layer: 'auth' }, status: 'error' })
   })
 
-  it('keeps ordinary stops and failures as they were', async () => {
+  it('gives an ordinary tool failure its own plain-language reason instead of the reconnect card', async () => {
     const transport = healthyTransport().route('POST /api/chat', () => ({
       data: { finalText: 'partial', receipt: { failureKind: 'tool', status: 'failed' }, sessionId: 'x' },
       ok: true,
@@ -78,8 +78,12 @@ describe('a provider that refused the saved key', () => {
     await harness.gateway.request('prompt.submit', { session_id: chat.session_id, text: 'x' })
     await flush()
 
-    expect(payload(seen.completes()[0])).not.toHaveProperty('error_surface')
-    expect(payload(seen.completes()[0])).toMatchObject({ status: 'error', text: 'partial' })
+    expect(payload(seen.completes()[0])).toMatchObject({
+      error_surface: { code: 'tool', headline: 'A tool failed', layer: 'runtime' },
+      status: 'error',
+      text: 'partial'
+    })
+    expect(payload(seen.completes()[0]).error_surface).not.toMatchObject({ code: 'provider_auth' })
   })
 })
 

@@ -208,6 +208,8 @@ export interface QueueEditState {
   attachments: ComposerAttachment[]
   draft: string
   entryId: string
+  /** The server revision this edit started from (a server-saved message); the save quotes it. */
+  revision?: number
   sessionKey: string
 }
 
