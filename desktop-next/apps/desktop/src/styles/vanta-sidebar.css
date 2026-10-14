@@ -83,8 +83,11 @@
   align-items: stretch;
 }
 
+/* On the name itself: a button resets text-transform, so the collapsible headers would not inherit it. */
 [data-tour='sessions-sidebar'] [data-testid='sidebar-group-name'] {
+  letter-spacing: 0.02em;
   line-height: 1.45;
+  text-transform: uppercase;
 }
 
 .vs-badge {

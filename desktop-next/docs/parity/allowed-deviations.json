@@ -5,8 +5,7 @@
       "id": "icon-glyphs",
       "reason": "The wireframe draws icons as text glyphs (plus, magnifier, triangle...); the app uses Tabler icons. A text difference that is only these glyphs is allowed.",
       "props": [
-        "text",
-        "placeholder"
+        "text"
       ],
       "transform": "stripGlyphs"
     },
@@ -114,7 +113,6 @@
         "border.right",
         "border.bottom",
         "border.left",
-        "aria",
         "border"
       ],
       "transform": "ignore",
@@ -137,12 +135,8 @@
         "y",
         "w",
         "text",
-        "visible",
         "aria",
-        "radius",
-        "fontSize",
-        "fontWeight",
-        "visibleCount"
+        "fontWeight"
       ],
       "transform": "ignore",
       "keys": [
@@ -179,18 +173,6 @@
         "sidebar.settings"
       ],
       "na": true
-    },
-    {
-      "id": "owner-kept-statusbar",
-      "reason": "Owner-kept feature (R1): the slim Hermes status bar is visible by default (command center, backend health, workspace, agents, cron, webhooks, timers, context meter, approval mode, terminal toggle, version); the wireframe draws no status bar. Free-tier and gateway switcher are removed.",
-      "props": [
-        "*"
-      ],
-      "transform": "ignore",
-      "keys": [
-        "frame.bottom",
-        "statusbar"
-      ]
     },
     {
       "id": "owner-kept-nav-labels",
@@ -430,14 +412,10 @@
       "props": [
         "x",
         "y",
-        "w",
-        "h",
-        "text",
         "radius",
         "aria",
         "fontSize",
-        "fontWeight",
-        "visible"
+        "fontWeight"
       ],
       "transform": "ignore",
       "keys": [
@@ -450,9 +428,7 @@
       "id": "sidebar-row-kebab-column",
       "reason": "Owner-kept feature (R1): every Hermes session row reserves a 20px actions column for its kebab menu, so the title is narrower and the time sits in a fixed 20-24px box instead of the wireframe's text-width time at the row edge.",
       "props": [
-        "x",
-        "w",
-        "fontWeight"
+        "x"
       ],
       "transform": "ignore",
       "keys": [
@@ -464,7 +440,11 @@
       "id": "wireframe-empty-keeps-focused-chat",
       "reason": "Wireframe quirk: its empty state reuses the previously focused chat (title 'Refactor billing webhooks', project chip Vanta, that chat's row selected) over an empty thread. The build's empty state is a new chat: 'New chat', no project chip until a folder is chosen, no row selected, and the thread column holds the starter prompts.",
       "props": [
-        "*"
+        "filled",
+        "text",
+        "visible",
+        "w",
+        "x"
       ],
       "transform": "ignore",
       "states": [
@@ -517,8 +497,15 @@
       "id": "reply-action-row-per-reply",
       "reason": "The wireframe draws a hover action row (Copy, thumbs up and down, Retry) under every assistant paragraph; the build keeps one row per reply, at its end, once the reply is complete (Hermes message model: one assistant message holds the whole turn). The row's own styling is measured by tools/chat-parity (assistantActions) in the done and offline states.",
       "props": [
-        "*",
-        "visibleCount"
+        "border",
+        "filled",
+        "radius",
+        "text",
+        "visible",
+        "visibleCount",
+        "w",
+        "x",
+        "y"
       ],
       "transform": "ignore",
       "keys": [
@@ -530,8 +517,7 @@
       "id": "wireframe-failed-offline-keep-waiting",
       "reason": "Wireframe quirk: in its failed and offline states the focused chat's sidebar row stays Waiting (and Needs you keeps 2) while the title bar says Failed or Offline. A real chat has one status that the row, the pill and Needs you all read, so the build's row follows the chat (done) and Needs you counts 1; the focused row also moves from Needs you into its group.",
       "props": [
-        "*",
-        "visibleCount"
+        "filled"
       ],
       "transform": "ignore",
       "states": [
@@ -576,24 +562,12 @@
       ]
     },
     {
-      "id": "failed-command-step",
-      "reason": "The failed command keeps its own step row (what ran and its output) above the error card; the wireframe draws only the card, so two step rows show instead of one.",
-      "props": [
-        "visibleCount"
-      ],
-      "transform": "ignore",
-      "states": [
-        "*.chat-failed"
-      ],
-      "keys": [
-        "step[]"
-      ]
-    },
-    {
       "id": "offline-composer-disabled",
       "reason": "Offline the build disables the composer (placeholder 'Reconnecting to Vanta\u2026', model and effort menus need the backend) instead of accepting queued messages as the wireframe's banner says. Owner decision pending: queue-while-offline is not built.",
       "props": [
-        "*"
+        "placeholder",
+        "visible",
+        "x"
       ],
       "transform": "ignore",
       "states": [
@@ -704,11 +678,155 @@
       "id": "expanded-step-body",
       "reason": "See expanded-step-rows: the expanded body is a list of rows, not a one-line comma list in a ruled box.",
       "props": [
-        "*"
+        "border",
+        "fontSize",
+        "h",
+        "text",
+        "w",
+        "x",
+        "y"
       ],
       "transform": "ignore",
       "keys": [
         "step.body[*]"
+      ]
+    },
+    {
+      "id": "copy-no-profile-chip",
+      "reason": "The owner does not want a profile chip in the sidebar footer: the footer is the settings gear only (with the kept Hermes profile row). The wireframe's avatar initial, name and 'Local \u00b7 model' line are not shown.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "J",
+        "Jason",
+        "Local \u00b7 Sonnet 5.5"
+      ]
+    },
+    {
+      "id": "copy-nav-labels",
+      "reason": "Owner-kept: the first nav row reads 'New session' (it is also a drag source for splits), and Search is the Hermes session search field with its own placeholder, with no shortcut hint.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "New chat",
+        "Search",
+        "\u2318K"
+      ]
+    },
+    {
+      "id": "copy-project-groups",
+      "reason": "The kept Hermes list groups the rest of the chats under 'Sessions' (and 'Cron jobs'), not under project names.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "VANTA",
+        "PORTFOLIO"
+      ]
+    },
+    {
+      "id": "copy-reply-retry",
+      "reason": "The build shows an assistant message's Copy, thumbs and Retry row once the reply is complete, at its end; a reply still being written has no Retry.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "Retry"
+      ],
+      "states": [
+        "*.chat-running",
+        "*.chat-waiting",
+        "*.wb-*",
+        "*.palette*",
+        "*.settings",
+        "*.dark-waiting",
+        "*.waiting-*",
+        "*.running-queued",
+        "*.drawer-waiting",
+        "*.chat-failed"
+      ]
+    },
+    {
+      "id": "copy-empty-keeps-focused-chat",
+      "reason": "Wireframe quirk: its empty state still names the previously focused chat and project in the title bar (see wireframe-empty-keeps-focused-chat).",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "Refactor billing webhooks",
+        "Vanta"
+      ],
+      "states": [
+        "*.chat-empty"
+      ]
+    },
+    {
+      "id": "copy-failed-offline-needs-count",
+      "reason": "Wireframe quirk: its failed, offline and empty states keep Needs you at 2 (see wireframe-failed-offline-keep-waiting); the build counts 1.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "2"
+      ],
+      "states": [
+        "*.chat-failed",
+        "*.chat-offline",
+        "*.chat-empty"
+      ]
+    },
+    {
+      "id": "copy-offline-effort",
+      "reason": "While the backend is away the build disables the composer: its placeholder says 'Reconnecting to Vanta\u2026' and the model and effort menus need the backend (see offline-composer-disabled). The wireframe keeps the composer enabled with its normal placeholder and chips.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "Medium \u25be",
+        "Sonnet 5.5 \u25be Medium \u25be Ask each time \u25be",
+        "[placeholder] Ask Vanta to do something"
+      ],
+      "states": [
+        "*.chat-offline"
+      ]
+    },
+    {
+      "id": "copy-live-clock",
+      "reason": "The status pill splits the word and the elapsed clock into two spans, and the clock moves; the wireframe prints '\u25cc Running 0:42' as one string.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "\u25cc Running 0:42"
+      ],
+      "states": [
+        "*.chat-running",
+        "*.running-queued",
+        "*.waiting-toast-always"
+      ]
+    },
+    {
+      "id": "copy-expanded-step",
+      "reason": "An expanded 'Read 3 files' lists one row per file (see expanded-step-rows) instead of a comma-separated list.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "billing/webhooks.ts, billing/retry.ts, billing/webhooks.test.ts"
+      ],
+      "states": [
+        "*.waiting-step-open"
       ]
     }
   ]
