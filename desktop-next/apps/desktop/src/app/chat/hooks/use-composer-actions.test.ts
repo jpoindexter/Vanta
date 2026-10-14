@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { $composerAttachments, type ComposerAttachment, updateComposerAttachment } from '@/store/composer'
+import { $notifications } from '@/store/notifications'
 import { $connection } from '@/store/session'
 
 import { droppedFileInlineRefs } from '../composer/inline-refs'
@@ -21,6 +22,8 @@ import {
 // an inline @file: ref (in-app, workspace-relative, gateway-resolvable) or goes
 // through the upload pipeline (OS drop — absolute local path a remote gateway
 // can't read, plus image bytes for vision).
+const lastError = (): string => $notifications.get().at(-1)?.message ?? ''
+
 const osDrop = (path: string): DroppedFile => ({ file: new File(['x'], path.split('/').pop() || 'f'), path })
 const inAppRef = (path: string, extra: Partial<DroppedFile> = {}): DroppedFile => ({ path, ...extra })
 
@@ -344,23 +347,14 @@ describe('attachmentPreviewDataUrl', () => {
 
 describe('useComposerActions native image drops', () => {
   afterEach(() => {
+    $notifications.set([])
     Reflect.deleteProperty(window, 'hermesDesktop')
     vi.unstubAllGlobals()
     vi.clearAllMocks()
   })
 
-  it('does not attach a screenshot when its draft changes during native image saving', async () => {
-    let finishSave!: (path: string) => void
-
-    const saveImageBuffer = vi.fn(
-      () =>
-        new Promise<string>(resolve => {
-          finishSave = resolve
-        })
-    )
-
+  it('does not attach a screenshot when its draft changes while the image is read', async () => {
     const add = vi.fn()
-    Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { saveImageBuffer } })
 
     const { result } = renderHook(() =>
       useComposerActions({
@@ -378,48 +372,25 @@ describe('useComposerActions native image drops', () => {
     )
 
     let current = true
+    const pending = result.current.attachImageBlob(new Blob([new Uint8Array([1])], { type: 'image/png' }), () => current)
 
-    const pending = result.current.attachImageBlob(
-      new Blob([new Uint8Array([1])], { type: 'image/png' }),
-      () => current
-    )
-
-    await vi.waitFor(() => expect(saveImageBuffer).toHaveBeenCalledOnce())
     current = false
-    finishSave('/test/screenshot.png')
     expect(await pending).toBe(false)
     expect(add).not.toHaveBeenCalled()
   })
 
-  it('copies dropped screenshot bytes before trusting a transient macOS path', async () => {
+  it('keeps a dropped screenshot in memory and never writes it to disk', async () => {
     const transientPath =
       '/var/folders/x7/example/T/TemporaryItems/NSIRD_screencaptureui_4roSuW/Screen Shot 2026-08-11.png'
 
-    const durablePath = '/Users/test/Library/Application Support/Vanta/composer-images/composer_saved.png'
-    const previewUrl = 'data:image/png;base64,c2NyZWVuc2hvdA=='
-
-    const screenshot = new File([new Uint8Array([1, 2, 3])], 'Screen Shot 2026-08-11.png', {
-      type: 'image/png'
-    })
-
-    const saveImageBuffer = vi.fn(async () => durablePath)
-
-    const readFileDataUrl = vi.fn(async (path: string) => {
-      if (path === transientPath) {
-        throw new Error('temporary screenshot path disappeared')
-      }
-
-      return previewUrl
-    })
-
+    const screenshot = new File([new Uint8Array([1, 2, 3])], 'Screen Shot 2026-08-11.png', { type: 'image/png' })
+    const saveImageBuffer = vi.fn(async () => '/never')
+    const readFileDataUrl = vi.fn(async () => 'data:image/png;base64,AQID')
     const add = vi.fn<(attachment: ComposerAttachment) => void>()
 
     Object.defineProperty(window, 'hermesDesktop', {
       configurable: true,
-      value: {
-        readFileDataUrl,
-        saveImageBuffer
-      }
+      value: { readFileDataUrl, saveImageBuffer }
     })
 
     const { result } = renderHook(() =>
@@ -444,17 +415,41 @@ describe('useComposerActions native image drops', () => {
     })
 
     expect(attached).toBe(true)
-    expect(saveImageBuffer).toHaveBeenCalledWith(expect.any(Uint8Array), '.png', 'Screen Shot 2026-08-11.png')
-    // The in-hand blob backs the chip preview (object URL — #63682), so the
-    // durable path is never base64-read over IPC either.
+    expect(saveImageBuffer).not.toHaveBeenCalled()
     expect(readFileDataUrl).not.toHaveBeenCalled()
-    // The attachment is keyed to the DURABLE path, not the transient one.
-    expect(add).toHaveBeenCalledWith(
-      expect.objectContaining({
-        kind: 'image',
-        path: durablePath
+    expect(add).toHaveBeenCalledOnce()
+    expect(add.mock.calls[0][0]).toMatchObject({
+      imageData: { dataBase64: 'AQID', mime: 'image/png' },
+      kind: 'image',
+      label: 'Screen Shot 2026-08-11.png'
+    })
+    expect(add.mock.calls[0][0].path).toBeUndefined()
+  })
+
+  it('refuses a GIF drop with the supported types in words', async () => {
+    const add = vi.fn()
+
+    const { result } = renderHook(() =>
+      useComposerActions({
+        activeSessionId: null,
+        currentCwd: '/test',
+        requestGateway: vi.fn(),
+        scope: {
+          add,
+          remove: vi.fn(() => null),
+          target: 'main',
+          update: vi.fn(() => true),
+          updateIfCurrent: vi.fn(() => true)
+        }
       })
     )
+
+    await act(async () => {
+      await result.current.attachImageBlob(new File([new Uint8Array([71, 73, 70])], 'loop.gif', { type: 'image/gif' }))
+    })
+
+    expect(add).not.toHaveBeenCalled()
+    expect(lastError()).toMatch(/loop\.gif: Vanta accepts PNG, JPEG or TIFF images \(this is image\/gif\)/)
   })
 })
 
@@ -509,6 +504,7 @@ describe('attachImagePath thumbnail separation', () => {
     vi.unstubAllGlobals()
     delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
     $composerAttachments.set([])
+    $notifications.set([])
     $connection.set(null)
   })
 
@@ -636,14 +632,18 @@ describe('attachImagePath thumbnail separation', () => {
 
     const afterRemovedOccurrenceResolved = $composerAttachments.get()[0]
 
-    resolveSecondRead('data:text/plain;base64,c2Vjb25k')
+    resolveSecondRead('data:image/png;base64,c2Vjb25k')
+    // The second read is an image, so it is downscaled too: let that bitmap through.
+    await waitFor(() => expect(createImageBitmap).toHaveBeenCalledTimes(2))
+    resolveBitmap({ close: vi.fn(), height: 3000, width: 4000 })
 
     await act(async () => {
       await Promise.all([first, replacement])
     })
 
     expect(afterRemovedOccurrenceResolved?.thumbnailUrl).toBeUndefined()
-    expect($composerAttachments.get()[0]?.previewUrl).toBe('data:text/plain;base64,c2Vjb25k')
+    expect($composerAttachments.get()[0]?.thumbnailUrl).toMatch(/^data:image\/png;base64,/)
+    expect($composerAttachments.get()[0]?.imageData?.dataBase64).toBe('c2Vjb25k')
   })
 
   it('merges a delayed thumbnail into the latest staged state of the same occurrence', async () => {
@@ -766,7 +766,7 @@ describe('attachImagePath thumbnail separation', () => {
     expect(close).toHaveBeenCalled()
   })
 
-  it('processes 72 image reads one at a time and retains only bounded thumbnails', async () => {
+  it('processes image reads one at a time and retains only bounded thumbnails', async () => {
     let activeReads = 0
     let maxActiveReads = 0
 
@@ -807,20 +807,20 @@ describe('attachImagePath thumbnail separation', () => {
     )
 
     await act(async () => {
-      await Promise.all(Array.from({ length: 72 }, (_, index) => result.current.attachImagePath(`/tmp/${index}.png`)))
+      await Promise.all(Array.from({ length: 4 }, (_, index) => result.current.attachImagePath(`/tmp/${index}.png`)))
     })
 
     const attachments = $composerAttachments.get()
 
-    expect(readFileDataUrl).toHaveBeenCalledTimes(72)
+    expect(readFileDataUrl).toHaveBeenCalledTimes(4)
     expect(maxActiveReads).toBe(1)
-    expect(attachments).toHaveLength(72)
+    expect(attachments).toHaveLength(4)
     expect(attachments.every(attachment => attachment.thumbnailUrl?.startsWith('data:image/'))).toBe(true)
     expect(attachments.every(attachment => attachment.previewUrl === undefined)).toBe(true)
     expect(JSON.stringify(attachments)).not.toContain(FULL_RES)
   })
 
-  it('leaves the thumbnail undefined when the preview is not an image', async () => {
+  it('refuses a file that is not an image and leaves no chip behind', async () => {
     const readFileDataUrl = vi.fn(async () => 'data:text/plain;base64,aGVsbG8=')
 
     ;(
@@ -837,10 +837,54 @@ describe('attachImagePath thumbnail separation', () => {
       await result.current.attachImagePath('/tmp/shot.txt')
     })
 
-    const attachment = $composerAttachments.get()[0]
+    expect($composerAttachments.get()).toEqual([])
+    expect(lastError()).toMatch(/shot\.txt: Vanta accepts PNG, JPEG or TIFF images \(this is text\/plain\)/)
+  })
 
-    expect(attachment?.previewUrl).toBe('data:text/plain;base64,aGVsbG8=')
-    expect(attachment?.thumbnailUrl).toBeUndefined()
+  it('holds a picked image in memory for the request body and keeps the path only as a label', async () => {
+    const readFileDataUrl = vi.fn(async () => FULL_RES)
+
+    ;(
+      window as unknown as {
+        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+      }
+    ).hermesDesktop = { readFileDataUrl }
+
+    const { result } = renderHook(() =>
+      useComposerActions({ activeSessionId: null, currentCwd: '', requestGateway: vi.fn() })
+    )
+
+    await act(async () => {
+      await result.current.attachImagePath('/tmp/picked.png')
+    })
+
+    expect($composerAttachments.get()[0]?.imageData).toEqual({
+      dataBase64: FULL_RES.slice('data:image/png;base64,'.length),
+      mime: 'image/png'
+    })
+  })
+
+  it('refuses a fifth image with the limit in words and leaves four chips', async () => {
+    const readFileDataUrl = vi.fn(async () => FULL_RES)
+
+    ;(
+      window as unknown as {
+        hermesDesktop: { readFileDataUrl: typeof readFileDataUrl }
+      }
+    ).hermesDesktop = { readFileDataUrl }
+
+    const { result } = renderHook(() =>
+      useComposerActions({ activeSessionId: null, currentCwd: '', requestGateway: vi.fn() })
+    )
+
+    for (let index = 0; index < 5; index += 1) {
+      await act(async () => {
+        await result.current.attachImagePath(`/tmp/${index}.png`)
+      })
+    }
+
+    expect($composerAttachments.get()).toHaveLength(4)
+    expect(lastError()).toMatch(/up to 4 images/)
   })
 })
 

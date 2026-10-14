@@ -404,7 +404,8 @@ export function usePromptActions({
         // attachedSessionId) — don't re-upload it. Compare against the LIVE id:
         // after a mid-loop recovery an earlier chip's attachedSessionId points
         // at the dead runtime and must be re-staged.
-        if (!attachment.path || attachment.attachedSessionId === liveSessionId) {
+        // Inline images travel in the prompt.submit body and are never staged on the gateway.
+        if (!attachment.path || attachment.imageData || attachment.attachedSessionId === liveSessionId) {
           synced.push(attachment)
 
           continue
