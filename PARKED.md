@@ -118,3 +118,9 @@ be active; do not revive a duplicate product lane.
 **Captured:** 2026-10-13. The vendored Hermes renderer under `desktop-next/apps/desktop` carries large pre-existing size-gate violations (for example `src/components/assistant-ui/tool/fallback.tsx` at 1212 lines, plus many functions over 50 lines or complexity 10). The whole-file pre-commit lint blocks any commit that stages such a file.
 **Why parked:** Splitting vendored upstream files is not shippable value before the desktop-next milestone; it also makes future upstream diffs harder to read. Interim rule: commit with `VANTA_LINT_BLOCK=0` (warn-only) after verifying the functions you touched are within limits and say so in the commit body. gitleaks and the architecture boundary check always run.
 **Cost to revisit:** Add a baseline file (path -> violation count/size) for `desktop-next/`, make the lint compare against it so only new or worsened violations block, then decompose the worst offenders one file per slice.
+
+## Full-access warning: reset control in Settings (2026-10-14)
+Captured: the legacy Safety settings had "reset acknowledgement". `resetFullAccessAcknowledgement(root)` exists and is tested in
+`desktop-next/apps/desktop/src/store/full-access-warning.ts`, but no settings page calls it.
+Why parked: V-019 done criterion is the warning before Full access, not a reset surface; the version bump already re-asks.
+Cost to revisit: one row in a Safety settings page (the settings pages that read /api/config are still inert).
