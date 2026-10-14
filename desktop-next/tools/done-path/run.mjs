@@ -8,6 +8,7 @@ import path from "node:path";
 
 import { commandOf, descendants, killLeftovers, makeSandbox, readPermissions, stillAlive } from "./harness.mjs";
 import { startScriptedModel } from "./scripted-model.mjs";
+import * as access from "./steps-access.mjs";
 import * as approval from "./steps-approval.mjs";
 import * as ui from "./steps-ui.mjs";
 
@@ -24,6 +25,7 @@ const STEPS = [
   ["c", "quit every process, relaunch with the same userData and VANTA_HOME", approval.stepRestart],
   ["d", "new chat in project A, same tool call: no card, tool runs", approval.stepNewChatNoAsk],
   ["g", "edit_file on deploy-notes.md and production-plan.md does not ask", approval.stepPathText],
+  ["p", "composer chip: Plan makes the server refuse a write tool, survives a restart (V-018)", access.stepPlanMode],
   ["f", "one-way command asks with no Always and a reason, even after Always for shell", approval.stepOneWay],
   ["e", "project B (switched in the app) still asks; nothing saved for B", approval.stepOtherProject],
   ["h1", "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent", ui.stepLargePaste],

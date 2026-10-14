@@ -1,6 +1,7 @@
 import { JsonRpcGatewayError } from '@hermes/shared'
 
 import { commandsCatalog } from './commands-catalog'
+import { getAccessMode, setAccessMode } from './handlers-access-mode'
 import type { Handler, Params } from './handlers-session'
 import type { GatewayHub } from './hub'
 import { expectOk, parseBody } from './rpc'
@@ -44,6 +45,7 @@ const projectGetter: ConfigGetter = async (hub, client) => ({
 })
 
 const CONFIG_GETTERS: Readonly<Record<string, ConfigGetter>> = {
+  access_mode: getAccessMode,
   approval_mode: approvalModeGetter,
   'approvals.mode': approvalModeGetter,
   cwd: projectGetter,
@@ -125,6 +127,8 @@ export const configSet: Handler = async (hub, params) => {
   const client = clientFor(hub, params)
 
   switch (key) {
+    case 'access_mode':
+      return setAccessMode(hub, client, params)
     case 'model':
       return setModel(hub, client, params.value)
     case 'approvals.mode':
