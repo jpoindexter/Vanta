@@ -62,23 +62,15 @@ function useOutputs(): {
   }
 }
 
-/** Home's four blocks from the stores the sidebar already reads, plus the outputs list. */
-export function useHomeProps(wiring: HomeWiring): HomeProps {
+/** What each Home control does. A company row opens its ticket; a chat row opens the chat. */
+function useHomeActions(wiring: HomeWiring, outputs: BlockState<ArtifactEntry>, reload: () => void): HomeActions {
   const navigate = useNavigate()
-  const sessions = useStore($sessions)
-  const dots = useStore($sessionDotStateById)
-  const facts = useStore($sessionFacts)
-  const jobs = useStore($cronJobs)
-  const projects = useStore($projects)
-  const { outputs, reload } = useOutputs()
-  const company = useCompanyNeedsYou()
 
-  const actions = useMemo<HomeActions>(
+  return useMemo<HomeActions>(
     () => ({
       onAllowOnce: id => void wiring.allowOnce(id).catch(error => notifyError(error, 'Could not allow that.')),
       onEditSchedule: () => navigate(CRON_ROUTE),
       onOpenOutput: () => navigate(ARTIFACTS_ROUTE),
-      // A company row opens its ticket in the Company screen; a chat row opens the chat.
       onOpenSession: id => {
         const route = companyItemRoute(id)
 
@@ -99,6 +91,18 @@ export function useHomeProps(wiring: HomeWiring): HomeProps {
     }),
     [navigate, outputs, reload, wiring]
   )
+}
+
+/** Home's four blocks from the stores the sidebar already reads, the outputs list and the company's tickets. */
+export function useHomeProps(wiring: HomeWiring): HomeProps {
+  const sessions = useStore($sessions)
+  const dots = useStore($sessionDotStateById)
+  const facts = useStore($sessionFacts)
+  const jobs = useStore($cronJobs)
+  const projects = useStore($projects)
+  const { outputs, reload } = useOutputs()
+  const company = useCompanyNeedsYou()
+  const actions = useHomeActions(wiring, outputs, reload)
 
   return useMemo<HomeProps>(() => {
     const input = { dots, facts }
