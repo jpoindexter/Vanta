@@ -73,3 +73,11 @@ declare module '*/vanta-ts/desktop-app/electron/project-switch.mjs' {
     set: (value: PreparedProjectSwitch) => void
   }
 }
+
+declare module '*/vanta-ts/desktop-app/electron/process-tree.mjs' {
+  /** SIGTERM the child, wait, then SIGKILL anything in its process tree that survived. Never rejects. */
+  export function stopProcessTree(
+    child: { exitCode: null | number; pid?: number; signalCode: null | string },
+    options?: { graceMs?: number }
+  ): Promise<{ forced: number[] }>
+}
