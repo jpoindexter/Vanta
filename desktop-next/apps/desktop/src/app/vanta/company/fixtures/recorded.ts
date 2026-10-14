@@ -1,3 +1,4 @@
+import { HeartbeatsResponseSchema } from '@/api/vanta-company-ops-schemas'
 import {
   ActivityResponseSchema,
   BudgetsResponseSchema,
@@ -14,6 +15,7 @@ import approvalRaiseJson from './recorded/approval-raise.json'
 import budgetsJson from './recorded/budgets.json'
 import companyJson from './recorded/company.json'
 import eventsJson from './recorded/events.json'
+import heartbeatsJson from './recorded/heartbeats.json'
 import runtimesJson from './recorded/runtimes.json'
 import ticketsJson from './recorded/tickets.json'
 
@@ -32,6 +34,7 @@ export const RECORDED = {
   company: CompanyResponseSchema.parse(companyJson),
   details: Object.values(detailFiles).map(json => TicketDetailSchema.parse(json)),
   events: eventsJson as Array<{ label: string; typed: { type: string } }>,
+  heartbeats: HeartbeatsResponseSchema.parse(heartbeatsJson),
   runtimes: RuntimesResponseSchema.parse(runtimesJson),
   tickets: TicketsResponseSchema.parse(ticketsJson)
 }

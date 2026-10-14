@@ -1,6 +1,7 @@
 import type http from "node:http";
 import type { z } from "zod";
 import { raiseBudget } from "./company-budget-write.js";
+import { createObjective, setKeyResultProgress } from "./company-okr-write.js";
 import { companyCtx, type CompanyCtx, type Outcome } from "./company-context.js";
 import { parseBody, sendFailure } from "./company-http.js";
 import { withCompanyLock } from "./company-lock.js";
@@ -11,8 +12,8 @@ import { runTick } from "./company-tick.js";
 import { answerTicket, assignTicket, closeTicket, commentTicket, createTicketRoute } from "./company-tickets-write.js";
 import { hireWorker, setWorkerPaused } from "./company-workers-write.js";
 import {
-  AnswerBody, ApproveBody, AssignBody, CloseBody, CommentBody, CreateTicketBody, HireBody,
-  PauseBody, RaiseBudgetBody, ResumeBody, ReviseBody, TickBody,
+  AnswerBody, ApproveBody, AssignBody, CloseBody, CommentBody, CreateOkrBody, CreateTicketBody, HireBody,
+  OkrProgressBody, PauseBody, RaiseBudgetBody, ResumeBody, ReviseBody, TickBody,
 } from "./company-write-schemas.js";
 import { sendJson } from "./handler-http.js";
 import type { DesktopState } from "./handler-state.js";
@@ -46,6 +47,8 @@ const POST_ROUTES: Record<string, Action> = {
   "work-products/approve": action(ApproveBody, (ctx, b) => approveProduct(ctx, b.workProductId)),
   "work-products/revise": action(ReviseBody, reviseProduct),
   "budgets/raise": action(RaiseBudgetBody, raiseBudget, { locks: false }),
+  "okrs/create": action(CreateOkrBody, createObjective),
+  "okrs/progress": action(OkrProgressBody, setKeyResultProgress),
   "tick": action(TickBody, (ctx) => runTick(ctx)),
 };
 

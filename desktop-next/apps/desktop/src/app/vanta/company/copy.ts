@@ -2,12 +2,15 @@ import type { TicketStatus, WorkerStatus } from '@/api/vanta-company-schemas'
 
 /** Every user-visible string of the Company screens that more than one component uses. */
 
-export const COMPANY_TABS = ['workers', 'tickets', 'budgets', 'activity'] as const
+export const COMPANY_TABS = ['workers', 'tickets', 'okrs', 'heartbeats', 'products', 'budgets', 'activity'] as const
 export type CompanyTab = (typeof COMPANY_TABS)[number]
 
 export const TAB_LABEL: Record<CompanyTab, string> = {
   activity: 'Activity',
   budgets: 'Budgets',
+  heartbeats: 'Heartbeats',
+  okrs: 'OKRs',
+  products: 'Work products',
   tickets: 'Tickets',
   workers: 'Workers'
 }
@@ -33,7 +36,7 @@ export const TICKET_STATUS_WORD: Record<TicketStatus, string> = {
 export const COPY = {
   offline: 'Vanta is not reachable. What you see may be out of date.',
   offlineRetry: 'Retry now',
-  pageSubtitle: 'The workers, tickets, budgets and activity of your company.',
+  pageSubtitle: 'The workers, tickets, goals, heartbeats, work products, budgets and activity of your company.',
   pageTitle: 'Company',
   reconnecting: 'Reconnecting to Vanta.',
   retry: 'Retry'

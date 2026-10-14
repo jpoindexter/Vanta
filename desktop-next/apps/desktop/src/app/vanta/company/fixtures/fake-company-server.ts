@@ -14,6 +14,7 @@ import {
   type WriteOutcome
 } from './fake-company-writes'
 import { type FakeState, initialState, type Scenario } from './fake-company-state'
+import { createOkr, heartbeatsView, okrsView, productsView, runTick, setKeyResult } from './fake-ops'
 import { fixtureNow, RECORDED } from './recorded'
 
 const PAGE_SIZE = 25
@@ -29,6 +30,9 @@ const workerOf = (body: Record<string, unknown>) => String(body.workerId ?? '')
 
 const WRITERS: Record<string, Writer> = {
   'budgets/raise': (state, body) => raiseBudget(state, body),
+  'okrs/create': createOkr,
+  'okrs/progress': setKeyResult,
+  'tick': runTick,
   'tickets/answer': answerTicket,
   'tickets/assign': (state, body) => assignTicket(state, body),
   'tickets/close': (state, body) => closeTicket(state, body),
@@ -78,6 +82,10 @@ export class FakeCompanyServer implements VantaTransport {
   readonly calls: VantaCall[] = []
   readonly state: FakeState
   readonly streams = new Map<string, VantaEventHandlers>()
+  /** Answer the next write with this failure instead of applying it (consumed by that write). */
+  failNext: { error: string; status: number } | null = null
+  /** When true, Run tick behaves as if it starts an external CLI worker and waits for the owner's approval. */
+  tickNeedsApproval = false
   private approval: Deferred | null = null
   private approvalCount = 0
 
@@ -160,7 +168,10 @@ export class FakeCompanyServer implements VantaTransport {
       '/api/budgets': () => ok(this.state.budgets),
       '/api/company': () => ok(this.state.company),
       '/api/company/runtimes': () => ok(RECORDED.runtimes),
+      '/api/heartbeats': () => ok(heartbeatsView(this.state)),
       '/api/models': () => ok(PROVIDERS),
+      '/api/okrs': () => ok(okrsView(this.state.okrs)),
+      '/api/work-products': query => ok(productsView(this.state, query)),
       '/api/tickets': query => ok(this.tickets(query))
     }
   }
@@ -196,6 +207,14 @@ export class FakeCompanyServer implements VantaTransport {
       return this.decide(body)
     }
 
+    if (this.failNext) {
+      const { error, status } = this.failNext
+
+      this.failNext = null
+
+      return fail(status, error)
+    }
+
     const template = this.approvalFor(call.path, body)
 
     if (template && !(await this.askOwner(call.clientId, template))) {
@@ -213,6 +232,10 @@ export class FakeCompanyServer implements VantaTransport {
 
     if (path.endsWith('/budgets/raise')) {
       return RECORDED.approvalRaise
+    }
+
+    if (path.endsWith('/tick') && this.tickNeedsApproval) {
+      return cliApproval('claude-code', 'T-5')
     }
 
     const worker = path.endsWith('/tickets/assign') ? workerFor(this.state, body) : undefined
