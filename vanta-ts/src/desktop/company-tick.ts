@@ -40,7 +40,7 @@ export async function runTick(ctx: CompanyCtx): Promise<Outcome<TickWrite>> {
   const result = await runCompanyTick(buildCompanyTickDeps(sources, () => {}));
   const warnings: string[] = [];
   if (departments.length === 0) warnings.push("No departments exist, so the tick has nothing to advance. Create one with vanta dept add.");
-  else if (goals.length === 0) warnings.push("No active kernel goals are visible (no live session, or none set), so every department reports no-open-goals.");
+  else if (goals.length === 0) warnings.push("No active kernel goals are visible (none set, or the kernel is not running), so every department reports no-open-goals.");
   await recordActivity(ctx, { kind: "company.tick", actor: "owner", summary: `tick: ${result.dispatched} of ${result.beats.length} departments advanced`, refs: {} });
   return succeed({ ...result, warnings });
 }
