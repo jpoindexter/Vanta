@@ -170,13 +170,14 @@ try {
     console.log("approval options:", await page.getByRole("option").allInnerTexts());
     await page.getByRole("option", { name: /manual/i }).first().click();
     await page.waitForTimeout(2500);
-    const mode = await api({ method: "GET", path: "/api/access-mode" });
-    say("F-163w", mode.mode === "ask", `Safety > Approvals Manual -> access mode ${mode.mode}`);
+    // Read the saved project setting: each chat window keeps its own in-memory copy.
+    const savedMode = () => JSON.parse(fs.readFileSync(path.join(app.project, ".vanta", "settings.local.json"), "utf8")).desktop?.accessMode;
+    say("F-163w", savedMode() === "ask", `Safety > Approvals Manual -> saved access mode ${savedMode()}`);
     await overlay(page).getByRole("combobox").first().click();
     await page.getByRole("option", { name: /^Off/ }).first().click();
     await page.waitForTimeout(2500);
     const toast = (await page.locator("[role=alert], [role=status], [data-sonner-toast], [class*=toast i]").allInnerTexts()).join(" | ").replace(/\n+/g, " / ");
-    const stillAsk = (await api({ method: "GET", path: "/api/access-mode" })).mode;
+    const stillAsk = savedMode();
     say("F-163x", /must be one of manual, smart/.test(toast) && stillAsk === "ask", `choosing Off is refused and says why: "${toast.slice(0, 200)}" (mode still ${stillAsk})`);
   }
   if (wants("browser")) {
