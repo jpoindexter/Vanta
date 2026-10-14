@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
+import { killKernelFromPidFile, registerKernelCleanup } from "./kernel-guard/cleanup.js";
+import { spawnGuardedKernel } from "./kernel-guard/spawn-guarded.js";
 
 type KernelStatus = { status?: string; root?: string };
 export type KernelStatusReader = (baseUrl: string) => Promise<KernelStatus | null>;
@@ -86,40 +88,7 @@ async function resolveKernelEndpoint(baseUrl: string, root: string): Promise<{
   return { baseUrl: scopedUrl, ready: statusMatchesRoot(await statusAt(scopedUrl), root) };
 }
 
-type RuntimeExitEmitter = {
-  once(event: string, listener: (...args: unknown[]) => void): unknown;
-  removeListener(event: string, listener: (...args: unknown[]) => void): unknown;
-  exit?(code?: number): unknown;
-};
-type ManagedKernelChild = {
-  exitCode: number | null;
-  killed: boolean;
-  kill(signal?: NodeJS.Signals | number): boolean;
-  once(event: string, listener: (...args: unknown[]) => void): unknown;
-};
-
-/** Tie test-owned kernels to the runtime that launched them. */
-export function registerKernelCleanup(
-  child: ManagedKernelChild,
-  runtime: RuntimeExitEmitter = process,
-): void {
-  const stop = () => {
-    if (child.exitCode === null && !child.killed) child.kill("SIGTERM");
-  };
-  const terminate = () => {
-    stop();
-    runtime.exit?.(0);
-  };
-  const release = () => {
-    runtime.removeListener("exit", stop);
-    runtime.removeListener("SIGINT", terminate);
-    runtime.removeListener("SIGTERM", terminate);
-  };
-  runtime.once("exit", stop);
-  runtime.once("SIGINT", terminate);
-  runtime.once("SIGTERM", terminate);
-  child.once("exit", release);
-}
+export { registerKernelCleanup } from "./kernel-guard/cleanup.js";
 
 /**
  * Ensure a Rust kernel is running for the requested root and return its endpoint.
@@ -143,14 +112,25 @@ export async function ensureKernel(opts: {
   }
 
   const port = new URL(baseUrl).port || "7788";
-  const child = spawn(opts.kernelBin, ["serve", port], {
-    detached: !opts.ephemeral,
-    stdio: "ignore",
-    cwd: opts.root,
-    env: { ...process.env, VANTA_ROOT: opts.root },
-  });
-  if (opts.ephemeral) registerKernelCleanup(child);
-  child.unref();
+  if (opts.ephemeral) {
+    // Owned kernel: a guard process (our child) starts it and kills it when this runtime ends, however it ends.
+    const { guard, pidFile } = spawnGuardedKernel({ kernelBin: opts.kernelBin, port, root: opts.root });
+    registerKernelCleanup(guard, process, {
+      forceStop: () => {
+        guard.kill("SIGKILL");
+        killKernelFromPidFile(pidFile);
+      },
+      log: (line) => process.stderr.write(`[kernel] ${line}\n`),
+    });
+  } else {
+    // Shared operator kernel: deliberately outlives this process so the next CLI session reuses it.
+    spawn(opts.kernelBin, ["serve", port], {
+      detached: true,
+      stdio: "ignore",
+      cwd: opts.root,
+      env: { ...process.env, VANTA_ROOT: opts.root },
+    }).unref();
+  }
 
   for (let i = 0; i < 10; i++) {
     await sleep(500);
