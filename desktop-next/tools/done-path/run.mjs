@@ -2,7 +2,7 @@
 // against a scripted local model, through the slice-1 done criterion (steps a-i). Prints one JSON
 // result and writes evidence (screenshots, approval payloads, permissions file) to --out.
 //
-//   node tools/done-path/run.mjs --out docs/proofs/done-path/run-01 [--no-shots] [--keep]
+//   node tools/done-path/run.mjs --out docs/proofs/done-path/run-01 [--no-shots] [--keep] [--control wipe-rules|unscoped-rule]
 import fs from "node:fs";
 import path from "node:path";
 
@@ -36,7 +36,7 @@ const STEPS = [
 function makeContext(box, model) {
   fs.mkdirSync(outDir, { recursive: true });
   const ctx = {
-    box, model, cur: null, probes: [],
+    box, model, cur: null, probes: [], control: option("--control", ""),
     descendants, commandOf, alive: stillAlive,
     evidence: (name, value) => fs.writeFileSync(path.join(outDir, `${name}.json`), `${JSON.stringify(value, null, 2)}\n`),
     probe: (id, title, ok, detail) => ctx.probes.push({ id, title, status: ok ? "PASS" : "FAIL", detail }),
