@@ -5,13 +5,24 @@ import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
 import { configRoutes } from './shim-config'
 import { cronRoutes } from './shim-cron'
+import { localEndpointRoutes } from './shim-local-endpoint'
 import { modelRoutes } from './shim-model'
 import { profileRoutes } from './shim-profiles'
+import { providerRoutes } from './shim-providers'
 import { sessionInfoFromMeta } from './shim-session-row'
 import { sessionRoutes } from './shim-sessions'
 import { skillRoutes } from './shim-skills'
 
-const ROUTES: readonly ShimRoute[] = [...configRoutes, ...modelRoutes, ...profileRoutes, ...cronRoutes, ...sessionRoutes, ...skillRoutes]
+const ROUTES: readonly ShimRoute[] = [
+  ...configRoutes,
+  ...modelRoutes,
+  ...providerRoutes,
+  ...localEndpointRoutes,
+  ...profileRoutes,
+  ...cronRoutes,
+  ...sessionRoutes,
+  ...skillRoutes
+]
 
 // The Hermes sidebar reads sessions and profiles over REST paths the Vanta server does not have
 // (`/api/profiles/sessions`, `/api/profiles`). The shim answers them from what Vanta does serve

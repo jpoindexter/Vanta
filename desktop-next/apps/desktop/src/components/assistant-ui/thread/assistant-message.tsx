@@ -24,6 +24,7 @@ import {
   pickPrimaryPreviewTarget
 } from '@/components/assistant-ui/thread/content'
 import { MESSAGE_PARTS_COMPONENTS } from '@/components/assistant-ui/thread/message-parts'
+import { ErrorCardReconnect } from '@/components/assistant-ui/thread/provider-reconnect'
 import { ResponseMessageIds } from '@/components/assistant-ui/thread/response-group'
 import { ResponseLoadingIndicator, TurnActivityIndicator } from '@/components/assistant-ui/thread/status'
 import { threadMessageIndex } from '@/components/assistant-ui/thread/thread-message-index'
@@ -893,6 +894,7 @@ const ErrorRecoveryActions: FC = () => {
 
   return (
     <div className="vp-acts" data-vp="failure-actions">
+      {plan.reconnect && surface && <ErrorCardReconnect surface={surface} />}
       {plan.editMessage && <EditPreviousMessageAction label={copy.editMessage} />}
       {plan.compress && <CompressConversationAction label={copy.errorCompressConversation} />}
       {plan.chooseModel && (

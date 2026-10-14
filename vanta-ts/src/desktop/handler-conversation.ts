@@ -14,6 +14,7 @@ import { loadDesktopAccessMode,permissionModeForAccess } from "./access-mode.js"
 import { requestWebApproval } from "./approval.js";
 import { type DesktopEvent,type DesktopState } from "./handler-state.js";
 import { pushSseEvent } from "./session-state.js";
+import { adoptSetupGeneration } from "./setup-generation.js";
 import { pushFrame,typedFromStreamEvent } from "./typed-emit.js";
 
 export function eventLabel(event: StreamEvent): DesktopEvent | null {
@@ -86,6 +87,7 @@ export function attachConversation(state: DesktopState, setup: RunSetup, history
 }
 
 export async function ensureDesktopConversation(state: DesktopState): Promise<Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState> {
+  adoptSetupGeneration(state);
   state.accessMode ??= await loadDesktopAccessMode(state.root);
   if (!state.setup) {
     if (state._setupError && Date.now() - state._setupError.at < 30_000) throw new Error(state._setupError.message);
@@ -103,7 +105,10 @@ export async function ensureDesktopConversation(state: DesktopState): Promise<Re
   });
   state.effortLevel = modelSettings.effortLevel;
   state.providerSpeed = modelSettings.speed;
-  if (!state.convo) attachConversation(state, state.setup);
+  if (!state.convo) {
+    attachConversation(state, state.setup, state._resumeHistory?.length ? { history: state._resumeHistory } : undefined);
+    state._resumeHistory = undefined;
+  }
   return state as Required<Pick<DesktopState, "setup" | "convo" | "root">> & DesktopState;
 }
 

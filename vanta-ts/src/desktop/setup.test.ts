@@ -15,9 +15,16 @@ afterEach(() => {
 
 describe("desktop first-run setup", () => {
   it("exposes provider requirements without secrets", () => {
-    const openai = desktopSetupOptions().find((provider) => provider.id === "openai");
-    expect(openai).toMatchObject({ requiresKey: true, defaultModel: "gpt-5.6-sol" });
-    expect(JSON.stringify(openai)).not.toContain("OPENAI_API_KEY");
+    const openai = desktopSetupOptions({}).find((provider) => provider.id === "openai");
+    expect(openai).toMatchObject({ requiresKey: true, defaultModel: "gpt-5.6-sol", envVar: "OPENAI_API_KEY", keyConfigured: false });
+  });
+
+  it("reports whether a key is set but never its value", () => {
+    const key = "sk-proj-fixture-value-that-must-not-leave-the-server";
+    const options = desktopSetupOptions({ OPENAI_API_KEY: key });
+    expect(options.find((provider) => provider.id === "openai")?.keyConfigured).toBe(true);
+    expect(options.find((provider) => provider.id === "ollama")).toMatchObject({ requiresKey: false, keyConfigured: false });
+    expect(JSON.stringify(options)).not.toContain(key);
   });
 
   it("writes a private project config through the real desktop route", async () => {

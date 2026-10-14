@@ -3,7 +3,7 @@ import { attachStream } from './client-stream'
 import type { ChatClient } from './client-registry'
 import type { GatewayHub } from './hub'
 import { errorText } from './rpc'
-import { chatResultSchema } from './schemas'
+import { type ChatResult, chatResultSchema } from './schemas'
 import { completeTurn } from './turn-complete'
 
 // A turn can legitimately run for many minutes; the ack is the end of the turn, not a quick receipt.
@@ -50,10 +50,17 @@ export function startTurn(hub: GatewayHub, client: ChatClient, input: TurnInput)
   })
 }
 
-function fail(hub: GatewayHub, client: ChatClient, message: string): void {
-  hub.emit(client.clientId, 'error', { message })
+function fail(hub: GatewayHub, client: ChatClient, message: string, code?: string): void {
+  hub.emit(client.clientId, 'error', { ...(code ? { code } : {}), message })
   completeTurn(hub, client, { error: message, finalText: '', status: 'error' })
 }
+
+// The first message on a machine with no model provider: the server says which key is missing. The app
+// recognises this as "connect a provider" (it opens the provider picker) by the code and by this noun phrase.
+const NO_PROVIDER = 'No LLM provider configured.'
+const PROVIDER_NOT_CONFIGURED = 'provider_not_configured'
+// The server classes several things as "setup"; only its missing-key sentence means no provider is connected.
+const MISSING_KEY_TEXT = /\bis not set\.|vanta setup|no provider/i
 
 async function postChat(hub: GatewayHub, client: ChatClient, input: TurnInput) {
   const turn = client.turn!
@@ -114,12 +121,29 @@ async function runChat(hub: GatewayHub, client: ChatClient, input: TurnInput): P
     return
   }
 
-  const chat = parsed.data
+  finishFromChat(hub, client, parsed.data)
+}
+
+const turnStatus = (chat: ChatResult): 'complete' | 'error' | 'interrupted' => {
   const receipt = chat.receipt?.status
 
+  return chat.interrupted || receipt === 'interrupted' ? 'interrupted' : receipt === 'failed' ? 'error' : 'complete'
+}
+
+/** End the turn from the server's chat response, naming the two failures the app can act on. */
+function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult): void {
+  const failureKind = chat.receipt?.failureKind
+
+  if (failureKind === 'setup' && MISSING_KEY_TEXT.test(chat.finalText)) {
+    fail(hub, client, `${NO_PROVIDER} ${chat.finalText}`.trim(), PROVIDER_NOT_CONFIGURED)
+
+    return
+  }
+
+  // A provider that refused the saved key ends the turn as a failure the card can recover; the request stays saved server-side.
   completeTurn(hub, client, {
     finalText: chat.finalText,
-    status: chat.interrupted || receipt === 'interrupted' ? 'interrupted' : receipt === 'failed' ? 'error' : 'complete',
+    ...(failureKind === 'provider_auth' ? { stoppedReason: 'provider_auth' } : { status: turnStatus(chat) }),
     usage: chat.usage
   })
 }

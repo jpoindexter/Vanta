@@ -159,3 +159,11 @@ I read `D/FEATURE-PRESERVATION.md` by search only, not row by row. I read `D/ipc
 - V-033 Release-proofs panel: DROPPED (release-ops dashboard; the server route `/api/release-proofs` may stay, no UI ported).
 - V-039 Native iOS Capacitor shell: DROPPED (no shipping evidence; wraps the old bundle). The LAN pairing companion (V-038) is separate and stays PORT-LATER.
 - V-046 Avatar window: DROPPED (gimmick; tray, dock badge and the mini window cover 'needs you').
+
+## Update 2026-10-14: V-012 and V-013 ported (branch `claude/desktop-pw-providers-20261014`)
+
+The two rows above describe the state before this branch; their "Desktop-next today" cells are out of date.
+
+- **V-012 provider setup**: the Hermes first-run picker, Settings > Providers > API keys and the Local / custom endpoint form now reach `GET|POST /api/setup` through the REST shim (`src/api/vanta/shim-providers.ts`, `shim-local-endpoint.ts`). A key is sent to the server in one POST and never read back; the server verifies it, writes the project's private `.env` (0600) and makes the provider the default. Ollama and LM Studio connect after a server-side reachability check. Not covered: removing a saved key (`DELETE /api/env` still refuses; edit `.vanta/.env`), sign-in accounts (none in Vanta), Custom Endpoints page (read-only), non-default local addresses.
+- **V-013 provider auth recovery**: a `provider_auth` stop ends the turn with an auth error card (not "Task stopped before completion") that offers **Reconnect model**; a new key is saved through the same road and the card's Retry resubmits the request. Server side, a setup now reaches every open chat and keeps its history (`vanta-ts/src/desktop/setup-generation.ts`).
+- Evidence: `docs/proofs/provider-setup/run-01.md` (real Electron app, sandbox VANTA_HOME, stand-in provider endpoint, fake keys). Re-run with `npm run vanta:providers`.

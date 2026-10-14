@@ -17,9 +17,11 @@ import { desktopArtifacts,desktopCapabilities,desktopMessagingPlatforms,saveDesk
 import { loadProviderAuthRequired } from "./provider-auth-store.js";
 import { desktopRuntimePayload,runDesktopRuntimeAction,selectDesktopRuntimeHost,type DesktopRuntimeAction } from "./runtime-controller.js";
 import { pushSseEvent } from "./session-state.js";
+import { adoptSetupGeneration } from "./setup-generation.js";
 import { capabilitySnapshot, providerCapabilityState } from "../agent/capability-snapshot.js";
 
 export async function handleStatus(state: DesktopState, res: http.ServerResponse): Promise<void> {
+  adoptSetupGeneration(state);
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   const live = await ensureDesktopConversation(state);
   const goals = await live.setup.safety.getGoals().catch(() => live.setup.goals);
@@ -99,6 +101,7 @@ export async function handleTools(state: DesktopState, res: http.ServerResponse)
 
 export async function handleCapabilities(state: DesktopState, res: http.ServerResponse): Promise<void> {
   try {
+    adoptSetupGeneration(state);
     state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
     const live = await ensureDesktopConversation(state);
     const schemas = live.setup.registry.schemas();
