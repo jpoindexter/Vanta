@@ -10,6 +10,7 @@ import { sessionShouldHaveTranscript } from '@/app/session/hooks/use-session-act
 import { Thread } from '@/components/assistant-ui/thread'
 import { TranscriptWindowProvider } from '@/components/assistant-ui/thread/transcript-window'
 import { Backdrop } from '@/components/Backdrop'
+import { VantaToast } from '@/components/chat/vanta/toast'
 import { COMPOSER_HEART_CONFIG, HeartField } from '@/components/chat/vibe-hearts'
 import { useSetupChatView } from '@/components/onboarding-chat/assembly'
 import { $introHoldsThread } from '@/components/onboarding-chat/intro'
@@ -869,6 +870,7 @@ const ChatViewContent = memo(function ChatViewContent({
           </FloatingComposerSurface>
         )}
       </ChatRuntimeBoundary>
+      <VantaToast />
     </div>
   )
 })

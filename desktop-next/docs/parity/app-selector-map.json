@@ -14,6 +14,9 @@
  "drivers": {
   "base": [
    {
+    "eval": "localStorage.clear(); sessionStorage.clear()"
+   },
+   {
     "storage": {
      "key": "hermes-desktop-mode-v1",
      "value": "light"
@@ -52,6 +55,12 @@
    },
    {
     "wait": 2600
+   },
+   {
+    "eval": "window.__vantaFixture({refresh:true})"
+   },
+   {
+    "wait": 150
    }
   ],
   "chat:waiting": [
@@ -60,6 +69,12 @@
    },
    {
     "wait": 2600
+   },
+   {
+    "eval": "window.__vantaFixture({refresh:true})"
+   },
+   {
+    "wait": 150
    }
   ],
   "chat:blocked": [
@@ -68,6 +83,12 @@
    },
    {
     "wait": 2600
+   },
+   {
+    "eval": "window.__vantaFixture({refresh:true})"
+   },
+   {
+    "wait": 150
    }
   ],
   "chat:done": [
@@ -76,6 +97,12 @@
    },
    {
     "wait": 2600
+   },
+   {
+    "eval": "window.__vantaFixture({refresh:true})"
+   },
+   {
+    "wait": 150
    }
   ],
   "chat:failed": [
@@ -84,6 +111,12 @@
    },
    {
     "wait": 2600
+   },
+   {
+    "eval": "window.__vantaFixture({refresh:true})"
+   },
+   {
+    "wait": 150
    }
   ],
   "chat:offline": [
@@ -92,6 +125,12 @@
    },
    {
     "wait": 2600
+   },
+   {
+    "eval": "window.__vantaFixture({refresh:true})"
+   },
+   {
+    "wait": 150
    }
   ],
   "wb:changes": [
@@ -207,6 +246,9 @@
   ],
   "theme:dark": [
    {
+    "eval": "localStorage.clear(); sessionStorage.clear()"
+   },
+   {
     "storage": {
      "key": "hermes-desktop-mode-v1",
      "value": "dark"
@@ -238,9 +280,46 @@
     "wait": 400
    }
   ],
-  "extra:stepOpen": "UNMAPPED",
-  "extra:queued": "UNMAPPED",
-  "extra:toastAlways": "UNMAPPED"
+  "extra:stepOpen": [
+   {
+    "click": {
+     "css": "[data-vp=\"step\"]:not([data-vp=\"running-line\"] [data-vp=\"step\"])"
+    }
+   },
+   {
+    "wait": 500
+   }
+  ],
+  "extra:queued": [
+   {
+    "click": {
+     "css": "[data-vp=\"composer-input\"]"
+    }
+   },
+   {
+    "fill": {
+     "css": "[data-vp=\"composer-input\"]"
+    },
+    "value": "Also update the docs"
+   },
+   {
+    "press": "Enter",
+    "on": {
+     "css": "[data-vp=\"composer-input\"]"
+    }
+   },
+   {
+    "wait": 600
+   }
+  ],
+  "extra:toastAlways": [
+   {
+    "eval": "window.__vantaFixture({alwaysAllowed:true})"
+   },
+   {
+    "wait": 2700
+   }
+  ]
  },
  "keys": {
   "titlebar": {
@@ -484,10 +563,10 @@
    "hoverOnly": true
   },
   "step[]": {
-   "css": "[data-vp=\"step\"]:not([data-vp=\"running-line\"] [data-vp=\"step\"])"
+   "css": "[data-vp=\"step\"]:not([data-vp=\"running-line\"] [data-vp=\"step\"]):not([data-slot=\"tool-block\"] [data-slot=\"tool-block\"] [data-vp=\"step\"])"
   },
   "step.body[]": {
-   "css": "[data-vp=\"step-body\"]"
+   "css": "[data-slot=\"aui_assistant-message-content\"] > [data-slot=\"tool-block\"] > div:nth-child(2)"
   },
   "running.line": {
    "css": "[data-vp=\"running-line\"]"
@@ -766,7 +845,7 @@
    "testId": "home-empty"
   },
   "toast": {
-   "css": "[data-sonner-toast], [data-slot=\"toast\"]"
+   "css": "[data-vp=\"toast\"]"
   },
   "palette.overlay": {
    "testId": "palette-overlay",

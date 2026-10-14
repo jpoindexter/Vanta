@@ -67,6 +67,14 @@ export function alwaysLabel(approval: ApprovalPayload): string {
     : `Always allow ${toolOf(approval)} in this project`
 }
 
+/** The confirmation shown once an Always answer is saved: what is allowed and where. */
+export function alwaysSavedText(approval: ApprovalPayload, projectName?: string): string {
+  const what = approval.request?.kind === 'bash' ? 'shell commands' : toolOf(approval)
+  const where = projectName ? `the ${projectName} project` : 'this project'
+
+  return `Saved: always allow ${what} in ${where}. Manage in Settings.`
+}
+
 /** Flat inline card that names the exact action; Reject carries the same weight as Allow. */
 export const ApprovalCard: FC<ApprovalCardProps> = ({
   allowNever = true,

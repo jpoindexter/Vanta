@@ -230,7 +230,8 @@
         "composer.send",
         "composer.hint",
         "composer.queue[*]",
-        "composer.queue.remove[*]"
+        "composer.queue.remove[*]",
+        "toast"
       ]
     },
     {
@@ -661,6 +662,53 @@
       },
       "keys": [
         "banner.retry"
+      ]
+    },
+    {
+      "id": "owner-kept-queue-controls",
+      "reason": "Owner-kept feature: a queued message keeps its Edit and Steer buttons beside Remove, so the row is 1.5px taller, filled, and Remove sits further left than the wireframe's text-and-Remove row.",
+      "props": [
+        "text",
+        "h",
+        "filled",
+        "x",
+        "fontSize"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "composer.queue[*]",
+        "composer.queue.remove[*]"
+      ]
+    },
+    {
+      "id": "expanded-step-rows",
+      "reason": "An expanded 'Read 3 files' lists each file as its own step row (Read webhooks.ts, ...; Hermes tool-group view) instead of the wireframe's one-line comma list in a 2px-ruled box, so the body is 91px tall instead of 36.84px and the cards below start 54.05px lower. The card offset is checked.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": 8.07
+      },
+      "states": [
+        "*.waiting-step-open"
+      ],
+      "keys": [
+        "card.diff",
+        "card.diff.*",
+        "card.approval",
+        "card.approval.*"
+      ]
+    },
+    {
+      "id": "expanded-step-body",
+      "reason": "See expanded-step-rows: the expanded body is a list of rows, not a one-line comma list in a ruled box.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "step.body[*]"
       ]
     }
   ]

@@ -704,3 +704,26 @@
 [data-vp='running-line'] {
   border-radius: 0;
 }
+
+/* ---------- toast ---------- */
+
+/* The wireframe's confirmation: ink pill, 13px, centred 78px above the bottom of the pane. */
+.vp-toast {
+  position: absolute;
+  bottom: 78px;
+  left: 50%;
+  z-index: 10;
+  max-width: 90%;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+  font-size: var(--vp-small);
+  line-height: var(--vp-leading);
+  translate: -50% 0;
+}
+
+/* Like every wireframe button, a step takes the panel colour under the pointer. */
+.vp-step:hover {
+  background: var(--vp-panel);
+}
