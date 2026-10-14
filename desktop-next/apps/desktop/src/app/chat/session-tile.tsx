@@ -321,6 +321,7 @@ function TileChat({
     requestGateway: requestTileGateway,
     scope: {
       add: attachments.add,
+      list: () => attachments.$attachments.get(),
       remove: attachments.remove,
       target: scope.target,
       update: attachments.update,

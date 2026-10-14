@@ -70,6 +70,8 @@ export interface ComposerAttachment {
   /** Downscaled data URL for the attachment card and optimistic bubble only. */
   thumbnailUrl?: string
   path?: string
+  /** An image held in composer memory and sent in the chat request body (`prompt.submit` images[]). */
+  imageData?: { dataBase64: string; mime: string }
   /** Bounded source text from a Vanta-generated large paste, sent only to the title path. */
   titlePreview?: string
   attachedSessionId?: string

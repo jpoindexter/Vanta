@@ -72,6 +72,14 @@ export async function stepImagePaste(ctx) {
   await ctx.shot("h2-image-paste");
   ctx.evidence("h2-image", { keys, pasteMs, draft: draft.slice(0, 80), toast, attached });
   ctx.probe("h3", "pasted image becomes an attachment on the message", attached, { toast });
+  const requestsBefore = ctx.model.requests.length;
+  await page.keyboard.press("Enter");
+  const answered = await waitFinished(page, { timeout: 45_000 });
+  const sent = ctx.model.requests.slice(requestsBefore);
+  await ctx.shot("h4-image-sent");
+  ctx.probe("h4", "the model receives the pasted image (request body images[])", answered && sent.some((r) => r.hasImage), { answered, requests: sent });
+  const cleared = await page.evaluate(() => !document.querySelector("[data-vp='composer'] img[src^='blob:'], [data-slot*='attachment'] img"));
+  ctx.probe("h5", "the attachment chip is cleared after send", cleared, {});
   const failures = [];
   if (Math.max(...keys) > KEY_BUDGET_MS) failures.push(`a keystroke took ${Math.max(...keys)} ms after the image paste`);
   if (!draft.includes("image-draft")) failures.push(`draft lost after the image paste (${JSON.stringify(draft.slice(0, 60))})`);
