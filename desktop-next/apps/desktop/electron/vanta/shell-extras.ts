@@ -38,10 +38,12 @@ const broadcast = (channel: string, payload: unknown): void => {
 
 function trayIcon(appRoot: string) {
   if (process.platform === "darwin") {
-    const symbol = nativeImage.createFromNamedImage("ellipsis", [-1, 13, 0.6]);
-    symbol.setTemplateImage(true);
+    // The Vanta mark as a template image (assets/trayTemplate.png plus its @2x); the SF symbol only backs it up.
+    const mark = nativeImage.createFromPath(path.join(appRoot, "assets", "trayTemplate.png"));
+    const image = mark.isEmpty() ? nativeImage.createFromNamedImage("ellipsis", [-1, 13, 0.6]) : mark;
+    image.setTemplateImage(true);
 
-    return symbol;
+    return image;
   }
 
   return nativeImage.createFromPath(path.join(appRoot, "assets", "icon.png")).resize({ height: 18, width: 18 });

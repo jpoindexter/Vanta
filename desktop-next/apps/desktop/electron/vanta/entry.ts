@@ -13,6 +13,7 @@ import { type LaunchInput, startVantaServer } from './launcher'
 import { registerNativeHandlers } from './native-handlers'
 import { registerProjectHandlers } from './project-handlers'
 import { createRequestBridge } from './request-bridge'
+import { resolveRuntimeRoot } from './runtime-root'
 import { ServerHost } from './server-host'
 import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
@@ -27,7 +28,7 @@ import {
   wireWindowEvents
 } from './window-host'
 
-app.setName('Vanta')
+app.setName('Vanta Next')
 
 const DEV_SERVER = process.env.VANTA_DESKTOP_DEV_SERVER ?? process.env.HERMES_DESKTOP_DEV_SERVER
 const argv = process.argv.slice(app.isPackaged ? 1 : 2)
@@ -49,15 +50,14 @@ let logLine: (line: string) => void = () => undefined
 const windowFor = (sender: unknown): BrowserWindow | null =>
   BrowserWindow.fromWebContents(sender as Electron.WebContents)
 
-/** Where the Vanta runtime (src/cli.ts, node_modules/tsx) lives: `<repo>/vanta-ts` in a checkout, a bundled resource when packaged. */
+/** Where the Vanta runtime lives: `<repo>/vanta-ts` in a checkout, `Resources/vanta-runtime` packaged, VANTA_RUNTIME_ROOT either way. */
 function runtimeRoot(): string {
-  if (process.env.VANTA_RUNTIME_ROOT) {
-    return process.env.VANTA_RUNTIME_ROOT
-  }
-
-  return app.isPackaged
-    ? path.join(process.resourcesPath, 'vanta-runtime')
-    : path.resolve(app.getAppPath(), '../../../vanta-ts')
+  return resolveRuntimeRoot({
+    appPath: app.getAppPath(),
+    env: process.env,
+    isPackaged: app.isPackaged,
+    resourcesPath: process.resourcesPath
+  })
 }
 
 function launchInput(root: string): LaunchInput {

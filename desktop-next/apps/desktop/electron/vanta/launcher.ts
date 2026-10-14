@@ -12,6 +12,8 @@ import {
   type VantaRuntimePaths
 } from '../../../../../vanta-ts/desktop-app/electron/runtime-paths.mjs'
 
+import { withBundledLoader } from './runtime-root'
+
 export const DEFAULT_SERVER_PORT = 7790
 const LISTENING_MARKER = 'vanta desktop —'
 const DEV_READY_TIMEOUT_MS = 20_000
@@ -115,12 +117,15 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
   const { findPort, probe, spawnProcess } = { ...defaultDeps, ...deps }
   const token = newBoundaryToken()
   const port = await findPort(input.preferredPort ?? DEFAULT_SERVER_PORT)
-  const paths = resolveRuntimePaths({
-    appPath: path.resolve(input.runtimeRoot),
-    packaged: input.packaged,
-    platform: input.platform,
-    resourcesPath: input.resourcesPath
-  })
+  const paths = withBundledLoader(
+    resolveRuntimePaths({
+      appPath: path.resolve(input.runtimeRoot),
+      packaged: input.packaged,
+      platform: input.platform,
+      resourcesPath: input.resourcesPath
+    }),
+    { packaged: input.packaged, runtimeRoot: input.runtimeRoot }
+  )
   const { args, command, env, runtime, runtimeReason } = buildServerCommand(input, token, port, paths)
 
   if (runtime === 'tsx') {
