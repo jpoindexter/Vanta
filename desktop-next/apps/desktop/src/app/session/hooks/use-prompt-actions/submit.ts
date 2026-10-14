@@ -5,6 +5,7 @@ import { getSession, PROMPT_SUBMIT_REQUEST_TIMEOUT_MS } from '@/hermes'
 import { translateNow, type Translations } from '@/i18n'
 import { type ChatMessage, finalizeInterruptedMessages, textPart } from '@/lib/chat-messages'
 import { optimisticAttachmentRef } from '@/lib/chat-runtime'
+import { promptImageParams } from '@/lib/composer-images'
 import { sanitizeComposerInput } from '@/lib/composer-input-sanitize'
 import { setMutableRef } from '@/lib/mutable-ref'
 import {
@@ -885,9 +886,12 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
         rewriteOptimistic(liveSessionId, syncedAttachments)
         const text = buildContextText(syncedAttachments)
 
+        const imageParams = promptImageParams(syncedAttachments)
+
         const submitParams = (targetId: string) => ({
           session_id: targetId,
           text,
+          ...imageParams,
           ...(interrupted && { interrupted }),
           // Off-screen widget intent: the gateway types the persisted user
           // row display_kind=hidden so no client renders it as a bubble.

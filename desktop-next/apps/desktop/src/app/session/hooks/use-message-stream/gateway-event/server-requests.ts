@@ -23,6 +23,7 @@ import { dispatchNativeNotification } from '@/store/native-notifications'
 import type { PreviewOwner } from '@/store/preview-ownership'
 import {
   receiveApprovalRequest,
+  serverActionFields,
   setSecretRequest,
   setSudoRequest,
   setVaultCodeRequest,
@@ -400,6 +401,7 @@ const approval: Handler = ctx => {
       : undefined,
     command,
     description,
+    ...serverActionFields(p.vanta_request, p.tool_name),
     // The approval queue's own id — `approval.pending` / `approval.received` / `approval.respond` key on it.
     requestId: str(p.request_id) || undefined,
     serverRequestId: request.id,

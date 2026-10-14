@@ -6,6 +6,7 @@ import { group } from '@/components/pane-shell/tree/model'
 import { $layoutTree, noteActiveTreeGroup } from '@/components/pane-shell/tree/store'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import { runTour } from '@/lib/tour'
+import { clearAllPrompts, sessionApprovalRequests } from '@/store/prompts'
 import { $previewTabs, closeRightRail, openPreview, setPreviewTabPinned } from '@/store/preview'
 import { hasOpenServerRequest, resetServerRequestsForTests } from '@/store/server-requests'
 import { setActiveSessionId, setSelectedStoredSessionId, setSessions } from '@/store/session'
@@ -103,6 +104,41 @@ describe('approval request routing', () => {
     expect(notify).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'approval', title: expect.stringContaining('Fix the flaky test') })
     )
+  })
+})
+
+describe('approval request carries the server request', () => {
+  it('parks the exact-action request and tool the server sent', () => {
+    setActiveSessionId('session-a')
+    deliver(
+      'approval',
+      {
+        command: 'brief.md',
+        description: 'modifying existing file content',
+        request_id: 'r-edit',
+        session_id: 'session-a',
+        tool_name: 'edit_file',
+        vanta_request: {
+          canRemember: true,
+          kind: 'file_edit',
+          reason: 'modifying existing file content',
+          sections: [],
+          subject: 'brief.md',
+          title: 'File edit permission request',
+          toolName: 'edit_file'
+        }
+      },
+      'session-a'
+    )
+
+    const parked = sessionApprovalRequests('session-a')
+      .get()
+      .find(item => item.requestId === 'r-edit')
+
+    expect(parked?.toolName).toBe('edit_file')
+    expect(parked?.request?.kind).toBe('file_edit')
+    clearAllPrompts()
+    setActiveSessionId(null)
   })
 })
 
