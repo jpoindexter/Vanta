@@ -85,6 +85,7 @@ describe('buildServerCommand', () => {
     expect(env).toMatchObject({
       VANTA_DESKTOP_BOUNDARY_TOKEN: 'tok',
       VANTA_DESKTOP_DIST: paths.dist,
+      VANTA_DESKTOP_PARENT_WATCH: '1',
       VANTA_KERNEL_BIN: paths.kernel,
       VANTA_PROJECT_ROOT: '/work/project'
     })
@@ -171,5 +172,20 @@ describe('startVantaServer', () => {
     server.stop()
 
     expect(child.kill).toHaveBeenCalledTimes(1)
+  })
+
+  it('stopAndWait hands the child to the tree stopper and resolves when it is done', async () => {
+    const child = fakeChild()
+    const stopTree = vi.fn(async () => ({ forced: [] }))
+    const server = await startVantaServer(input(), {
+      findPort: async () => 7795,
+      probe: async () => true,
+      spawnProcess: () => child as never,
+      stopTree
+    })
+
+    await server.stopAndWait()
+
+    expect(stopTree).toHaveBeenCalledWith(child)
   })
 })

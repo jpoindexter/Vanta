@@ -221,15 +221,33 @@ if (!app.requestSingleInstanceLock()) {
     }
   })
 
-  app.on('before-quit', () => {
+  let quitTeardown: 'done' | 'pending' | 'running' = 'pending'
+
+  // Hold the quit until the runtime, its kernel guard and the kernel are gone: nothing may outlive the app.
+  app.on('before-quit', event => {
     shuttingDown = true
-    host?.stop()
+
+    if (quitTeardown === 'done' || !host) {
+      return
+    }
+
+    event.preventDefault()
+
+    if (quitTeardown === 'running') {
+      return
+    }
+
+    quitTeardown = 'running'
+    void host.stopAndWait().finally(() => {
+      quitTeardown = 'done'
+      app.quit()
+    })
   })
 
-  // The runtime is a child process. However the shell ends (quit, signal, crash handler), do not leave it listening.
+  // Last resort for exits that skip before-quit; the runtime also ends on its own when this process is gone.
   process.on('exit', () => host?.stop())
 
-  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
     process.on(signal, () => app.quit())
   }
 

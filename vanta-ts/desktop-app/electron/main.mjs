@@ -19,6 +19,7 @@ import { installMicrophonePermissions } from "./microphone-permissions.mjs";
 import { createLaunchTrace, printRendererMarks } from "./launch-trace.mjs";
 import { checkPackagedKernel } from "./smoke-kernel.mjs";
 import { buildApplicationMenu } from "./app-menu.mjs";
+import { stopProcessTree } from "./process-tree.mjs";
 
 const trace = createLaunchTrace();
 trace("main loaded");
@@ -113,6 +114,7 @@ function startServer() {
     VANTA_PROJECT_ROOT: projectRoot,
     VANTA_KERNEL_BIN: paths.kernel,
     VANTA_DESKTOP_BOUNDARY_TOKEN: boundaryToken,
+    VANTA_DESKTOP_PARENT_WATCH: "1",
     ...(automationKernelUrl ? { VANTA_KERNEL_URL: automationKernelUrl, VANTA_KERNEL_EPHEMERAL: "1" } : {}),
   };
   if (app.isPackaged) Object.assign(env, { ELECTRON_RUN_AS_NODE: "1" });
@@ -143,17 +145,19 @@ async function waitForServer() {
   return url;
 }
 
+/** Stops the runtime and everything it started (kernel guard, kernel). Resolves once they are gone. */
 function stopServer() {
   trayController?.dispose();
   trayController = undefined;
-  if (!serverProcess || serverProcess.killed) return;
-  serverProcess.kill("SIGTERM");
+  const child = serverProcess;
   serverProcess = undefined;
+  if (!child || child.killed) return Promise.resolve();
+  return stopProcessTree(child);
 }
 
 /** Stop any running runtime, pick a port and spawn the server; resolves once it is listening. */
 async function launchServer() {
-  stopServer();
+  await stopServer();
   desktopPresence?.reset();
   port = await findAvailablePort(Number(process.env.VANTA_DESKTOP_PORT) || DEFAULT_DESKTOP_PORT);
   if (automation && !process.env.VANTA_KERNEL_URL) {
@@ -261,7 +265,7 @@ async function initialProject() {
 }
 
 function showFatal(message) {
-  if (smoke || automation) { console.error(message); shuttingDown = true; app.exit(1); return; }
+  if (smoke || automation) { console.error(message); shuttingDown = true; void stopServer().finally(() => app.exit(1)); return; }
   dialog.showErrorBox("Vanta could not start", `${message}\n\nProject: ${projectRoot ?? "not selected"}`);
   app.quit();
 }
@@ -273,7 +277,18 @@ const ownsInstance = automation || app.requestSingleInstanceLock();
 if (!ownsInstance) app.quit();
 else {
   app.on("second-instance", () => { mainWindow?.show(); mainWindow?.focus(); });
-  app.on("before-quit", () => { shuttingDown = true; desktopPresence?.dispose(); stopServer(); });
+  let quitTeardown = "pending";
+  // Hold the quit until the runtime tree is gone: nothing may outlive the app.
+  app.on("before-quit", (event) => {
+    shuttingDown = true; desktopPresence?.dispose();
+    if (quitTeardown === "done") return;
+    event.preventDefault();
+    if (quitTeardown === "running") return;
+    quitTeardown = "running";
+    void stopServer().finally(() => { quitTeardown = "done"; app.quit(); });
+  });
+  process.on("exit", () => { try { serverProcess?.kill("SIGTERM"); } catch { /* already gone */ } });
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, () => app.quit());
   app.on("window-all-closed", () => { if (automation || process.platform !== "darwin") app.quit(); });
   app.on("activate", () => { mainWindow?.show(); });
   // Spawn the runtime before Electron finishes initialising: the listener is up
