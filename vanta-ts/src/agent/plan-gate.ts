@@ -25,6 +25,7 @@ export const PLAN_MODE_ALLOWED_TOOLS = new Set([
   "compare_vision",
   "watch_video",
   "tool_search",
+  "session_search",
   "graph_query",
   "bg_list",
   "bg_status",

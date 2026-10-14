@@ -1,7 +1,8 @@
 import { join } from "node:path";
 import { redactSecrets } from "../store/secret-scan.js";
 import { SOURCE_LAYOUTS, parseSourceSkill, parseMcpServers, parseModelConfig } from "./parse.js";
-import type { MigrateSource, McpServer, ModelConfig, ParsedSkill } from "./parse.js";
+import type { MigrateSource, McpServer, ModelConfig, ParsedSkill, SourceLayout } from "./parse.js";
+import { importHermesYaml, type HermesYamlImport } from "./hermes-config.js";
 
 // VANTA-MIGRATE — the PURE migration plan. Like purge-plan.ts it does NO I/O and
 // nothing destructive: injected read-only fs deps enumerate what a migration WOULD
@@ -39,7 +40,7 @@ export type MigrationPlan = {
 function secretEnvKeys(server: McpServer): string[] {
   const env = server.env ?? {};
   return Object.entries(env)
-    .filter(([k, v]) => /key|token|secret|password|api/i.test(k) || redactSecrets(v) !== v)
+    .filter(([k, v]) => !/^\$\{[A-Z_][A-Z0-9_]*\}$/.test(v) && (/key|token|secret|password|api/i.test(k) || redactSecrets(v) !== v))
     .map(([k]) => k);
 }
 
@@ -103,6 +104,30 @@ function findInConfigs<T>(
   return null;
 }
 
+function readYaml(deps: PlanDeps, file: string | undefined): HermesYamlImport | null {
+  const text = file ? deps.readText(join(deps.sourceRoot, file)) : null;
+  return text === null || !file ? null : importHermesYaml(text);
+}
+
+function yamlGaps(file: string, yaml: HermesYamlImport): MigrationGap[] {
+  return yaml.skipped.map((s) => ({ footprint: "config", item: `${file}: ${s.item}`, reason: s.reason }));
+}
+
+type Found<T> = { value: T; file: string } | null;
+
+/** MCP servers and model from config.yaml when it yields them, else from the JSON probes. */
+function pickConfigs(deps: PlanDeps, layout: SourceLayout): { mcpFound: Found<Record<string, McpServer>>; modelFound: Found<ModelConfig>; gaps: MigrationGap[] } {
+  const yaml = readYaml(deps, layout.yamlConfig);
+  const file = layout.yamlConfig ?? "";
+  const yamlMcp = yaml && Object.keys(yaml.mcp).length > 0 ? { value: yaml.mcp, file } : null;
+  const yamlModel = yaml?.model ? { value: yaml.model, file } : null;
+  return {
+    mcpFound: yamlMcp ?? findInConfigs(deps, layout.configFiles, parseMcpServers, (v) => Object.keys(v).length > 0),
+    modelFound: yamlModel ?? findInConfigs(deps, layout.configFiles, parseModelConfig, (v) => Boolean(v.provider || v.model)),
+    gaps: yaml ? yamlGaps(file, yaml) : [],
+  };
+}
+
 /** Build the migration plan. Pure (all I/O injected). */
 export function buildMigrationPlan(source: MigrateSource, deps: PlanDeps): MigrationPlan {
   const layout = SOURCE_LAYOUTS[source];
@@ -125,7 +150,9 @@ export function buildMigrationPlan(source: MigrateSource, deps: PlanDeps): Migra
   const skills = skillPlan.items;
   gaps.push(...skillPlan.gaps, ...configGaps(deps, layout.configFiles), ...unsupportedFootprintGaps(source));
 
-  const mcpFound = findInConfigs(deps, layout.configFiles, parseMcpServers, (v) => Object.keys(v).length > 0);
+  const picked = pickConfigs(deps, layout);
+  gaps.push(...picked.gaps);
+  const { mcpFound, modelFound } = picked;
   const mcpServers: McpItem[] = Object.entries(mcpFound?.value ?? {}).map(([name, server]) => ({
     name,
     server,
@@ -133,7 +160,6 @@ export function buildMigrationPlan(source: MigrateSource, deps: PlanDeps): Migra
     secretKeys: secretEnvKeys(server),
   }));
 
-  const modelFound = findInConfigs(deps, layout.configFiles, parseModelConfig, (v) => Boolean(v.provider || v.model));
   const modelConfig = modelFound?.value ?? null;
 
   if (mcpFound) notes.push(`config: ${mcpFound.file}`);

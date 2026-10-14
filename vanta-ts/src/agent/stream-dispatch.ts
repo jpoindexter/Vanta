@@ -24,6 +24,7 @@ export const CONCURRENCY_SAFE_TOOLS = new Set<string>([
   "ref_search",
   "graph_query",
   "tool_search",
+  "session_search",
 ]);
 
 export function isConcurrencySafe(name: string): boolean {
