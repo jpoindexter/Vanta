@@ -2,10 +2,17 @@ import type { UsagePayload } from './schemas'
 
 export type TurnStatus = 'complete' | 'error' | 'interrupted'
 
+/** Why a turn failed, when the renderer needs more than the sentence (a provider that must be reconnected). */
+export type FailureKind = 'provider_auth'
+
 export interface TurnOutcome {
   error?: string
+  failureKind?: FailureKind
   status: TurnStatus
 }
+
+/** The provider refused the saved credential (an expired or revoked key). The request is kept; reconnecting resumes it. */
+export const PROVIDER_AUTH_TEXT = 'The model provider rejected the saved key. Reconnect it and Vanta resumes your request.'
 
 const STOP_TEXT: Record<string, string> = {
   context_length: 'Task stopped because the context limit was reached.',
@@ -22,6 +29,10 @@ export function outcomeForStop(reason: string | undefined): TurnOutcome {
 
   if (reason === 'interrupted' || reason === 'soft_stopped') {
     return { status: 'interrupted' }
+  }
+
+  if (reason === 'provider_auth') {
+    return { error: PROVIDER_AUTH_TEXT, failureKind: 'provider_auth', status: 'error' }
   }
 
   return { error: STOP_TEXT[reason] ?? 'Task stopped before completion.', status: 'error' }

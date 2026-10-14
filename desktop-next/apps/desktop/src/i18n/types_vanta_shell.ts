@@ -66,4 +66,19 @@ export interface VantaShellTranslations {
     banner: string
     retry: string
   }
+  reconnect: {
+    action: string
+    title: (provider: string) => string
+    body: string
+    keyLabel: string
+    keyEnvHint: (env: string) => string
+    keylessBody: (provider: string) => string
+    confirm: string
+    resume: string
+    busy: string
+    cancel: string
+    missingKey: string
+    noKeyRoute: string
+    failed: string
+  }
 }
