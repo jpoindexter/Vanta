@@ -9,6 +9,8 @@ const LOG_LIMIT_BYTES = 1_000_000
 export interface RuntimeOutput {
   /** The last lines the runtime printed, ready to append to an error message. Empty when it printed nothing. */
   excerpt: () => string
+  /** True when the recent output (not just the excerpt) matches. */
+  includes: (pattern: RegExp) => boolean
 }
 
 /** Keeps the last TAIL_BYTES of a stream of text. */
@@ -70,5 +72,5 @@ export function captureRuntimeOutput(child: ChildProcess, logFile?: string): Run
 
   child.once('exit', (code, signal) => write(`\n--- runtime exited ${new Date().toISOString()} (code ${code}, signal ${signal}) ---\n`))
 
-  return { excerpt: () => formatExcerpt(tail.text()) }
+  return { excerpt: () => formatExcerpt(tail.text()), includes: pattern => pattern.test(tail.text()) }
 }
