@@ -47,6 +47,14 @@ vi.mock('@/hermes', () => ({
     updateMessagingPlatform(id, body, profile)
 }))
 
+const qrFlag = vi.hoisted(() => ({ show: true }))
+
+vi.mock('../settings/hermes-extras', () => ({
+  get SHOW_TELEGRAM_QR_SETUP() {
+    return qrFlag.show
+  }
+}))
+
 vi.mock('qrcode', () => ({ toDataURL: vi.fn(async () => 'data:image/png;base64,QR') }))
 
 // Keep store/profile's side-effecting imports inert (pulled in via the shared
@@ -519,6 +527,23 @@ describe('MessagingView allowlist editor', () => {
       { clear_env: ['TEAMS_ALLOWED_USERS'], env: {} },
       'default'
     )
+  })
+})
+
+describe('MessagingView Telegram quick setup hidden', () => {
+  it('shows no QR setup (Vanta has no pairing service) and keeps the token field', async () => {
+    qrFlag.show = false
+    getMessagingPlatforms.mockResolvedValue({
+      platforms: [platform({ id: 'telegram', name: 'Telegram', state: 'not_configured' })]
+    })
+
+    try {
+      await renderMessaging()
+      await screen.findAllByText('Telegram')
+      expect(screen.queryByRole('button', { name: /Create with QR/ })).toBeNull()
+    } finally {
+      qrFlag.show = true
+    }
   })
 })
 

@@ -9,3 +9,7 @@ const HIDDEN_MODEL_SUBPAGES: ReadonlySet<string> = new Set(['auxiliary', 'moa'])
 export function isHiddenModelSubpage(id: string | undefined): boolean {
   return !SHOW_HERMES_MODEL_EXTRAS && id !== undefined && HIDDEN_MODEL_SUBPAGES.has(id)
 }
+
+// The Telegram "scan a QR code" setup creates the bot through Hermes' pairing service, which
+// Vanta does not run (the call has no server route). Pasting a BotFather token works today.
+export const SHOW_TELEGRAM_QR_SETUP = false
