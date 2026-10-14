@@ -4,6 +4,10 @@ import { Terminal } from '@/lib/icons'
 import { isFocusWithin } from '@/lib/keybinds/combo'
 import { trackArea } from '@/store/desktop-metrics'
 
+import { $terminalTakeover, setTerminalTakeover } from '../store'
+
+import { $terminals, ensureTerminal } from './terminals'
+
 const TERMINAL_FOCUS_SCOPE = '[data-terminal]'
 
 // Inactive tabs carry `invisible`. The on-screen instance does not, so this
@@ -46,17 +50,39 @@ function scheduleFocusAttempt(attempts: number): void {
   })
 }
 
+export type TerminalToggleIntent = 'hide' | 'reveal' | 'start'
+
+/**
+ * What a click on the Terminal button means. The layout can show the terminal
+ * zone before any shell exists or the pane ever took over (a restored layout,
+ * a seeded window); pressing the button then has to start one rather than
+ * fold an empty pane away.
+ */
+export function terminalToggleIntent(visible: boolean, terminalCount: number, tookOver: boolean): TerminalToggleIntent {
+  if (!visible) {
+    return 'reveal'
+  }
+
+  return terminalCount === 0 && !tookOver ? 'start' : 'hide'
+}
+
 /**
  * User toggle of the terminal pane. The reveal direction claims keyboard
  * focus; the hide direction does not.
  */
 export function toggleTerminalPane(): void {
-  const revealed = !isPaneVisible('terminal')
+  const intent = terminalToggleIntent(isPaneVisible('terminal'), $terminals.get().length, $terminalTakeover.get())
 
-  togglePaneVisible('terminal')
-  trackArea('terminal_pane', revealed)
+  if (intent === 'start') {
+    setTerminalTakeover(true)
+    ensureTerminal()
+  } else {
+    togglePaneVisible('terminal')
+  }
 
-  if (revealed) {
+  trackArea('terminal_pane', intent !== 'hide')
+
+  if (intent !== 'hide') {
     focusRevealedTerminal()
   }
 }

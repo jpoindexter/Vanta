@@ -19,6 +19,9 @@ afterEach(cleanup)
 vi.mock('@/i18n', () => ({
   useI18n: () => ({
     t: {
+      vantaShell: {
+        status: { done: 'Done', failed: 'Failed', needsInput: 'Needs your input', running: 'Running', waiting: 'Waiting for you' }
+      },
       common: { cancel: 'Cancel', close: 'Close', delete: 'Delete', save: 'Save' },
       assistant: {
         thread: {

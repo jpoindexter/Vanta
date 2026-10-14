@@ -25,7 +25,6 @@ import type { SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
-import { $connectionsRegistry } from '@/store/connection-registry-state'
 import { newSessionInAgent, newSessionInProfile } from '@/store/profile'
 import { $sessionProfilesUsage } from '@/store/session'
 import { $sidebarSessionRankIds } from '@/store/sidebar-sort'
@@ -50,7 +49,6 @@ interface GatewayProfileGroupsProps {
   renderRows: (sessions: SessionInfo[]) => ReactNode
   sensors?: ReturnType<typeof useSensors>
   onNewSessionSplit?: NewSessionSplitHandler
-  nested?: boolean
   // Inside another section (a messaging platform) that owns paging and has no
   // business starting desktop sessions: flat owner groups, headers only.
   embedded?: boolean
@@ -61,42 +59,11 @@ export function GatewayProfileGroups({
   renderRows,
   sensors,
   onNewSessionSplit,
-  nested = false,
   embedded = false
 }: GatewayProfileGroupsProps) {
-  const registry = useStore($connectionsRegistry)
   const order = useStore($gatewayGroupOrder)
-  const gatewayProfiles = new Map<string, SidebarSessionGroup[]>()
-  const sections: SidebarSessionGroup[] = []
 
-  for (const group of groups) {
-    // Unknown legacy ownership stays unassigned; never guess a local gateway.
-    if (nested || embedded || !group.connectionId) {
-      sections.push(group)
-
-      continue
-    }
-
-    const id = JSON.stringify(['gateway', group.connectionId])
-    const profiles = gatewayProfiles.get(id)
-
-    if (profiles) {
-      profiles.push(group)
-    } else {
-      gatewayProfiles.set(id, [group])
-      sections.push({
-        id,
-        connectionId: group.connectionId,
-        label:
-          registry?.connections.find(connection => connection.id === group.connectionId)?.label || group.connectionId,
-        mode: 'profile',
-        path: null,
-        sessions: []
-      })
-    }
-  }
-
-  const ordered = [...sections].sort((a, b) => {
+  const ordered = [...groups].sort((a, b) => {
     const left = order.indexOf(a.id)
     const right = order.indexOf(b.id)
 
@@ -117,19 +84,7 @@ export function GatewayProfileGroups({
           onMove={direction => reorderGatewayGroups(arrayMove(ids, index, index + direction))}
           onNewSessionSplit={onNewSessionSplit}
           renderRows={renderRows}
-        >
-          {gatewayProfiles.has(group.id) && (
-            <div className="ml-3 border-l border-border/50 pl-1">
-              <GatewayProfileGroups
-                groups={gatewayProfiles.get(group.id)!.map(profile => ({ ...profile, label: profile.profile! }))}
-                nested
-                onNewSessionSplit={onNewSessionSplit}
-                renderRows={renderRows}
-                sensors={sensors}
-              />
-            </div>
-          )}
-        </GatewayProfileGroup>
+        />
       ))}
     </ReorderableList>
   )
@@ -143,7 +98,6 @@ interface GatewayProfileGroupProps {
   first: boolean
   last: boolean
   embedded: boolean
-  children?: ReactNode
 }
 
 function GatewayProfileGroup({
@@ -153,8 +107,7 @@ function GatewayProfileGroup({
   first,
   last,
   embedded,
-  onNewSessionSplit,
-  children
+  onNewSessionSplit
 }: GatewayProfileGroupProps) {
   const { t } = useI18n()
   const s = t.sidebar
@@ -197,8 +150,7 @@ function GatewayProfileGroup({
   return (
     <SidebarRowStack
       className={cn(sortable.dragging && 'relative z-10')}
-      data-gateway-group={group.profile ? group.id : undefined}
-      data-gateway-section={!group.profile ? group.id : undefined}
+      data-gateway-group={group.id}
       ref={sortable.ref}
       style={sortable.style}
     >
@@ -279,16 +231,12 @@ function GatewayProfileGroup({
             dragging={sortable.dragging}
             dragHandleProps={sortable.dragHandleProps}
           >
-            {group.profile ? (
-              <ProfileGlyph
-                className="size-full"
-                color={group.color ?? null}
-                isDefault={group.profile === 'default'}
-                name={group.profile}
-              />
-            ) : (
-              <Codicon name="remote" />
-            )}
+            <ProfileGlyph
+              className="size-full"
+              color={group.color ?? null}
+              isDefault={group.profile === 'default'}
+              name={group.profile!}
+            />
           </SidebarRowGrab>
         }
         onPointerDown={event => {
@@ -309,7 +257,6 @@ function GatewayProfileGroup({
       />
       {open && (
         <>
-          {children}
           {group.profile && !embedded ? (
             <ProfileGroupHeaderSlot connectionId={group.connectionId ?? null} profile={group.profile} />
           ) : null}

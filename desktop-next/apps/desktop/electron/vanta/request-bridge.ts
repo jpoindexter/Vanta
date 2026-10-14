@@ -13,6 +13,7 @@ const callSchema = z.object({
   timeoutMs: z.number().int().min(1).max(MAX_TIMEOUT_MS).optional()
 })
 
+const focusSchema = z.string().min(1).max(128).nullable()
 const openStreamSchema = z.object({ clientId: z.string().min(1).max(128), streamId: z.string().min(1).max(64) })
 
 /** A window the bridge can push frames to. `webContents` in Electron; a fake in tests. */
@@ -35,6 +36,8 @@ const refused = (message: string): VantaResult => ({ data: { error: message }, o
  */
 export class RequestBridge {
   private readonly streams = new Map<string, { clientId: string; sink: FrameSink; stop: () => void }>()
+  /** The chat each window says the person is looking at, by window id. */
+  private readonly focused = new Map<number, string>()
 
   constructor(
     private readonly transport: VantaTransport,
@@ -86,9 +89,34 @@ export class RequestBridge {
     return { ok: true }
   }
 
-  /** The chat whose event stream this window opened most recently and still has open: where an approval card would show. */
+  /** The renderer reports which chat is in front; `null` clears it. Unknown or malformed ids are ignored. */
+  setFocusedClient(sink: FrameSink, raw: unknown): void {
+    const parsed = focusSchema.safeParse(raw)
+
+    if (!parsed.success) {
+      return
+    }
+
+    if (parsed.data === null) {
+      this.focused.delete(sink.id)
+    } else {
+      this.focused.set(sink.id, parsed.data)
+    }
+  }
+
+  /**
+   * Where an approval card would show: the chat the window reported as focused while its event stream is still
+   * open, else the chat whose stream the window opened most recently.
+   */
   latestClientFor(sink: FrameSink): string | undefined {
-    return [...this.streams.values()].reverse().find(stream => stream.sink.id === sink.id)?.clientId
+    const open = [...this.streams.values()].filter(stream => stream.sink.id === sink.id)
+    const focused = this.focused.get(sink.id)
+
+    if (focused && open.some(stream => stream.clientId === focused)) {
+      return focused
+    }
+
+    return open.at(-1)?.clientId
   }
 
   closeStream(sink: FrameSink, streamId: string): void {
@@ -105,6 +133,8 @@ export class RequestBridge {
         this.streams.delete(key)
       }
     }
+
+    this.focused.delete(sink.id)
   }
 
   private keyFor(sink: FrameSink, streamId: string): string {

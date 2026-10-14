@@ -3652,7 +3652,7 @@ export const deOverrides = {
       noPR: 'Kein PR'
     },
     gatewayGroups: {
-      grouping: 'Gateway & Profil',
+      grouping: 'Profil',
       rename: 'Gruppe umbenennen',
       aliasLabel: 'Anzeigename',
       aliasHint: 'Nur der Anzeigename; Gateway- und Profilname bleiben unverändert.',

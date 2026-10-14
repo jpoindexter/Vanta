@@ -62,7 +62,7 @@ export function SessionImportView({ owner, onClose, onOpenSession }: SessionImpo
   })
 
   const rows = [
-    ...new Map((sessions.data?.pages.flatMap(page => page.sessions) ?? []).map(row => [row.id, row])).values()
+    ...new Map((sessions.data?.pages.flatMap(page => page.sessions ?? []) ?? []).map(row => [row.id, row])).values()
   ]
 
   const visible = rows.filter(row =>

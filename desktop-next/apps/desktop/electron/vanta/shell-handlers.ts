@@ -25,6 +25,20 @@ interface Sender {
   send: (channel: string, ...args: unknown[]) => void
 }
 
+/** What the About page and the updates store read: the app version plus the runtime it runs on. */
+export function versionInfo(appVersion: string, versions: NodeJS.ProcessVersions = process.versions, platform: string = process.platform) {
+  return {
+    appVersion,
+    channel: null,
+    distribution: 'desktop-app' as const,
+    electronVersion: versions.electron ?? '',
+    hermesRoot: '',
+    nodeVersion: versions.node,
+    platform,
+    source: 'build' as const
+  }
+}
+
 /** The Vanta server bridge, connection and boot reads, version and logs. */
 export function registerShellHandlers(deps: ShellDeps): void {
   const { ipc, requests } = deps
@@ -50,9 +64,11 @@ export function registerShellHandlers(deps: ShellDeps): void {
     }
   })
 
+  ipc.on(CH.focusClient, (event, clientId: unknown) => requests.setFocusedClient(event.sender as Sender, clientId))
+
   ipc.handle(CH.connection, async event => deps.describe(await deps.baseUrl(), deps.getWindow(event.sender)))
   ipc.handle(CH.bootProgressGet, () => deps.boot())
-  ipc.handle(CH.version, () => deps.appVersion())
+  ipc.handle(CH.version, () => versionInfo(deps.appVersion()))
   ipc.handle(CH.logsRecent, () => ({ lines: deps.log.recent(), path: deps.log.file }))
 
   ipc.handle(CH.logsReveal, () => {

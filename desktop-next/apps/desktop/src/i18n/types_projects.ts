@@ -50,6 +50,7 @@ export interface SidebarProjectsTranslations {
   baseBranchPlaceholder: string
   baseBranchNone: string
   startWorkFailed: string
+  startWorkWaiting: string
   worktreeStaleBackend: string
   worktreeProjectLabel: string
   worktreeProjectPlaceholder: string

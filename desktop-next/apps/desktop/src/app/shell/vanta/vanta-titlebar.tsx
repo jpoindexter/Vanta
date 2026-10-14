@@ -14,6 +14,7 @@ import { TitlebarToolButton } from '../titlebar-controls'
 
 import { ContributedTools } from './contributed-tools'
 import { PaneToggles } from './pane-toggles'
+import { ProjectChip } from './project-chip'
 import { StatusPill } from './status-pill'
 import { useSystemTools } from './system-tools'
 import { TitleMenu } from './title-menu'
@@ -52,9 +53,6 @@ interface TitlebarTitleProps {
 
 /** The chat title with its menu, the project chip and the one status pill. */
 function TitlebarTitle({ model, onArchive, onBranch, onDelete }: TitlebarTitleProps) {
-  const { t } = useI18n()
-  const copy = t.vantaShell.titlebar
-
   return (
     <div className="vs-tb-title">
       {model.session ? (
@@ -68,10 +66,8 @@ function TitlebarTitle({ model, onArchive, onBranch, onDelete }: TitlebarTitlePr
       ) : (
         <strong className="vs-tb-name">{model.title}</strong>
       )}
-      {model.isChat && model.project ? (
-        <span aria-label={`${copy.project}: ${model.project}`} className="vs-chip">
-          {model.project}
-        </span>
+      {model.isChat && model.project && model.projectPath ? (
+        <ProjectChip path={model.projectPath} project={model.project} />
       ) : null}
       {model.pill ? <StatusPill elapsed={model.pill.elapsed} status={model.pill.status} /> : null}
       <Slot area="titleBar.center" />

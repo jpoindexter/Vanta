@@ -393,6 +393,15 @@ export function setSessionArchived(id: string, archived: boolean, profile?: stri
 // sweep (which runs backend-side, blind to Desktop localStorage) never hides a
 // pinned chat. Best-effort: the sidebar stays localStorage-driven for its own
 // display; this only feeds the backend policy.
+/** Persist the pinned order (a drag in the sidebar). The server accepts the ids of the pinned chats, first to last. */
+export function reorderPinnedSessionsRemote(orderedIds: string[]): Promise<{ orderedIds: string[] }> {
+  return hermesApi<{ orderedIds: string[] }>({
+    path: '/api/sessions/reorder-pins',
+    method: 'POST',
+    body: { orderedIds }
+  })
+}
+
 export function setSessionPinnedRemote(id: string, pinned: boolean, profile?: string | null): Promise<{ ok: boolean }> {
   // Owning profile in the PATCH body (see setSessionArchived / renameSession):
   // the handler reads its target DB from body.profile, so a remote/foreign

@@ -137,15 +137,71 @@ function nativeAndProject({ ipc, pathForFile }: BridgeEnv) {
   }
 }
 
-/** One local connection and one profile: Vanta has neither a registry of backends nor named profiles. */
-function singleEntryRegistries() {
+interface ProfileRow {
+  isDefault?: boolean
+  name: string
+}
+
+const LOCAL_SOURCE = { connectionId: 'local', kind: 'local', label: 'This computer', reachable: true }
+
+/** The profiles the Vanta server lists, as the rows the renderer's roster and default-profile code read. */
+async function listProfiles(ipc: IpcRendererLike): Promise<ProfileRow[]> {
+  const result = await ipc.invoke<{ data?: { profiles?: ProfileRow[] }; ok: boolean }>(CH.request, {
+    method: 'GET',
+    path: '/api/profiles'
+  })
+
+  return result.ok && Array.isArray(result.data?.profiles) ? result.data.profiles : []
+}
+
+/** One local connection. Profiles are the server's: the roster and the default come from /api/profiles. */
+function singleEntryRegistries(ipc: IpcRendererLike) {
+  const defaultListeners = new Set<(route: { connectionId: null | string; profile: string } | null) => void>()
+  const routeFor = (profile: string) => ({ connectionId: null, profile })
+
   return {
     connections: { list: () => Promise.resolve(SINGLE_LOCAL_REGISTRY) },
+    getAgentRoster: async () => ({
+      agents: (await listProfiles(ipc)).map(row => ({
+        connectionId: LOCAL_SOURCE.connectionId,
+        connectionKind: LOCAL_SOURCE.kind,
+        connectionLabel: LOCAL_SOURCE.label,
+        handle: row.name,
+        profile: row.name
+      })),
+      sources: [LOCAL_SOURCE]
+    }),
     profile: {
       get: () => Promise.resolve({ profile: null }),
-      getDefault: () => Promise.resolve(null),
+      getDefault: async () => {
+        const rows = await listProfiles(ipc)
+        const found = rows.find(row => row.isDefault) ?? rows[0]
+
+        return found ? routeFor(found.name) : null
+      },
+      onDefaultChanged: (callback: (route: { connectionId: null | string; profile: string } | null) => void) => {
+        defaultListeners.add(callback)
+
+        return () => defaultListeners.delete(callback)
+      },
       remember: () => Promise.resolve({ profile: null }),
-      set: () => Promise.resolve({ profile: null })
+      set: () => Promise.resolve({ profile: null }),
+      setDefault: async (route: { profile?: unknown }) => {
+        const name = typeof route?.profile === 'string' ? route.profile : ''
+        const result = await ipc.invoke<{ data?: { error?: string }; ok: boolean }>(CH.request, {
+          body: { name },
+          method: 'POST',
+          path: '/api/profiles/set-default'
+        })
+
+        if (!result.ok) {
+          throw new Error(result.data?.error ?? `Could not set ${name || 'that profile'} as the default.`)
+        }
+
+        defaultListeners.forEach(listener => listener(routeFor(name)))
+
+        return routeFor(name)
+      }
     }
   }
 }
@@ -161,7 +217,7 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
     ...windowFeatureApi(env.ipc),
     ...miniWindowApi(env),
     ...nativeAndProject(env),
-    ...singleEntryRegistries(),
+    ...singleEntryRegistries(env.ipc),
     ...windowAndTheme(env),
     ...zoomApi(env),
     vanta: createVantaBridge(env.ipc)

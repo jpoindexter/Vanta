@@ -3661,7 +3661,7 @@ export const frOverrides = {
       noPR: 'Aucune PR'
     },
     gatewayGroups: {
-      grouping: 'Gateway et profil',
+      grouping: 'Profil',
       rename: 'Renommer le groupe',
       aliasLabel: "Nom d'affichage",
       aliasHint: "Seul le nom d'affichage change ; les noms du gateway et du profil restent inchangés.",

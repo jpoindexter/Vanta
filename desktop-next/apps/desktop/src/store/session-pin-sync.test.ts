@@ -6,7 +6,10 @@ const patch = vi.fn<(id: string, pinned: boolean, profile?: null | string) => Pr
   Promise.resolve({ ok: true })
 )
 
+const reorder = vi.fn<(ids: string[]) => Promise<{ orderedIds: string[] }>>(ids => Promise.resolve({ orderedIds: ids }))
+
 vi.mock('@/hermes', () => ({
+  reorderPinnedSessionsRemote: (ids: string[]) => reorder(ids),
   // The layout store reaches the profile store, which sets the request profile
   // at import time; this suite only cares about the pin call.
   setApiRequestProfile: () => {},
@@ -41,6 +44,7 @@ beforeEach(() => {
   // its page). Same reset the gateway switch uses.
   resetSessionPinMirror()
   patch.mockClear()
+  reorder.mockClear()
 })
 
 afterEach(() => {
@@ -48,6 +52,30 @@ afterEach(() => {
   $cronSessions.set([])
   $messagingSessions.set([])
   $pinnedSessionIds.set([])
+})
+
+describe('pin order', () => {
+  it('sends the new order to the server when the same pins are dragged into a new order', async () => {
+    $sessions.set([row('a'), row('b'), row('c')])
+    $pinnedSessionIds.set(['a', 'b', 'c'])
+    await flush()
+    reorder.mockClear()
+
+    $pinnedSessionIds.set(['c', 'a', 'b'])
+    await flush()
+
+    expect(reorder).toHaveBeenCalledWith(['c', 'a', 'b'])
+  })
+
+  it('does not send an order when a chat is pinned or unpinned', async () => {
+    $sessions.set([row('a'), row('b')])
+    $pinnedSessionIds.set(['a'])
+    $pinnedSessionIds.set(['a', 'b'])
+    $pinnedSessionIds.set(['b'])
+    await flush()
+
+    expect(reorder).not.toHaveBeenCalled()
+  })
 })
 
 describe('watchSessionPins', () => {
