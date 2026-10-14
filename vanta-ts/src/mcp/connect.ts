@@ -9,6 +9,7 @@ import {
   type EffectGateContext,
 } from "../effects/execute-effect.js";
 import { applyMcpToolPolicy } from "./tool-policy.js";
+import { guardLaunch } from "./package-guard.js";
 
 // Live connection layer for the MCP management panel. Connects to each configured
 // server (best-effort), captures connected/error status + discovered tools, and
@@ -104,12 +105,21 @@ export async function connectServer(name: string, spec: ServerSpec, opts: Connec
   return (await connectServerOperation(name, spec, opts, root)).value;
 }
 
+/** An error view when the launch names a deny-listed package; checked before anything is resolved or spawned. */
+function deniedPackageView(name: string, spec: ServerSpec, env: NodeJS.ProcessEnv, root: string): McpConnection | null {
+  if (!spec.command) return null;
+  const guard = guardLaunch(spec.command, resolveMcpStdioArgs(spec, root), env);
+  return guard.ok ? null : { name, transport: "stdio", status: "error", error: guard.error, tools: [] };
+}
+
 async function connectServerOperation(
   name: string,
   spec: ServerSpec,
   opts: { env: NodeJS.ProcessEnv; onElicit?: ElicitHandler; root?: string; record?: McpConnectorRecord },
   root: string,
 ): Promise<{ value: McpConnection; acknowledgementId?: string; readbackSha256?: string; verified?: boolean }> {
+  const refused = deniedPackageView(name, spec, opts.env, root);
+  if (refused) return { value: refused };
   const resolved = await resolveTransport(name, spec, opts.env, root).catch(() => null);
   const transport = resolved?.transport;
   const kind = resolved?.kind ?? (spec.url ? "http" : "stdio");
