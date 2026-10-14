@@ -13,7 +13,7 @@ import path from "node:path";
 
 import { launchVanta, waitForShell } from "./vanta-app.mjs";
 import { results, section, writeReport } from "./proof/kit.mjs";
-import { GROUPS } from "./proof/groups.mjs";
+import { EMPTY_RUN, GROUPS } from "./proof/groups.mjs";
 import { installNativeStubs, makeSecondProject } from "./proof/native-stubs.mjs";
 import { seedSessions } from "./proof/seed.mjs";
 
@@ -21,6 +21,19 @@ const OUT_DIR = path.resolve(import.meta.dirname, "..", "docs", "proofs");
 const args = process.argv.slice(2);
 const only = (args.find((a) => a.startsWith("--only=")) ?? "").replace("--only=", "").split(",").filter(Boolean);
 const printOnly = args.includes("--print");
+
+// A clean sandbox first: the empty states need an app with no chats at all.
+if (!only.length || only.includes("empty")) {
+  const clean = await launchVanta({ hidden: true });
+  try {
+    await waitForShell(clean.page);
+    await clean.page.waitForTimeout(6000);
+    clean.page.setDefaultTimeout(8000);
+    await section("empty", ["F-022", "F-057"], () => EMPTY_RUN(clean.page), clean.page);
+  } finally {
+    await clean.close();
+  }
+}
 
 const app = await launchVanta({ hidden: true, seed: seedSessions });
 let failure = null;

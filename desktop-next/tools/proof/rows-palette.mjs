@@ -1,5 +1,5 @@
 // F-104, F-181..F-194: the command palette and the context menus.
-import { attempt, bodyText, closeMenus, goHome, menuItems, record, startChat, usable, verdict, waitUntil } from "./kit.mjs";
+import { attempt, bodyText, closeMenus, goHome, menuItems, record, results, startChat, usable, verdict, waitUntil } from "./kit.mjs";
 
 const AREA = "command palette";
 const sidebar = (page) => page.locator('[data-tour="sessions-sidebar"]').first();
@@ -105,15 +105,19 @@ export async function contextRows(ctx) {
   });
   await closeMenus(page);
   await attempt(page, "F-190", AREA, "Terminal context menu", async () => {
-    await page.getByTestId("titlebar-terminal").click();
+    await page.locator('[data-tour="sessions-sidebar"]').first().getByText("Say hello", { exact: true }).first().click();
+    await page.waitForTimeout(600);
+    if ((await page.getByTestId("titlebar-terminal").getAttribute("aria-pressed")) !== "true") await page.getByTestId("titlebar-terminal").click();
     await page.waitForTimeout(1200);
     if ((await page.locator(".xterm").count()) === 0) await page.keyboard.press("Control+Shift+`");
     await page.waitForTimeout(800);
-    await page.locator(".xterm").first().click({ button: "right", force: true });
+    await page.locator(".xterm-screen").first().click({ button: "right", force: true });
     await page.waitForTimeout(500);
     const list = await menuItems(page);
     verdict("F-190", "context menus", "Terminal context menu (Paste, Select all; Copy with a selection)", ["Paste", "Select all"].every((i) => list.some((entry) => entry.startsWith(i))), { pass: list.join(" / "), why: `items=${list.join(" / ")}` });
   });
   await closeMenus(page);
+  const terminal = results.get("F-190");
+  record("F-102", "right pane", "Terminal context menu and clipboard", terminal?.result ?? "FAIL", terminal?.note ?? "see F-190");
   record("F-192", "context menus", "Preview webview (guest) context menu", "INERT", "the Browser pane cannot host a page (webviewTag is off), so there is no guest page to right-click");
 }

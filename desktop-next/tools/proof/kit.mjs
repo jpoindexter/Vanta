@@ -80,6 +80,28 @@ export async function ensureChat(page) {
   await page.waitForTimeout(800);
 }
 
+/** Start a group from a clean window: saved layout, open tabs and panes from earlier rows are cleared (chats live on the server). */
+export async function freshWindow(page) {
+  await closeMenus(page);
+  await page.evaluate(() => { try { localStorage.clear(); } catch { /* storage unavailable */ } });
+  await page.reload();
+  await page.locator("[data-vanta-titlebar]").first().waitFor({ state: "visible", timeout: 60_000 });
+  await page.locator('[data-tour="sidebar-nav-home"]').first().waitFor({ state: "visible", timeout: 60_000 });
+  await page.waitForTimeout(3500);
+}
+
+/** Put the panes back to the default layout, so open panes from an earlier row do not squeeze the chat. */
+export async function resetLayout(page) {
+  await closeMenus(page);
+  await page.keyboard.press("Meta+k");
+  await page.locator("[cmdk-input]").first().waitFor({ timeout: 5000 });
+  await page.keyboard.type("Reset layout");
+  await page.waitForTimeout(400);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(800);
+  await closeMenus(page);
+}
+
 /** Poll `read()` until it returns something truthy, or `ms` runs out; returns the last value. */
 export async function waitUntil(read, ms = 8000, every = 400) {
   const end = Date.now() + ms;
@@ -157,13 +179,13 @@ export function writeReport(file, { errors = [], title, intro }) {
     "",
     "| ID | Area | Control | Result | Note |",
     "|---|---|---|---|---|",
-    ...rows.map((r) => `| ${r.id} | ${r.area} | ${r.label} | ${r.result} | ${r.note.replace(/\|/g, "/")} |`),
+    ...rows.map((r) => `| ${r.id} | ${r.area} | ${r.label.replace(/\|/g, "/")} | ${r.result} | ${r.note.replace(/\|/g, "/").replace(/\n+/g, " ")} |`),
     "",
     `## Not PASS (${nonPass.length})`,
     "",
-    ...nonPass.map((r) => `- ${r.id} ${r.result}: ${r.label}. ${r.note}`),
+    ...nonPass.map((r) => `- ${r.id} ${r.result}: ${r.label.replace(/\|/g, "/")}. ${r.note.replace(/\n+/g, " ")}`),
     "",
-    `Renderer errors seen (${errors.length}): ${errors.slice(0, 8).join(" ; ") || "none"}`
+    `Renderer errors seen (${errors.length}, ${new Set(errors).size} distinct): ${[...new Set(errors)].slice(0, 12).join(" ; ") || "none"}`
   ];
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, lines.join("\n") + "\n");

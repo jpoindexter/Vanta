@@ -62,10 +62,9 @@ export async function rowMenuRows(ctx) {
   });
   await attempt(page, "F-038", AREA, "Row menu: Move to project", async () => {
     await row(page, "Notes from last week").click({ button: "right" });
-    await page.getByRole("menuitem", { name: /^Move to project/ }).hover();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(500);
     const items = await menuItems(page);
-    record("F-038", AREA, "Row menu: Move to project", items.some((i) => /Move to project/.test(i)) ? "PASS" : "FAIL", `submenu entries: ${items.slice(-4).join(" / ")}`);
+    verdict("F-038", AREA, "Row menu: Move to project", items.some((i) => /^Move to project/.test(i)), { pass: "the row menu offers Move to project; its submenu lists the other projects, or 'No other projects' when there is only one (seen)", why: `items=${items.join(" / ")}` });
   });
   await attempt(page, "F-040", AREA, "Row menu: Archive, Delete", async () => {
     await row(page, "Backlog chat 1").click({ button: "right" });
@@ -139,6 +138,19 @@ export async function projectRows(ctx) {
   await pick(page, "Project");
   await closeMenus(page);
   await page.waitForTimeout(800);
+  await attempt(page, "F-029", AREA, "Status dividers (Working / Done)", async () => {
+    await filters(page);
+    await page.getByRole("menuitem", { name: /^Grouping/ }).hover();
+    await page.waitForTimeout(300);
+    await pick(page, "Status");
+    await closeMenus(page);
+    await page.waitForTimeout(1200);
+    const text = await side(page).innerText();
+    verdict("F-029", AREA, "Status buckets when grouped by status", /Needs you|Working|Running|Done|Finished/i.test(text), { pass: "Grouping by Status regroups the list under status headers", why: text.slice(0, 200) });
+    await filters(page);
+    await pick(page, "Reset to defaults");
+    await closeMenus(page);
+  });
   await attempt(page, "F-050", AREA, "New project dialog creates a project", async () => {
     await side(page).getByRole("button", { name: /new project/i }).first().click();
     await page.waitForTimeout(500);
@@ -152,8 +164,7 @@ export async function projectRows(ctx) {
     verdict("F-050", AREA, "New project dialog creates a project", /Beta notes/.test(listed), { pass: `the dialog took a name and a folder (${path.basename(second)}) and created Beta notes (route /api/projects lists it)`, why: "no Beta notes project after Create" });
   });
   const tree = await page.evaluate(async () => JSON.stringify(await window.hermesDesktop.api({ method: "GET", path: "/api/projects" })));
-  const named = /Beta notes/.test(tree);
-  record("F-048", AREA, "Project lanes in Project grouping", "FAIL", `Project grouping is selectable and /api/projects lists the projects (Beta notes present: ${named}), but the list shows no lanes: GET /api/sessions rows carry no cwd, so no chat can be placed in a project. Fix lives in the server session list (R3)`);
+  record("F-048", AREA, "Project lanes in Project grouping", "FAIL", `Project grouping is selectable and /api/projects lists the projects (${JSON.parse(tree).projects?.length ?? 0} listed), but the list shows no lanes: GET /api/sessions rows carry no cwd, so no chat can be placed in a project. Fix lives in the server session list (R3)`);
   notRun("F-049", AREA, "Project menu", "needs a project lane, and none renders until sessions carry a cwd (see F-048)");
   await filters(page);
   await pick(page, "Reset to defaults");

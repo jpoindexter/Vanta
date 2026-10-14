@@ -61,6 +61,15 @@ describe("repoStatus", () => {
     expect(await repoStatus(ctx, box.outside)).toBeNull();
   });
 
+  it("does not list the worktrees Vanta made inside the project as changes", async () => {
+    git(box.root, "worktree", "add", "-b", "feature", path.join(box.root, ".worktrees", "feature"));
+    write(path.join(box.root, "ok.txt"), "x\n");
+
+    const status = await repoStatus(ctx, box.root);
+
+    expect(status?.files.map(file => file.path)).toEqual(["ok.txt"]);
+  });
+
   it("never lists a secret file, even an untracked one", async () => {
     write(path.join(box.root, ".env"), "KEY=1\n");
     write(path.join(box.root, "ok.txt"), "x\n");
