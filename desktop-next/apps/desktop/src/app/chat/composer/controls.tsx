@@ -117,7 +117,8 @@ export function ComposerControls({
           aria-label={showStop ? c.stop : c.send}
           className={PRIMARY_ICON_BTN}
           data-vp="composer-send"
-          disabled={disabled || !canSubmit}
+          // Offline, a typed message can still be sent: it is queued until Vanta reconnects.
+          disabled={(disabled && !hasComposerPayload) || !canSubmit}
           onClick={() => recordAction(showStop ? 'composer.cancel' : 'composer.send', 'click')}
           type="submit"
         >

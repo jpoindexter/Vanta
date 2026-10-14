@@ -319,6 +319,12 @@ export function useComposerSubmit({
 
   const submitDraft = () => {
     if (disabled) {
+      // The backend is down: keep the words as a saved message that runs once Vanta reconnects (the
+      // offline banner's promise). Nothing is sent, so a failed send can't lose or duplicate it.
+      if (!queueEdit) {
+        queueCurrentDraft()
+      }
+
       return
     }
 
