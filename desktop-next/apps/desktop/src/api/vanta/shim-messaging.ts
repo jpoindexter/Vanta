@@ -40,6 +40,10 @@ function envVar(platform: Platform, field: Platform['fields'][number]): Messagin
   }
 }
 
+// Hermes' state words: only a saved platform is "waiting on the gateway"; the rest read as off, and the
+// page adds its own "Needs setup" pill for the unconfigured, so the state must not repeat it.
+const stateOf = (platform: Platform): string => (platform.status === 'ready' ? 'gateway_stopped' : 'disabled')
+
 function toInfo(platform: Platform): MessagingPlatformInfo {
   const unavailable = platform.status === 'unavailable'
 
@@ -55,7 +59,7 @@ function toInfo(platform: Platform): MessagingPlatformInfo {
     gateway_running: false,
     id: platform.id,
     name: platform.label,
-    state: platform.status
+    state: stateOf(platform)
   }
 }
 

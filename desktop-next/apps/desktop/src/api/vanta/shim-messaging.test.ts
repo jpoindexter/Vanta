@@ -59,7 +59,7 @@ describe('Connections reads and saves messaging platforms through the Vanta rout
   it('lists every platform with its setup state, never exposing a saved secret', async () => {
     const { platforms } = await getMessagingPlatforms()
 
-    expect(platforms.map(p => [p.id, p.state, p.configured])).toEqual([['telegram', 'ready', true], ['slack', 'needs_setup', false], ['sms', 'unavailable', false]])
+    expect(platforms.map(p => [p.id, p.state, p.configured])).toEqual([['telegram', 'gateway_stopped', true], ['slack', 'disabled', false], ['sms', 'disabled', false]])
     expect(platforms[0].env_vars[0]).toMatchObject({ is_password: true, is_set: true, redacted_value: '••••••••' })
     expect(platforms[1].env_vars[0]).toMatchObject({ is_set: false, redacted_value: null })
     expect(platforms[2].error_message).toMatch(/not available/)

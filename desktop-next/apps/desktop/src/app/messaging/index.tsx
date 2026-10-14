@@ -48,6 +48,7 @@ import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { AllowlistField } from './allowlist-field'
 import { PlatformAvatar } from './platform-icon'
+import { SHOW_TELEGRAM_QR_SETUP } from '../settings/hermes-extras'
 import { TelegramQrSetup } from './telegram-qr-setup'
 
 interface MessagingViewProps extends React.ComponentProps<'section'> {
@@ -62,6 +63,8 @@ const PILL_TONE: Record<StatusTone, string> = {
   warn: 'bg-amber-500/10 text-amber-600 dark:text-amber-300',
   bad: 'bg-destructive/10 text-destructive'
 }
+
+const hasQrSetup = (platform: MessagingPlatformInfo): boolean => SHOW_TELEGRAM_QR_SETUP && platform.id === 'telegram'
 
 const stateLabel = (state: null | string | undefined, m: Translations['messaging']) =>
   state ? m.states[state] || state.replace(/_/g, ' ') : m.unknown
@@ -835,7 +838,7 @@ function PlatformDetail({
         </section>
       )}
 
-      {platform.id === 'telegram' && (
+      {hasQrSetup(platform) && (
         <section>
           <SectionTitle>{m.telegramQr.quickSetup}</SectionTitle>
           <div className="mt-3">
