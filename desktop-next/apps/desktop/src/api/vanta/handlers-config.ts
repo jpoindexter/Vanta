@@ -7,6 +7,7 @@ import { expectOk, parseBody } from './rpc'
 import { accessModeSchema, fileListSchema, providerOptionsSchema, statusSchema } from './schemas'
 import type { ChatClient } from './client-registry'
 import { approvalModeForAccess } from './session-info'
+import { modelCapabilities, setFastMode, setReasoningEffort } from './handlers-model-settings'
 import { unsupportedKey } from './unsupported'
 
 const str = (value: unknown): string => (typeof value === 'string' ? value : '')
@@ -128,14 +129,10 @@ export const configSet: Handler = async (hub, params) => {
       return setModel(hub, client, params.value)
     case 'approvals.mode':
       return setApprovalMode(hub, client, params.value)
-    case 'reasoning': {
-      expectOk(
-        await hub.caller.post(client, '/api/model-settings', { effortLevel: str(params.value) }),
-        'reasoning effort'
-      )
-
-      return { key, value: str(params.value) }
-    }
+    case 'reasoning':
+      return setReasoningEffort(hub, client, str(params.value))
+    case 'fast':
+      return setFastMode(hub, client, str(params.value))
     default:
       return unsupportedKey('config.set', key)
   }
@@ -150,8 +147,11 @@ export const modelOptions: Handler = async (hub, params) => {
   )
   const current = options.find(option => option.current)
 
+  const model = client?.model || current?.savedDefaultModel || current?.defaultModel || ''
+
   const providers = await Promise.all(
     options.map(async option => ({
+      ...(option.id === (client?.provider || current?.id) && model ? { capabilities: { [model]: modelCapabilities(option.modelSettings) } } : {}),
       is_current: option.current === true,
       models:
         params.refresh === true && option.current
@@ -163,7 +163,7 @@ export const modelOptions: Handler = async (hub, params) => {
   )
 
   return {
-    model: client?.model || current?.savedDefaultModel || current?.defaultModel || '',
+    model,
     provider: client?.provider || current?.id || '',
     providers: providers.map(provider => ({ ...provider, total_models: provider.models.length }))
   }

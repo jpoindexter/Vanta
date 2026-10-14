@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { modelCapabilities } from './handlers-model-settings'
 import { providerOptionsSchema, statusSchema } from './schemas'
 import { get, post, type ShimRoute, text } from './shim-core'
 
@@ -43,10 +44,13 @@ export const modelRoutes: readonly ShimRoute[] = [
       const options = providerOptionsSchema.parse(await get(send, '/api/models'))
       const current = options.find(option => option.current)
 
+      const model = current?.savedDefaultModel || current?.defaultModel || ''
+
       return {
-        model: current?.savedDefaultModel || current?.defaultModel || '',
+        model,
         provider: current?.id ?? '',
         providers: options.map(option => ({
+          ...(option.current && model ? { capabilities: { [model]: modelCapabilities(option.modelSettings) } } : {}),
           is_current: option.current === true,
           models: option.models,
           name: option.label ?? option.id,

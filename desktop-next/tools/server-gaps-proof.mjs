@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { launchVanta, waitForShell } from "./vanta-app.mjs";
-import { closeMenus, goHome, overlay, startChat, waitUntil } from "./proof/kit.mjs";
+import { closeMenus, goHome, overlay, pick, startChat, waitUntil } from "./proof/kit.mjs";
 
 const only = (process.argv.find((a) => a.startsWith("--only=")) ?? "").replace("--only=", "").split(",").filter(Boolean);
 const wants = (name) => !only.length || only.includes(name);
@@ -35,7 +35,8 @@ function seed({ project, root, vantaHome }) {
   return other;
 }
 
-const app = await launchVanta({ hidden: true, seed });
+// A made-up key lets the session switch to a provider whose models offer reasoning levels; no request is sent with it.
+const app = await launchVanta({ hidden: true, seed, extraEnv: { ANTHROPIC_API_KEY: "sk-ant-proof-placeholder-not-real" } });
 const page = app.page;
 const api = (request) => page.evaluate((r) => window.hermesDesktop.api(r), request);
 const side = page.locator('[data-tour="sessions-sidebar"]').first();
@@ -172,6 +173,43 @@ try {
     const toast = (await page.locator("[role=alert], [role=status], [data-sonner-toast], [class*=toast i]").allInnerTexts()).join(" | ").replace(/\n+/g, " / ");
     const stillAsk = (await api({ method: "GET", path: "/api/access-mode" })).mode;
     say("F-163x", /must be one of manual, smart/.test(toast) && stillAsk === "ask", `choosing Off is refused and says why: "${toast.slice(0, 200)}" (mode still ${stillAsk})`);
+  }
+  if (wants("effort")) {
+    await goHome(page);
+    await startChat(page);
+    const none = await page.getByTestId("reasoning-pill").count();
+    say("F-122a", none === 0, `custom endpoint with no reasoning levels: reasoning pill hidden (count ${none})`);
+    await page.locator('[data-vp="chip-model"]').first().click();
+    await page.waitForTimeout(700);
+    const menuText = (await page.locator("[role=menu]").first().innerText()).replace(/\n+/g, " | ");
+    console.log("model menu:", menuText.slice(0, 600));
+    await page.keyboard.type("opus");
+    await page.waitForTimeout(600);
+    await page.locator("[role=menuitem], [role=menuitemradio]").filter({ hasText: /^Opus 4\.8/ }).first().click();
+    await page.waitForTimeout(3000);
+    if (process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/model-pick.png` });
+    console.log("toast after model pick:", (await page.locator("[role=alert], [role=status], [data-sonner-toast], [class*=toast i]").allInnerTexts()).join(" | ").replace(/\n+/g, " / ").slice(-300));
+    console.log("model chip now:", (await page.locator('[data-vp="chip-model"]').first().innerText()).trim());
+    const pill = page.getByTestId("reasoning-pill");
+    console.log("pill present:", await pill.count(), "label:", (await pill.first().innerText().catch(() => "")).trim());
+    if (await pill.count()) {
+      await pill.first().click();
+      await page.waitForTimeout(500);
+      console.log("pill menu:", (await page.locator("[role=menuitem], [role=menuitemradio]").allInnerTexts()).join(" / "));
+      await pick(page, "High");
+      await page.waitForTimeout(2500);
+      const toast = (await page.locator("[role=alert], [role=status], [data-sonner-toast], [class*=toast i]").allInnerTexts()).join(" | ").replace(/\n+/g, " / ");
+      const st = await api({ method: "GET", path: "/api/status" });
+      say("F-122b", (await pill.first().innerText()).trim() === "High", `Opus 4.8: choosing High leaves the pill on High with no error toast (${toast.slice(-60).replace(/\s+/g, " ")})`);
+      await closeMenus(page);
+      await pill.first().click();
+      await page.waitForTimeout(400);
+      await pick(page, "Ultra");
+      await page.waitForTimeout(2500);
+      const toast2 = (await page.locator("[role=alert], [role=status], [data-sonner-toast], [class*=toast i]").allInnerTexts()).join(" | ").replace(/\n+/g, " / ");
+      const ultraPill = (await pill.first().innerText().catch(() => "")).trim();
+      say("F-122c", /not available for this model\. Choose one of: low, medium, high, xhigh, max/.test(toast2) && ultraPill !== "Ultra", `choosing Ultra (not offered) shows the reason and the pill rolls back to ${ultraPill}: "${toast2.slice(-150).replace(/\s+/g, " ")}"`);
+    }
   }
 } catch (error) {
   console.error("proof stopped:", String(error.message ?? error).split("\n").slice(0, 6).join(" | "));
