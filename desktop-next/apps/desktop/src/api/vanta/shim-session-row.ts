@@ -1,5 +1,7 @@
 import type { SessionInfo } from '@/types/hermes'
 
+import type { SessionMeta } from './schemas'
+
 const SECONDS = 1000
 
 export const isoToSeconds = (iso: string | undefined): number => {
@@ -30,4 +32,25 @@ export function sessionRow(fields: Partial<SessionInfo> & Pick<SessionInfo, 'id'
     tool_call_count: 0,
     ...fields
   }
+}
+
+/**
+ * A Hermes sidebar row for one stored session. `cwd` is the folder the session was started in, as the
+ * server recorded it; a session saved before that was kept has none and files under Home, never under a guess.
+ */
+export function sessionInfoFromMeta(meta: SessionMeta): SessionInfo {
+  const started = isoToSeconds(meta.started)
+
+  return sessionRow({
+    archived: meta.archived === true,
+    cwd: meta.cwd?.trim() || null,
+    id: meta.id,
+    last_active: isoToSeconds(meta.updated) || started,
+    message_count: (meta.turns ?? 0) * 2,
+    model: meta.modelId ?? null,
+    pinned: meta.pinned === true,
+    started_at: started,
+    ...(meta.unread === true ? { unread: true } : {}),
+    title: meta.title ?? null
+  })
 }

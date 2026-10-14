@@ -69,6 +69,9 @@ export const SessionSchema = z.object({
   // Origin project (canonicalProjectId). Optional + additive: sessions saved
   // before this field still load. Enables cross-project resume (see cross-project.ts).
   projectId: z.string().optional(),
+  // Working folder the session was started in (absolute path). Additive: older sessions have none.
+  // Lets a client place the session in a project by folder.
+  cwd: z.string().optional(),
   providerId: z.string().optional(),
   modelId: z.string().optional(),
   // Archived sessions stay in the same durable store so they can be restored
@@ -82,14 +85,14 @@ export const SessionSchema = z.object({
 });
 
 export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "providerId" | "modelId" | "archived" | "trashed" | "pinned" | "pinOrder"> & {
+export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "cwd" | "providerId" | "modelId" | "archived" | "trashed" | "pinned" | "pinOrder"> & {
   turns: number;
   diagnostic?: { code: string; path: string; recovery: string };
 };
 /** Options for writing a session. The store binds its own location, so `env` is not
  *  a per-call field here (the delegator saveSession accepts it and passes it through). */
 export type SaveSessionOpts = {
-  now?: string; started?: string; updated?: string; title?: string; projectId?: string;
+  now?: string; started?: string; updated?: string; title?: string; projectId?: string; cwd?: string;
   providerId?: string; modelId?: string; archived?: boolean; trashed?: boolean;
   pinned?: boolean; pinOrder?: number;
   /** Optional compare-and-swap precondition for a previously loaded snapshot; null means create only. */

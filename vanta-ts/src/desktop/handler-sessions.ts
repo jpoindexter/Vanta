@@ -25,7 +25,7 @@ export async function handleNewSession(state: DesktopState, res: http.ServerResp
   state.providerId = providerIdFor(setup.provider, process.env);
   state.modelId = setup.provider.modelId();
   attachConversation(state, setup);
-  await saveSession(state.sessionId, [], { started: state.sessionStarted,
+  await saveSession(state.sessionId, [], { started: state.sessionStarted, cwd: state.root,
     providerId: state.providerId, modelId: state.modelId, title: "New chat" });
   sendJson(res, 200, { id: state.sessionId });
 }
