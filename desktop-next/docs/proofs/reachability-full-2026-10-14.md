@@ -126,7 +126,7 @@ Totals (269 rows): PASS 177, INERT 33, FAIL 3, DROPPED 17, NOT-RUN 39
 | F-089 | status bar | RAM / system resources | NOT-RUN | shown only when /api/runtime reports memory; not in this sandbox |
 | F-090 | status bar | Approval-mode pill | PASS | still in the status bar; the composer's Permission chip is the main control |
 | F-091 | status bar | Terminal toggle | PASS | opens the terminal pane (a line terminal where every command asks first) |
-| F-092 | status bar | Version / build chip | PASS | the chip reads v0.0.0 |
+| F-092 | status bar | Version / build chip | PASS | the chip reads v0.0.0; no 'Backend out of date' toast after launch and a chat |
 | F-093 | status bar | Contributed status items | NOT-RUN | no contribution registered by default |
 | F-094 | right pane | Workbench tabs and chords (⌘G opens Review) | PASS | Files, Changes, Terminal and Browser toggles each open their pane |
 | F-095 | right pane | Files header: refresh, collapse, show ignored | PASS | buttons appear on hover; tree read through vanta:fs:read-dir, confined to the project |
@@ -155,7 +155,7 @@ Totals (269 rows): PASS 177, INERT 33, FAIL 3, DROPPED 17, NOT-RUN 39
 | F-112 | right pane | Tab strip shows once a second tab exists (⌘T) | PASS | tabs: Sessions / Bots / New session / Competitor pricing review (branch) / Untitled session / Terminal /  |
 | F-113 | right pane | Narrow-width: sidebar rail at 1100, drawer button at 900 | PASS | at 1100 the sidebar is an icon rail (settings gear at x=13); the sidebar toggle is present at 900 = true |
 | F-114 | composer | Rich input: type, send, history ↑ | PASS | a typed message sent, and ↑ in the empty box recalled it (Esc cancels a running turn: see F-124) |
-| F-115 | composer | + menu: Files…, Folder…, Images…, Paste image | PASS | Files… / Folder… / Images… / Paste image / URL… / Prompt snippets… |
+| F-115 | composer | + menu: Files…, Folder…, Images…, Paste image | PASS | Files… / Folder… / Images… / Paste image / URL… / Prompt snippets…; Images… (native picker, stubbed to pixel.png) attached a chip, the message carried the image in its request body and the model answered "I can see the attached image.", then the chip cleared |
 | F-116 | composer | + menu: URL… and Prompt snippets… | PASS | both entries are in the menu |
 | F-117 | composer | Contributed attachment providers | NOT-RUN | no plugin contributes an attachment provider by default |
 | F-118 | composer | Attachment chip after picking a folder | PASS | Folder… opened the native picker (stubbed) and the folder became a chip; its remove control is the chip's × |
@@ -185,7 +185,7 @@ Totals (269 rows): PASS 177, INERT 33, FAIL 3, DROPPED 17, NOT-RUN 39
 | F-142 | thread | Assistant message actions | PASS | Copy, Good response, Bad response, Retry, Branch in new chat, Read aloud; Copy put the reply text on the clipboard |
 | F-143 | thread | User message actions: Edit, Restore checkpoint | PASS | Edit message, Restore checkpoint |
 | F-144 | thread | Tool rows (collapsed activity) | PASS | the command shows as a tool row in the thread with the reply after it |
-| F-145 | thread | Approval card: Allow once, Always allow, Reject | PASS | Allow once / Always allow shell commands / Reject; Reject ended the turn |
+| F-145 | thread | Approval card: Allow once, Always allow, Reject | PASS | Allow once / Always allow shell commands in this project / Reject; Reject ended the turn |
 | F-146 | thread | Clarify prompts (options, Other, Skip) | INERT | Vanta's clarify tool returns its question as text; there is no clarify.request event for the card, so the question reads as a normal reply |
 | F-147 | thread | Sudo / secret / vault prompts | NOT-RUN | no flow in the sandbox asks for a secret; Vanta brokers logins (Settings > Passwords & Logins) |
 | F-148 | thread | MCP setup prompt | NOT-RUN | needs a tool call naming an unconfigured MCP server |
@@ -237,12 +237,12 @@ Totals (269 rows): PASS 177, INERT 33, FAIL 3, DROPPED 17, NOT-RUN 39
 | F-192 | context menus | Preview webview (guest) context menu | INERT | the Browser pane cannot host a page (webviewTag is off), so there is no guest page to right-click |
 | F-193 | context menus | Bare-chrome context menu | PASS | New session / New window / Command palette / Toggle status bar / Toggle profile rail / Toggle tabs / Settings / Update Vanta |
 | F-194 | context menus | Pane / zone context menu | PASS | Reload / Close others / Close to the right / Close all / Hide Sessions / Hide Bots / Hide tabs ⌘⌥T / Minimize |
-| F-195 | window menu/tray | App menu: About, Hide, Quit | PASS | About Vanta / Services / Hide Vanta / Hide Others / Show All / Quit Vanta |
+| F-195 | window menu/tray | App menu: About, Hide, Quit | PASS | About Vanta Next / Services / Hide Vanta Next / Hide Others / Show All / Quit Vanta Next |
 | F-196 | window menu/tray | File menu: Open Folder…, Close | PASS | Open Folder… / Close; Open Folder… reached the native folder picker (New Window is absent: the shell has one window) |
 | F-197 | window menu/tray | Edit menu | PASS | Undo / Redo / Cut / Copy / Paste / Paste and Match Style / Delete / Select All / Substitutions |
 | F-198 | window menu/tray | View menu: Reload, DevTools, zoom in, out, actual size | PASS | Zoom In 1 -> 1.0183993761470242 (saved in userData/zoom.json), Actual Size -> 1 |
 | F-199 | window menu/tray | Window menu | PASS | Minimize / Zoom / Bring All to Front |
-| F-200 | window menu/tray | Help menu | INERT | Vanta Docs; Check for Updates is absent because no update feed is configured |
+| F-200 | window menu/tray | Help menu | INERT | Vanta Next Docs; Check for Updates is absent because no update feed is configured |
 | F-201 | window menu/tray | Tray menu: Show Vanta, Needs you, quick surfaces, Quit | INERT | the tray turns on and off from the setting (F-178). Its menu and Needs you count are not observable from outside the app (Electron's Tray cannot be replaced or queried); buildTrayMenuTemplate and createTrayHost are covered by vanta-tray tests |
 | F-202 | window menu/tray | Quick Entry: settings and global shortcut | PASS | setSettings enabled a global shortcut (Control+Alt+Shift+F13, a spare key so the owner's shortcuts are untouched) and disabling released it; the summon, relay and acknowledge path runs in quick-entry-host tests, the quick window itself was not driven here. Settings page: Advanced > Desktop & startup is blocked by the config route (see settings rows) |
 | F-203 | window menu/tray | Mini window (HUD without the game overlay) | PASS | same window; the game overlay, modifier gesture and snap shortcut are not ported (owner decision) |
@@ -370,7 +370,7 @@ Totals (269 rows): PASS 177, INERT 33, FAIL 3, DROPPED 17, NOT-RUN 39
 - F-179 DROPPED: Usage statistics consent. telemetry consent removed (agreed branding removal)
 - F-185 INERT: Plugin palette rows (Kanban, Bots). Bots 'New Bot…' is there; the Kanban Open board / New task rows are absent because no board route exists (F-243)
 - F-192 INERT: Preview webview (guest) context menu. the Browser pane cannot host a page (webviewTag is off), so there is no guest page to right-click
-- F-200 INERT: Help menu. Vanta Docs; Check for Updates is absent because no update feed is configured
+- F-200 INERT: Help menu. Vanta Next Docs; Check for Updates is absent because no update feed is configured
 - F-201 INERT: Tray menu: Show Vanta, Needs you, quick surfaces, Quit. the tray turns on and off from the setting (F-178). Its menu and Needs you count are not observable from outside the app (Electron's Tray cannot be replaced or queried); buildTrayMenuTemplate and createTrayHost are covered by vanta-tray tests
 - F-204 DROPPED: Pet overlay and wake-word indicator windows. pet overlay removed by owner decision; the wake-word indicator is not mounted in the Vanta shell
 - F-205 INERT: Browser pop-out and per-session windows. openWindow, openBrowserWindow and windowRelay are typed-unsupported: the Vanta shell has one main window (documented in ipc-surface section 5.3)
