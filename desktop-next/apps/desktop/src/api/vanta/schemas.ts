@@ -90,6 +90,12 @@ export const providerOptionSchema = z.looseObject({
   defaultModel: z.string().optional(),
   id: z.string().min(1),
   label: z.string().optional(),
+  modelSettings: z
+    .looseObject({
+      effort: z.looseObject({ options: z.array(z.string()).default([]) }).optional(),
+      speed: z.looseObject({ options: z.array(z.string()).default([]) }).optional()
+    })
+    .optional(),
   models: z.array(z.string()).default([]),
   savedDefaultModel: z.string().optional()
 })

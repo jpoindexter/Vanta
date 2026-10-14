@@ -46,7 +46,7 @@ function makeProject(root) {
   return project;
 }
 
-function sandboxEnv({ root, project, modelUrl, hidden, kernelPort }) {
+function sandboxEnv({ root, project, modelUrl, hidden, kernelPort, extraEnv = {} }) {
   const env = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("HERMES_")) env[key] = value;
@@ -65,6 +65,7 @@ function sandboxEnv({ root, project, modelUrl, hidden, kernelPort }) {
     VANTA_SKIP_QUIT_CONFIRM: "1",
     // A free port, so the sandbox kernel never collides with the owner's own app on the default 7788.
     VANTA_KERNEL_URL: `http://127.0.0.1:${kernelPort}`,
+    ...extraEnv,
   });
   return env;
 }
@@ -81,7 +82,7 @@ function freePort() {
 }
 
 /** Start the app. `hidden` (default) keeps the window off-screen and inactive. */
-export async function launchVanta({ hidden = true, width = 1440, height = 900, seed } = {}) {
+export async function launchVanta({ hidden = true, width = 1440, height = 900, seed, extraEnv } = {}) {
   const { _electron } = require("playwright-core");
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-desktop-"));
   const project = makeProject(root);
@@ -106,7 +107,7 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900, s
       "--disable-backgrounding-occluded-windows",
       "--disable-renderer-backgrounding",
     ],
-    env: sandboxEnv({ root, project, modelUrl: mock.url, hidden, kernelPort: await freePort() }),
+    env: sandboxEnv({ root, project, modelUrl: mock.url, hidden, kernelPort: await freePort(), extraEnv }),
     cwd: desktopRoot,
   });
   const page = await app.firstWindow();
