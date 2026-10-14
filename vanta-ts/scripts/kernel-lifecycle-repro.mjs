@@ -4,7 +4,7 @@
 // Only pids this script started (and their descendants / its unique ports) are
 // ever inspected or signalled.
 //
-//   node scripts/kernel-lifecycle-repro.mjs [--ephemeral=0|1] [--only=SIGTERM,SIGKILL,SIGINT,SIGHUP,parent-death]
+//   node scripts/kernel-lifecycle-repro.mjs [--ephemeral=0|1|default] [--watch=0] [--only=SIGTERM,SIGKILL,SIGINT,SIGHUP,parent-death]
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
@@ -69,7 +69,10 @@ function runtimeEnv(home, ports, ephemeral) {
     VANTA_KERNEL_URL: `http://127.0.0.1:${ports.kernel}`,
   };
   delete env.VANTA_KERNEL_EPHEMERAL;
-  if (ephemeral === "1") env.VANTA_KERNEL_EPHEMERAL = "1";
+  delete env.VANTA_DESKTOP_PARENT_WATCH;
+  if (ephemeral === "0" || ephemeral === "1") env.VANTA_KERNEL_EPHEMERAL = ephemeral;
+  // Both desktop shells set this so the runtime ends when the shell does.
+  if (args.watch !== "0") env.VANTA_DESKTOP_PARENT_WATCH = "1";
   return env;
 }
 
@@ -105,7 +108,7 @@ async function scenario(path, ephemeral) {
 
   const survivors = ours([supervisor.pid, runtimePid, kernelPid], [ports.runtime, ports.kernel]).filter((p) => alive(p.pid));
   const result = {
-    path, ephemeral: ephemeral === "1" ? "1" : "unset", before: before.length,
+    path, ephemeral, before: before.length,
     runtimeAlive: alive(runtimePid), kernelAlive: alive(kernelPid), survivors: survivors.length,
     detail: survivors.map((p) => `${p.pid}(ppid ${p.ppid}) ${p.command.slice(0, 70)}`),
   };
@@ -121,7 +124,7 @@ async function scenario(path, ephemeral) {
 }
 
 const rows = [];
-for (const ephemeral of (args.ephemeral ? [args.ephemeral] : ["0", "1"])) {
+for (const ephemeral of (args.ephemeral ? [args.ephemeral] : ["default", "0", "1"])) {
   for (const path of EXIT_PATHS) rows.push(await scenario(path, ephemeral));
 }
 console.log("| exit path | VANTA_KERNEL_EPHEMERAL | procs before | runtime alive | kernel alive | survivors |");
