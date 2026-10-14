@@ -57,7 +57,7 @@ async function checkState(env, specState, stateId) {
   }
   const measured = await measureAll(target.page, appMap, { keys, hoverOnlyKeys: new Set(spec.hoverOnlyKeys) });
   const appCopy = await measureCopy(target.page, appMap);
-  const copy = copyRow({ stateId, expected: copyInv.states[stateId], appStrings: [...appCopy.rest, ...appCopy.hover], allowGlyphs, declared: declaredCopy(env.devList, stateId) });
+  const copy = copyRow({ stateId, expected: copyInv.states[stateId], appStrings: [...appCopy.rest, ...appCopy.hover], appPieces: appCopy.pieces, allowGlyphs, declared: declaredCopy(env.devList, stateId) });
   return { rows: buildRows({ ...base, measured, blocked: null }), copy, frame: measured.frame };
 }
 

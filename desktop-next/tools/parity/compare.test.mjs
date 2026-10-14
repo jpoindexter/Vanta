@@ -104,3 +104,10 @@ test("a shift deviation excuses a constant offset and still fails a different on
   assert.equal(compareElement({ expected, actual: el({ y: 135 }), tol: DEFAULT_TOL, ctx: ctx(dev) }).status, "FAIL");
   assert.equal(compareElement({ expected, actual: el({ y: 128 }), tol: DEFAULT_TOL, ctx: ctx([]) }).status, "FAIL");
 });
+
+test("a wireframe sentence counts as found when the app shows its words as adjacent pieces", () => {
+  const expected = { strings: ["billing/webhooks.ts +24 −6 · billing/retry.ts +18 −0"], hoverOnly: [] };
+  const pieces = ["Edited 2 files", "billing/webhooks.ts", "+24 −6 ·", "billing/retry.ts", "+18 −0", "Review changes"];
+  assert.equal(copyRow({ stateId: "s", expected, appStrings: [], appPieces: pieces }).status, "PASS");
+  assert.equal(copyRow({ stateId: "s", expected, appStrings: [], appPieces: ["billing/webhooks.ts", "Review changes", "+24 −6 ·"] }).status, "FAIL");
+});

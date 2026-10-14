@@ -136,7 +136,7 @@ function Overlays({ layers }: { layers: FixtureLayers }) {
         )}
       </div>
     </div>,
-    document.body
+    document.getElementById('root') ?? document.body
   )
 }
 

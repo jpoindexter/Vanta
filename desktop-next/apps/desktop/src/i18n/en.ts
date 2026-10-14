@@ -516,8 +516,8 @@ export const en: Translations = {
   },
 
   titlebar: {
-    hideSidebar: 'Hide sidebar',
-    showSidebar: 'Show sidebar',
+    hideSidebar: 'Close sidebar',
+    showSidebar: 'Open sidebar',
     search: 'Search',
     searchTitle: 'Search sessions, views, and actions',
     swapSidebarSides: 'Swap sidebar sides',
