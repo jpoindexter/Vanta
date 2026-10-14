@@ -31,8 +31,10 @@ const zoomFactor = (app) => app.app.evaluate(({ BrowserWindow }) => BrowserWindo
 export async function menuRows(ctx) {
   const { app } = ctx;
   const menu = await readMenu(app);
-  const labels = Object.fromEntries(["Vanta", "File", "Edit", "View", "Window", "Help"].map((top) => [top, labelsOf(menu, top)]));
-  verdict("F-195", AREA, "App menu: About, Hide, Quit", hasAll(labels.Vanta, ["About Vanta", "Hide Vanta", "Quit Vanta"]), { pass: labels.Vanta.filter(Boolean).join(" / "), why: labels.Vanta.join(" / ") });
+  // The first menu is named for the app (Electron app name: "Vanta Next" while it ships beside the installed Vanta).
+  const name = menu[0]?.label ?? "Vanta";
+  const labels = Object.fromEntries([name, "File", "Edit", "View", "Window", "Help"].map((top) => [top, labelsOf(menu, top)]));
+  verdict("F-195", AREA, "App menu: About, Hide, Quit", hasAll(labels[name], [`About ${name}`, `Hide ${name}`, `Quit ${name}`]), { pass: labels[name].filter(Boolean).join(" / "), why: labels[name].join(" / ") });
 
   await clearNativeLog(app);
   await clickMenuItem(app, "File", "Open Folder…");
@@ -45,7 +47,7 @@ export async function menuRows(ctx) {
 
   verdict("F-197", AREA, "Edit menu", hasAll(labels.Edit, ["Undo", "Redo", "Cut", "Copy", "Paste", "Select All"]), { pass: labels.Edit.filter(Boolean).join(" / "), why: labels.Edit.join(" / ") });
   verdict("F-199", AREA, "Window menu", hasAll(labels.Window, ["Minimize", "Zoom"]), { pass: labels.Window.filter(Boolean).join(" / "), why: labels.Window.join(" / ") });
-  record("F-200", AREA, "Help menu", labels.Help.includes("Vanta Docs") ? "INERT" : "FAIL", `${labels.Help.join(" / ")}; Check for Updates is absent because no update feed is configured`);
+  record("F-200", AREA, "Help menu", labels.Help.includes(`${name} Docs`) ? "INERT" : "FAIL", `${labels.Help.join(" / ")}; Check for Updates is absent because no update feed is configured`);
 
   const before = await zoomFactor(app);
   await clickMenuItem(app, "View", "Zoom In");
