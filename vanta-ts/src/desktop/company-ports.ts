@@ -5,6 +5,7 @@ import type { WorkerTask } from "../team/tasks.js";
 import type { Goal } from "../types.js";
 import type { RunEvent } from "../worker-runtimes/types.js";
 import type { RuntimeSeams } from "./company-run-select.js";
+import { readRunningKernelGoals } from "./company-kernel-goals.js";
 import type { DesktopState } from "./handler-state.js";
 
 // Injectable seams for the company API. Production uses the defaults; tests
@@ -51,7 +52,7 @@ export type CompanyPorts = {
   runtime: (state: DesktopState, worker?: Worker) => WorkerRuntime | Promise<WorkerRuntime>;
   /** Test seams for external CLI workers (fake process, detection, kernel). Production leaves it unset. */
   runtimeSeams?: RuntimeSeams;
-  /** Kernel goals when a live session exists; [] otherwise. Never starts a kernel. */
+  /** Kernel goals: through the live session when there is one, else from a kernel that is already running. [] otherwise. Never starts a kernel. */
   readGoals: (state: DesktopState) => Promise<Goal[]>;
   newId: () => string;
   now: () => Date;
@@ -61,7 +62,7 @@ type SafetyLike = { getGoals?: () => Promise<Goal[]> };
 
 async function defaultReadGoals(state: DesktopState): Promise<Goal[]> {
   const safety = state.setup?.safety as SafetyLike | undefined;
-  if (typeof safety?.getGoals !== "function") return [];
+  if (typeof safety?.getGoals !== "function") return readRunningKernelGoals(state.root);
   return safety.getGoals().catch(() => state.setup?.goals ?? []);
 }
 
