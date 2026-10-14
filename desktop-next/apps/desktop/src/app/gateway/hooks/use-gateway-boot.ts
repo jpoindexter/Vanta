@@ -66,7 +66,7 @@ import {
   registerGatewaySwitchLifecycle
 } from '@/store/gateway-switch'
 import { watchLocalRuntimeJobs } from '@/store/local-runtime-jobs'
-import { notify, notifyError, RECOVERY_ACTIONS } from '@/store/notifications'
+import { dismissNotification, notify, notifyError, RECOVERY_ACTIONS } from '@/store/notifications'
 import { loadPoolLimits } from '@/store/pool-limits'
 import {
   $activeGatewayProfile,
@@ -157,6 +157,8 @@ const BOOT_RETRY_BASE_DELAY_MS = 2_000
 // own connect timeout.
 
 /** Registry identity whose runtimes died with the primary connection. */
+const BACKEND_STOPPED_TOAST_ID = 'backend-stopped'
+
 export function primaryRuntimeConnectionId(connection: Pick<HermesConnection, 'connectionId' | 'mode'>): null | string {
   const connectionId = connection.connectionId?.trim()
 
@@ -1438,6 +1440,7 @@ export function useGatewayBoot({
       // (or re-dials a remote one) and does not depend on this hook's
       // reconnect gate, unlike reconnectGateway().
       notify({
+        id: BACKEND_STOPPED_TOAST_ID,
         kind: 'error',
         title: translateNow('boot.errors.backendStopped'),
         message: translateNow('boot.errors.backgroundExited'),
@@ -1451,6 +1454,13 @@ export function useGatewayBoot({
           onClick: () => void desktop.revealLogs?.().catch(() => undefined)
         }
       })
+    })
+
+    // The "stopped working" toast is sticky; once the backend answers again it is stale, so it goes away.
+    const offBackendBack = $gatewayState.listen(state => {
+      if (state === 'open') {
+        dismissNotification(BACKEND_STOPPED_TOAST_ID)
+      }
     })
 
     async function boot() {
@@ -1710,6 +1720,7 @@ export function useGatewayBoot({
       offEvent()
       offRequest()
       offExit()
+      offBackendBack()
       offWindowState?.()
       offBootProgress()
 

@@ -145,7 +145,8 @@ export class ServerHost {
     const delay = this.deps.respawnDelayMs ?? 0
 
     this.respawning = (delay > 0 ? new Promise<void>(resolve => setTimeout(resolve, delay)) : Promise.resolve())
-      .then(() => this.start(input))
+      // Someone may have restarted it meanwhile (an explicit Restart): do not restart a healthy runtime.
+      .then(() => (this.needsRespawn && !this.current ? this.start(input) : undefined))
       .catch(() => undefined)
       .finally(() => {
         this.respawning = null

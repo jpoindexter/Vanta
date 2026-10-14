@@ -100,6 +100,17 @@ describe('window, zoom, and native members', () => {
   })
 })
 
+describe('backend recovery over IPC', () => {
+  it('recycleBackend asks main to restart the runtime', async () => {
+    const { invoked, ipc } = fakeIpc()
+    const desktop = buildHermesDesktop(env(ipc)) as Record<string, any>
+
+    await desktop.recycleBackend('default')
+
+    expect(invoked[0]?.[0]).toBe(CH.backendRecycle)
+  })
+})
+
 describe('vanta event streams over IPC', () => {
   it('multiplexes many streams over one listener pair and routes each frame to its stream', () => {
     const { emit, ipc, listenerCount, sent } = fakeIpc()

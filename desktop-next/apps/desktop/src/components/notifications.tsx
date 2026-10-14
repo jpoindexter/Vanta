@@ -133,6 +133,7 @@ function TopCenterStack({
         'left-1/2 top-[calc(var(--titlebar-height,34px)+0.75rem)] w-[min(28rem,calc(100%-2rem))] -translate-x-1/2 flex-col p-1',
         expanded && 'max-h-[70vh] overflow-y-auto overscroll-contain'
       )}
+      data-slot="notification-stack"
       role="region"
     >
       <NotificationDeck expanded={expanded} notifications={notifications} />
