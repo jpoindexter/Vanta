@@ -9,6 +9,17 @@ import { $notifications, clearNotifications } from '@/store/notifications'
 
 import { ModelSettings } from './model-settings'
 
+// Most of these tests exercise the Auxiliary and Mixture of Agents sections, which Vanta hides
+// by default, so the switch is on here; the last describe turns it off to pin the shipped default.
+const extras = vi.hoisted(() => ({ show: true }))
+
+vi.mock('./hermes-extras', () => ({
+  get SHOW_HERMES_MODEL_EXTRAS() {
+    return extras.show
+  },
+  isHiddenModelSubpage: (id: string | undefined) => !extras.show && (id === 'auxiliary' || id === 'moa')
+}))
+
 // Radix Select calls scrollIntoView on its items when the content opens; jsdom
 // doesn't implement it (nor hasPointerCapture / releasePointerCapture), so stub
 // them to let the dropdown open in tests.
@@ -98,7 +109,7 @@ afterEach(() => {
   profileSwitchHandler = null
 })
 
-function renderModelSettings(scopeProfile?: string) {
+function renderModelSettings(scopeProfile?: string, subpage?: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
   return render(
@@ -106,7 +117,7 @@ function renderModelSettings(scopeProfile?: string) {
     // needs a router context in tests (the app provides HashRouter at root).
     <MemoryRouter>
       <QueryClientProvider client={client}>
-        <ModelSettings scopeProfile={scopeProfile} />
+        <ModelSettings scopeProfile={scopeProfile} subpage={subpage} />
       </QueryClientProvider>
     </MemoryRouter>
   )
@@ -1045,5 +1056,32 @@ describe('ModelSettings code-skew 503', () => {
 
     await waitFor(() => expect(recycleBackend).toHaveBeenCalledWith(undefined))
     await waitFor(() => expect(getGlobalModelOptions.mock.calls.length).toBeGreaterThan(1))
+  })
+})
+
+describe('ModelSettings in Vanta (Auxiliary and Mixture of Agents hidden)', () => {
+  beforeEach(() => {
+    extras.show = false
+  })
+
+  afterEach(() => {
+    extras.show = true
+  })
+
+  it('renders the Model page without the Auxiliary section', async () => {
+    renderModelSettings()
+
+    await waitFor(() => expect(getGlobalModelInfo).toHaveBeenCalled())
+
+    expect(screen.queryByText(TRANSLATIONS.en.settings.model.auxiliaryTitle)).toBeNull()
+  })
+
+  it('sends a deep link to the Auxiliary page to the main model page', async () => {
+    const { container } = renderModelSettings(undefined, 'auxiliary')
+
+    await waitFor(() => expect(getGlobalModelInfo).toHaveBeenCalled())
+
+    expect(container.firstChild).not.toBeNull()
+    expect(screen.queryByText(TRANSLATIONS.en.settings.model.auxiliaryTitle)).toBeNull()
   })
 })

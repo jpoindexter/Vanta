@@ -53,6 +53,7 @@ import {
 } from './aux-task-rows'
 import { CONTROL_TEXT } from './constants'
 import { getNested, setNested } from './helpers'
+import { isHiddenModelSubpage, SHOW_HERMES_MODEL_EXTRAS } from './hermes-extras'
 import { ModelSelect, withActive } from './model-select'
 import { ListRow, ListRowSkeleton, Pill, SectionHeading, SectionHeadingSkeleton } from './primitives'
 import { dismissStaleAux, readStaleAuxDismissal, staleAuxFingerprint } from './stale-aux-dismissal'
@@ -79,7 +80,7 @@ export function ModelSettingsSkeleton({ subpage }: Pick<ModelSettingsProps, 'sub
         </section>
       )}
 
-      {(subpage === undefined || subpage === 'auxiliary' || subpage === 'moa') && (
+      {SHOW_HERMES_MODEL_EXTRAS && (subpage === undefined || subpage === 'auxiliary' || subpage === 'moa') && (
         <section>
           <SectionHeadingSkeleton />
           <div className="grid gap-1">
@@ -299,9 +300,11 @@ interface ModelSettingsProps {
 export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: ModelSettingsProps) {
   const { t } = useI18n()
   const m = t.settings.model
-  const showMain = subpage === undefined || subpage === 'main'
-  const showAuxiliary = subpage === undefined || subpage === 'auxiliary'
-  const showMoa = subpage === undefined || subpage === 'moa'
+  // A deep link to a page Vanta does not serve lands on the main model page.
+  const page = isHiddenModelSubpage(subpage) ? 'main' : subpage
+  const showMain = page === undefined || page === 'main'
+  const showAuxiliary = SHOW_HERMES_MODEL_EXTRAS && (page === undefined || page === 'auxiliary')
+  const showMoa = SHOW_HERMES_MODEL_EXTRAS && (page === undefined || page === 'moa')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [skewRestart, setSkewRestart] = useState(false)
@@ -976,7 +979,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
   }
 
   if (loading && !mainModel) {
-    return <ModelSettingsSkeleton subpage={subpage} />
+    return <ModelSettingsSkeleton subpage={page} />
   }
 
   const errorNotice = error && (

@@ -1,3 +1,5 @@
+import { isHiddenModelSubpage } from './hermes-extras'
+
 interface ConfigSubpageDefinition {
   id: string
   labelKey: string
@@ -92,17 +94,24 @@ const CONFIG_SUBPAGE_DEFINITIONS: Record<string, ConfigSubpageDefinition[]> = {
   ]
 }
 
+// Pages Vanta does not serve (see hermes-extras.ts) drop out of both the list and the field lookup.
+function visiblePages(sectionId: string): ConfigSubpageDefinition[] {
+  return (CONFIG_SUBPAGE_DEFINITIONS[sectionId] ?? []).filter(
+    page => !(sectionId === 'model' && isHiddenModelSubpage(page.id))
+  )
+}
+
 /** Ordered child pages; labelKey indexes t.settings.subpages. */
 export const CONFIG_SUBPAGES: Record<string, { id: string; labelKey: string }[]> = Object.fromEntries(
-  Object.entries(CONFIG_SUBPAGE_DEFINITIONS).map(([sectionId, pages]) => [
+  Object.keys(CONFIG_SUBPAGE_DEFINITIONS).map(sectionId => [
     sectionId,
-    pages.map(({ id, labelKey }) => ({ id, labelKey }))
+    visiblePages(sectionId).map(({ id, labelKey }) => ({ id, labelKey }))
   ])
 )
 
 /** Resolve a schema/config field to the same child page that renders it. */
 export function configSubpageForField(sectionId: string, field: string): string | undefined {
-  return CONFIG_SUBPAGE_DEFINITIONS[sectionId]?.find(
+  return visiblePages(sectionId).find(
     page => page.fields?.includes(field) || page.prefixes?.some(prefix => field.startsWith(prefix))
   )?.id
 }

@@ -71,7 +71,8 @@ describe('settings subpage routing', () => {
     }
 
     const cases: [SettingsView, string, string][] = [
-      ['config:model', 'aux=vision', 'auxiliary'],
+      // Auxiliary models are hidden in Vanta (hermes-extras.ts), so the old deep link lands on the main page.
+      ['config:model', 'aux=vision', 'main'],
       ['keybinds', 'setting=keybinds.hud-modifier', 'hud-gesture'],
       ['keybinds', 'page=shortcuts&setting=keybinds.hud-modifier', 'hud-gesture'],
       ['notifications', 'setting=notifications.completion-sound', 'sounds'],
