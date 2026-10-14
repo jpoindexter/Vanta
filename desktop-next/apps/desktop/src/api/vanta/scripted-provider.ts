@@ -42,6 +42,12 @@ async function* dropMidAnswer() {
   throw Object.assign(new Error('the model server returned an unusable reply'), { status: 400 })
 }
 
+// Answers with what it was asked, so a test can read the order queued messages ran in.
+async function* echo(text: string) {
+  yield { delta: text, type: 'text' }
+  yield { result: { finishReason: 'stop', text, toolCalls: [] }, type: 'done' }
+}
+
 async function* greet() {
   yield { delta: 'Hi ', type: 'text' }
   yield { delta: 'there', type: 'text' }
@@ -54,7 +60,7 @@ async function* greet() {
 /**
  * A scripted stand-in for the model, chosen by the latest user message: "edit <file>" asks to edit that file,
  * "hang ..." streams a word and then waits to be stopped, "loop ..." keeps calling a missing tool until the agent stops,
- * "drop ..." fails halfway through an answer, "flaky ..." does that once and then answers, anything else greets.
+ * "echo ..." answers "echo: ..." (to read the order messages ran in), "drop ..." fails halfway through an answer, "flaky ..." does that once and then answers, anything else greets.
  * After a tool result it wraps up (except for "loop").
  * `revoked` makes it refuse every call like a provider whose key was revoked.
  */
@@ -85,6 +91,7 @@ export function scriptedProvider(options: { revoked?: boolean } = {}) {
       if (prompt.startsWith('loop')) return loopOnMissingTool()
       if (prompt.startsWith('drop')) return dropMidAnswer()
       if (prompt.startsWith('flaky')) return flaky(prompt)
+      if (prompt.startsWith('echo ')) return echo(`echo: ${prompt.slice(5)}`)
       if (messages.at(-1)?.role === 'tool') return finishAfterTool()
       if (edit) return editFile(edit[1]!)
       if (prompt.startsWith('hang')) return hangUntilAborted(config?.signal)

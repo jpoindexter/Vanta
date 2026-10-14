@@ -15,6 +15,8 @@ const BUSY_BACKOFF_MS = 150
 export interface TurnInput {
   files?: string[]
   images?: Array<{ dataBase64: string; mime: string }>
+  /** Run the head of the server's saved queue instead of a new message. */
+  resumeQueue?: boolean
   text: string
 }
 
@@ -38,7 +40,10 @@ const isBusy = (status: number, data: unknown) => status === 409 && /already run
 export function startTurn(hub: GatewayHub, client: ChatClient, input: TurnInput): void {
   const turn = { completed: false, controller: new AbortController(), requestId: newRequestId() }
   client.turn = turn
-  client.transcript.push({ role: 'user', text: input.text })
+  if (!input.resumeQueue) {
+    client.transcript.push({ role: 'user', text: input.text })
+  }
+
   attachStream(hub, client)
   client.stopApprovalPoll?.()
   client.stopApprovalPoll = startApprovalPoll(hub, client)
@@ -68,7 +73,7 @@ async function postChat(hub: GatewayHub, client: ChatClient, input: TurnInput) {
   const body = {
     ...(input.files?.length ? { files: input.files } : {}),
     ...(input.images?.length ? { images: input.images } : {}),
-    message: input.text,
+    ...(input.resumeQueue ? { resumeQueue: true } : { message: input.text }),
     requestId: turn.requestId,
     ...(client.storedId ? { sessionId: client.storedId } : {})
   }

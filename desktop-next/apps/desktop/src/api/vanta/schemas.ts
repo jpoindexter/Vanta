@@ -94,6 +94,30 @@ export const queueEnqueueSchema = z.looseObject({
   queued: z.boolean().optional()
 })
 
+/** One saved instruction of the server's durable turn queue. */
+export const queuedTurnSchema = z.looseObject({
+  failure: z.looseObject({ attempts: z.number().optional(), reason: z.string() }).optional(),
+  id: z.string().min(1),
+  imageCount: z.number().optional(),
+  instruction: z.string(),
+  intent: z.enum(['next', 'steer']).default('next'),
+  position: z.number().optional(),
+  revision: z.number(),
+  status: z.enum(['queued', 'starting', 'failed']).default('queued')
+})
+
+export const queueSnapshotSchema = z.looseObject({
+  items: z.array(queuedTurnSchema).default([]),
+  revision: z.number().default(0)
+})
+
+/** The server's answer to a stale queue change: the reason code and the list as it is now. */
+export const queueConflictSchema = z.looseObject({
+  code: z.string().optional(),
+  error: z.string(),
+  snapshot: queueSnapshotSchema
+})
+
 export const providerOptionSchema = z.looseObject({
   current: z.boolean().optional(),
   defaultModel: z.string().optional(),
@@ -171,6 +195,7 @@ export const sseFrameSchema = z.looseObject({
 export type ApprovalPayload = z.infer<typeof approvalPayloadSchema>
 export type ChatResult = z.infer<typeof chatResultSchema>
 export type RunReceipt = z.infer<typeof runReceiptSchema>
+export type QueueSnapshot = z.infer<typeof queueSnapshotSchema>
 export type SessionMeta = z.infer<typeof sessionMetaSchema>
 export type SseFrame = z.infer<typeof sseFrameSchema>
 export type StatusPayload = z.infer<typeof statusSchema>
