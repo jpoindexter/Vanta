@@ -27,7 +27,8 @@ export function spawnGuardedKernel(options: GuardedKernelOptions): GuardedKernel
       KERNEL_GUARD_MARKER, pidFile, String(process.pid), options.port, options.root,
       options.kernelBin, "serve", options.port,
     ],
-    { stdio: "ignore", cwd: options.root, env },
+    // stderr is inherited so a guard that cannot start or record the kernel says why in the runtime log.
+    { stdio: ["ignore", "ignore", "inherit"], cwd: options.root, env },
   );
   // Natural end of a short command must not wait for the guard; the exit hook stops it instead.
   guard.unref();

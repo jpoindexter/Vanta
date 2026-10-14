@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -48,15 +48,15 @@ function supervisorEnv(home: string, extra: NodeJS.ProcessEnv): NodeJS.ProcessEn
   return { ...process.env, HOME: home, VANTA_HOME: join(home, ".vanta"), VANTA_KERNEL_BIN: kernelBin, ...extra };
 }
 
-async function startSupervisor(extra: NodeJS.ProcessEnv = {}, wrapper?: ChildProcess): Promise<Run> {
+async function startSupervisor(extra: NodeJS.ProcessEnv = {}, bin = kernelBin): Promise<Run> {
   const home = realpathSync(mkdtempSync(join(tmpdir(), "vanta-kl-real-")));
   homes.push(home);
   mkdirSync(join(home, ".vanta"), { recursive: true });
   const root = join(home, "project");
   mkdirSync(root);
   const port = await freePort();
-  const args = ["--import", loader, fixture, String(port), kernelBin, root];
-  const supervisor = wrapper ?? spawn(process.execPath, args, { cwd: tsRoot, env: supervisorEnv(home, extra), stdio: ["ignore", "pipe", "pipe"] });
+  const args = ["--import", loader, fixture, String(port), bin, root];
+  const supervisor = spawn(process.execPath, args, { cwd: tsRoot, env: supervisorEnv(home, extra), stdio: ["ignore", "pipe", "pipe"] });
   if (supervisor.pid) started.add(supervisor.pid);
   return awaitReady({ home, port, supervisor });
 }
@@ -141,6 +141,25 @@ describe.skipIf(!available)(`kernel lifecycle with the real kernel (${kernelBin}
     expect(isProcessAlive(run.entry.kernelPid)).toBe(false);
     expect(existsSync(run.pidFile)).toBe(false);
   }, 40_000);
+
+  it("waits for a kernel that takes 6s to start (the old single 5s window would have failed)", async () => {
+    const shimDir = realpathSync(mkdtempSync(join(tmpdir(), "vanta-kl-shim-")));
+    homes.push(shimDir);
+    const shim = join(shimDir, "vanta-kernel");
+    writeFileSync(shim, `#!/bin/sh\nsleep 6\nexec "${kernelBin}" "$@"\n`);
+    chmodSync(shim, 0o755);
+
+    const begun = Date.now();
+    const run = await startSupervisor({}, shim);
+    let output = "";
+    run.supervisor.stdout?.on("data", (chunk: Buffer) => { output += String(chunk); });
+
+    expect(await until(() => output.includes("ready "), 20_000)).toBe(true);
+    expect(Date.now() - begun).toBeGreaterThanOrEqual(5500);
+    expect(isProcessAlive(run.entry.kernelPid)).toBe(true);
+    process.kill(run.supervisor.pid as number, "SIGTERM");
+    await expectAllGone(run);
+  }, 60_000);
 
   it("a live supervisor's kernel is never reaped", async () => {
     const run = await startSupervisor();

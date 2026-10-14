@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { killKernelFromPidFile, registerKernelCleanup } from "./kernel-guard/cleanup.js";
+import { waitForKernelReady, type ReadyChild } from "./kernel-guard/ready.js";
 import { spawnGuardedKernel } from "./kernel-guard/spawn-guarded.js";
 
 type KernelStatus = { status?: string; root?: string };
@@ -90,17 +91,54 @@ async function resolveKernelEndpoint(baseUrl: string, root: string): Promise<{
 
 export { registerKernelCleanup } from "./kernel-guard/cleanup.js";
 
+type EnsureKernelOptions = {
+  baseUrl: string;
+  kernelBin: string;
+  root: string;
+  ephemeral?: boolean;
+};
+
+// Concurrent callers in one process (startup prewarm plus a first request) must share one spawn:
+// a second kernel on the same port would fail to bind and erase the first one's pid file.
+const inflight = new Map<string, Promise<string>>();
+
 /**
  * Ensure a Rust kernel is running for the requested root and return its endpoint.
  * The default endpoint is shared only with the project it advertises; other projects
  * receive a stable local endpoint rather than crossing a safety/token boundary.
  */
-export async function ensureKernel(opts: {
-  baseUrl: string;
-  kernelBin: string;
-  root: string;
-  ephemeral?: boolean;
-}): Promise<string> {
+export function ensureKernel(opts: EnsureKernelOptions): Promise<string> {
+  const key = [normalizedRoot(opts.root), normalizedUrl(opts.baseUrl), opts.ephemeral ? "owned" : "shared"].join("|");
+  const pending = inflight.get(key) ?? ensureKernelOnce(opts).finally(() => inflight.delete(key));
+  inflight.set(key, pending);
+  return pending;
+}
+
+function startKernelProcess(opts: EnsureKernelOptions, port: string): ReadyChild {
+  if (opts.ephemeral) {
+    // Owned kernel: a guard process (our child) starts it and kills it when this runtime ends, however it ends.
+    const { guard, pidFile } = spawnGuardedKernel({ kernelBin: opts.kernelBin, port, root: opts.root });
+    registerKernelCleanup(guard, process, {
+      forceStop: () => {
+        guard.kill("SIGKILL");
+        killKernelFromPidFile(pidFile);
+      },
+      log: (line) => process.stderr.write(`[kernel] ${line}\n`),
+    });
+    return guard;
+  }
+  // Shared operator kernel: deliberately outlives this process so the next CLI session reuses it.
+  const child = spawn(opts.kernelBin, ["serve", port], {
+    detached: true,
+    stdio: "ignore",
+    cwd: opts.root,
+    env: { ...process.env, VANTA_ROOT: opts.root },
+  });
+  child.unref();
+  return child;
+}
+
+async function ensureKernelOnce(opts: EnsureKernelOptions): Promise<string> {
   const endpoint = await resolveKernelEndpoint(opts.baseUrl, opts.root);
   if (endpoint.ready) return endpoint.baseUrl;
   const baseUrl = endpoint.baseUrl;
@@ -112,32 +150,11 @@ export async function ensureKernel(opts: {
   }
 
   const port = new URL(baseUrl).port || "7788";
-  if (opts.ephemeral) {
-    // Owned kernel: a guard process (our child) starts it and kills it when this runtime ends, however it ends.
-    const { guard, pidFile } = spawnGuardedKernel({ kernelBin: opts.kernelBin, port, root: opts.root });
-    registerKernelCleanup(guard, process, {
-      forceStop: () => {
-        guard.kill("SIGKILL");
-        killKernelFromPidFile(pidFile);
-      },
-      log: (line) => process.stderr.write(`[kernel] ${line}\n`),
-    });
-  } else {
-    // Shared operator kernel: deliberately outlives this process so the next CLI session reuses it.
-    spawn(opts.kernelBin, ["serve", port], {
-      detached: true,
-      stdio: "ignore",
-      cwd: opts.root,
-      env: { ...process.env, VANTA_ROOT: opts.root },
-    }).unref();
-  }
-
-  for (let i = 0; i < 10; i++) {
-    await sleep(500);
-    if (statusMatchesRoot(await statusAt(baseUrl), opts.root)) return baseUrl;
-  }
-  throw new Error(
-    `vanta-kernel did not become ready for ${normalizedRoot(opts.root)} on ${baseUrl}. ` +
-      `Run it manually: VANTA_ROOT="${opts.root}" ${opts.kernelBin} serve ${port}`,
-  );
+  const child = startKernelProcess(opts, port);
+  await waitForKernelReady({
+    probe: async () => statusMatchesRoot(await statusAt(baseUrl), opts.root),
+    child,
+    describe: { baseUrl, port, command: `VANTA_ROOT="${opts.root}" ${opts.kernelBin} serve ${port}` },
+  });
+  return baseUrl;
 }

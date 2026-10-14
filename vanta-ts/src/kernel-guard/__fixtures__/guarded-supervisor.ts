@@ -9,6 +9,8 @@ if (!port || !kernelBin || !root) {
 }
 
 await applyDesktopKernelLifecycle();
-await bootstrapKernel(root, { configuredUrl: `http://127.0.0.1:${port}`, kernelBin });
+// Two callers at once, as in the desktop runtime (startup prewarm and a first request): one kernel must result.
+const start = () => bootstrapKernel(root, { configuredUrl: `http://127.0.0.1:${port}`, kernelBin });
+await Promise.all([start(), start()]);
 process.stdout.write(`ready ${process.env.VANTA_KERNEL_URL}\n`);
 setInterval(() => undefined, 1000);
