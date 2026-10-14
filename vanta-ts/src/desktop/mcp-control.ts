@@ -1,7 +1,9 @@
 import { MCP_CATALOG } from "../mcp/catalog.js";
 import { deleteMcpToken } from "../mcp/auth-store.js";
 import { startMcpAuth } from "../mcp/auth-flow.js";
-import { installCatalogMcp, removeStoredMcp } from "../mcp/config-store.js";
+import { addCustomMcp, type CustomMcpInput, installCatalogMcp, removeStoredMcp } from "../mcp/config-store.js";
+import { catalogEntry } from "../mcp/catalog.js";
+import { parseEnvValues, saveEnvValues } from "./env-values.js";
 import { connectServer } from "../mcp/connect.js";
 import { importDesktopMcp } from "../mcp/desktop-import.js";
 import { readMcpConfig } from "../mcp/mount.js";
@@ -25,8 +27,11 @@ export async function desktopMcpPayload(root: string) {
   };
 }
 
-export async function installDesktopMcp(root: string, name: string, withTools: string[]) {
+export async function installDesktopMcp(root: string, name: string, withTools: string[], settings?: unknown) {
+  const entry = catalogEntry(name);
+  const values = parseEnvValues(settings, entry ? [...(entry.authEnv ?? []), ...(entry.tokenEnv ? [entry.tokenEnv] : [])] : []);
   const result = await installCatalogMcp(name, withTools, process.env);
+  if (result.ok) await saveEnvValues(root, values);
   await appendMcpReceipt(root, {
     action: "install",
     server: name,
@@ -123,4 +128,18 @@ function resourcePreview(value: unknown): string {
   try { text = typeof value === "string" ? value : JSON.stringify(value, null, 2); }
   catch { text = String(value); }
   return text.length > 20_000 ? `${text.slice(0, 20_000)}\n… preview truncated` : text;
+}
+
+export async function addDesktopMcp(root: string, input: Omit<CustomMcpInput, "envKeys">, settings?: unknown) {
+  const values = parseEnvValues(settings);
+  const result = await addCustomMcp({ ...input, envKeys: Object.keys(values) }, root, process.env);
+  await appendMcpReceipt(root, {
+    action: "install",
+    server: input.name,
+    outcome: result.ok ? "passed" : "failed",
+    detail: result.ok ? result.detail : result.error,
+  });
+  if (!result.ok) throw new Error(result.error);
+  await saveEnvValues(root, values);
+  return { ...(await desktopMcpPayload(root)), message: `Added ${input.name}. Trust it before testing.` };
 }

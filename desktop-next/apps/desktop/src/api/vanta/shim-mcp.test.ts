@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { getMcpCatalog, installMcpCatalogEntry, listMcpServers, removeMcpServer, setMcpServerEnabled, testMcpServer } from '@/api/mcp'
+import { addMcpServer, getMcpCatalog, installMcpCatalogEntry, listMcpServers, removeMcpServer, setMcpServerEnabled, testMcpServer } from '@/api/mcp'
 import type { HermesApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
@@ -74,6 +74,20 @@ describe('Connectors reads and controls MCP servers through the Vanta connector 
     await installMcpCatalogEntry('github')
 
     expect(actions.map(a => a.action)).toEqual(['install', 'trust', 'enable'])
+  })
+
+  it('sends the API key typed in the install form with the install', async () => {
+    await installMcpCatalogEntry('github', { GITHUB_PERSONAL_ACCESS_TOKEN: 'ghp_x' })
+
+    expect(actions[0]).toEqual({ action: 'install', env: { GITHUB_PERSONAL_ACCESS_TOKEN: 'ghp_x' }, name: 'github' })
+  })
+
+  it('adds a custom server without trusting or enabling it, and returns it as off', async () => {
+    const added = await addMcpServer({ args: ['-y', 'x'], command: 'npx', env: { K: 'v' }, name: 'filesystem' })
+
+    expect(actions.map(a => a.action)).toEqual(['add'])
+    expect(actions[0]).toMatchObject({ args: ['-y', 'x'], command: 'npx', env: { K: 'v' }, name: 'filesystem' })
+    expect(added).toMatchObject({ name: 'filesystem', transport: 'http' })
   })
 
   it('removes a server by name', async () => {
