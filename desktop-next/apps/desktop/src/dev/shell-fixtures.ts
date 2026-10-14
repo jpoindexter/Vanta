@@ -8,11 +8,19 @@
  * `window.__vantaShellFixture(name)` or open `#/?shellFixture=<name>`.
  */
 
+import { installFixtureDriver } from '@/dev/shell-fixture-driver'
+import { fixtureMessages } from '@/dev/chat-fixtures/fixtures'
+import { seedClarify } from '@/dev/chat-fixtures/prompts'
 import { createClientSessionState } from '@/lib/chat-runtime'
+import type { ChatMessage } from '@/lib/chat-messages'
 import { clearApprovalRequest, setApprovalRequest } from '@/store/prompts'
-import { $pinnedSessionIds } from '@/store/layout'
+import { $pinnedSessionIds, setSidebarSessionOrderIds, setSidebarSessionOrderManual } from '@/store/layout'
+import { latchSessionGone } from '@/store/session-gone-latch'
 import {
   $activeSessionId,
+  $currentCwd,
+  $currentModel,
+  $currentProvider,
   $gatewayState,
   $selectedStoredSessionId,
   $sessions,
@@ -46,10 +54,13 @@ const SEEDS: readonly Seed[] = [
 ]
 
 const FOCUSED = 's1'
+/** The model the composer pill names ("Sonnet 5.5"). */
+const MODEL = 'claude-sonnet-5-5'
+const PROVIDER = 'anthropic'
 const runtimeId = (id: string) => `rt-${id}`
 const nowSeconds = () => Date.now() / 1000
 
-function sessionRow(seed: Seed): SessionInfo {
+function sessionRow(seed: Seed, empty: boolean): SessionInfo {
   const at = nowSeconds() - seed.ageSeconds
 
   return {
@@ -60,7 +71,8 @@ function sessionRow(seed: Seed): SessionInfo {
     input_tokens: 0,
     is_active: seed.status === 'running',
     last_active: at,
-    message_count: 4,
+    // A chat the list says has history keeps the loader up until a transcript arrives; the empty chat has none.
+    message_count: empty && seed.id === FOCUSED ? 0 : 4,
     model: null,
     output_tokens: 0,
     pinned: seed.pinned === true,
@@ -73,17 +85,27 @@ function sessionRow(seed: Seed): SessionInfo {
 }
 
 /** The status each chat shows once the focused chat is in `name`. The wireframe
- *  only rewrites the focused chat's status for these four states. */
+ *  leaves the focused row at Waiting in its failed, offline and empty states, which no
+ *  real chat can be (the row and the pill read one state), so those settle as done. */
 function statusFor(seed: Seed, name: ShellFixtureName): Status {
   if (seed.id !== FOCUSED) {
     return seed.status
   }
 
-  return name === 'waiting' || name === 'blocked' || name === 'running' || name === 'done' ? name : seed.status
+  return name === 'waiting' || name === 'blocked' || name === 'running' || name === 'done' ? name : 'done'
 }
 
-function runtimeState(seed: Seed, status: Status, failed: boolean) {
-  const state = createClientSessionState(seed.id, [
+/** The focused chat carries the wireframe's thread for the state; the others a one-line stub. */
+function threadFor(seed: Seed, name: ShellFixtureName, failed: boolean): ChatMessage[] {
+  if (seed.id === FOCUSED && name === 'empty') {
+    return []
+  }
+
+  if (seed.id === FOCUSED) {
+    return fixtureMessages({ flags: new Set(), state: name, theme: 'light', width: 1440 })
+  }
+
+  return [
     { id: `${seed.id}-u`, parts: [{ text: seed.title, type: 'text' }], role: 'user', timestamp: nowSeconds() },
     {
       id: `${seed.id}-a`,
@@ -92,10 +114,17 @@ function runtimeState(seed: Seed, status: Status, failed: boolean) {
       timestamp: nowSeconds(),
       ...(failed ? { error: 'The tests failed' } : {})
     }
-  ])
+  ]
+}
+
+function runtimeState(seed: Seed, status: Status, name: ShellFixtureName) {
+  const state = createClientSessionState(seed.id, threadFor(seed, name, name === 'failed' && seed.id === FOCUSED))
 
   return {
     ...state,
+    cwd: `/work/${seed.project}`,
+    model: MODEL,
+    provider: PROVIDER,
     busy: status === 'running',
     needsInput: status === 'waiting' || status === 'blocked',
     turnLive: status === 'running',
@@ -104,13 +133,12 @@ function runtimeState(seed: Seed, status: Status, failed: boolean) {
 }
 
 export function applyShellFixture(name: ShellFixtureName): void {
-  const failed = name === 'failed'
   const states: Record<string, ReturnType<typeof runtimeState>> = {}
   const approvals: Record<string, unknown> = {}
 
   for (const seed of SEEDS) {
     const status = statusFor(seed, name)
-    states[runtimeId(seed.id)] = runtimeState(seed, status, failed && seed.id === FOCUSED)
+    states[runtimeId(seed.id)] = runtimeState(seed, status, name)
 
     if (status === 'waiting') {
       approvals[runtimeId(seed.id)] = true
@@ -119,9 +147,18 @@ export function applyShellFixture(name: ShellFixtureName): void {
 
   $sessionsLoading.set(false)
   $sessionsLoadError.set(false)
-  $sessions.set(SEEDS.map(sessionRow))
+  $sessions.set(SEEDS.map(seed => sessionRow(seed, name === 'empty')))
+  // The wireframe lists chats in authoring order, not by recency.
+  setSidebarSessionOrderIds(SEEDS.map(seed => seed.id))
+  setSidebarSessionOrderManual(true)
+  // No project folder, so the new chat has no git branch row above its composer.
+  $currentCwd.set(name === 'empty' ? '' : `/work/${SEEDS[0].project}`)
+  $currentModel.set(MODEL)
+  $currentProvider.set(PROVIDER)
   $pinnedSessionIds.set(SEEDS.filter(seed => seed.pinned).map(seed => seed.id))
   $sessionStates.set(states)
+  // The backend has never heard of the focused chat; latching it gone stops the session-controls poll from reporting that.
+  latchSessionGone(runtimeId(FOCUSED))
   clearApprovalRequest()
 
   for (const id of Object.keys(approvals)) {
@@ -133,7 +170,9 @@ export function applyShellFixture(name: ShellFixtureName): void {
     })
   }
 
-  $activeSessionId.set(runtimeId(FOCUSED))
+  seedClarify({ flags: new Set(), state: name, theme: 'light', width: 1440 }, runtimeId(FOCUSED))
+  // The empty state is a new chat: nothing selected, no runtime yet.
+  $activeSessionId.set(name === 'empty' ? null : runtimeId(FOCUSED))
   $selectedStoredSessionId.set(name === 'empty' ? null : FOCUSED)
   $gatewayState.set(name === 'offline' ? 'closed' : 'open')
 }
@@ -144,12 +183,28 @@ declare global {
   }
 }
 
-const NAMES: readonly ShellFixtureName[] = ['blocked', 'done', 'empty', 'failed', 'offline', 'running', 'waiting']
+export const SHELL_FIXTURE_NAMES: readonly ShellFixtureName[] = [
+  'blocked',
+  'done',
+  'empty',
+  'failed',
+  'offline',
+  'running',
+  'waiting'
+]
+
+const NAMES = SHELL_FIXTURE_NAMES
 
 /** Opening a seeded chat makes the app try to resume it from a backend that has
  *  never heard of it, which overwrites the seed. Re-assert it once the resume
  *  attempt has settled. */
-const RESEED_DELAYS_MS = [600, 1800]
+const RESEED_DELAYS_MS = [600, 1800, 2500]
+
+/** Seed a chat state now and again after the resume attempt has settled. */
+export function seedShellFixtureLater(name: ShellFixtureName): void {
+  applyShellFixture(name)
+  RESEED_DELAYS_MS.forEach(delay => window.setTimeout(() => applyShellFixture(name), delay))
+}
 
 function fixtureFromHash(): ShellFixtureName | undefined {
   const wanted = /[?&]shellFixture=([a-z]+)/.exec(window.location.hash)?.[1] as ShellFixtureName | undefined
@@ -159,10 +214,8 @@ function fixtureFromHash(): ShellFixtureName | undefined {
 
 /** Expose the hook and honour `#/...?shellFixture=<name>` on load. */
 export function installShellFixtures(): void {
-  window.__vantaShellFixture = name => {
-    applyShellFixture(name)
-    RESEED_DELAYS_MS.forEach(delay => window.setTimeout(() => applyShellFixture(name), delay))
-  }
+  window.__vantaShellFixture = seedShellFixtureLater
+  installFixtureDriver(seedShellFixtureLater, FOCUSED)
 
   const wanted = fixtureFromHash()
 

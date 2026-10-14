@@ -7,7 +7,7 @@ import { createContext, type FC, useCallback, useContext, useMemo, useRef } from
 
 import { useSessionView } from '@/app/chat/session-view'
 import { SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
-import { ApprovalCard as VantaApprovalCard } from '@/components/chat/vanta/approval-card'
+import { alwaysSavedText, ApprovalCard as VantaApprovalCard } from '@/components/chat/vanta/approval-card'
 import { CardStack, type CardStackAction } from '@/components/ui/card-stack'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { $gateway } from '@/store/gateway'
 import { reconnectAction } from '@/store/gateway-reconnect'
 import { notifyError } from '@/store/notifications'
+import { showVantaToast } from '@/store/vanta-toast'
 import {
   answerApproval,
   type ApprovalRequest,
@@ -284,6 +285,10 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
       try {
         await stack.depart(() => sendApproval(request, choice))
         restoreFocusOrigin()
+
+        if (choice === 'always') {
+          showVantaToast(alwaysSavedText(approvalPayload(request, canRemember), projectName))
+        }
       } catch (error) {
         releaseApprovalKey()
         notifyError(error, copy.sendFailed)
@@ -291,7 +296,7 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
         throw error
       }
     },
-    [copy.gatewayDisconnected, copy.sendFailed, gateway, request, restoreFocusOrigin, stack]
+    [canRemember, copy.gatewayDisconnected, copy.sendFailed, gateway, projectName, request, restoreFocusOrigin, stack]
   )
 
   return (

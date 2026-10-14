@@ -227,7 +227,7 @@ export function SidebarRowLink({
 
 /** Fixed leading column (dot, icon, drag handle). */
 export function SidebarRowLead({ className, ...props }: React.ComponentProps<'span'>) {
-  return <span className={cn(SIDEBAR_ROW_LEAD, className)} {...props} />
+  return <span className={cn(SIDEBAR_ROW_LEAD, className)} data-testid="sidebar-row-lead" {...props} />
 }
 
 /** Standard row label typography. */

@@ -19,26 +19,38 @@ export function resolveTol({ specOpts = {}, appTol = {}, expected }) {
   return Object.fromEntries(Object.entries(merged).map(([k, v]) => [k, toPx(v, expected[k])]));
 }
 
-const globToRe = (glob) => new RegExp(`^${glob.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
+export const globToRe = (glob) => new RegExp(`^${glob.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
 
-/** The first declared deviation covering (key, state, prop), or undefined. */
-export function findDeviation(deviations, { key, state, prop }) {
-  return deviations.find(
+/** Every declared deviation covering (key, state, prop), in file order. */
+export function findDeviations(deviations, { key, state, prop }) {
+  return deviations.filter(
     (d) =>
+      !d.copy &&
       (d.props.includes("*") || d.props.includes(prop)) &&
       (!d.keys || d.keys.some((g) => globToRe(g).test(key))) &&
       (!d.states || d.states.some((g) => globToRe(g).test(state))),
   );
 }
 
+/** The first declared deviation covering (key, state, prop), or undefined. */
+export const findDeviation = (deviations, where) => findDeviations(deviations, where)[0];
+
+const sameGlyphless = (a, b) => typeof a === "string" && typeof b === "string" && stripGlyphs(a) === stripGlyphs(b);
+
+/** Does this deviation excuse `actual` for a wireframe value of `expected`? */
+function excuses(dev, prop, expected, actual, equal) {
+  if (dev.transform === "ignore") return true;
+  if (dev.transform === "stripGlyphs") return sameGlyphless(expected, actual);
+  const delta = dev.shift?.[prop];
+  return dev.transform === "shift" && delta !== undefined && typeof expected === "number" && equal(expected + delta, actual);
+}
+
 function judge(ctx, prop, expected, actual, equal) {
   if (equal(expected, actual)) return { prop, status: "PASS" };
-  const dev = findDeviation(ctx.deviations, { key: ctx.key, state: ctx.state, prop: prop.split(".")[0] });
   const base = { prop, expected, actual: actual ?? null };
-  if (!dev) return { ...base, status: "FAIL" };
-  if (dev.transform === "ignore") return { ...base, status: "ALLOWED", deviation: dev.id };
-  const same = typeof expected === "string" && typeof actual === "string" && stripGlyphs(expected) === stripGlyphs(actual);
-  return same ? { ...base, status: "ALLOWED", deviation: dev.id } : { ...base, status: "FAIL" };
+  const devs = findDeviations(ctx.deviations, { key: ctx.key, state: ctx.state, prop: prop.split(".")[0] });
+  const dev = devs.find((d) => excuses(d, prop, expected, actual, equal));
+  return dev ? { ...base, status: "ALLOWED", deviation: dev.id } : { ...base, status: "FAIL" };
 }
 
 const within = (tol) => (a, b) => typeof a === "number" && typeof b === "number" && Math.abs(a - b) <= tol + 1e-9;
@@ -69,6 +81,13 @@ function textProps(ctx, expected, actual) {
   return out;
 }
 
+/** A visibility difference, ALLOWED only when a declared "ignore" deviation covers this key and state. */
+export function visibility(ctx, expected, actual) {
+  const dev = findDeviations(ctx.deviations ?? [], { key: ctx.key, state: ctx.state, prop: "visible" }).find((d) => d.transform === "ignore");
+  const row = { prop: "visible", expected, actual };
+  return dev ? { ...row, status: "ALLOWED", deviation: dev.id } : { ...row, status: "FAIL" };
+}
+
 const worst = (props) =>
   props.some((p) => p.status === "FAIL") ? "FAIL" : props.some((p) => p.status === "ALLOWED") ? "ALLOWED" : "PASS";
 
@@ -80,12 +99,12 @@ export function compareElement({ expected, actual, tol, ctx }) {
   const hiddenOk = !expected.visible;
   const appVisible = Boolean(actual?.visible);
   if (hiddenOk) {
-    const props = appVisible ? [{ prop: "visible", expected: false, actual: true, status: "FAIL" }] : [];
+    const props = appVisible ? [visibility(ctx, false, true)] : [];
     return { status: worst(props), checked: 1, props };
   }
   if (!appVisible) {
-    const actualState = actual ? "hidden" : "absent";
-    return { status: "FAIL", checked: 1, props: [{ prop: "visible", expected: true, actual: actualState, status: "FAIL" }] };
+    const props = [visibility(ctx, true, actual ? "hidden" : "absent")];
+    return { status: worst(props), checked: 1, props };
   }
   const all = [...numericProps(ctx, expected, actual, tol), ...textProps(ctx, expected, actual)];
   return { status: worst(all), checked: all.length + 1, props: all.filter((p) => p.status !== "PASS") };

@@ -9,18 +9,19 @@ interface NavActionProps {
   hintAction: string
   icon: typeof IconPlus
   label: string
+  navId: string
   onSelect: () => void
 }
 
-function NavAction({ hintAction, icon: Icon, label, onSelect }: NavActionProps) {
+function NavAction({ hintAction, icon: Icon, label, navId, onSelect }: NavActionProps) {
   const hint = useKeybindHint(hintAction)
 
   return (
-    <button aria-label={label} className="vs-nav" onClick={onSelect} type="button">
+    <button aria-label={label} className="vs-nav" data-testid={`nav-${navId}`} onClick={onSelect} type="button">
       <span aria-hidden className="vs-nav-glyph">
         <Icon size={18} />
       </span>
-      <span className="vs-nav-text">{label}</span>
+      <span className="vs-nav-text" data-tour={`sidebar-nav-${navId}`}>{label}</span>
       {hint ? <span className="vs-nav-key">{hint}</span> : null}
     </button>
   )
@@ -42,13 +43,16 @@ function DestinationRow({ active, destination, onOpen }: DestinationRowProps) {
       aria-current={active ? 'page' : undefined}
       aria-label={label}
       className="vs-nav"
+      data-testid={`nav-${destination.navId}`}
       onClick={() => onOpen(destination)}
       type="button"
     >
       <span aria-hidden className="vs-nav-glyph">
         <Icon size={18} />
       </span>
-      <span className="vs-nav-text">{label}</span>
+      <span className="vs-nav-text" data-tour={`sidebar-nav-${destination.navId}`}>
+        {label}
+      </span>
     </button>
   )
 }
@@ -69,8 +73,8 @@ export function SidebarNav({ activeId, company, onNewChat, onOpen, onSearch }: S
 
   return (
     <nav aria-label={copy.label}>
-      <NavAction hintAction="session.new" icon={IconPlus} label={copy.newChat} onSelect={onNewChat} />
-      <NavAction hintAction="nav.commandPalette" icon={IconSearch} label={copy.search} onSelect={onSearch} />
+      <NavAction hintAction="session.new" icon={IconPlus} label={copy.newChat} navId="new-session" onSelect={onNewChat} />
+      <NavAction hintAction="nav.commandPalette" icon={IconSearch} label={copy.search} navId="search" onSelect={onSearch} />
       <div>
         {shellDestinations({ company }).map(destination => (
           <DestinationRow active={activeId === destination.id} destination={destination} key={destination.id} onOpen={onOpen} />

@@ -11,7 +11,7 @@ function bump(counts, status) {
 export const pct = (n, d) => (d === 0 ? "n/a" : `${((100 * n) / d).toFixed(1)}%`);
 
 /** Roll rows up by state and by base key. Key status: UNMAPPED > FAIL > PASS (ALLOWED counts as PASS). */
-export function summarize({ rows, copyRows, mappedKeys, specKeys }) {
+export function summarize({ rows, copyRows, mappedKeys, naKeys = new Set(), specKeys }) {
   const total = blank();
   const byState = {};
   const byKey = {};
@@ -22,11 +22,12 @@ export function summarize({ rows, copyRows, mappedKeys, specKeys }) {
     bump((byKey[base] ??= blank()), r.status);
   }
   const keyStatus = Object.fromEntries(
-    Object.entries(byKey).map(([k, c]) => [k, !mappedKeys.has(k) ? "UNMAPPED" : c.FAIL ? "FAIL" : c.UNMAPPED ? "UNMAPPED" : "PASS"]),
+    Object.entries(byKey).map(([k, c]) => [k, !mappedKeys.has(k) ? (naKeys.has(k) ? "N/A" : "UNMAPPED") : c.FAIL ? "FAIL" : c.UNMAPPED ? "UNMAPPED" : "PASS"]),
   );
-  const keys = { total: specKeys.length, mapped: specKeys.filter((k) => mappedKeys.has(k)).length, unmapped: 0, pass: 0, fail: 0 };
+  const keys = { total: specKeys.length, mapped: specKeys.filter((k) => mappedKeys.has(k)).length, na: specKeys.filter((k) => !mappedKeys.has(k) && naKeys.has(k)).length, unmapped: 0, pass: 0, fail: 0 };
   for (const k of specKeys) {
-    const s = keyStatus[k] ?? (mappedKeys.has(k) ? "PASS" : "UNMAPPED");
+    const s = keyStatus[k] ?? (mappedKeys.has(k) ? "PASS" : naKeys.has(k) ? "N/A" : "UNMAPPED");
+    if (s === "N/A") continue;
     if (s === "UNMAPPED") keys.unmapped += 1;
     else if (s === "FAIL") keys.fail += 1;
     else keys.pass += 1;
@@ -34,12 +35,14 @@ export function summarize({ rows, copyRows, mappedKeys, specKeys }) {
   const copy = blank();
   let strings = 0;
   let found = 0;
+  let declared = 0;
   for (const c of copyRows) {
     bump(copy, c.status);
     strings += c.total;
     found += c.found;
+    declared += c.declared ?? 0;
   }
-  return { rows: total, keys, copy: { states: copy, strings, found }, byState, byKey, keyStatus };
+  return { rows: total, keys, copy: { states: copy, strings, found, declared }, byState, byKey, keyStatus };
 }
 
 const table = (head, body) => [`| ${head.join(" | ")} |`, `| ${head.map(() => "---").join(" | ")} |`, ...body.map((r) => `| ${r.join(" | ")} |`)];
@@ -76,9 +79,9 @@ function headline(s, meta) {
     ...table(["Measure", "Value"], [
       ["Rows (element x state)", `${r.total}: ${r.PASS} PASS, ${r.ALLOWED} ALLOWED, ${r.FAIL} FAIL, ${r.UNMAPPED} UNMAPPED`],
       ["Parity (PASS + ALLOWED) / all rows", parity],
-      ["Role keys", `${s.keys.total}: ${s.keys.mapped} mapped, ${s.keys.unmapped} unmapped; of mapped, ${s.keys.pass} pass, ${s.keys.fail} fail`],
+      ["Role keys", `${s.keys.total}: ${s.keys.mapped} mapped, ${s.keys.na ?? 0} declared N/A, ${s.keys.unmapped} unmapped; of mapped, ${s.keys.pass} pass, ${s.keys.fail} fail`],
       ["States", `${meta.states.driven} of ${meta.states.total} drivable in the app`],
-      ["Copy", `${s.copy.found} of ${s.copy.strings} wireframe strings found (${pct(s.copy.found, s.copy.strings)}); state rows: ${s.copy.states.PASS} PASS, ${s.copy.states.ALLOWED} ALLOWED, ${s.copy.states.FAIL} FAIL, ${s.copy.states.UNMAPPED} UNMAPPED`],
+      ["Copy", `${s.copy.found} of ${s.copy.strings} wireframe strings found (${pct(s.copy.found, s.copy.strings)}), ${s.copy.declared ?? 0} declared absent (${pct(s.copy.found + (s.copy.declared ?? 0), s.copy.strings)} found or declared); state rows: ${s.copy.states.PASS} PASS, ${s.copy.states.ALLOWED} ALLOWED, ${s.copy.states.FAIL} FAIL, ${s.copy.states.UNMAPPED} UNMAPPED`],
     ]),
     "",
   ];
@@ -96,7 +99,12 @@ export function renderMarkdown({ summary, rows, copyRows, meta, deviations }) {
   for (const r of rows.filter((x) => x.status === "UNMAPPED" && x.reason !== "key not mapped for the app")) reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
   if (reasons.size) out.push("### States the app could not be driven into", "", ...table(["Reason", "Rows"], [...reasons].map(([k, n]) => [cell(k), n])), "");
   const allowed = allowedGroups(rows);
-  out.push("## ALLOWED deviations", "", ...table(["Deviation", "Rows", "Reason"], [...allowed].map(([id, n]) => [id, n, cell(deviations.find((d) => d.id === id)?.reason)])), "");
+  const full = (v) => String(v ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+  const how = (d) => (d?.na ? "N/A" : d?.transform === "shift" ? `shift ${JSON.stringify(d.shift)}` : d?.transform ?? "");
+  out.push("## Declared deviations", "", "Rows count property differences a deviation excused. Every deviation below is for owner review.", "");
+  out.push(...table(["Deviation", "Rows", "How", "Reason"], [...allowed].sort((a, b) => b[1] - a[1]).map(([id, n]) => [id, n, how(deviations.find((d) => d.id === id)), full(deviations.find((d) => d.id === id)?.reason)])), "");
+  const copyDeclared = deviations.filter((d) => d.copy);
+  if (copyDeclared.length) out.push("### Copy declared absent", "", ...table(["Deviation", "Strings", "States", "Reason"], copyDeclared.map((d) => [d.id, full(d.copy.join(" | ")), (d.states ?? ["all"]).join(", "), full(d.reason)])), "");
   out.push("## Copy by state", "", ...table(["State", "Status", "Found", "Missing (first 3)"], copyRows.map((c) => [c.state, c.status, `${c.found}/${c.total}`, cell((c.missing ?? [c.reason ?? ""]).slice(0, 3).join("; "))])), "");
   return `${out.join("\n")}\n`;
 }
