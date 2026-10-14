@@ -157,4 +157,15 @@ describe("TrustDialog render — mcp", () => {
     expect(frame).not.toContain("registers 0 tool(s)");
     ui.unmount();
   });
+  it("states on the approval prompt when the package is unpinned, and not when pinned", async () => {
+    const make = (args: string[]): TrustRequest => ({ kind: "mcp", server: "files", tools: [], launch: { command: "npx", args } });
+    const unpinned = renderUi(<TrustDialog request={make(["-y", "some-mcp"])} onDecide={() => {}} />);
+    await tick();
+    expect(unpinned.lastFrame()).toContain("Unpinned package: some-mcp (no version)");
+    unpinned.unmount();
+    const pinned = renderUi(<TrustDialog request={make(["-y", "some-mcp@1.2.3"])} onDecide={() => {}} />);
+    await tick();
+    expect(pinned.lastFrame()).not.toContain("Unpinned package");
+    pinned.unmount();
+  });
 });

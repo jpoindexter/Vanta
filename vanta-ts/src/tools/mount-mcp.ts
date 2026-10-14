@@ -2,6 +2,7 @@ import { z } from "zod";
 import { stdioTransport, McpClient } from "../mcp/client.js";
 import { buildMcpChildEnv, mcpToolToVantaTool } from "../mcp/mount.js";
 import { mcpClientEvents } from "../mcp/events.js";
+import { guardLaunch } from "../mcp/package-guard.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
 import {
@@ -47,8 +48,40 @@ const MOUNT_MCP_SCHEMA: Tool["schema"] = {
   },
 };
 
-/** Spawn the MCP server, initialize it, and register its tools into the live registry. */
+/** Refuse a deny-listed package before any effect or approval is attempted. */
+function refuseDeniedPackage(rawArgs: unknown): ToolResult | null {
+  const r = Args.safeParse(rawArgs);
+  if (!r.success) return null;
+  const guard = guardLaunch(r.data.command, r.data.args ?? [], process.env);
+  return guard.ok ? null : { ok: false, output: `mount_mcp: ${guard.error}` };
+}
+
 async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, ctx: ToolContext): Promise<ToolResult> {
+  return refuseDeniedPackage(rawArgs) ?? spawnAndRegister(registry, rawArgs, ctx);
+}
+
+function registerMountedTools(
+  registry: ToolRegistry,
+  name: string,
+  mounted: { client: McpClient; defs: Parameters<typeof mcpToolToVantaTool>[2][] },
+): ToolResult {
+  const names: string[] = [];
+  for (const def of mounted.defs) {
+    const tool = mcpToolToVantaTool(mounted.client, name, def);
+    registry.register(tool);
+    names.push(tool.schema.name);
+  }
+  return {
+    ok: true,
+    output:
+      names.length > 0
+        ? `mounted ${names.length} tool(s) from ${name}: ${names.join(", ")}`
+        : `connected to ${name} — no tools discovered`,
+  };
+}
+
+/** Spawn the MCP server, initialize it, and register its tools into the live registry. */
+async function spawnAndRegister(registry: ToolRegistry, rawArgs: unknown, ctx: ToolContext): Promise<ToolResult> {
   const r = Args.safeParse(rawArgs);
   if (!r.success) return { ok: false, output: `invalid args: ${r.error.message}` };
   const { name, command, args: cmdArgs = [], env: cmdEnv = {} } = r.data;
@@ -88,19 +121,7 @@ async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, ctx: To
     if ((mounted.outcome !== "confirmed" && mounted.outcome !== "verified") || !mounted.value) {
       return { ok: false, output: `mount_mcp: effect ${mounted.outcome}` };
     }
-    const names: string[] = [];
-    for (const def of mounted.value.defs) {
-      const tool = mcpToolToVantaTool(mounted.value.client, name, def);
-      registry.register(tool);
-      names.push(tool.schema.name);
-    }
-    return {
-      ok: true,
-      output:
-        names.length > 0
-          ? `mounted ${names.length} tool(s) from ${name}: ${names.join(", ")}`
-          : `connected to ${name} — no tools discovered`,
-    };
+    return registerMountedTools(registry, name, mounted.value);
   } catch (err) {
     return { ok: false, output: `mount_mcp: ${(err as Error).message}` };
   }
