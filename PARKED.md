@@ -144,3 +144,8 @@ Cost to revisit: put the shared provider-error taxonomy ahead of the text bank f
 Captured: `POST /api/chat/queue` carries text and images only. A queued message with a file attachment or a frozen terminal selection uses the Hermes window-local queue (localStorage), so it does not survive a cleared profile and is not part of the durable list.
 Why parked: V-006 is the durable queue for text; attachments need a queue-side file reference format.
 Cost to revisit: extend `turn-queue-images.ts` to files (paths relative to the project) and send `files` from `queue.enqueue`.
+
+## Ideas from the ECC harness (affaan-m/ECC), not its code
+**Captured:** 2026-10-14. Audited statically (MIT, v2.2.3, no install-time scripts, no obfuscation, hooks write locally, no injection or exfiltration text found; not every skill read line by line). Not installed: it duplicates what the owner already has (feature and debug orchestrators, learning loop, secret and size gates, cost tracking), and adds 311 skills and 71 agents to every session. Worth reading, not installing: `mcp-dependency-review` (static review of MCP config for mutable package references; extends the local package guard), `loop-design-check` (failure modes of agent loops: spinning, gaming the verifier; relevant to the company tick and heartbeats), `agent-security-hardening` (checklist for agents that process untrusted content), `skill-comply` (shows whether skills and rules are actually followed).
+**Why parked:** none of it blocks a v0 criterion; the current work is Desktop Next parity and the startup and offline fixes.
+**Cost to revisit:** small (read three skill files, turn the useful checks into Vanta tests); clone is at ~/Documents/GitHub/_vendor/ECC.
