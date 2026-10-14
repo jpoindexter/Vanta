@@ -321,11 +321,15 @@ describe('reportBackendContract', () => {
     expect(notifySpy).not.toHaveBeenCalled()
   })
 
-  it('warns when the backend is behind (or reports no contract)', () => {
-    reportBackendContract(undefined)
-    expect(notifySpy).toHaveBeenCalledTimes(1)
+  it('warns when the backend reports an older contract', () => {
     reportBackendContract(1)
-    expect(notifySpy).toHaveBeenCalledTimes(2)
+    expect(notifySpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('never warns on boot for a backend that reports no contract (the Vanta server)', () => {
+    reportBackendContract(undefined)
+    expect(notifySpy).not.toHaveBeenCalled()
+    expect(dismissSpy).toHaveBeenCalledWith('backend-contract-skew')
   })
 
   it('stays quiet on later session opens once the user closed it', () => {
