@@ -21,6 +21,7 @@ import {
   type WriteReply,
   WriteReplySchema
 } from './vanta-company-schemas'
+import { type OperatingApi, operatingApi, queryPath } from './vanta-company-ops'
 
 /** One id for the Company screen. The server keeps its pending approval per client id. */
 export const COMPANY_CLIENT_ID = 'company-ui'
@@ -65,7 +66,7 @@ export interface CreateTicketInput {
 
 export type ApprovalDecision = 'allow' | 'always' | 'deny' | 'never'
 
-export interface CompanyApi {
+export interface CompanyApi extends OperatingApi {
   approve: (workProductId: string) => Promise<CompanyResult<WriteReply>>
   assign: (ticketId: string, workerId: string) => Promise<CompanyResult<WriteReply>>
   close: (ticketId: string, resolution: 'done' | 'wontfix') => Promise<CompanyResult<WriteReply>>
@@ -87,20 +88,6 @@ export interface CompanyApi {
   resume: (workerId: string) => Promise<CompanyResult<WriteReply>>
   revise: (workProductId: string, reason: string) => Promise<CompanyResult<WriteReply>>
   subscribe: (listener: StreamListener) => () => void
-}
-
-function queryPath(path: string, params: Record<string, null | number | string | undefined>): string {
-  const query = new URLSearchParams()
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null && value !== '') {
-      query.set(key, String(value))
-    }
-  }
-
-  const text = query.toString()
-
-  return text ? `${path}?${text}` : path
 }
 
 function errorMessage(result: VantaResult): string {
@@ -146,10 +133,12 @@ export function createCompanyApi(transport: VantaTransport, clientId: string = C
   }
 
   const read = <T>(path: string, schema: z.ZodType<T>) => send({ method: 'GET', path }, schema)
-  const write = (path: string, body: unknown, timeoutMs?: number) =>
-    send({ body, method: 'POST', path: `/api/company/${path}`, timeoutMs }, WriteReplySchema)
+  const post = <T>(path: string, body: unknown, schema: z.ZodType<T>, timeoutMs?: number) =>
+    send({ body, method: 'POST', path: `/api/company/${path}`, timeoutMs }, schema)
+  const write = (path: string, body: unknown, timeoutMs?: number) => post(path, body, WriteReplySchema, timeoutMs)
 
   return {
+    ...operatingApi({ post, read }),
     answer: (ticketId, answer) => write('tickets/answer', { answer, ticketId }, APPROVAL_WAIT_MS),
     approve: workProductId => write('work-products/approve', { workProductId }),
     assign: (ticketId, workerId) => write('tickets/assign', { ticketId, workerId }, APPROVAL_WAIT_MS),

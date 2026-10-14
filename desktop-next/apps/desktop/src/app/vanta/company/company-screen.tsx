@@ -4,6 +4,9 @@ import { ActivityTab } from './activity/activity-tab'
 import { BudgetsTab } from './budgets/budgets-tab'
 import { CompanyProvider } from './company-context'
 import { COMPANY_TABS, type CompanyTab, COPY } from './copy'
+import { HeartbeatsTab } from './heartbeats/heartbeats-tab'
+import { OkrsTab } from './okrs/okrs-tab'
+import { ProductsTab } from './products/products-tab'
 import { TicketsTab } from './tickets/tickets-tab'
 import { ApprovalBanner, OfflineBanner } from './ui/banners'
 import { CompanyTabs, panelId, tabId } from './ui/tabs'
@@ -11,6 +14,7 @@ import { WorkersTab } from './workers/workers-tab'
 
 import '@/styles/vanta-chat.css'
 import './company.css'
+import './company-ops.css'
 
 export interface CompanyLocation {
   tab: CompanyTab
@@ -35,6 +39,15 @@ function Panel({ location, onNavigate }: Pick<CompanyScreenProps, 'location' | '
   switch (location.tab) {
     case 'tickets':
       return <TicketsTab onSelectTicket={openTicket} ticketId={location.ticketId} />
+
+    case 'okrs':
+      return <OkrsTab />
+
+    case 'heartbeats':
+      return <HeartbeatsTab onOpenTicket={openTicket} />
+
+    case 'products':
+      return <ProductsTab onOpenTicket={openTicket} />
 
     case 'budgets':
       return <BudgetsTab />
