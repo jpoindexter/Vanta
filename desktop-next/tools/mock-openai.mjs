@@ -7,6 +7,7 @@
 //   clarify ...     the model asks a question with the clarify tool
 //   fail ...        the provider answers 500 (a failed turn)
 //   image ...       the reply carries a small image
+//   (any message that carries an attached image is answered "I can see the attached image.")
 //   long ...        several paragraphs, a list and a code block
 //   link ...        the reply holds a web link
 import http from "node:http";
@@ -65,6 +66,7 @@ function plan(body, options) {
   if (last?.role === "tool") return { text: "Done. The command finished." };
   const prompt = [...messages].reverse().find((message) => message.role === "user");
   const text = lastText(prompt).trim();
+  if (JSON.stringify(prompt?.content ?? "").includes("image_url")) return { text: "I can see the attached image." };
   const shell = /^shell:\s*(.+)$/im.exec(text);
   if (shell) return { tool: { name: "shell_cmd", args: { command: shell[1].trim() } } };
   if (/^clarify\b/im.test(text)) {

@@ -240,7 +240,8 @@ export async function statusBar(page) {
   record("F-089", "status bar", "RAM / system resources", /RAM|\bMB\b|\bGB\b/.test(barText) ? "PASS" : "NOT-RUN", "shown only when /api/runtime reports memory; not in this sandbox");
   await check("F-091", "status bar", "Terminal toggle", page.getByRole("button", { name: /terminal/i }).last(), { note: "opens the terminal pane (a line terminal where every command asks first)" });
   const version = /v\d+\.\d+\.\d+/.test(barText);
-  record("F-092", "status bar", "Version / build chip", version ? "PASS" : "FAIL", version ? `the chip reads ${(barText.match(/v\d+\.\d+\.\d+/) ?? [""])[0]}` : "no version chip");
+  const staleToast = /Backend out of date|Update Vanta/.test(await page.locator("body").innerText().catch(() => ""));
+  record("F-092", "status bar", "Version / build chip", version && !staleToast ? "PASS" : "FAIL", version ? (staleToast ? "the chip is there, but a 'Backend out of date / Update Vanta' toast is on screen after launch and a chat" : `the chip reads ${(barText.match(/v\d+\.\d+\.\d+/) ?? [""])[0]}; no 'Backend out of date' toast after launch and a chat`) : "no version chip");
   notRun("F-093", "status bar", "Contributed status items", "no contribution registered by default");
   await page.getByText("Backend", { exact: false }).first().click({ button: "right" });
   await page.waitForTimeout(300);
