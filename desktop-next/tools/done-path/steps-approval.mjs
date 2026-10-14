@@ -80,6 +80,8 @@ export async function stepRestart(ctx) {
   killLeftovers(ctx.box);
   await sleep(500);
   fs.writeFileSync(path.join(ctx.box.projectA, "brief.md"), ORIGINAL_BRIEF);
+  // Negative control: with the saved rules deleted, steps c and d must fail, proving they can.
+  if (ctx.control === "wipe-rules") fs.rmSync(ctx.box.permissionsFile, { force: true });
   await openApp(ctx, ctx.box.projectA);
   const rules = readPermissions(ctx.box);
   const failures = [];
@@ -174,6 +176,8 @@ async function probeGitPush(ctx) {
 /** e: switch to project B inside the app; the same tool call asks again and nothing was saved for B. */
 export async function stepOtherProject(ctx) {
   const { page, app } = ctx.cur;
+  // Negative control: an unscoped Always rule must make project B stop asking, proving step e can detect a leak.
+  if (ctx.control === "unscoped-rule") fs.appendFileSync(ctx.box.permissionsFile, "\nallow\tedit_file\t\n");
   const before = readPermissions(ctx.box);
   await app.evaluate(({ dialog }, dir) => {
     // Harness shim: the folder chooser is a native dialog the test cannot click.
