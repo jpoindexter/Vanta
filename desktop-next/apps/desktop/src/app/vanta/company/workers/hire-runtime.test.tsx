@@ -115,7 +115,7 @@ describe('Run-starting writes on CLI workers', () => {
 
     expect(within(banner).getAllByText(/external CLI/).length).toBeGreaterThan(0)
     expect(within(banner).getByText(/Write the changelog for 1.4/)).toBeTruthy()
-    expect(within(banner).getByRole('button', { name: 'Always allow this tool' })).toBeTruthy()
+    expect(within(banner).getByRole('button', { name: 'Always allow call_agent in this project' })).toBeTruthy()
 
     fireEvent.click(within(banner).getByRole('button', { name: 'Allow once' }))
     expect(await screen.findByText(/Assigned/)).toBeTruthy()
