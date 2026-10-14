@@ -20,9 +20,11 @@ export async function currentModelSettings(
   return { effort: settings?.effort?.options ?? [], speed: settings?.speed?.options ?? [] }
 }
 
-/** The catalog's capability flags for the current model: no effort levels means the reasoning pill has nothing to offer. */
+/** The catalog's capability flags for the current model: no effort levels means the reasoning pill has nothing to offer; `reasoning_levels` is what the menu lists. */
 export function modelCapabilities(settings: z.infer<typeof providerOptionsSchema>[number]['modelSettings']) {
-  return { fast: Boolean(settings?.speed?.options.length), reasoning: Boolean(settings?.effort?.options.length) }
+  const reasoning_levels = settings?.effort?.options ?? []
+
+  return { fast: Boolean(settings?.speed?.options.length), reasoning: reasoning_levels.length > 0, reasoning_levels }
 }
 
 /** Set the reasoning effort, refusing a level the model does not take with the levels it does. */
