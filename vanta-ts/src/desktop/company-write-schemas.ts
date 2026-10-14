@@ -51,3 +51,23 @@ export const RaiseBudgetBody = z.object({
 }).strict();
 
 export const TickBody = z.object({}).strict();
+
+const keyResultInput = z.object({
+  name: z.string({ required_error: "key result name is required" }).trim().min(1, "key result name must not be empty").max(120),
+  target: z.number({ required_error: "key result target is required", invalid_type_error: "target must be a number" }).positive("target must be greater than 0").finite(),
+  current: z.number({ invalid_type_error: "current must be a number" }).finite().default(0),
+}).strict();
+
+export const CreateOkrBody = z.object({
+  title: z.string({ required_error: "title is required" }).trim().min(1, "title must not be empty").max(200),
+  departmentId: id("departmentId").optional(),
+  keyResults: z.array(keyResultInput).max(20).default([]),
+}).strict();
+
+/** Sets one key result's current value; `target` is only needed to add a key result that does not exist yet. */
+export const OkrProgressBody = z.object({
+  objectiveId: id("objectiveId"),
+  name: z.string({ required_error: "name is required: the key result to update" }).trim().min(1, "name must not be empty").max(120),
+  current: z.number({ required_error: "current is required", invalid_type_error: "current must be a number" }).finite(),
+  target: z.number({ invalid_type_error: "target must be a number" }).positive("target must be greater than 0").finite().optional(),
+}).strict();

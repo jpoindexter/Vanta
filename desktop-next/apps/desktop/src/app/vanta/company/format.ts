@@ -111,3 +111,8 @@ export function durationText(startIso: string, endIso: null | string): string {
 export function percent(fraction: number): string {
   return `${Math.round(Math.min(Math.max(fraction, 0), 1) * 100)}%`
 }
+
+const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
+
+/** A plain number for a key result: 1,200 and 0.25, never 1200.00. */
+export const formatNumber = (value: number): string => number.format(value)

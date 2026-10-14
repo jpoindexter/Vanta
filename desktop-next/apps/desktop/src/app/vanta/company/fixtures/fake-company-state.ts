@@ -1,3 +1,4 @@
+import type { HeartbeatRun, Objective } from '@/api/vanta-company-ops-schemas'
 import {
   type ActivityEntry,
   type BudgetsResponse,
@@ -8,6 +9,7 @@ import {
   TicketSummarySchema
 } from '@/api/vanta-company-schemas'
 
+import { sampleObjectives, sampleRuns } from './fake-ops'
 import { RECORDED } from './recorded'
 
 export type Scenario = 'empty' | 'error' | 'loading' | 'offline' | 'ready'
@@ -17,6 +19,8 @@ export interface FakeState {
   budgets: BudgetsResponse
   company: CompanyResponse
   details: Map<string, TicketDetail>
+  okrs: Objective[]
+  runs: HeartbeatRun[]
   tickets: TicketSummary[]
 }
 
@@ -43,7 +47,7 @@ const emptyCompany = (): CompanyResponse => ({
 /** A mutable copy of the recorded company, or an empty one, for one fake server. */
 export function initialState(scenario: Scenario): FakeState {
   if (scenario === 'empty') {
-    return { activity: [], budgets: emptyBudgets(), company: emptyCompany(), details: new Map(), tickets: [] }
+    return { activity: [], budgets: emptyBudgets(), company: emptyCompany(), details: new Map(), okrs: [], runs: [], tickets: [] }
   }
 
   return {
@@ -51,6 +55,8 @@ export function initialState(scenario: Scenario): FakeState {
     budgets: clone(RECORDED.budgets),
     company: clone(RECORDED.company),
     details: new Map(RECORDED.details.map(detail => [detail.id, clone(detail)])),
+    okrs: sampleObjectives(),
+    runs: sampleRuns(),
     tickets: clone(RECORDED.tickets.tickets)
   }
 }
