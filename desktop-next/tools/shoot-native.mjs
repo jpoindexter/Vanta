@@ -1,13 +1,13 @@
 // Screenshots of the native capabilities in the real UI (hidden window, real server, scripted model):
 // Files pane, Review pane, terminal with an approval card, sidebar rows with status glyphs,
-// the project chip menu and the mini window. Light and dark at 1440, light at 1100.
+// the project chip menu and the mini window. Light and dark at 1440; terminal and project chip at 1100.
 //
 //   node tools/shoot-native.mjs [outDir]       (default docs/proofs/restore)
 import fs from "node:fs";
 import path from "node:path";
 
 import { launchVanta, waitForShell } from "./vanta-app.mjs";
-import { startChat, goHome, waitUntil } from "./proof/kit.mjs";
+import { startChat, waitUntil } from "./proof/kit.mjs";
 import { installNativeStubs, makeSecondProject } from "./proof/native-stubs.mjs";
 import { dirtyProject } from "./proof/rows-right.mjs";
 import { seedSessions } from "./proof/seed.mjs";
@@ -44,10 +44,25 @@ async function setMode(mode) {
   await settle(2500);
 }
 
+// At 1100 the sidebar is an icon rail, so Home and chats are reached with the shortcut and the palette.
+async function goHome() {
+  await escape();
+  if (await page.locator('[data-tour="sidebar-nav-home"]').first().isVisible().catch(() => false)) {
+    await page.locator('[data-tour="sidebar-nav-home"]').first().click();
+  } else {
+    await page.keyboard.press("Meta+Shift+O");
+  }
+  await settle(600);
+}
+
 async function openChat(title) {
-  await goHome(page);
-  await sidebar().getByText(title, { exact: true }).first().click();
+  await goHome();
+  await page.keyboard.press("Meta+K");
+  await settle(500);
+  await page.keyboard.type(title);
   await settle(900);
+  await page.keyboard.press("Enter");
+  await settle(1200);
 }
 
 async function closePanes() {
@@ -98,7 +113,7 @@ async function terminalWithCard(mode, w) {
 async function statusRows(mode, w) {
   await closePanes();
   const send = async (text) => {
-    await goHome(page);
+    await goHome();
     const input = page.getByTestId("home-composer-input");
     await input.fill(text);
     await input.press("Enter");
@@ -106,9 +121,9 @@ async function statusRows(mode, w) {
   };
   await send(`slow ${mode} run`);
   await send(`shell: curl -s http://127.0.0.1:9/`);
-  await goHome(page);
+  await goHome();
   await send(`fail ${mode}`);
-  await goHome(page);
+  await goHome();
   await waitUntil(async () => (await sidebar().locator('[role="status"][aria-label="Waiting for you"]').count()) > 0, 8000, 400);
   await settle(600);
   await shoot("native-sidebar-status", mode, w);
@@ -128,7 +143,7 @@ async function projectChip(mode, w) {
 }
 
 async function miniWindow(mode, w) {
-  await goHome(page);
+  await goHome();
   await toggle("hud").click();
   await waitUntil(async () => (await app.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().filter((win) => /win=hud/.test(win.webContents.getURL())).length)) > 0, 8000);
   await settle(1500);
@@ -155,11 +170,14 @@ try {
     await setMode(mode);
     await app.resize(w, h);
     await settle(800);
-    await filesAndReview(mode, w);
+    // At 1100 the sidebar is an icon rail and the right panes fold into edge overlays, so only the scenes
+    // that still read at that width are taken.
+    const wide = w >= 1280;
+    if (wide) await filesAndReview(mode, w);
     await terminalWithCard(mode, w);
-    await statusRows(mode, w);
+    if (wide) await statusRows(mode, w);
     await projectChip(mode, w);
-    if (w === 1440) await miniWindow(mode, w);
+    if (wide) await miniWindow(mode, w);
   }
   console.log(`${shots} screenshots in ${out}`);
 } catch (error) {
