@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils'
 import { sessionCompacting } from '@/store/compaction'
 import { browseBackward, browseForward, deriveUserHistory, isBrowsingHistory } from '@/store/composer-input-history'
 import { POPOUT_WIDTH_REM } from '@/store/composer-popout'
-import { parkQueuedPrompts, removeQueuedPrompt, unparkQueuedPrompts } from '@/store/composer-queue'
+import { parkQueuedPrompts, unparkQueuedPrompts } from '@/store/composer-queue'
 import { $hudMode } from '@/store/hud'
 import { $showsAdvancedChrome } from '@/store/interface-mode'
 import { $chatOnboardingSolo } from '@/store/onboarding-intro'
@@ -70,6 +70,7 @@ import { useComposerMetrics } from './hooks/use-composer-metrics'
 import { useComposerPlaceholder } from './hooks/use-composer-placeholder'
 import { useComposerPopout } from './hooks/use-composer-popout'
 import { useComposerQueue } from './hooks/use-composer-queue'
+import { useServerQueue } from './hooks/use-server-queue'
 import { useComposerScreenshot } from './hooks/use-composer-screenshot'
 import { useComposerSubmit } from './hooks/use-composer-submit'
 import { triggerKeyUpHandler, useComposerTrigger } from './hooks/use-composer-trigger'
@@ -331,10 +332,15 @@ export function ChatBar({
     onAddUrl
   })
 
+  // The saved queue lives on the server (it survives an app restart); the engine below merges it with this
+  // window's own entries, which are only the ones a server queue cannot carry (attachments).
+  const serverQueue = useServerQueue(sessionId, busy)
+
   // The queue engine — queued turns, in-place editing, the shared drain lock,
   // and bounded auto-drain. Consumes the draft API and writes `queueEditRef`.
   const {
     beginQueuedEdit,
+    deleteQueued,
     deliverQueuedNow,
     drainNextQueued,
     editingQueuedPrompt,
@@ -359,6 +365,7 @@ export function ChatBar({
     onSubmit,
     queueEditRef,
     queueSessionKey,
+    remote: serverQueue,
     sessionId
   })
 
@@ -1330,17 +1337,34 @@ export function ChatBar({
           <StatusDrawerContent collapsed={statusDrawerCollapsed} id={statusDrawerId}>
             <ComposerStatusStack onSubmit={onSubmit} queue={null} sessionId={statusSessionId} />
           </StatusDrawerContent>
-          {activeQueueSessionKey && queuedPrompts.length > 0 ? (
+          {activeQueueSessionKey && (queuedPrompts.length > 0 || serverQueue.error) ? (
             <QueuePanel
               busy={busy}
               editingId={queueEdit?.entryId ?? null}
               entries={queuedPrompts}
+              error={serverQueue.error}
+              onClearError={serverQueue.clearError}
               onDelete={id => {
-                if (removeQueuedPrompt(activeQueueSessionKey, id) && queueEdit?.entryId === id) {
+                if (deleteQueued(id) && queueEdit?.entryId === id) {
                   exitQueuedEdit('cancel')
                 }
               }}
               onEdit={beginQueuedEdit}
+              onMove={(id, direction) => {
+                const saved = serverQueue.entries.find(entry => entry.id === id)
+
+                if (saved?.remote) {
+                  void serverQueue.act({ action: 'move', direction, id, revision: saved.remote.revision })
+                }
+              }}
+              onRetry={id => {
+                const saved = serverQueue.entries.find(entry => entry.id === id)
+
+                if (saved?.remote) {
+                  void serverQueue.act({ action: 'retry', id, revision: saved.remote.revision })
+                }
+              }}
+              onRunQueue={() => void serverQueue.run()}
               onResume={() => {
                 unparkQueuedPrompts(activeQueueSessionKey)
 
@@ -1353,6 +1377,7 @@ export function ChatBar({
               onSendNow={id => void sendQueuedNow(id)}
               onSteerNow={id => void steerQueuedNow(id)}
               parked={queueParked}
+              waiting={serverQueue.waiting && !busy}
             />
           ) : null}
           <ComposerPrimitive.Root
