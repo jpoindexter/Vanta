@@ -5,8 +5,9 @@
 // ever inspected or signalled.
 //
 //   node scripts/kernel-lifecycle-repro.mjs [--ephemeral=0|1|default] [--watch=0] [--only=SIGTERM,SIGKILL,SIGINT,SIGHUP,parent-death]
+//   node scripts/kernel-lifecycle-repro.mjs --two-runtimes   (two real `vanta desktop` runtimes, one profile, one kernel port)
 import { execFileSync, spawn } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -121,6 +122,46 @@ async function scenario(path, ephemeral) {
     }
     rmSync(home, { recursive: true, force: true });
   }
+}
+
+/** Two real runtimes started together on one VANTA_HOME and one kernel port: one kernel must result, and only the owner's death may end it. */
+async function twoRuntimes() {
+  const home = mkdtempSync(join(tmpdir(), "vanta-kl-"));
+  mkdirSync(join(home, ".vanta"), { recursive: true });
+  const ports = { a: await freePort(), b: await freePort(), kernel: await freePort() };
+  const env = runtimeEnv(home, { runtime: 0, kernel: ports.kernel }, "default");
+  const spawnRuntime = (port) => spawn(process.execPath, runtimeArgv(port), { cwd: tsRoot, env, stdio: ["ignore", "ignore", "ignore"] });
+  const a = spawnRuntime(ports.a);
+  const b = spawnRuntime(ports.b);
+  const kernels = () => ours([], [ports.kernel]).filter((p) => alive(p.pid) && !p.command.includes("vanta-kernel-guard") && /vanta-kernel serve \d+$/.test(p.command));
+  const kernelPid = await waitFor(() => listenerPid(ports.kernel), 25_000);
+  await sleep(SETTLE_MS / 2);
+  const result = { kernelsRunning: kernels().length };
+  const everything = () => ours([a.pid, b.pid, kernelPid ?? -1], [ports.a, ports.b, ports.kernel]);
+  try {
+    const pidFilePath = join(home, ".vanta", "run", `kernel-${ports.kernel}.json`);
+    result.pidFilePresent = existsSync(pidFilePath);
+    if (!result.pidFilePresent) return result; // the race erased the winner's pid file: nothing safe to assert further
+    const pidFile = JSON.parse(readFileSync(pidFilePath, "utf8"));
+    const owner = pidFile.supervisorPid === a.pid ? a : b;
+    const loser = owner === a ? b : a;
+    Object.assign(result, { ownerIsOneOfTheTwo: [a.pid, b.pid].includes(pidFile.supervisorPid), kernelMatchesListener: pidFile.kernelPid === kernelPid });
+    process.kill(loser.pid, "SIGKILL");
+    await sleep(SETTLE_MS / 2);
+    result.kernelAliveAfterLoserKilled = alive(pidFile.kernelPid);
+    process.kill(owner.pid, "SIGTERM");
+    await sleep(SETTLE_MS / 2);
+    result.survivorsAfterOwnerTerm = everything().filter((p) => alive(p.pid)).length;
+  } finally {
+    for (const p of everything()) { try { process.kill(p.pid, "SIGKILL"); } catch { /* gone */ } }
+    rmSync(home, { recursive: true, force: true });
+  }
+  return result;
+}
+
+if (process.argv.includes("--two-runtimes")) {
+  console.log(JSON.stringify(await twoRuntimes()));
+  process.exit(0);
 }
 
 const rows = [];

@@ -4,8 +4,11 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { killKernelFromPidFile, registerKernelCleanup } from "./kernel-guard/cleanup.js";
-import { waitForKernelReady, type ReadyChild } from "./kernel-guard/ready.js";
+import { findLiveKernelOwner } from "./kernel-guard/kernel-owner.js";
+import { READY_TIMEOUT_MS, waitForKernelReady, type ReadyChild } from "./kernel-guard/ready.js";
+import { acquireSpawnLock } from "./kernel-guard/spawn-lock.js";
 import { spawnGuardedKernel } from "./kernel-guard/spawn-guarded.js";
+import { resolveVantaHome } from "./store/home.js";
 
 type KernelStatus = { status?: string; root?: string };
 export type KernelStatusReader = (baseUrl: string) => Promise<KernelStatus | null>;
@@ -13,6 +16,9 @@ export type KernelStatusReader = (baseUrl: string) => Promise<KernelStatus | nul
 const DEFAULT_KERNEL_URL = "http://127.0.0.1:7788";
 const ROOT_SCOPED_PORT_START = 17_000;
 const ROOT_SCOPED_PORT_RANGE = 4_000;
+// A runtime that loses the start race waits this long for the winner's kernel (its readiness window plus slack).
+const START_LOCK_WAIT_MS = READY_TIMEOUT_MS + 5_000;
+const START_LOCK_POLL_MS = 200;
 
 function normalizedUrl(value: string): string {
   return new URL(value).toString().replace(/\/$/, "");
@@ -96,6 +102,8 @@ type EnsureKernelOptions = {
   kernelBin: string;
   root: string;
   ephemeral?: boolean;
+  /** Test seam: how long to wait for another runtime that is starting this kernel. */
+  startLockWaitMs?: number;
 };
 
 // Concurrent callers in one process (startup prewarm plus a first request) must share one spawn:
@@ -138,18 +146,61 @@ function startKernelProcess(opts: EnsureKernelOptions, port: string): ReadyChild
   return child;
 }
 
-async function ensureKernelOnce(opts: EnsureKernelOptions): Promise<string> {
-  const endpoint = await resolveKernelEndpoint(opts.baseUrl, opts.root);
-  if (endpoint.ready) return endpoint.baseUrl;
-  const baseUrl = endpoint.baseUrl;
+/** Another live runtime owns this port's kernel: say who, and what to do, instead of starting a second one. */
+function foreignOwnerError(port: string, owner: { supervisorPid: number; kernelPid: number; pidFile: string }): Error {
+  return new Error(
+    `The kernel on port ${port} (pid ${owner.kernelPid}) belongs to the Vanta runtime with pid ${owner.supervisorPid} `
+    + `(${owner.pidFile}) but is not answering /api/status. Not starting a second one. `
+    + `Quit that runtime, or set VANTA_KERNEL_URL to another port for this one.`,
+  );
+}
 
-  if (!existsSync(opts.kernelBin)) {
-    throw new Error(
-      `Kernel binary not found at ${opts.kernelBin}. Build it first: cargo build`,
-    );
+function lockWaitError(port: string, holderPid: number, waitedMs: number): Error {
+  return new Error(
+    `Another Vanta runtime (pid ${holderPid}) has been starting the kernel on port ${port} for ${waitedMs}ms without it answering. `
+    + `Quit that runtime or set VANTA_KERNEL_URL to another port for this one.`,
+  );
+}
+
+function logAttachedOwner(baseUrl: string): void {
+  const port = Number(new URL(baseUrl).port || "7788");
+  const owner = findLiveKernelOwner(resolveVantaHome(process.env), port);
+  if (owner && owner.supervisorPid !== process.pid) {
+    process.stderr.write(`[kernel] attached to the kernel on port ${port} owned by runtime pid ${owner.supervisorPid}; it ends when that runtime ends\n`);
   }
+}
 
-  const port = new URL(baseUrl).port || "7788";
+async function ensureKernelOnce(opts: EnsureKernelOptions): Promise<string> {
+  const waitMs = opts.startLockWaitMs ?? START_LOCK_WAIT_MS;
+  const begun = Date.now();
+  for (;;) {
+    const endpoint = await resolveKernelEndpoint(opts.baseUrl, opts.root);
+    if (endpoint.ready) {
+      logAttachedOwner(endpoint.baseUrl);
+      return endpoint.baseUrl;
+    }
+    if (!existsSync(opts.kernelBin)) {
+      throw new Error(`Kernel binary not found at ${opts.kernelBin}. Build it first: cargo build`);
+    }
+    const port = new URL(endpoint.baseUrl).port || "7788";
+    // One runtime per profile and port starts the kernel; the rest wait for it and then attach.
+    const lock = acquireSpawnLock(resolveVantaHome(process.env), Number(port));
+    if (lock.kind === "held") {
+      if (Date.now() - begun >= waitMs) throw lockWaitError(port, lock.holderPid, Date.now() - begun);
+      await sleep(START_LOCK_POLL_MS);
+      continue;
+    }
+    try {
+      const owner = findLiveKernelOwner(resolveVantaHome(process.env), Number(port));
+      if (owner) throw foreignOwnerError(port, owner);
+      return await startAndWait(opts, endpoint.baseUrl, port);
+    } finally {
+      lock.release();
+    }
+  }
+}
+
+async function startAndWait(opts: EnsureKernelOptions, baseUrl: string, port: string): Promise<string> {
   const child = startKernelProcess(opts, port);
   await waitForKernelReady({
     probe: async () => statusMatchesRoot(await statusAt(baseUrl), opts.root),
