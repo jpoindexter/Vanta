@@ -19,12 +19,13 @@ export function resolveTol({ specOpts = {}, appTol = {}, expected }) {
   return Object.fromEntries(Object.entries(merged).map(([k, v]) => [k, toPx(v, expected[k])]));
 }
 
-const globToRe = (glob) => new RegExp(`^${glob.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
+export const globToRe = (glob) => new RegExp(`^${glob.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`);
 
 /** The first declared deviation covering (key, state, prop), or undefined. */
 export function findDeviation(deviations, { key, state, prop }) {
   return deviations.find(
     (d) =>
+      !d.copy &&
       (d.props.includes("*") || d.props.includes(prop)) &&
       (!d.keys || d.keys.some((g) => globToRe(g).test(key))) &&
       (!d.states || d.states.some((g) => globToRe(g).test(state))),
@@ -69,6 +70,13 @@ function textProps(ctx, expected, actual) {
   return out;
 }
 
+/** A visibility difference, ALLOWED only when a declared "ignore" deviation covers this key and state. */
+export function visibility(ctx, expected, actual) {
+  const dev = findDeviation(ctx.deviations ?? [], { key: ctx.key, state: ctx.state, prop: "visible" });
+  const row = { prop: "visible", expected, actual };
+  return dev && dev.transform === "ignore" ? { ...row, status: "ALLOWED", deviation: dev.id } : { ...row, status: "FAIL" };
+}
+
 const worst = (props) =>
   props.some((p) => p.status === "FAIL") ? "FAIL" : props.some((p) => p.status === "ALLOWED") ? "ALLOWED" : "PASS";
 
@@ -80,12 +88,12 @@ export function compareElement({ expected, actual, tol, ctx }) {
   const hiddenOk = !expected.visible;
   const appVisible = Boolean(actual?.visible);
   if (hiddenOk) {
-    const props = appVisible ? [{ prop: "visible", expected: false, actual: true, status: "FAIL" }] : [];
+    const props = appVisible ? [visibility(ctx, false, true)] : [];
     return { status: worst(props), checked: 1, props };
   }
   if (!appVisible) {
-    const actualState = actual ? "hidden" : "absent";
-    return { status: "FAIL", checked: 1, props: [{ prop: "visible", expected: true, actual: actualState, status: "FAIL" }] };
+    const props = [visibility(ctx, true, actual ? "hidden" : "absent")];
+    return { status: worst(props), checked: 1, props };
   }
   const all = [...numericProps(ctx, expected, actual, tol), ...textProps(ctx, expected, actual)];
   return { status: worst(all), checked: all.length + 1, props: all.filter((p) => p.status !== "PASS") };

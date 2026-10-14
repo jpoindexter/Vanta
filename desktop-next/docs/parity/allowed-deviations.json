@@ -40,7 +40,8 @@
       "keys": [
         "titlebar.dots"
       ],
-      "transform": "ignore"
+      "transform": "ignore",
+      "na": true
     },
     {
       "id": "w-composite-aria-roles",
@@ -158,7 +159,8 @@
         "sidebar.userName",
         "sidebar.userMeta",
         "sidebar.settings"
-      ]
+      ],
+      "na": true
     },
     {
       "id": "owner-kept-statusbar",
