@@ -43,14 +43,102 @@ function fakeServerWithOutput(port: number, output: string) {
   return made
 }
 
-function setup(servers: Array<ReturnType<typeof fakeServer>>) {
+function setup(servers: Array<ReturnType<typeof fakeServer>>, now?: () => number) {
   const boot = { fail: vi.fn(), ready: vi.fn(), verifying: vi.fn() }
   const onUnexpectedExit = vi.fn()
   const launch = vi.fn(async () => servers.shift()!.server)
-  const deps: ServerHostDeps = { boot, launch, log: vi.fn(), onUnexpectedExit }
+  const deps: ServerHostDeps = { boot, launch, log: vi.fn(), now, onUnexpectedExit }
 
   return { boot, host: new ServerHost(deps), launch, onUnexpectedExit }
 }
+
+const settle = () => new Promise(resolve => setImmediate(resolve))
+
+describe('ServerHost restarts a runtime that died on its own', () => {
+  it('waits the configured delay before starting it again', async () => {
+    vi.useFakeTimers()
+
+    try {
+      const first = fakeServer(7801)
+      const boot = { fail: vi.fn(), ready: vi.fn(), verifying: vi.fn() }
+      const servers = [first, fakeServer(7802)]
+      const launch = vi.fn(async () => servers.shift()!.server)
+      const host = new ServerHost({ boot, launch, log: vi.fn(), onUnexpectedExit: vi.fn(), respawnDelayMs: 5000 })
+      await host.start(input)
+      first.exit({ code: 1, signal: null })
+      await vi.advanceTimersByTimeAsync(0)
+
+      const url = host.baseUrlWhenReady()
+      await vi.advanceTimersByTimeAsync(4000)
+
+      expect(launch).toHaveBeenCalledTimes(1)
+
+      await vi.advanceTimersByTimeAsync(1500)
+
+      await expect(url).resolves.toBe('http://127.0.0.1:7802')
+      expect(launch).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+
+  it('starts it again when something asks for the connection', async () => {
+    const first = fakeServer(7801)
+    const second = fakeServer(7802)
+    const { host, launch } = setup([first, second])
+    await host.start(input)
+
+    first.exit({ code: 1, signal: 'SIGKILL' })
+    await settle()
+
+    await expect(host.baseUrlWhenReady()).resolves.toBe('http://127.0.0.1:7802')
+    expect(launch).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not start one that was stopped on purpose', async () => {
+    const first = fakeServer(7801)
+    const { host, launch } = setup([first, fakeServer(7802)])
+    await host.start(input)
+    host.stop()
+    first.exit({ code: null, signal: 'SIGTERM' })
+    await settle()
+
+    await expect(host.baseUrlWhenReady()).rejects.toThrow()
+    expect(launch).toHaveBeenCalledTimes(1)
+  })
+
+  it('shares one restart between callers that arrive together', async () => {
+    const first = fakeServer(7801)
+    const { host, launch } = setup([first, fakeServer(7802), fakeServer(7803)])
+    await host.start(input)
+    first.exit({ code: 1, signal: null })
+    await settle()
+
+    const urls = await Promise.all([host.baseUrlWhenReady(), host.baseUrlWhenReady(), host.baseUrlWhenReady()])
+
+    expect(new Set(urls)).toEqual(new Set(['http://127.0.0.1:7802']))
+    expect(launch).toHaveBeenCalledTimes(2)
+  })
+
+  it('stops restarting a runtime that keeps dying and keeps its last error', async () => {
+    const servers = [fakeServer(7801), fakeServer(7802), fakeServer(7803), fakeServer(7804), fakeServer(7805)]
+    const { host, launch } = setup([...servers], () => 1_000)
+    await host.start(input)
+
+    for (const dying of servers.slice(0, 3)) {
+      dying.exit({ code: 1, signal: null })
+      await settle()
+      await host.baseUrlWhenReady()
+    }
+
+    servers[3].exit({ code: 1, signal: null })
+    await settle()
+
+    await expect(host.baseUrlWhenReady()).rejects.toThrow('The Vanta runtime exited (1)')
+    expect(launch).toHaveBeenCalledTimes(4)
+  })
+})
 
 describe('ServerHost', () => {
   it('puts what the runtime last printed into the message when it dies after starting', async () => {

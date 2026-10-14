@@ -365,6 +365,7 @@ export function ChatBar({
     onSubmit,
     queueEditRef,
     queueSessionKey,
+    offline: disabled,
     remote: serverQueue,
     sessionId
   })

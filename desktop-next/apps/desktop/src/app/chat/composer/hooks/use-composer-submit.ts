@@ -317,11 +317,26 @@ export function useComposerSubmit({
     return false
   }
 
+  // Refresh draftRef from the editor: fast typing or IME can leave it a render behind (see the note below).
+  const syncDraftFromEditor = () => {
+    const editor = editorRef.current
+
+    if (editor) {
+      const domText = composerPlainText(editor)
+
+      if (domText !== draftRef.current) {
+        draftRef.current = domText
+        setComposerText(domText)
+      }
+    }
+  }
+
   const submitDraft = () => {
     if (disabled) {
       // The backend is down: keep the words as a saved message that runs once Vanta reconnects (the
       // offline banner's promise). Nothing is sent, so a failed send can't lose or duplicate it.
       if (!queueEdit) {
+        syncDraftFromEditor()
         queueCurrentDraft()
       }
 
@@ -336,16 +351,7 @@ export function useComposerSubmit({
     // extra input event forces a state sync). draftRef is updated on every
     // input event; refresh it from the editor once more to also cover an
     // in-flight keystroke that hasn't fired its input event yet.
-    const editor = editorRef.current
-
-    if (editor) {
-      const domText = composerPlainText(editor)
-
-      if (domText !== draftRef.current) {
-        draftRef.current = domText
-        setComposerText(domText)
-      }
-    }
+    syncDraftFromEditor()
 
     // A path that never got its committing space (`@apps/desktop/` left by a Tab
     // descend, then Enter) is still the reference the user picked — promote it

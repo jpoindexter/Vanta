@@ -93,7 +93,8 @@ function createServices(): Services {
     boot,
     launch: input => startWithPortRetry(input),
     log: log.line,
-    onUnexpectedExit: exit => broadcast(CH.backendExit, exit)
+    onUnexpectedExit: exit => broadcast(CH.backendExit, exit),
+    respawnDelayMs: Number(process.env.VANTA_DESKTOP_RESPAWN_DELAY_MS) || 0
   })
 
   host = serverHost

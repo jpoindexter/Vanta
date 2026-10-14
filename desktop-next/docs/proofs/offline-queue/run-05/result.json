@@ -1,0 +1,57 @@
+{
+  "sandbox": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-objayo",
+  "modelRequests": 2,
+  "steps": [
+    {
+      "id": "a",
+      "title": "online baseline: a typed message is answered",
+      "status": "PASS",
+      "ms": 686,
+      "detail": {
+        "requests": 1
+      }
+    },
+    {
+      "id": "b",
+      "title": "the runtime is killed: the offline banner shows and the composer stays usable",
+      "status": "PASS",
+      "ms": 272,
+      "detail": {
+        "killed": 94104,
+        "banner": "Offline. Messages queue until Vanta reconnects. Retry now"
+      }
+    },
+    {
+      "id": "c",
+      "title": "a message typed while offline is queued: the draft clears and nothing reaches the model",
+      "status": "PASS",
+      "ms": 1030,
+      "detail": {
+        "visible": true
+      }
+    },
+    {
+      "id": "d",
+      "title": "Retry now brings the backend back and the queued message runs",
+      "status": "PASS",
+      "ms": 8669,
+      "detail": {
+        "requestsAfter": 2,
+        "retryClicked": false
+      }
+    },
+    {
+      "id": "e",
+      "title": "Memory Graph opens from the command palette",
+      "status": "FAIL",
+      "ms": 21205,
+      "error": "timed out waiting for the Memory Graph overlay title"
+    }
+  ],
+  "consoleErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+    "[profiles] refreshProfiles failed after 3 attempt(s): Error: unreachable: fetch failed"
+  ],
+  "pass": false
+}
