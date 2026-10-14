@@ -14,11 +14,11 @@ const profileViewSchema = z.looseObject({
   skillCount: z.number().default(0)
 })
 
-const profileListSchema = z.object({ profiles: z.array(profileViewSchema) })
+export const profileListSchema = z.object({ profiles: z.array(profileViewSchema) })
 
 const okSchema = z.looseObject({ files: z.array(z.string()).optional(), id: z.string().optional(), name: z.string().optional(), path: z.string().optional() })
 
-const toProfileInfo = (view: z.infer<typeof profileViewSchema>): ProfileInfo => ({
+export const toProfileInfo = (view: z.infer<typeof profileViewSchema>): ProfileInfo => ({
   has_env: false,
   is_default: view.isDefault,
   model: view.model,

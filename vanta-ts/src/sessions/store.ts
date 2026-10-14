@@ -76,6 +76,7 @@ function toMeta(session: Session): SessionMeta {
     started: session.started,
     updated: session.updated,
     projectId: session.projectId,
+    cwd: session.cwd,
     providerId: session.providerId,
     modelId: session.modelId,
     archived: session.archived,
@@ -110,6 +111,7 @@ function buildSession(id: string, messages: Message[], opts: SaveSessionOpts): S
 function sessionMetadata(opts: SaveSessionOpts): Partial<Session> {
   return {
     ...(opts.projectId ? { projectId: opts.projectId } : {}),
+    ...(opts.cwd ? { cwd: opts.cwd } : {}),
     ...(opts.providerId ? { providerId: opts.providerId } : {}), ...(opts.modelId ? { modelId: opts.modelId } : {}),
     ...(opts.archived ? { archived: true } : {}), ...(opts.trashed ? { trashed: true } : {}),
     ...(opts.pinned ? { pinned: true, pinOrder: opts.pinOrder ?? 0 } : {}),
@@ -123,6 +125,8 @@ async function saveUnlocked(id: string, messages: Message[], opts: SaveSessionOp
   }
   const overrides = Object.fromEntries(Object.entries(opts).filter(([, value]) => value !== undefined)) as SaveSessionOpts;
   const options = existing ? { ...existingSaveOptions(existing), ...overrides } : overrides;
+  // The folder a session started in is its identity for project lanes; a later save never moves it.
+  if (existing?.cwd) options.cwd = existing.cwd;
   if (existing && !opts.title && ["New chat", "(empty session)"].includes(existing.title)) options.title = deriveTitle(messages);
   await persistSession(sessionPath(id, env), buildSession(id, messages, options));
 }
@@ -216,6 +220,7 @@ function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, 
     updated: overrides.updated,
     title: overrides.title ?? session.title,
     projectId: session.projectId,
+    cwd: session.cwd,
     providerId: session.providerId,
     modelId: session.modelId,
     archived: overrides.archived ?? session.archived,
@@ -288,6 +293,6 @@ export async function forkSession(
   const now = opts.now ?? new Date();
   const id = newSessionId(now);
   const started = now.toISOString();
-  await store.save(id, source.messages, { now: started, started, title: source.title, providerId: source.providerId, modelId: source.modelId });
+  await store.save(id, source.messages, { now: started, started, title: source.title, cwd: source.cwd, providerId: source.providerId, modelId: source.modelId });
   return store.load(id);
 }

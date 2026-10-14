@@ -109,5 +109,5 @@ export async function ensureDesktopConversation(state: DesktopState): Promise<Re
 
 export async function persistActiveSession(state: DesktopState): Promise<void> {
   if (!state.convo || !state.sessionId) return;
-  await saveSession(state.sessionId, state.convo.messages, { started: state.sessionStarted, providerId: state.providerId, modelId: state.modelId });
+  await saveSession(state.sessionId, state.convo.messages, { started: state.sessionStarted, cwd: state.root, providerId: state.providerId, modelId: state.modelId });
 }

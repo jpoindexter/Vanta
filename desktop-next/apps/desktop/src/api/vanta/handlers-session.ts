@@ -126,6 +126,7 @@ export const sessionList: Handler = async (hub, params) => {
     .filter(session => includeHidden || (!session.trashed && !session.archived))
     .slice(0, limit)
     .map(session => ({
+      ...(session.cwd ? { cwd: session.cwd } : {}),
       id: session.id,
       message_count: (session.turns ?? 0) * 2,
       preview: '',

@@ -8,6 +8,8 @@ import {
   setupStatus
 } from './handlers-config'
 import { sessionBranch } from './handlers-branch'
+import { profilesList } from './handlers-profiles'
+import { projectsProjectSessions, projectsTree } from './handlers-project-tree'
 import { projectsCreate, projectsDelete, projectsList, projectsSetActive, projectsUpdate } from './handlers-projects'
 import { approvalPending, approvalRespond, promptSubmit, sessionSteer } from './handlers-prompt'
 import {
@@ -32,10 +34,13 @@ export const DISPATCH: Readonly<Record<string, Handler>> = {
   'config.get': configGet,
   'config.set': configSet,
   'model.options': modelOptions,
+  'profiles.list': profilesList,
   'projects.create': projectsCreate,
   'projects.delete': projectsDelete,
   'projects.list': projectsList,
+  'projects.project_sessions': projectsProjectSessions,
   'projects.set_active': projectsSetActive,
+  'projects.tree': projectsTree,
   'projects.update': projectsUpdate,
   'prompt.submit': promptSubmit,
   'session.archive': sessionArchive,

@@ -8,6 +8,7 @@ export const idResponseSchema = z.object({ id: z.string().min(1) })
 
 export const sessionMetaSchema = z.looseObject({
   archived: z.boolean().optional(),
+  cwd: z.string().optional(),
   id: z.string().min(1),
   modelId: z.string().optional(),
   pinned: z.boolean().optional(),
