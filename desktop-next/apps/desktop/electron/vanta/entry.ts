@@ -19,6 +19,7 @@ import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
 import { installWebviewGuard } from './webview-guard'
 import { createShellWiring } from './shell-wiring'
+import { appPage, installMediaPermissions } from './media-permissions'
 import { listenForDeepLinks } from './window-features'
 import {
   connectionDescriptor,
@@ -268,6 +269,11 @@ if (!app.requestSingleInstanceLock()) {
   app
     .whenReady()
     .then(async () => {
+      // Before any page loads: with no handler Electron grants whatever a page asks for.
+      installMediaPermissions(session.defaultSession as never, {
+        getWindows: () => BrowserWindow.getAllWindows(),
+        page: appPage(DEV_SERVER, app.getAppPath())
+      })
       installWebviewGuard({
         fromPartition: partition => session.fromPartition(partition) as never,
         onWebContentsCreated: listener => app.on('web-contents-created', (_event, contents) => listener(contents as never)),
