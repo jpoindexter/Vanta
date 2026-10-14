@@ -290,3 +290,10 @@ dispositions, not WorkItem states.
 **Alternatives:** (1) drop it as a gimmick; (2) queue messages locally while offline; (3) design-doc weights 400/500/600; (4) rename now; (5) open a draft PR now; (6) rewrite history to strip the footers; (8) point `vanta` at the new app now.
 **Why:** (1) keep every Hermes feature until the owner cuts it. (2) The durable queue lives on the server (V-006); a second, local queue is a second source of truth that can duplicate or lose a send. (3) The wireframe is the spec and the parity checker measures it. (4) The rename touches every file the porting waves change and the parity checker's key map. (5) Publishing on a public repo needs explicit permission. (6) Shared-history rewrites are irreversible for anyone who pulled. (7) Credentials are the owner's to enter. (8) D8: no swap of the installed app before a packaged proof and the guarded installer.
 **Reversible?** Yes for all of them; (6) and (5) are not done, so nothing to undo.
+
+## 2026-10-14 — Correction: the offline composer queues (decision 2 above was wrong)
+**Choice:** While Vanta is offline a typed message is saved to the queue (Enter and the send button both work) and runs when the connection returns. Commit `683da9a0`.
+**Alternatives:** keep the composer's send disabled with "Reconnect, then send it again" (what decision 2 above chose).
+**Why:** The approved wireframe's offline state says "Messages queue until Vanta reconnects", and the wireframe is the spec. Decision 2 was made from a string search without checking the shipped banner or the submit code; the owner's screenshot of the offline state showed the contradiction (banner promised a queue, send did nothing). The server's durable queue (V-006) still owns queueing while Vanta is running; this local queue covers only the time the server cannot be reached.
+**Reversible?** Yes: remove the offline branch in `use-composer-submit.ts` and the reconnect effect in the composer.
+**Limits:** Not yet driven in the real app (unit tests only, with a negative control); a message queued offline lives in the window's own queue, so closing the app while still offline loses it.
