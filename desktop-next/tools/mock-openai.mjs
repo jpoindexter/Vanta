@@ -65,16 +65,16 @@ function plan(body, options) {
   if (last?.role === "tool") return { text: "Done. The command finished." };
   const prompt = [...messages].reverse().find((message) => message.role === "user");
   const text = lastText(prompt).trim();
-  const shell = /^shell:\s*(.+)$/is.exec(text);
+  const shell = /^shell:\s*(.+)$/im.exec(text);
   if (shell) return { tool: { name: "shell_cmd", args: { command: shell[1].trim() } } };
-  if (/^clarify\b/i.test(text)) {
+  if (/^clarify\b/im.test(text)) {
     return { tool: { name: "clarify", args: { question: "Which option should the proof take?", options: ["Option A", "Option B"] } } };
   }
-  if (/^fail\b/i.test(text)) return { fail: true };
-  if (/^slow\b/i.test(text)) return { text: REPLY, delay: 400 };
-  if (/^image\b/i.test(text)) return { text: `Here is the image.\n\n![proof image](${options.imagePath ?? `data:image/png;base64,${PIXEL}`})` };
-  if (/^long\b/i.test(text)) return { text: LONG };
-  if (/^link\b/i.test(text)) return { text: "Read the [example page](https://example.com/page) for details." };
+  if (/^fail\b/im.test(text)) return { fail: true };
+  if (/^slow\b/im.test(text)) return { text: REPLY, delay: 400 };
+  if (/^image\b/im.test(text)) return { text: `Here is the image.\n\n![proof image](${options.imagePath ?? `data:image/png;base64,${PIXEL}`})` };
+  if (/^long\b/im.test(text)) return { text: LONG };
+  if (/^link\b/im.test(text)) return { text: "Read the [example page](https://example.com/page) for details." };
   return { text: REPLY };
 }
 
