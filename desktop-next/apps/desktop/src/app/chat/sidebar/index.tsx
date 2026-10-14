@@ -3,7 +3,16 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useStore } from '@nanostores/react'
 import type * as React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { IconHome, IconSettings, IconUsersGroup } from '@tabler/icons-react'
+import {
+  IconArrowsExchange,
+  IconCalendarClock,
+  IconFiles,
+  IconHome,
+  IconPlus,
+  IconSettings,
+  IconSparkles,
+  IconUsersGroup
+} from '@tabler/icons-react'
 import { useLocation } from 'react-router'
 
 import { PlatformAvatar } from '@/app/messaging/platform-icon'
@@ -11,7 +20,6 @@ import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
-import { KbdGroup } from '@/components/ui/kbd'
 import { SearchField } from '@/components/ui/search-field'
 import {
   Sidebar,
@@ -215,7 +223,7 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
   {
     id: 'new-session',
     label: '',
-    icon: props => <Codicon name="robot" {...props} />,
+    icon: props => <IconPlus {...props} />,
     action: 'new-session',
     keybindActionId: 'session.new'
   },
@@ -226,36 +234,37 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
     route: NEW_CHAT_ROUTE,
     keybindActionId: 'nav.home'
   },
+  // Wireframe order: Home, Schedules, Connections, Skills & tools, Outputs, then Company.
+  // Artifacts and Scheduled jobs are outputs of running Hermes the developer
+  // way; Capabilities and Messaging are how anyone sets it up.
   {
-    id: 'capabilities',
+    id: 'cron',
     label: '',
-    icon: props => <Codicon name="symbol-misc" {...props} />,
-    route: CAPABILITIES_ROUTE,
-    keybindActionId: 'nav.capabilities'
+    icon: props => <IconCalendarClock {...props} />,
+    route: CRON_ROUTE,
+    keybindActionId: 'nav.cron',
+    tier: 'advanced'
   },
   {
     id: 'messaging',
     label: '',
-    icon: props => <Codicon name="comment" {...props} />,
+    icon: props => <IconArrowsExchange {...props} />,
     route: MESSAGING_ROUTE,
     keybindActionId: 'nav.messaging'
   },
-  // Artifacts and Scheduled jobs are outputs of running Hermes the developer
-  // way; Capabilities and Messaging are how anyone sets it up.
+  {
+    id: 'capabilities',
+    label: '',
+    icon: props => <IconSparkles {...props} />,
+    route: CAPABILITIES_ROUTE,
+    keybindActionId: 'nav.capabilities'
+  },
   {
     id: 'artifacts',
     label: '',
-    icon: props => <Codicon name="files" {...props} />,
+    icon: props => <IconFiles {...props} />,
     route: ARTIFACTS_ROUTE,
     keybindActionId: 'nav.artifacts',
-    tier: 'advanced'
-  },
-  {
-    id: 'cron',
-    label: '',
-    icon: props => <Codicon name="watch" {...props} />,
-    route: CRON_ROUTE,
-    keybindActionId: 'nav.cron',
     tier: 'advanced'
   },
   {
@@ -1566,6 +1575,8 @@ function FullSidebar({
                     )}
                     // A tip anchored to the label points at the end of the
                     // word; the row is what it's actually about.
+                    data-active={active ? 'true' : undefined}
+                    data-testid={`nav-${item.id}`}
                     data-tip-region=""
                     onClick={() => {
                       // A plain new session lands in whatever profile the live
@@ -1629,12 +1640,14 @@ function FullSidebar({
                     <span className="min-w-0 truncate" data-tip-arrow-only="" data-tour={`sidebar-nav-${item.id}`}>
                       {navLabel(item)}
                     </span>
-                    {isNewSession && (
-                      <KbdGroup
-                        className={cn('ml-auto opacity-55', newSessionKbdFlash && 'opacity-100!')}
-                        keys={newSessionKbd}
-                        size="sm"
-                      />
+                    {isNewSession && newSessionKbd.length > 0 && (
+                      <span
+                        aria-label={newSessionKbd.join(' ')}
+                        className={cn('vs-nav-key opacity-55', newSessionKbdFlash && 'opacity-100!')}
+                        data-testid="nav-shortcut"
+                      >
+                        {newSessionKbd.join('')}
+                      </span>
                     )}
                   </SidebarMenuButton>
                 )
@@ -1673,7 +1686,7 @@ function FullSidebar({
         <SidebarStorageCorruptNotice />
 
         {showSessionSections && (
-          <div className="shrink-0 px-2 pb-1 pt-1">
+          <div className="shrink-0 px-2 pb-1 pt-1" data-testid="sidebar-search">
             <SearchField
               aria-label={s.searchAria}
               inputRef={searchInputRef}

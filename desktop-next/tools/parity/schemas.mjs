@@ -52,6 +52,7 @@ export const Step = z.union([
   z.object({ storage: z.object({ key: z.string(), value: z.string() }) }).strict(),
   z.object({ waitFor: LocatorSpec, timeout: z.number().optional() }).strict(),
   z.object({ wait: z.number() }).strict(),
+  z.object({ eval: z.string() }).strict(),
 ]);
 
 export const Driver = z.union([z.literal("UNMAPPED"), z.array(Step)]);
@@ -66,6 +67,8 @@ export const SelectorMap = z
       z.object({ mode: z.literal("frame") }).strict(),
     ]),
     prepare: z.object({ css: z.string().optional(), initScript: z.string().optional() }).strict().default({}),
+    /** CSS selector of decorative subtrees (spinner frame strips) whose text is not content; skipped when reading text. */
+    textIgnore: z.string().optional(),
     frame: LocatorSpec.optional(),
     copyRoot: LocatorSpec.optional(),
     drivers: z.record(z.string(), Driver),
@@ -133,7 +136,13 @@ export const Deviation = z
     props: z.array(z.string()).min(1),
     keys: z.array(z.string()).optional(),
     states: z.array(z.string()).optional(),
-    transform: z.enum(["stripGlyphs", "ignore"]),
+    transform: z.enum(["stripGlyphs", "ignore", "shift"]),
+    /** With transform "shift": the constant offset (px) the app adds to the wireframe value of each listed numeric prop. */
+    shift: z.record(z.string(), z.number()).optional(),
+    /** The wireframe element has no counterpart in the app. Covered keys need no locator; their rows are ALLOWED. */
+    na: z.boolean().optional(),
+    /** Wireframe strings declared absent from the app (with `reason`); they are not counted as missing. */
+    copy: z.array(z.string()).optional(),
   })
   .strict();
 

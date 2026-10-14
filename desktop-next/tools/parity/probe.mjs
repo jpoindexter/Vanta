@@ -11,7 +11,18 @@ export function probeElements(els, ctx) {
   const ownText = (el) => [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ");
   const opts = { checkOpacity: !ctx.ignoreOpacity, opacityProperty: !ctx.ignoreOpacity, checkVisibilityCSS: true, visibilityProperty: true };
 
-  return els.map((el) => {
+  // Geometry first; decorative text (spinner frames) is hidden only while text is read, so it never moves a box.
+  const rawText = (el) => (ctx.textMode === "none" ? "" : ctx.textMode === "own" ? ownText(el) : (el.innerText ?? el.textContent ?? ""));
+  const hidden = ctx.textIgnore ? [...document.querySelectorAll(ctx.textIgnore)] : [];
+  const texts = (() => {
+    const saved = hidden.map((n) => n.style.display);
+    hidden.forEach((n) => (n.style.display = "none"));
+    const read = els.map(rawText);
+    hidden.forEach((n, i) => (n.style.display = saved[i]));
+    return read;
+  })();
+
+  return els.map((el, index) => {
     const cs = getComputedStyle(el);
     const rect = el.getBoundingClientRect();
     const visible = el.checkVisibility(opts);
@@ -22,8 +33,7 @@ export function probeElements(els, ctx) {
     const h = rect.height / sc;
     Object.assign(out, { x: round((rect.x - ctx.frame.x) / sc), y: round((rect.y - ctx.frame.y) / sc), w: round(w), h: round(h) });
 
-    const raw = ctx.textMode === "none" ? "" : ctx.textMode === "own" ? ownText(el) : (el.innerText ?? el.textContent ?? "");
-    const text = norm(transform(cs, raw));
+    const text = norm(transform(cs, texts[index]));
     if (text) Object.assign(out, { text, fontSize: round(parseFloat(cs.fontSize)), fontWeight: Number(cs.fontWeight) || 400 });
     const ph = el.getAttribute("placeholder") ?? el.getAttribute("data-placeholder");
     if (ph) out.placeholder = norm(ph);
@@ -47,13 +57,46 @@ export function probeElements(els, ctx) {
   });
 }
 
-/** Visible strings under `root` in DOM order, with CSS text-transform applied. */
-export function copyStrings(rootEl) {
+/**
+ * Visible strings under `root` in DOM order, with CSS text-transform applied. Text that
+ * runs on through inline markup (a link inside a sentence, a badge after a heading) is one string,
+ * as a person reads it; a flex or grid item, a block or a button is its own.
+ */
+export function copyStrings(rootEl, textIgnore) {
   const norm = (s) => s.replace(/\s+/g, " ").trim();
   const transform = (cs, t) => (cs.textTransform === "uppercase" ? t.toUpperCase() : cs.textTransform === "lowercase" ? t.toLowerCase() : t);
+  const INLINE = new Set(["inline", "inline-block", "contents", "ruby", "ruby-text"]);
   const root = rootEl;
+  const groups = new Map();
+  const pieces = [];
+  const groupOf = (el) => {
+    let g = el;
+    while (g !== root && g.parentElement && INLINE.has(getComputedStyle(g).display)) g = g.parentElement;
+    return g;
+  };
+  const add = (el, text) => {
+    if (!text) return;
+    const atRest = el.checkVisibility({ checkOpacity: true, opacityProperty: true, checkVisibilityCSS: true, visibilityProperty: true });
+    const shown = el.checkVisibility({ checkVisibilityCSS: true, visibilityProperty: true });
+    if (!atRest && !shown) return;
+    pieces.push(text);
+    const key = groupOf(el);
+    const entry = groups.get(key) ?? { rest: [], hover: [] };
+    entry[atRest ? "rest" : "hover"].push(text);
+    groups.set(key, entry);
+  };
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    const el = n.parentElement;
+    if (el && textIgnore && el.closest(textIgnore)) continue;
+    if (el && !["SCRIPT", "STYLE", "TEXTAREA"].includes(el.tagName)) add(el, norm(transform(getComputedStyle(el), n.textContent)));
+  }
   const rest = [];
   const hover = [];
+  for (const entry of groups.values()) {
+    if (entry.rest.length) rest.push(entry.rest.join(" "));
+    if (entry.hover.length) hover.push(entry.hover.join(" "));
+  }
   const push = (el, text) => {
     if (!text) return;
     const atRest = el.checkVisibility({ checkOpacity: true, opacityProperty: true, checkVisibilityCSS: true, visibilityProperty: true });
@@ -61,18 +104,13 @@ export function copyStrings(rootEl) {
     if (atRest) rest.push(text);
     else if (shown) hover.push(text);
   };
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-    const el = n.parentElement;
-    if (el && !["SCRIPT", "STYLE", "TEXTAREA"].includes(el.tagName)) push(el, norm(transform(getComputedStyle(el), n.textContent)));
-  }
-  for (const el of root.querySelectorAll("[placeholder],[aria-label]")) {
-    const ph = el.getAttribute("placeholder");
+  for (const el of root.querySelectorAll("[placeholder],[data-placeholder],[aria-label]")) {
+    const ph = el.getAttribute("placeholder") ?? el.getAttribute("data-placeholder");
     const label = el.tagName === "BUTTON" || el.getAttribute("role") === "button" ? el.getAttribute("aria-label") : null;
     if (ph) push(el, `[placeholder] ${norm(ph)}`);
     if (label) push(el, `[aria-label] ${norm(label)}`);
   }
-  return { rest, hover };
+  return { rest, hover, pieces };
 }
 
 async function frameInfo(page, map) {
@@ -98,7 +136,7 @@ export async function measureAll(page, map, options) {
       continue;
     }
     const entry = map.keys[key];
-    const ctx = { ...ctxBase, textMode: entry.textMode ?? "all", ignoreOpacity: options.hoverOnlyKeys.has(key) || entry.hoverOnly === true };
+    const ctx = { ...ctxBase, textIgnore: map.textIgnore ?? "", textMode: entry.textMode ?? "all", ignoreOpacity: options.hoverOnlyKeys.has(key) || entry.hoverOnly === true };
     const all = await loc.evaluateAll(probeElements, ctx);
     found[key] = isListKey(key) ? all : all.slice(0, 1);
     counts[key] = all.length;
@@ -109,5 +147,5 @@ export async function measureAll(page, map, options) {
 /** Visible strings for the copy inventory. */
 export async function measureCopy(page, map) {
   const root = map.copyRoot ? locatorFor(page, map, map.copyRoot).first() : page.locator("body");
-  return root.evaluate(copyStrings);
+  return root.evaluate(copyStrings, map.textIgnore ?? "");
 }

@@ -63,8 +63,16 @@ export function alwaysNote(approval: ApprovalPayload, projectName?: string): str
 /** The button names exactly the rule that gets saved: the tool, in this project. */
 export function alwaysLabel(approval: ApprovalPayload): string {
   return approval.request?.kind === 'bash'
-    ? 'Always allow shell commands in this project'
+    ? 'Always allow shell commands'
     : `Always allow ${toolOf(approval)} in this project`
+}
+
+/** The confirmation shown once an Always answer is saved: what is allowed and where. */
+export function alwaysSavedText(approval: ApprovalPayload, projectName?: string): string {
+  const what = approval.request?.kind === 'bash' ? 'shell commands' : toolOf(approval)
+  const where = projectName ? `the ${projectName} project` : 'this project'
+
+  return `Saved: always allow ${what} in ${where}. Manage in Settings.`
 }
 
 /** Flat inline card that names the exact action; Reject carries the same weight as Allow. */

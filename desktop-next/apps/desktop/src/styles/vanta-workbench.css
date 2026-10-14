@@ -64,7 +64,7 @@
   padding: 12px;
 }
 
-.vp-code {
+.vp .vp-code {
   background: var(--vp-bg2);
   border: 1px solid var(--vp-hair);
   border-radius: 6px;
@@ -75,7 +75,7 @@
   white-space: pre-wrap;
 }
 
-.vp-code--flush {
+.vp .vp-code--flush {
   margin-bottom: 0;
 }
 
@@ -139,4 +139,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* The pane shell zeroes aside borders ([data-tree-group] :is(aside, ...)); the wireframe draws the column's hairline. */
+aside.vp-wb.vp-wb {
+  border-left-width: 1px;
 }

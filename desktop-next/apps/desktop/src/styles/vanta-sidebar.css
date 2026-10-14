@@ -1,0 +1,120 @@
+/* The full sidebar (the Hermes list, kept) on the wireframe's metrics:
+ * docs/wireframe .sidebar, .nav, .grouplabel, .badge and .row. Scoped to the
+ * sessions sidebar; the 1100px rail is the Vanta sidebar in vanta-shell.css.
+ * Unlayered, imported after styles.css, so it wins over the Tailwind utilities
+ * the Hermes components carry. Hooks are data-testid attributes, not classes. */
+
+/* The pane shell zeroes sidebar borders ([data-tree-group] :is(aside, [data-slot=sidebar])); the wireframe draws one hairline. */
+[data-tree-group] [data-slot='sidebar'][data-tour='sessions-sidebar'] {
+  border-right: 1px solid var(--ui-stroke-tertiary);
+}
+
+[data-tour='sessions-sidebar'] [data-slot='sidebar-content'] {
+  padding-inline: var(--vs-pad-sidebar-x);
+}
+
+/* The sidebar sits under the 44px titlebar, so the nav needs no titlebar clearance. */
+[data-tour='sessions-sidebar'] [data-slot='sidebar-group']:first-child {
+  padding-top: var(--vs-pad-sidebar-y);
+}
+
+[data-tour='sessions-sidebar'] [data-slot='sidebar-menu'] {
+  gap: 0;
+}
+
+/* ---------- nav rows ---------- */
+
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'] {
+  gap: var(--vs-gap-bar);
+  height: var(--vs-nav-h);
+  padding-inline: var(--vs-pad-nav-x);
+  border-radius: var(--vs-radius-row);
+  font-size: var(--vs-text-ui);
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'] > :first-child {
+  flex: none;
+  width: var(--vs-glyph);
+  height: var(--vs-glyph);
+}
+
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'] [data-tour^='sidebar-nav-'] {
+  font-size: var(--vs-text-ui);
+  font-weight: 400;
+}
+
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'][data-active='true'],
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'][data-active='true'] [data-tour^='sidebar-nav-'] {
+  font-weight: var(--vs-weight-strong);
+}
+
+/* ---------- group labels ---------- */
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] {
+  justify-content: space-between;
+  padding: var(--vs-pad-label);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] > :first-child {
+  flex: 1;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] > button:first-child {
+  flex: none;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] .dither {
+  display: none;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] span.flex.min-w-0.items-center {
+  padding-left: 0;
+  font-size: var(--vs-text-meta);
+  font-weight: 400;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] span.flex.min-w-0.items-center {
+  align-items: stretch;
+}
+
+/* On the name itself: a button resets text-transform, so the collapsible headers would not inherit it. */
+[data-tour='sessions-sidebar'] [data-testid='sidebar-group-name'] {
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.vs-badge {
+  display: inline-block;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+/* ---------- session rows ---------- */
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row-lead'] {
+  width: 16px;
+  height: 16px;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row-title'],
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row-title'] span {
+  font-size: var(--vs-text-ui);
+  line-height: 1.45;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row-time'] {
+  display: inline-block;
+  font-size: var(--vs-text-meta);
+  line-height: 1.45;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row'][data-selected='true'] :is([data-testid='sidebar-row-title'], [data-testid='sidebar-row-title'] span, [data-testid='sidebar-row-time']) {
+  font-weight: var(--vs-weight-strong);
+}

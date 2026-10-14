@@ -48,7 +48,8 @@
   --composer-shell-pad-block-end: 12px;
   --composer-surface-pad-x: 0px;
   --composer-surface-pad-y: 0px;
-  --composer-row-gap: 0px;
+  /* The wireframe leaves a 5.3px gap under the textarea before the tools row. */
+  --composer-row-gap: 5.29px;
   --composer-control-gap: 6px;
   --composer-control-primary-size: var(--vp-send);
   --composer-input-min-height: 44px;
@@ -118,7 +119,8 @@
   gap: 6px;
   margin: 0 0 2px;
   font-size: var(--vp-text);
-  font-weight: 600;
+  /* The wireframe's h4 is the UA bold (700). */
+  font-weight: 700;
   line-height: var(--vp-leading);
 }
 
@@ -194,7 +196,8 @@
   padding: 1px 8px;
   border: 1px solid transparent;
   border-radius: var(--vp-radius-control);
-  background: transparent;
+  /* Like the wireframe's buttons: filled with the page colour, hairline invisible until hover. */
+  background: var(--vp-bg);
   color: var(--vp-ink2);
   font: inherit;
   font-size: var(--vp-meta);
@@ -212,7 +215,7 @@
 }
 
 .vp-action-time {
-  padding: 0 0 0 6px;
+  padding: 0;
   color: var(--vp-ink3);
   font-size: var(--vp-meta);
   line-height: var(--vp-leading);
@@ -221,6 +224,7 @@
 /* ---------- thread ---------- */
 
 [data-slot='aui_thread-viewport'] {
+  padding-block-start: 22px;
   padding-inline: var(--vp-gutter);
 }
 
@@ -257,6 +261,13 @@
 
 .vp-user .vp-hover-actions {
   justify-content: flex-end;
+  width: 100%;
+}
+
+/* The restore-checkpoint button is a Hermes control inside the Vanta action row: it must not make the row taller. */
+.vp-hover-actions .size-6 {
+  width: 21.39px;
+  height: 21.39px;
 }
 
 /* ---------- tool steps ---------- */
@@ -264,6 +275,7 @@
 .vp-step {
   display: flex;
   align-items: center;
+  border-radius: 8px;
   gap: 8px;
   min-width: 0;
   width: 100%;
@@ -530,9 +542,13 @@
 
 /* ---------- empty state ---------- */
 
-.vp-empty {
+.vp-empty[data-slot='aui_intro'] {
+  align-self: start;
   max-width: 640px;
-  margin: 38px auto 0;
+  /* styles.css reserves the composer's measured height under the intro; the wireframe does not. */
+  padding-bottom: 0;
+  /* 114px from the pane top in the wireframe: 22 viewport padding + 32 column padding + this. */
+  margin: 16px auto 0;
   text-align: center;
 }
 
@@ -571,7 +587,21 @@
   margin-left: auto;
 }
 
+/* The column's gap is the only block rhythm: the Hermes adjacency margins would double it. */
+[data-slot='aui_assistant-message-content'][data-slot]
+  > :is([data-slot='tool-block'], [data-slot='aui_thinking-disclosure'], [data-slot='aui_turn-activity'], .aui-md)
+  + :is([data-slot='tool-block'], [data-slot='aui_thinking-disclosure'], [data-slot='aui_turn-activity'], .aui-md),
+[data-slot='aui_assistant-message-content'][data-slot] > .aui-md + .aui-md {
+  margin-top: 0;
+}
+
+/* A step row with nothing trailing must not give up 6px of its width to an empty slot. */
+.vp-step-row > span:empty {
+  display: none;
+}
+
 .vp-step-row {
+  border-radius: 8px;
   gap: 8px;
   font-size: var(--vp-text);
   line-height: var(--vp-leading);
@@ -623,4 +653,77 @@
 
 [data-slot='tool-approval-stack'] [data-slot='card-stack'][data-stack-count='1'] > [data-slot='card-stack-front'] {
   top: 0 !important;
+}
+
+/* ---------- composer dock ---------- */
+
+/* The dock is the wireframe's full-width strip under the thread (padding 0 16px 12px); the
+   composer and its hint sit in one centred 720px column. The composer root keeps its 5px grab margin. */
+[data-slot='composer-dock']:not([data-popped-out]) {
+  right: 0;
+  left: 0;
+  align-items: center;
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--vp-gutter);
+  translate: none;
+}
+
+[data-slot='composer-dock']:not([data-popped-out]) > * {
+  width: 100%;
+  max-width: calc(var(--vp-column) + 10px);
+}
+
+[data-slot='composer-dock']:not([data-popped-out]) > .vp-hint {
+  max-width: var(--vp-column);
+}
+
+[data-vp='composer-send'] {
+  border: 1px solid var(--vp-ink);
+}
+
+/* A live line reads "spinner, label, Stop" like the wireframe: no caret, and no gutter for an empty trailing stamp. */
+[data-vp='running-line'] .vp-step-caret {
+  display: none;
+}
+
+.vp-step-row > span:has(> span:empty:only-child) {
+  display: none;
+}
+
+.vp-action-time {
+  font-variant-numeric: normal;
+}
+
+/* Reply paragraphs follow the wireframe's 1.45 leading, not the 1.5 prose default. */
+[data-slot='aui_assistant-message-content'] .aui-md p {
+  line-height: var(--vp-leading);
+}
+
+/* The wireframe's live line is a div, not a button: square corners. */
+[data-vp='running-line'] {
+  border-radius: 0;
+}
+
+/* ---------- toast ---------- */
+
+/* The wireframe's confirmation: ink pill, 13px, centred 78px above the bottom of the pane. */
+.vp-toast {
+  position: absolute;
+  bottom: 78px;
+  left: 50%;
+  z-index: 10;
+  max-width: 90%;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+  font-size: var(--vp-small);
+  line-height: var(--vp-leading);
+  translate: -50% 0;
+}
+
+/* Like every wireframe button, a step takes the panel colour under the pointer. */
+.vp-step:hover {
+  background: var(--vp-panel);
 }

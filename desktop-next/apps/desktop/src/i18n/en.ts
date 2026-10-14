@@ -516,8 +516,8 @@ export const en: Translations = {
   },
 
   titlebar: {
-    hideSidebar: 'Hide sidebar',
-    showSidebar: 'Show sidebar',
+    hideSidebar: 'Close sidebar',
+    showSidebar: 'Open sidebar',
     search: 'Search',
     searchTitle: 'Search sessions, views, and actions',
     swapSidebarSides: 'Swap sidebar sides',
@@ -3379,7 +3379,7 @@ export const en: Translations = {
   },
 
   composer: {
-    message: 'Message',
+    message: 'Message Vanta',
     wakingProfile: profile => `Waking up ${profile}…`,
     placeholderStarting: 'Starting Vanta...',
     placeholderReconnecting: 'Reconnecting to Vanta…',

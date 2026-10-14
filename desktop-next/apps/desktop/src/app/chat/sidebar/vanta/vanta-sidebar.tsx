@@ -1,3 +1,4 @@
+import { useStore } from '@nanostores/react'
 import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router'
 
@@ -5,7 +6,7 @@ import { type AppView, isNewChatRoute } from '@/app/routes'
 import type { SidebarNavItem } from '@/app/types'
 import { useI18n } from '@/i18n'
 import { openCommandPalette } from '@/store/command-palette'
-import { openHome } from '@/store/home-view'
+import { $homeOpen, openHome } from '@/store/home-view'
 import { pinSession, SIDEBAR_SESSIONS_PAGE_SIZE, unpinSession } from '@/store/layout'
 import { notifyError } from '@/store/notifications'
 import { $sessions, sessionPinId } from '@/store/session'
@@ -111,7 +112,8 @@ export function VantaSidebar(props: VantaSidebarProps) {
     }
   }
 
-  const onHome = props.currentView === 'chat' && isNewChatRoute(pathname) && !model.selectedId
+  const homeOpen = useStore($homeOpen)
+  const onHome = props.currentView === 'chat' && isNewChatRoute(pathname) && !model.selectedId && homeOpen
   const activeId = onHome ? 'home' : (VIEW_DESTINATION[props.currentView] ?? null)
 
   return (

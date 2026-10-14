@@ -6,6 +6,7 @@ import { appViewForPath, type AppView, isNewChatRoute } from '@/app/routes'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
 import { pathLeaf } from '@/lib/display-path'
+import { $homeOpen } from '@/store/home-view'
 import { $approvalRequests } from '@/store/prompts'
 import { $currentCwd, $gatewayState, $sessions, sessionMatchesStoredId } from '@/store/session'
 import { $focusedStoredSessionId } from '@/store/session-focus'
@@ -83,11 +84,13 @@ export function useTitlebarModel(): TitlebarModel {
   const approvals = useStore($approvalRequests)
   const workspaceCwd = useStore($focusedWorkspaceCwd)
   const draftCwd = useStore($currentCwd)
+  const homeOpen = useStore($homeOpen)
 
   const view = appViewForPath(pathname)
   const pageKey = PAGE_LABEL[view]
   const session = selectedId ? (sessions.find(row => sessionMatchesStoredId(row, selectedId)) ?? null) : null
-  const homeLike = view === 'chat' && isNewChatRoute(pathname) && !selectedId
+  // The root route is Home only while Home is open; a new chat on the same route is a chat.
+  const homeLike = view === 'chat' && isNewChatRoute(pathname) && !selectedId && homeOpen
   const isChat = view === 'chat' && !homeLike
 
   const status = isChat

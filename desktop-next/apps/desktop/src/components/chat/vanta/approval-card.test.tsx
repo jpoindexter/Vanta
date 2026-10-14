@@ -39,7 +39,7 @@ describe('approval card copy per tool kind', () => {
     render(<ApprovalCard approval={approval} onAnswer={noop} projectName="Acme" />)
 
     expect(screen.getByText('Run a command')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Always allow shell commands in this project' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Always allow shell commands' })).toBeTruthy()
     expect(screen.getByText(/Always covers every shell command Vanta runs in the Acme project/)).toBeTruthy()
   })
 

@@ -5,20 +5,24 @@
       "id": "icon-glyphs",
       "reason": "The wireframe draws icons as text glyphs (plus, magnifier, triangle...); the app uses Tabler icons. A text difference that is only these glyphs is allowed.",
       "props": [
-        "text",
-        "placeholder"
+        "text"
       ],
       "transform": "stripGlyphs"
     },
     {
       "id": "icon-line-box",
-      "reason": "A text glyph sits in a line box (about 20px tall); an SVG icon is its own height. Width and x still must match.",
+      "reason": "A text glyph sits in a line box (about 20px tall) with a font size and weight; an SVG icon is its own height and has none. Width and x still must match.",
       "props": [
         "h",
-        "y"
+        "y",
+        "fontSize",
+        "fontWeight"
       ],
       "keys": [
-        "*.glyph"
+        "*.glyph",
+        "row.session.status[*]",
+        "titlebar.titleMenu",
+        "msg.assistant.action[*]"
       ],
       "transform": "ignore"
     },
@@ -40,7 +44,8 @@
       "keys": [
         "titlebar.dots"
       ],
-      "transform": "ignore"
+      "transform": "ignore",
+      "na": true
     },
     {
       "id": "w-composite-aria-roles",
@@ -107,7 +112,8 @@
         "border.top",
         "border.right",
         "border.bottom",
-        "border.left"
+        "border.left",
+        "border"
       ],
       "transform": "ignore",
       "keys": [
@@ -123,13 +129,14 @@
     },
     {
       "id": "owner-kept-sidebar-hermes-list",
-      "reason": "Owner-kept feature (R1): the sidebar keeps the original Hermes list controls the wireframe does not draw: SESSIONS | BOTS tab strip, Search sessions field, Pinned and Sessions sections with the filter menu, date dividers, per-row menus, messaging groups, CRON JOBS section, and project lanes. Needs you stays as the Vanta addition.",
+      "reason": "Owner-kept feature (R1): the sidebar keeps the original Hermes list controls the wireframe does not draw: SESSIONS | BOTS tab strip (28px), Search sessions field, Pinned and Sessions sections with the filter menu, date dividers, per-row menus and kebab, messaging groups, CRON JOBS section, project lanes and a Company row. Needs you stays as the Vanta addition. Group and row positions below those controls, and the row structure (a div holding a button, a kebab column that narrows the title and time), differ by design.",
       "props": [
         "h",
         "y",
         "w",
         "text",
-        "visible"
+        "aria",
+        "fontWeight"
       ],
       "transform": "ignore",
       "keys": [
@@ -137,12 +144,18 @@
         "sidebar.groupLabel[*]",
         "sidebar.groupName[*]",
         "nav.new",
-        "nav.search",
         "nav.home",
         "nav.schedules",
         "nav.connections",
         "nav.skills",
-        "nav.outputs"
+        "nav.outputs",
+        "needsYou.group",
+        "needsYou.label",
+        "needsYou.badge",
+        "row.session[*]",
+        "row.session.status[*]",
+        "row.session.title[*]",
+        "row.session.time[*]"
       ]
     },
     {
@@ -158,19 +171,8 @@
         "sidebar.userName",
         "sidebar.userMeta",
         "sidebar.settings"
-      ]
-    },
-    {
-      "id": "owner-kept-statusbar",
-      "reason": "Owner-kept feature (R1): the slim Hermes status bar is visible by default (command center, backend health, workspace, agents, cron, webhooks, timers, context meter, approval mode, terminal toggle, version); the wireframe draws no status bar. Free-tier and gateway switcher are removed.",
-      "props": [
-        "*"
       ],
-      "transform": "ignore",
-      "keys": [
-        "frame.bottom",
-        "statusbar"
-      ]
+      "na": true
     },
     {
       "id": "owner-kept-nav-labels",
@@ -178,13 +180,653 @@
       "props": [
         "text",
         "h",
-        "y"
+        "y",
+        "w"
       ],
       "transform": "ignore",
       "keys": [
         "nav.new.label",
         "nav.search.label",
         "nav.search.glyph"
+      ]
+    },
+    {
+      "id": "owner-kept-statusbar-shift",
+      "reason": "Owner-kept feature (R1): the 20px Hermes status bar sits under the window, so everything anchored to the bottom (the composer dock and its parts) is 20px higher than in the wireframe, which has no status bar. The offset is checked: y must equal the wireframe value minus 20.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": -20
+      },
+      "keys": [
+        "composer.dock",
+        "composer",
+        "composer.input",
+        "composer.attach",
+        "composer.dictate",
+        "composer.model",
+        "composer.effort",
+        "composer.permission",
+        "composer.send",
+        "composer.hint",
+        "composer.queue[*]",
+        "composer.queue.remove[*]",
+        "toast"
+      ]
+    },
+    {
+      "id": "owner-kept-statusbar-height",
+      "reason": "Owner-kept feature (R1): the 20px Hermes status bar takes height from the main pane and the workbench column (836 instead of 856). The height must equal the wireframe value minus 20.",
+      "props": [
+        "h"
+      ],
+      "transform": "shift",
+      "shift": {
+        "h": -20
+      },
+      "keys": [
+        "main",
+        "workbench",
+        "workbench.body"
+      ]
+    },
+    {
+      "id": "titlebar-left-cluster-shift",
+      "reason": "The native macOS traffic lights reserve their own width and the owner-kept sidebar toggle sits before New chat, so the title, its menu chip, the project chip and the status pill start 51px further right than the wireframe's dots and New chat. The offset is checked: x must equal the wireframe value plus 51.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": 51
+      },
+      "keys": [
+        "titlebar.title",
+        "titlebar.titleMenu",
+        "titlebar.project",
+        "titlebar.statusPill"
+      ],
+      "states": [
+        "w1440.*",
+        "w1100.*"
+      ]
+    },
+    {
+      "id": "owner-kept-sidebar-tab-strip",
+      "reason": "Owner-kept feature (R1): the SESSIONS | BOTS tab strip is 28px tall and sits above the nav, so New chat and its shortcut start 28px lower. The offset is checked: y must equal the wireframe value plus 28.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": 28
+      },
+      "keys": [
+        "nav.new.shortcut"
+      ]
+    },
+    {
+      "id": "owner-kept-sidebar-search-field",
+      "reason": "Owner-kept feature (R1): Search is the Hermes search field below the nav, not a 36px row between New chat and Home, so Home to Outputs start 36px higher; with the 28px tab strip their labels are 8px higher than the wireframe. The offset is checked: y must equal the wireframe value minus 8.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": -8
+      },
+      "keys": [
+        "nav.home.label",
+        "nav.schedules.label",
+        "nav.connections.label",
+        "nav.skills.label",
+        "nav.outputs.label"
+      ]
+    },
+    {
+      "id": "search-shortcut-hint",
+      "reason": "Owner-kept feature (R1): the sidebar search is a session filter field with no shortcut hint; Command-K opens the command palette from anywhere, and the palette lists it.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "na": true,
+      "keys": [
+        "nav.search.shortcut"
+      ]
+    },
+    {
+      "id": "composer-floats-over-thread",
+      "reason": "The thread scroller runs the full height of the pane and the composer floats over its bottom, with scroll clearance reserved below the last message (Hermes layout, kept so the transcript scrolls behind a translucent composer edge). The wireframe stacks a shorter scroller above the dock, so the scroller and the column are taller by the clearance.",
+      "props": [
+        "h"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "thread.scroll",
+        "thread.column"
+      ]
+    },
+    {
+      "id": "wireframe-user-bubble-nesting",
+      "reason": "Wireframe quirk: .msg-u sets max-width:80% inside a flex item that is already 80% wide, so the bubble is 64% of the column (426px) and wraps to two lines. The build bubble is 80% (532px) and holds the prompt on one line.",
+      "props": [
+        "w",
+        "h"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "msg.user[*]"
+      ]
+    },
+    {
+      "id": "main-landmark",
+      "reason": "The workspace pane hosts several chat tiles and pages, so it is not a single main landmark; the wireframe's .main is a main element.",
+      "props": [
+        "aria"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "main"
+      ]
+    },
+    {
+      "id": "wireframe-user-bubble-wrap-shift",
+      "reason": "Consequence of the wireframe's nested max-width:80% (see wireframe-user-bubble-nesting): its prompt bubble wraps to two lines (56.6px) where the build's holds one (36px), so everything below the prompt starts 20.59px higher in the build. The offset is checked: y must equal the wireframe value minus 20.59.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": -20.59
+      },
+      "states": [
+        "*.chat-running",
+        "*.chat-waiting",
+        "*.chat-done",
+        "*.chat-failed",
+        "*.chat-offline",
+        "*.wb-*",
+        "*.palette*",
+        "*.settings",
+        "*.dark-waiting",
+        "*.waiting-*",
+        "*.running-queued",
+        "*.drawer-waiting",
+        "*.chat-blocked"
+      ],
+      "keys": [
+        "msg.user.actions[*]",
+        "msg.user.action[*]",
+        "msg.user.time[*]",
+        "msg.assistant[0]",
+        "step[*]",
+        "card.blocked",
+        "card.blocked.*"
+      ]
+    },
+    {
+      "id": "reply-actions-row-shift",
+      "reason": "The wireframe draws each assistant paragraph with its own hover action row (Copy, thumbs, Retry: 4px + 21.39px) right under the first sentence; the build keeps one action row per reply, at the end, and only once the reply is complete. Everything after the first sentence therefore starts 25.39px higher, on top of the prompt-bubble offset (20.59px). The offset is checked: y must equal the wireframe value minus 45.98.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": -45.98
+      },
+      "states": [
+        "*.chat-running",
+        "*.chat-waiting",
+        "*.chat-done",
+        "*.chat-failed",
+        "*.chat-offline",
+        "*.wb-*",
+        "*.palette*",
+        "*.settings",
+        "*.dark-waiting",
+        "*.waiting-*",
+        "*.running-queued",
+        "*.drawer-waiting"
+      ],
+      "keys": [
+        "step[*]",
+        "step.body[*]",
+        "card.diff",
+        "card.diff.title",
+        "card.diff.summary",
+        "card.diff.review",
+        "card.approval",
+        "card.approval.*",
+        "card.error",
+        "card.error.*",
+        "running.*",
+        "msg.assistant[1]"
+      ]
+    },
+    {
+      "id": "owner-kept-search-field",
+      "reason": "Owner-kept feature (R1): Search is the Hermes session search field (a 101px input with a magnifier), not a 258px row with a label; the wireframe's row geometry, label and typography do not apply.",
+      "props": [
+        "x",
+        "y",
+        "radius",
+        "aria",
+        "fontSize",
+        "fontWeight"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "nav.search",
+        "nav.search.glyph",
+        "nav.search.label"
+      ]
+    },
+    {
+      "id": "sidebar-row-kebab-column",
+      "reason": "Owner-kept feature (R1): every Hermes session row reserves a 20px actions column for its kebab menu, so the title is narrower and the time sits in a fixed 20-24px box instead of the wireframe's text-width time at the row edge.",
+      "props": [
+        "x"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "row.session.title[*]",
+        "row.session.time[*]"
+      ]
+    },
+    {
+      "id": "wireframe-empty-keeps-focused-chat",
+      "reason": "Wireframe quirk: its empty state reuses the previously focused chat (title 'Refactor billing webhooks', project chip Vanta, that chat's row selected) over an empty thread. The build's empty state is a new chat: 'New chat', no project chip until a folder is chosen, no row selected, and the thread column holds the starter prompts.",
+      "props": [
+        "filled",
+        "text",
+        "visible",
+        "w",
+        "x"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.chat-empty"
+      ],
+      "keys": [
+        "titlebar.title",
+        "titlebar.titleMenu",
+        "titlebar.project",
+        "row.session[*]",
+        "thread.column"
+      ]
+    },
+    {
+      "id": "titlebar-left-cluster-shift-narrow",
+      "reason": "At 800px the wireframe also draws a drawer button before New chat, so only the native traffic lights' extra width remains: the title, its menu chip, the project chip and the status pill start 15px further right. The offset is checked: x must equal the wireframe value plus 15.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": 15
+      },
+      "states": [
+        "w800.*"
+      ],
+      "keys": [
+        "titlebar.title",
+        "titlebar.titleMenu",
+        "titlebar.project",
+        "titlebar.statusPill"
+      ]
+    },
+    {
+      "id": "owner-kept-restore-checkpoint",
+      "reason": "Owner-kept feature (R1): a Restore checkpoint button follows the time at the end of a prompt's action row, so Copy, Edit and the time sit 21.39px + the 4px gap to the left of the wireframe's. The offset is checked: x must equal the wireframe value minus 25.39.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": -25.39
+      },
+      "keys": [
+        "msg.user.action[*]",
+        "msg.user.time[*]"
+      ]
+    },
+    {
+      "id": "reply-action-row-per-reply",
+      "reason": "The wireframe draws a hover action row (Copy, thumbs up and down, Retry) under every assistant paragraph; the build keeps one row per reply, at its end, once the reply is complete (Hermes message model: one assistant message holds the whole turn). The row's own styling is measured by tools/chat-parity (assistantActions) in the done and offline states.",
+      "props": [
+        "border",
+        "filled",
+        "radius",
+        "text",
+        "visible",
+        "visibleCount",
+        "w",
+        "x",
+        "y"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "msg.assistant.actions[*]",
+        "msg.assistant.action[*]"
+      ]
+    },
+    {
+      "id": "wireframe-failed-offline-keep-waiting",
+      "reason": "Wireframe quirk: in its failed and offline states the focused chat's sidebar row stays Waiting (and Needs you keeps 2) while the title bar says Failed or Offline. A real chat has one status that the row, the pill and Needs you all read, so the build's row follows the chat (done) and Needs you counts 1; the focused row also moves from Needs you into its group.",
+      "props": [
+        "filled"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.chat-failed",
+        "*.chat-offline"
+      ],
+      "keys": [
+        "needsYou.badge",
+        "row.session[*]",
+        "row.session.status[*]",
+        "row.session.title[*]",
+        "row.session.time[*]",
+        "sidebar.groupLabel[*]",
+        "sidebar.groupName[*]"
+      ]
+    },
+    {
+      "id": "running-spinner-box",
+      "reason": "The wireframe's running spinner is the 7.5px text glyph '\u25cc'; the build draws a 14px braille spinner in a 14px box, so the box is wider and the label starts 6.5px further right. The offset of the label is checked.",
+      "props": [
+        "w",
+        "h",
+        "y"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "running.spinner"
+      ]
+    },
+    {
+      "id": "running-label-shift",
+      "reason": "Consequence of running-spinner-box: the running label starts after a 14px spinner instead of the 7.5px glyph. x must equal the wireframe value plus 6.5.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": 6.5
+      },
+      "keys": [
+        "running.label"
+      ]
+    },
+    {
+      "id": "offline-composer-disabled",
+      "reason": "Offline the build disables the composer (placeholder 'Reconnecting to Vanta\u2026', model and effort menus need the backend) instead of accepting queued messages as the wireframe's banner says. Owner decision pending: queue-while-offline is not built.",
+      "props": [
+        "placeholder",
+        "visible",
+        "x"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.chat-offline"
+      ],
+      "keys": [
+        "composer.input",
+        "composer.model",
+        "composer.effort",
+        "composer.permission"
+      ]
+    },
+    {
+      "id": "open-chat-row-tint",
+      "reason": "Hermes tints the row of a chat that is open in a pane even while a page is showing (open-in-pane indicator); the wireframe's rows are untinted on pages.",
+      "props": [
+        "filled"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.view-*"
+      ],
+      "keys": [
+        "row.session[*]"
+      ]
+    },
+    {
+      "id": "failed-command-row-shift",
+      "reason": "The failed command keeps its own 36px step row plus the 14px gap above the error card (see failed-command-step), so the card starts 50px lower than the wireframe's other offsets predict. y must equal the wireframe value minus 45.98 plus 50.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": 4.02
+      },
+      "states": [
+        "*.chat-failed"
+      ],
+      "keys": [
+        "card.error",
+        "card.error.*"
+      ]
+    },
+    {
+      "id": "owner-kept-error-dismiss",
+      "reason": "Owner-kept feature: the failure card keeps its Dismiss error button, which takes a 24px column plus the 6px gap from the title and body width.",
+      "props": [
+        "w"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "card.error.title",
+        "card.error.body"
+      ]
+    },
+    {
+      "id": "banner-glyph-box",
+      "reason": "The offline banner's leading '\u25cb' is a 12px outlined-circle icon with an 8px gap, wider than the wireframe's text glyph, so the Retry button starts 8.85px further right. x must equal the wireframe value plus 8.85.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": 8.85
+      },
+      "keys": [
+        "banner.retry"
+      ]
+    },
+    {
+      "id": "owner-kept-queue-controls",
+      "reason": "Owner-kept feature: a queued message keeps its Edit and Steer buttons beside Remove, so the row is 1.5px taller, filled, and Remove sits further left than the wireframe's text-and-Remove row.",
+      "props": [
+        "text",
+        "h",
+        "filled",
+        "x",
+        "fontSize"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "composer.queue[*]",
+        "composer.queue.remove[*]"
+      ]
+    },
+    {
+      "id": "expanded-step-rows",
+      "reason": "An expanded 'Read 3 files' lists each file as its own step row (Read webhooks.ts, ...; Hermes tool-group view) instead of the wireframe's one-line comma list in a 2px-ruled box, so the body is 91px tall instead of 36.84px and the cards below start 54.05px lower. The card offset is checked.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": 8.07
+      },
+      "states": [
+        "*.waiting-step-open"
+      ],
+      "keys": [
+        "card.diff",
+        "card.diff.*",
+        "card.approval",
+        "card.approval.*"
+      ]
+    },
+    {
+      "id": "expanded-step-body",
+      "reason": "See expanded-step-rows: the expanded body is a list of rows, not a one-line comma list in a ruled box.",
+      "props": [
+        "border",
+        "fontSize",
+        "h",
+        "text",
+        "w",
+        "x",
+        "y"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "step.body[*]"
+      ]
+    },
+    {
+      "id": "copy-no-profile-chip",
+      "reason": "The owner does not want a profile chip in the sidebar footer: the footer is the settings gear only (with the kept Hermes profile row). The wireframe's avatar initial, name and 'Local \u00b7 model' line are not shown.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "J",
+        "Jason",
+        "Local \u00b7 Sonnet 5.5"
+      ]
+    },
+    {
+      "id": "copy-nav-labels",
+      "reason": "Owner-kept: the first nav row reads 'New session' (it is also a drag source for splits), and Search is the Hermes session search field with its own placeholder, with no shortcut hint.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "New chat",
+        "Search",
+        "\u2318K"
+      ]
+    },
+    {
+      "id": "copy-project-groups",
+      "reason": "The kept Hermes list groups the rest of the chats under 'Sessions' (and 'Cron jobs'), not under project names.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "VANTA",
+        "PORTFOLIO"
+      ]
+    },
+    {
+      "id": "copy-reply-retry",
+      "reason": "The build shows an assistant message's Copy, thumbs and Retry row once the reply is complete, at its end; a reply still being written has no Retry.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "Retry"
+      ],
+      "states": [
+        "*.chat-running",
+        "*.chat-waiting",
+        "*.wb-*",
+        "*.palette*",
+        "*.settings",
+        "*.dark-waiting",
+        "*.waiting-*",
+        "*.running-queued",
+        "*.drawer-waiting",
+        "*.chat-failed"
+      ]
+    },
+    {
+      "id": "copy-empty-keeps-focused-chat",
+      "reason": "Wireframe quirk: its empty state still names the previously focused chat and project in the title bar (see wireframe-empty-keeps-focused-chat).",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "Refactor billing webhooks",
+        "Vanta"
+      ],
+      "states": [
+        "*.chat-empty"
+      ]
+    },
+    {
+      "id": "copy-failed-offline-needs-count",
+      "reason": "Wireframe quirk: its failed, offline and empty states keep Needs you at 2 (see wireframe-failed-offline-keep-waiting); the build counts 1.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "2"
+      ],
+      "states": [
+        "*.chat-failed",
+        "*.chat-offline",
+        "*.chat-empty"
+      ]
+    },
+    {
+      "id": "copy-offline-effort",
+      "reason": "While the backend is away the build disables the composer: its placeholder says 'Reconnecting to Vanta\u2026' and the model and effort menus need the backend (see offline-composer-disabled). The wireframe keeps the composer enabled with its normal placeholder and chips.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "Medium \u25be",
+        "Sonnet 5.5 \u25be Medium \u25be Ask each time \u25be",
+        "[placeholder] Ask Vanta to do something"
+      ],
+      "states": [
+        "*.chat-offline"
+      ]
+    },
+    {
+      "id": "copy-live-clock",
+      "reason": "The status pill splits the word and the elapsed clock into two spans, and the clock moves; the wireframe prints '\u25cc Running 0:42' as one string.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "\u25cc Running 0:42"
+      ],
+      "states": [
+        "*.chat-running",
+        "*.running-queued",
+        "*.waiting-toast-always"
+      ]
+    },
+    {
+      "id": "copy-expanded-step",
+      "reason": "An expanded 'Read 3 files' lists one row per file (see expanded-step-rows) instead of a comma-separated list.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "copy": [
+        "billing/webhooks.ts, billing/retry.ts, billing/webhooks.test.ts"
+      ],
+      "states": [
+        "*.waiting-step-open"
       ]
     }
   ]

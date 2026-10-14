@@ -7,8 +7,26 @@ function tally(strings) {
   return m;
 }
 
-/** Strings (multiset) in `want` that `have` lacks, matching exactly first, then glyph-insensitively. */
-function missing(want, have, allowGlyphs) {
+const MAX_RUN = 12;
+
+/** Is `target` the words of a run of adjacent text pieces (a sentence split by inline links, a heading and its badge)? */
+function inRun(target, pieces, allowGlyphs) {
+  const norm = (t) => (allowGlyphs ? stripGlyphs(t) : t.replace(/\s+/g, " ").trim());
+  const goal = norm(target);
+  if (!goal || !pieces.length) return false;
+  for (let i = 0; i < pieces.length; i += 1) {
+    let acc = "";
+    for (let j = i; j < Math.min(pieces.length, i + MAX_RUN); j += 1) {
+      acc = norm(`${acc} ${pieces[j]}`);
+      if (acc === goal) return true;
+      if (!goal.startsWith(acc)) break;
+    }
+  }
+  return false;
+}
+
+/** Strings (multiset) in `want` that `have` lacks, matching exactly first, then glyph-insensitively, then as a run of adjacent pieces. */
+function missing(want, have, allowGlyphs, pieces = []) {
   const rest = tally(have);
   const strippedRest = new Map();
   for (const [s, n] of rest) strippedRest.set(stripGlyphs(s), (strippedRest.get(stripGlyphs(s)) ?? 0) + n);
@@ -20,7 +38,7 @@ function missing(want, have, allowGlyphs) {
     else if (allowGlyphs && strippedRest.get(stripGlyphs(s)) > 0) {
       strippedRest.set(stripGlyphs(s), strippedRest.get(stripGlyphs(s)) - 1);
       glyphOnly += 1;
-    } else lost.push(s);
+    } else if (!inRun(s, pieces, allowGlyphs)) lost.push(s);
   }
   return { lost, glyphOnly };
 }
@@ -29,13 +47,16 @@ function missing(want, have, allowGlyphs) {
  * One row per state. FAIL lists missing strings; ALLOWED means the only differences were
  * icon glyphs and `allowGlyphs` is set (a declared stripGlyphs deviation); UNMAPPED when the state was not drivable.
  */
-export function copyRow({ stateId, expected, appStrings, blocked, allowGlyphs }) {
-  const want = [...expected.strings, ...expected.hoverOnly];
-  const total = want.length;
+export function copyRow({ stateId, expected, appStrings, appPieces = [], blocked, allowGlyphs, declared = [] }) {
+  const all = [...expected.strings, ...expected.hoverOnly];
+  const total = all.length;
   if (blocked) return { state: stateId, status: "UNMAPPED", reason: blocked, total, found: 0 };
-  const { lost, glyphOnly } = missing(want, appStrings, allowGlyphs);
-  const found = total - lost.length;
+  const skip = tally(declared);
+  const want = all.filter((s) => (skip.get(s) > 0 ? (skip.set(s, skip.get(s) - 1), false) : true));
+  const declaredCount = total - want.length;
+  const { lost, glyphOnly } = missing(want, appStrings, allowGlyphs, appPieces);
+  const found = want.length - lost.length;
   const extra = missing(appStrings, want, allowGlyphs).lost.length;
-  const status = lost.length ? "FAIL" : glyphOnly ? "ALLOWED" : "PASS";
-  return { state: stateId, status, total, found, glyphOnly, extra, ...(lost.length && { missing: lost }) };
+  const status = lost.length ? "FAIL" : glyphOnly || declaredCount ? "ALLOWED" : "PASS";
+  return { state: stateId, status, total, found, glyphOnly, declared: declaredCount, extra, ...(lost.length && { missing: lost }) };
 }

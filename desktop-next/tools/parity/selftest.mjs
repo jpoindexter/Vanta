@@ -16,6 +16,9 @@ import { PARITY_DOCS, WIREFRAME_HTML, stringifyCompact, writeText } from "./io.m
 const EVIDENCE = path.join(PARITY_DOCS, "evidence");
 const MAP = path.join(PARITY_DOCS, "selector-map.json");
 const MAX_PRINTED = 10;
+// The wireframe is checked against itself with no declared deviations: they describe the app, not the comparator.
+const NO_DEVIATIONS = path.join(os.tmpdir(), "parity-no-deviations.json");
+fs.writeFileSync(NO_DEVIATIONS, JSON.stringify({ version: 1, deviations: [] }));
 const sha = (text) => crypto.createHash("sha256").update(text).digest("hex");
 const log = [];
 const say = (line) => {
@@ -45,7 +48,7 @@ async function determinism() {
 }
 
 async function selfCheck() {
-  const run = await runCheck({ file: WIREFRAME_HTML, map: MAP, settle: "0", quiet: true });
+  const run = await runCheck({ file: WIREFRAME_HTML, map: MAP, deviations: NO_DEVIATIONS, settle: "0", quiet: true });
   const r = run.summary.rows;
   const ok = r.PASS === r.total && run.summary.copy.states.PASS === run.copyRows.length;
   run.meta.verdict = ok ? "PARITY" : "NOT AT PARITY";
@@ -72,7 +75,7 @@ async function negative(m) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "parity-mut-"));
   const file = path.join(dir, "mutated.html");
   fs.writeFileSync(file, html.replace(m.find, m.replace));
-  const run = await runCheck({ file, map: MAP, settle: "0", quiet: true });
+  const run = await runCheck({ file, map: MAP, deviations: NO_DEVIATIONS, settle: "0", quiet: true });
   fs.rmSync(dir, { recursive: true, force: true });
   const pairs = failedPairs(run);
   const verdict = m.assert(pairs, run);
