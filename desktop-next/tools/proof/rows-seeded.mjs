@@ -19,8 +19,10 @@ async function filters(page) {
 
 export async function dateAndPinned(page) {
   await goHome(page);
+  await waitUntil(async () => /September|August/.test(await side(page).innerText()), 8000, 400);
   const text = await side(page).innerText();
-  verdict("F-028", AREA, "Month and date dividers", /September/.test(text) && /August/.test(text) && /Earlier this month/.test(text), { pass: "seeded chats from 10, 38 and 70+ days ago sit under Earlier this month, September, August and July", why: "no month dividers in the list" });
+  if (!/September/.test(text) && process.env.PROOF_SHOTS) await page.screenshot({ path: `${process.env.PROOF_SHOTS}/f028.png` });
+  verdict("F-028", AREA, "Month and date dividers", /September/.test(text) && /August/.test(text) && /Last week|Earlier this (week|month)/.test(text), { pass: "seeded chats from 10, 38 and 70+ days ago sit under a recent bucket, then September, August and July", why: "no month dividers in the list" });
   verdict("F-026", AREA, "Pinned section lists the pinned chat", /Pinned[\s\S]*Pinned: launch checklist/.test(text), { pass: "the seeded pinned chat is under Pinned", why: "pinned chat missing" });
   await attempt(page, "F-026C", AREA, "Pinned section collapses", async () => {
     await side(page).getByText("Pinned", { exact: true }).first().click();

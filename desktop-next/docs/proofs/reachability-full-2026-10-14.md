@@ -1,4 +1,4 @@
-# Reachability proof, 2026-10-13 (full inventory)
+# Reachability proof, 2026-10-14 (full inventory)
 
 Run: `node tools/reachability.mjs` against the built app (Electron shell, real Vanta server and kernel, sandboxed home, hidden window, 1440x900).
 State is seeded first: older, pinned, archived and bulk chats; then the run starts chats that run, wait for approval, fail and finish unread.
@@ -6,7 +6,7 @@ Native dialogs, Finder, the Trash and the default browser are stubbed in the mai
 
 PASS = present and its action was driven. INERT = present, but its backend or native call is not wired (expected). FAIL = missing or not working. DROPPED = removed on purpose. NOT-RUN = needs state or a platform the sandbox cannot give.
 
-Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
+Totals (269 rows): PASS 177, INERT 33, FAIL 3, DROPPED 17, NOT-RUN 39
 
 | Area | PASS | INERT | FAIL | DROPPED | NOT-RUN |
 |---|---|---|---|---|---|
@@ -19,12 +19,13 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 | status bar | 10 | 1 | 0 | 2 | 4 |
 | right pane | 21 | 5 | 0 | 0 | 3 |
 | command palette | 11 | 1 | 0 | 0 | 0 |
-| composer | 12 | 4 | 1 | 0 | 10 |
+| composer | 13 | 4 | 0 | 0 | 10 |
 | thread | 11 | 1 | 0 | 0 | 3 |
 | settings page | 14 | 10 | 0 | 1 | 0 |
 | context menus | 4 | 1 | 0 | 0 | 0 |
 | onboarding | 1 | 0 | 0 | 6 | 6 |
 | page / overlay | 12 | 5 | 0 | 3 | 1 |
+| home | 2 | 0 | 0 | 0 | 0 |
 | palette | 3 | 0 | 0 | 0 | 0 |
 | settings | 3 | 0 | 0 | 0 | 0 |
 
@@ -55,12 +56,12 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 | F-021 | sidebar top | Storage-corrupt banner | NOT-RUN | Hermes state.db specific; Vanta has no equivalent |
 | F-022 | sidebar top | Sidebar blank state | PASS |  |
 | F-023 | sidebar top | Sidebar width 275px | PASS | measured at 1440 wide |
-| F-024 | sidebar top | Tour anchors on nav rows | PASS | 6 anchors |
+| F-024 | sidebar top | Tour anchors on nav rows | PASS | 7 anchors |
 | F-025 | sidebar top | SESSIONS / BOTS tab strip | PASS |  |
 | F-026 | sidebar list | Pinned section lists the pinned chat | PASS | the seeded pinned chat is under Pinned |
 | F-026C | sidebar list | Pinned section collapses and reopens | PASS | header click hides then shows the pinned row |
 | F-027 | sidebar list | Sessions section header | PASS |  |
-| F-028 | sidebar list | Month and date dividers | PASS | seeded chats from 10, 38 and 70+ days ago sit under Earlier this month, September, August and July |
+| F-028 | sidebar list | Month and date dividers | PASS | seeded chats from 10, 38 and 70+ days ago sit under a recent bucket, then September, August and July |
 | F-029 | sidebar list | Status buckets when grouped by status | PASS | Grouping by Status regroups the list under status headers |
 | F-030 | sidebar list | Session row (dot, title, age) | PASS |  |
 | F-031 | sidebar list | Row open gestures | PASS | plain click opens the chat |
@@ -163,7 +164,7 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 | F-121 | composer | Model switch confirm, picker overlay, visibility dialog | NOT-RUN | choosing another model would change the sandbox's provider (a key or endpoint is needed); the picker menu itself is F-120 |
 | F-122 | composer | Reasoning pill: Thinking … Ultra | INERT | the menu lists Thinking / Minimal / Low / Medium / High / Extra High / Max / Ultra, but choosing High leaves the pill on Medium: the server refuses it for this endpoint ("custom vanta-proof does not support effort high", POST /api/model-settings 400) and the pill says nothing. The model's supported efforts should limit the list (src/api/vanta model options, R3) |
 | F-123 | composer | Permission chip: five modes | PASS | Ask each time / Accept edits / Plan / Auto / Full access; choosing Plan changed the chip to "Permission mode: Plan" |
-| F-124 | composer | Send / Stop / Queue | FAIL | stop=false queued=true buttons=Hide status stack//main/Copy path/New branch/Add context/Dictate/Model · custom: vanta-proof/Effort/Permission mode: Ask each time/Send |
+| F-124 | composer | Send / Stop / Queue | PASS | while a slow turn ran the Stop button showed and ⌘Enter queued a message |
 | F-125 | composer | Queue panel | PASS | the queued message sits above the composer |
 | F-126 | composer | Voice mic: dictation, read aloud, wake word | INERT | the Dictate button is there; it needs microphone access and a speech engine, so it was not started in a hidden run |
 | F-127 | composer | Voice conversation pill | NOT-RUN | needs a started voice conversation (microphone) |
@@ -264,7 +265,7 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 | F-220 | onboarding | Boot overlays and offline banner | NOT-RUN | needs the server to be down; the banner component and its Retry now are in the titlebar tests |
 | F-221 | onboarding | Legal butterbar (Nous terms) | DROPPED | removed with the branding |
 | F-222 | onboarding | Usage-stats consent strip | DROPPED | removed with the branding (telemetry) |
-| F-223 | onboarding | Tips bubbles and app tour | PASS | 6 tour anchors on the sidebar rows; Settings > Appearance > General has In-App Tips and Guided Tours switches |
+| F-223 | onboarding | Tips bubbles and app tour | PASS | 7 tour anchors on the sidebar rows; Settings > Appearance > General has In-App Tips and Guided Tours switches |
 | F-224 | onboarding | Billing banner and remote-display banner | DROPPED | billing banner removed; the remote-display banner is not mounted |
 | F-225 | page / overlay | Capabilities > Skills | PASS | tabs Skills, Tools, Connectors, Plugins load; Skills reads 0 (no skill hub is configured in this build, so there is nothing to install or toggle) |
 | F-226 | page / overlay | Capabilities > Tools: enable and disable | PASS | 153 tools listed with switches; toggling the first changed it (true -> false) through the tools route and was put back |
@@ -289,6 +290,8 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 | F-245 | page / overlay | Keyboard shortcuts: complete default map | PASS | Settings > Keyboard Shortcuts lists every chord by group (see F-172); the map is unchanged from the original |
 | FOCUS-CONTROL | thread | Control: without the reported focus the card follows the last-opened chat | PASS | after focusClient(null) the same command put its card in beta (opened last) while alpha was on screen: the reported focus is what routes the card |
 | FOCUS-ROUTE | thread | Approval cards from the terminal land in the chat in front | PASS | with two chats open (beta opened last), a command typed while alpha was in front put its card in alpha, and while beta was in front in beta |
+| HOME-COMPANY | home | Home Needs you: blocked company ticket | PASS | a blocked ticket from the Company API is a Needs you row beside the chats, with its blocker as the detail |
+| HOME-COMPANY-OPEN | home | Open on a company row goes to the ticket | PASS | Open navigated to #/company?tab=tickets&ticket=T-1 |
 | PAL | palette | Command palette (⌘K) | PASS |  |
 | PAL-HOME | palette | Palette: Home / New session / Settings rows | PASS |  |
 | PAL-NOPET | palette | Palette has no Pets / Memory Graph rows | PASS |  |
@@ -300,7 +303,7 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 | SET-NOBILL | settings | Settings has no Billing section | PASS |  |
 | SET-NOGW | settings | Settings has no Gateways section | PASS |  |
 
-## Not PASS (93)
+## Not PASS (92)
 
 - F-007 NOT-RUN: Unread badge on sidebar toggle. needs a finished-unread chat; badge renders from $unreadSessionCount
 - F-008 NOT-RUN: Titlebar plugin slots. no page projects titlebar chrome in the default app
@@ -340,7 +343,6 @@ Totals (267 rows): PASS 174, INERT 33, FAIL 4, DROPPED 17, NOT-RUN 39
 - F-119 INERT: Large paste collapse, screenshot capture. the screenshot hotkey (command-screenshot) is not part of the Vanta shell; paste collapse is renderer-only and not driven here
 - F-121 NOT-RUN: Model switch confirm, picker overlay, visibility dialog. choosing another model would change the sandbox's provider (a key or endpoint is needed); the picker menu itself is F-120
 - F-122 INERT: Reasoning pill: Thinking … Ultra. the menu lists Thinking / Minimal / Low / Medium / High / Extra High / Max / Ultra, but choosing High leaves the pill on Medium: the server refuses it for this endpoint ("custom vanta-proof does not support effort high", POST /api/model-settings 400) and the pill says nothing. The model's supported efforts should limit the list (src/api/vanta model options, R3)
-- F-124 FAIL: Send / Stop / Queue. stop=false queued=true buttons=Hide status stack||main|Copy path|New branch|Add context|Dictate|Model · custom: vanta-proof|Effort|Permission mode: Ask each time|Send
 - F-126 INERT: Voice mic: dictation, read aloud, wake word. the Dictate button is there; it needs microphone access and a speech engine, so it was not started in a hidden run
 - F-127 NOT-RUN: Voice conversation pill. needs a started voice conversation (microphone)
 - F-129 NOT-RUN: Subagents section. the status drawer shows these once the server reports them (subagent SSE, task stack, /api/goals); the canned model starts none
