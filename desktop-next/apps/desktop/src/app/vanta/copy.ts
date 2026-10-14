@@ -113,3 +113,9 @@ export const SETTINGS_COPY = {
   revokeFailed: "Couldn't revoke. The approval is still active.",
   noApprovals: 'No remembered approvals.'
 } as const
+
+/** The terminal pane has no shell: every line is one command that waits for an approval card. */
+export const TERMINAL_COPY = {
+  gateNote: 'Every command asks for approval first, in the chat you are looking at.',
+  gateNoteLabel: 'About this terminal'
+} as const

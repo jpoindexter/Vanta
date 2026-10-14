@@ -10,7 +10,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 
-import { startMockOpenAI } from "./mock-openai.mjs";
+import { PIXEL, startMockOpenAI } from "./mock-openai.mjs";
 
 const here = import.meta.dirname;
 export const desktopRoot = path.resolve(here, "..", "apps", "desktop");
@@ -33,6 +33,8 @@ function makeProject(root) {
   fs.mkdirSync(path.join(project, "src"), { recursive: true });
   fs.writeFileSync(path.join(project, "README.md"), "# Acme site\n\nA small project for trying Vanta.\n");
   fs.writeFileSync(path.join(project, "src", "index.ts"), "export const greeting = 'hello'\n");
+  // A committed image the scripted model can show in a chat (the renderer blocks remote and data: images).
+  fs.writeFileSync(path.join(project, "pixel.png"), Buffer.from(PIXEL, "base64"));
   // One schedule so Schedules, Home's Next up and the sidebar's cron section have data to show.
   fs.mkdirSync(path.join(project, ".vanta"), { recursive: true });
   fs.writeFileSync(path.join(project, ".vanta", "cron.tsv"), "1\t0 9 * * 1\tWeekly competitor brief\tactive\t\t\n");
@@ -61,22 +63,28 @@ function sandboxEnv({ root, project, modelUrl, hidden }) {
     VANTA_RUNTIME_ROOT: path.join(repoRoot, "vanta-ts"),
     VANTA_SKIP_QUIT_CONFIRM: "1",
   });
-  if (hidden) env.NODE_OPTIONS = `--require ${path.join(here, "hidden-window.cjs")}`;
   return env;
 }
 
 /** Start the app. `hidden` (default) keeps the window off-screen and inactive. */
-export async function launchVanta({ hidden = true, width = 1440, height = 900 } = {}) {
+export async function launchVanta({ hidden = true, width = 1440, height = 900, seed } = {}) {
   const { _electron } = require("playwright-core");
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-desktop-"));
   const project = makeProject(root);
-  const mock = await startMockOpenAI();
+  // Seed before the app starts: files under the sandbox's VANTA_HOME or project that the first screen should already show.
+  if (seed) await seed({ project, root, vantaHome: path.join(root, "vanta-home") });
+  const mock = await startMockOpenAI({ imagePath: path.join(project, "pixel.png") });
   const userData = path.join(root, "user-data");
   fs.mkdirSync(userData, { recursive: true });
+  // The tray is on by default and Electron's Tray cannot be replaced; start with it off so a proof run
+  // leaves no icon in the owner's menu bar. A run that tests the tray setting turns it on for a moment.
+  fs.writeFileSync(path.join(userData, "tray.json"), JSON.stringify({ enabled: false }));
 
   const app = await _electron.launch({
     executablePath: electronBinary(),
     args: [
+      // Electron strips NODE_OPTIONS in the main process; a --require argument is what reaches it.
+      ...(hidden ? ["--require", path.join(here, "hidden-window.cjs")] : []),
       desktopRoot,
       `--user-data-dir=${userData}`,
       "--disable-gpu",
@@ -107,6 +115,7 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900 } 
     page,
     root,
     project,
+    modelUrl: mock.url,
     errors,
     resize,
     async shot(file) {

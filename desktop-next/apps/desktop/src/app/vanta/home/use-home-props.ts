@@ -13,6 +13,8 @@ import { $sessionDotStateById } from '@/store/session-dot-state'
 
 import type { BlockState, HomeActions, HomeBlock, HomeProps } from '../types'
 
+import { companyItemRoute, mergeNeedsYou, useCompanyNeedsYou } from '../company/adapters/company-needs-you'
+
 import {
   type ArtifactEntry,
   needsYouItems,
@@ -60,22 +62,20 @@ function useOutputs(): {
   }
 }
 
-/** Home's four blocks from the stores the sidebar already reads, plus the outputs list. */
-export function useHomeProps(wiring: HomeWiring): HomeProps {
+/** What each Home control does. A company row opens its ticket; a chat row opens the chat. */
+function useHomeActions(wiring: HomeWiring, outputs: BlockState<ArtifactEntry>, reload: () => void): HomeActions {
   const navigate = useNavigate()
-  const sessions = useStore($sessions)
-  const dots = useStore($sessionDotStateById)
-  const facts = useStore($sessionFacts)
-  const jobs = useStore($cronJobs)
-  const projects = useStore($projects)
-  const { outputs, reload } = useOutputs()
 
-  const actions = useMemo<HomeActions>(
+  return useMemo<HomeActions>(
     () => ({
       onAllowOnce: id => void wiring.allowOnce(id).catch(error => notifyError(error, 'Could not allow that.')),
       onEditSchedule: () => navigate(CRON_ROUTE),
       onOpenOutput: () => navigate(ARTIFACTS_ROUTE),
-      onOpenSession: id => wiring.openSession(id),
+      onOpenSession: id => {
+        const route = companyItemRoute(id)
+
+        route ? navigate(route) : wiring.openSession(id)
+      },
       onRetry: (block: HomeBlock) => block === 'recent' && reload(),
       onRevealOutput: id => {
         const entry = outputs.status === 'ready' ? outputs.items.find(item => item.id === id) : undefined
@@ -91,18 +91,30 @@ export function useHomeProps(wiring: HomeWiring): HomeProps {
     }),
     [navigate, outputs, reload, wiring]
   )
+}
+
+/** Home's four blocks from the stores the sidebar already reads, the outputs list and the company's tickets. */
+export function useHomeProps(wiring: HomeWiring): HomeProps {
+  const sessions = useStore($sessions)
+  const dots = useStore($sessionDotStateById)
+  const facts = useStore($sessionFacts)
+  const jobs = useStore($cronJobs)
+  const projects = useStore($projects)
+  const { outputs, reload } = useOutputs()
+  const company = useCompanyNeedsYou()
+  const actions = useHomeActions(wiring, outputs, reload)
 
   return useMemo<HomeProps>(() => {
     const input = { dots, facts }
 
     return {
       actions,
-      needsYou: ready(needsYouItems(sessions, input)),
+      needsYou: mergeNeedsYou(ready(needsYouItems(sessions, input)), company),
       nextUp: ready(nextUpItems(jobs, Date.now())),
       projects: projectChips(projects),
       recent: outputs.status === 'ready' ? ready(recentOutputItems(outputs.items)) : outputs,
       running: ready(runningItems(sessions, input)),
       starterPrompt: 'Summarize what changed in this project this week'
     }
-  }, [actions, dots, facts, jobs, outputs, projects, sessions])
+  }, [actions, company, dots, facts, jobs, outputs, projects, sessions])
 }

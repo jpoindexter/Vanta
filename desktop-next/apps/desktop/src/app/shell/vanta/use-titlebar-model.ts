@@ -19,6 +19,8 @@ export interface TitlebarModel {
   isChat: boolean
   pill: null | { elapsed?: string; status: PillStatus }
   project: null | string
+  /** The folder behind the project chip; `project` is its last segment. */
+  projectPath: null | string
   session: null | SessionInfo
   title: string
 }
@@ -47,6 +49,25 @@ function useElapsed(startedAt: null | number | undefined, active: boolean): stri
   }, [active, startedAt])
 
   return active && startedAt ? formatElapsed(now - startedAt) : undefined
+}
+
+interface TitleInput {
+  homeLike: boolean
+  pageKey: (typeof PAGE_LABEL)[AppView]
+  session: null | SessionInfo
+  t: ReturnType<typeof useI18n>['t']
+}
+
+function viewTitle({ homeLike, pageKey, session, t }: TitleInput): string {
+  if (pageKey) {
+    return t.vantaShell.sidebar.nav[pageKey]
+  }
+
+  if (homeLike) {
+    return t.vantaShell.sidebar.nav.home
+  }
+
+  return session ? sessionTitle(session) : t.vantaShell.titlebar.newChatTitle
 }
 
 /** What the titlebar says about the current view: a page's name, or the focused
@@ -85,20 +106,13 @@ export function useTitlebarModel(): TitlebarModel {
   const elapsed = useElapsed(focused?.turnStartedAt, status === 'running')
   const cwd = workspaceCwd || session?.cwd || draftCwd
 
-  let title = t.vantaShell.titlebar.newChatTitle
-
-  if (pageKey) {
-    title = t.vantaShell.sidebar.nav[pageKey]
-  } else if (homeLike) {
-    title = t.vantaShell.sidebar.nav.home
-  } else if (session) {
-    title = sessionTitle(session)
-  }
+  const title = viewTitle({ homeLike, pageKey, session, t })
 
   return {
     isChat,
     pill: status ? { elapsed, status } : null,
     project: isChat ? pathLeaf(cwd) || null : null,
+    projectPath: isChat && cwd ? cwd : null,
     session: isChat ? session : null,
     title
   }

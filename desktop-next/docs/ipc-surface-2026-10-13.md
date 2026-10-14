@@ -583,6 +583,7 @@ Every one of these is **gone from the Vanta bundle**. "replaced" means a Vanta h
 | Channel | Direction | Handler | Notes |
 |---|---|---|---|
 | `vanta:request` | renderer invoke | `request-bridge.ts` | zod-validated HTTP call to the Vanta server |
+| `vanta:focus-client` | renderer send | `shell-handlers.ts`, `request-bridge.ts` | the chat in front (or `null`); picks where approval cards from the terminal and Changes panes appear |
 | `vanta:events:open`, `vanta:events:close` | renderer send | `shell-handlers.ts` | open or close one SSE stream, keyed by renderer-chosen stream id |
 | `vanta:events:frame`, `vanta:events:closed` | main push | `request-bridge.ts` | one parsed JSON frame, or the close reason |
 | `vanta:connection` | invoke | `shell-handlers.ts` | waits for the server, then returns the connection descriptor (placeholder token) |
@@ -681,6 +682,8 @@ The renderer never gets arbitrary exec, fs or network. Four mechanisms cover eve
 | Tray, minimize to tray, Needs you count, badge | F-201, F-178 | local plus pending-approval read | `vanta-tray`, `tray-setting` |
 | Quick entry | F-202, F-178 | local, relayed to the main window | `quick-entry-host` |
 | Context menu verbs | F-191 | allowlist | `context-menu` |
+| Agent roster, default profile (W2) | F-058 to F-076, F-233 | the server's `/api/profiles` and `POST /api/profiles/set-default` through the request bridge | `bridge-profiles` |
+| About: version and runtime (W2) | F-176 | `vanta:version` now answers the `DesktopVersionInfo` object the page reads, not a bare string | `shell-version` |
 
 ### 5.3 Refused or left unsupported, and why
 
@@ -698,8 +701,7 @@ The renderer never gets arbitrary exec, fs or network. Four mechanisms cover eve
 
 ### 5.4 Known limits and open questions
 
-- Terminal and repository changes show their approval card in the chat whose event stream the window opened last. If no chat is open, nothing runs and the
-  pane says so. With several chats open the card may appear in a chat that is not in view.
+- Terminal and repository changes show their approval card in the chat the renderer reports as in front (`vanta:focus-client`, sent from `src/store/focused-client.ts` whenever the active chat changes). If that chat's event stream is not open, the card goes to the chat whose stream the window opened last. If no chat is open, nothing runs and the pane says so.
 - A repository whose root is above the project folder is not readable; `gitRoot` never climbs past the project root.
 - Images outside the project (a screenshot in `/tmp` the agent mentions) cannot be previewed: reads are project-only. A per-session grant for files the user
   picked in a native dialog would fix this and is not built.

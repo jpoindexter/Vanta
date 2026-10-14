@@ -978,7 +978,7 @@ export interface Translations extends NoticeTranslations {
       screenRecording: string
       driverHealth: string
     }
-    about: { updates: string; channel: UpdateChannelCopy }
+    about: { updates: string; channel: UpdateChannelCopy; backend: string; backendLocal: string }
     config: {
       minimizeToTrayTitle: string
       minimizeToTrayDesc: string

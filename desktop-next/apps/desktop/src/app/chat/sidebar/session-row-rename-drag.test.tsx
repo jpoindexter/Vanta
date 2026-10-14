@@ -64,6 +64,9 @@ vi.mock('@/hermes', async importOriginal => {
 vi.mock('@/i18n', () => ({
   useI18n: () => ({
     t: {
+      vantaShell: {
+        status: { done: 'Done', failed: 'Failed', needsInput: 'Needs your input', running: 'Running', waiting: 'Waiting for you' }
+      },
       assistant: {
         thread: {
           today: (time: string) => `Today at ${time}`,

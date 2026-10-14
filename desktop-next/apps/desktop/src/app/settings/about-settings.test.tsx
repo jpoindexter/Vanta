@@ -118,6 +118,16 @@ describe('AboutSettings', (): void => {
     expect(checkBackendUpdates).toHaveBeenCalledTimes(2)
   })
 
+  it('states the one local backend as a read-only line', (): void => {
+    render(<AboutSettings />)
+
+    const row = screen.getByTestId('about-backend')
+
+    expect(row.textContent).toContain(en.settings.about.backend)
+    expect(row.textContent).toContain(en.settings.about.backendLocal)
+    expect(row.querySelector('button, input, select')).toBeNull()
+  })
+
   it('shows the fixed package channel with no selector', (): void => {
     $desktopVersion.set({ ...$desktopVersion.get()!, channel: 'canary' })
     render(<AboutSettings />)

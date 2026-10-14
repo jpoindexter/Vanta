@@ -7,6 +7,7 @@ export const CH = {
   request: 'vanta:request',
   eventsOpen: 'vanta:events:open',
   eventsClose: 'vanta:events:close',
+  focusClient: 'vanta:focus-client',
   eventsFrame: 'vanta:events:frame',
   eventsClosed: 'vanta:events:closed',
   // Connection and boot

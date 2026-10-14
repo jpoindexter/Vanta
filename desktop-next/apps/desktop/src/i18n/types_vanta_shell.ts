@@ -49,6 +49,12 @@ export interface VantaShellTranslations {
     more: string
     project: string
     noProject: string
+    projectMenu: (project: string) => string
+    switchProject: string
+    revealProject: string
+    copyProjectPath: string
+    projectPathCopied: string
+    switchProjectFailed: string
     newChatTitle: string
     resetLayout: string
     hideStatusbar: string
