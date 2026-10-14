@@ -426,7 +426,7 @@ export const en: Translations = {
       gatewayAuthFailed:
         'This Vanta no longer accepts your saved sign-in. Open Gateways and sign in again (or paste a new access token), then retry.',
       methodNotAllowed:
-        "Vanta' background service is out of step with the app, probably after an update. Restart it to fix this.",
+        "Vanta's background service is out of step with the app, probably after an update. Restart it to fix this.",
       microphonePermission: 'Microphone permission was denied.',
       openaiRejectedApiKey: "OpenAI didn't accept your API key. Update it in Settings → Keys, then try again.",
       openaiTtsNeedsKey: 'Voice needs an OpenAI key. Add one in Settings → Keys.',

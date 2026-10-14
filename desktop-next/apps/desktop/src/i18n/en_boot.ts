@@ -34,17 +34,17 @@ export const enBoot = {
     // Plain causes for a local backend boot failure (`classifyBootFailure`);
     // the raw output stays behind "Show recent logs".
     causes: {
-      exitedEarly: "Vanta' background service stopped right after starting.",
-      timedOut: "Vanta' background service didn't answer in time.",
+      exitedEarly: "Vanta's background service stopped right after starting.",
+      timedOut: "Vanta's background service didn't answer in time.",
       permission: "Vanta couldn't write to its data folder (permission problem).",
       diskFull: 'The disk is full, so Vanta could not start.',
       portInUse: 'Another program is using the network port Vanta needs.',
-      installMissing: "Part of Vanta' installation is missing. Choose Repair install to put it back."
+      installMissing: "Part of Vanta's installation is missing. Choose Repair install to put it back."
     },
     failure: {
       title: "Vanta couldn't start",
       description:
-        "Vanta' background service didn't come up. Try one of the recovery steps below. Nothing here deletes your chats or settings.",
+        "Vanta's background service didn't come up. Try one of the recovery steps below. Nothing here deletes your chats or settings.",
       details: 'Details',
       remoteTitle: 'Remote gateway sign-in required',
       remoteDescription:
@@ -98,7 +98,7 @@ export const enBoot = {
       startAnyway: 'Start anyway…',
       confirmTitle: 'Start Vanta while the update still holds it?',
       confirmBody:
-        "The leftover update process may still be changing Vanta' files. Starting now can load a half-updated install, which may not work until you run the update again. Vanta records this choice in its log and leaves the update marker in place.",
+        "The leftover update process may still be changing Vanta's files. Starting now can load a half-updated install, which may not work until you run the update again. Vanta records this choice in its log and leaves the update marker in place.",
       confirmKeepWaiting: 'Keep waiting',
       confirmStart: 'Start anyway',
       startAnywayRefused: 'What holds the install changed before Vanta could start. Review it and try again.'
