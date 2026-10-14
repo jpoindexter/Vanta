@@ -4,6 +4,7 @@ import path from 'node:path'
 
 import { createHttpTransport } from '../../../shared/src/vanta'
 
+import { stopProcessTree } from '../../../../../vanta-ts/desktop-app/electron/process-tree.mjs'
 import { findAvailablePort } from '../../../../../vanta-ts/desktop-app/electron/project-root.mjs'
 import { desktopRuntimeEnv } from '../../../../../vanta-ts/desktop-app/electron/runtime-env.mjs'
 import { serverLaunchArgs } from '../../../../../vanta-ts/desktop-app/electron/runtime-launch.mjs'
@@ -38,6 +39,8 @@ export interface VantaServer {
   /** Resolves once the server answers an authenticated request; rejects with the reason it did not. */
   ready: Promise<void>
   stop: () => void
+  /** Stops the runtime and everything it started (kernel guard, kernel); resolves once they are gone or SIGKILLed. */
+  stopAndWait: () => Promise<void>
   /** Kept in main. Never hand this to a renderer. */
   token: string
   readonly exited: Promise<{ code: null | number; signal: null | string }>
@@ -47,6 +50,7 @@ export interface LaunchDeps {
   findPort: typeof findAvailablePort
   probe: (baseUrl: string, token: string) => Promise<boolean>
   spawnProcess: (command: string, args: string[], options: { cwd: string; env: NodeJS.ProcessEnv }) => ChildProcess
+  stopTree: (child: ChildProcess) => Promise<unknown>
 }
 
 async function probeAuthenticated(baseUrl: string, token: string): Promise<boolean> {
@@ -61,7 +65,8 @@ async function probeAuthenticated(baseUrl: string, token: string): Promise<boole
 const defaultDeps: LaunchDeps = {
   findPort: findAvailablePort,
   probe: probeAuthenticated,
-  spawnProcess: (command, args, options) => spawn(command, args, { ...options, stdio: ['ignore', 'pipe', 'pipe'] })
+  spawnProcess: (command, args, options) => spawn(command, args, { ...options, stdio: ['ignore', 'pipe', 'pipe'] }),
+  stopTree: child => stopProcessTree(child)
 }
 
 export function newBoundaryToken(): string {
@@ -78,6 +83,8 @@ export function buildServerCommand(input: LaunchInput, token: string, port: numb
     ...desktopRuntimeEnv(input.env ?? process.env),
     VANTA_DESKTOP_BOUNDARY_TOKEN: token,
     VANTA_DESKTOP_DIST: paths.dist,
+    // The runtime ends when this shell does, even if the shell is SIGKILLed and runs no cleanup.
+    VANTA_DESKTOP_PARENT_WATCH: '1',
     VANTA_KERNEL_BIN: paths.kernel,
     VANTA_PROJECT_ROOT: input.projectRoot,
     ...(input.packaged ? { ELECTRON_RUN_AS_NODE: '1' } : {})
@@ -109,15 +116,8 @@ function waitForListening(child: ChildProcess): Promise<void> {
   })
 }
 
-/**
- * Start the Vanta desktop server with the same command, environment and boundary token the Vanta
- * shell uses (vanta-ts/desktop-app/electron/main.mjs), then verify it answers an authenticated call.
- */
-export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchDeps> = {}): Promise<VantaServer> {
-  const { findPort, probe, spawnProcess } = { ...defaultDeps, ...deps }
-  const token = newBoundaryToken()
-  const port = await findPort(input.preferredPort ?? DEFAULT_SERVER_PORT)
-  const paths = withBundledLoader(
+function runtimePathsFor(input: LaunchInput): VantaRuntimePaths {
+  return withBundledLoader(
     resolveRuntimePaths({
       appPath: path.resolve(input.runtimeRoot),
       packaged: input.packaged,
@@ -126,6 +126,17 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
     }),
     { packaged: input.packaged, runtimeRoot: input.runtimeRoot }
   )
+}
+
+/**
+ * Start the Vanta desktop server with the same command, environment and boundary token the Vanta
+ * shell uses (vanta-ts/desktop-app/electron/main.mjs), then verify it answers an authenticated call.
+ */
+export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchDeps> = {}): Promise<VantaServer> {
+  const { findPort, probe, spawnProcess, stopTree } = { ...defaultDeps, ...deps }
+  const token = newBoundaryToken()
+  const port = await findPort(input.preferredPort ?? DEFAULT_SERVER_PORT)
+  const paths = runtimePathsFor(input)
   const { args, command, env, runtime, runtimeReason } = buildServerCommand(input, token, port, paths)
 
   if (runtime === 'tsx') {
@@ -159,6 +170,9 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
       if (!child.killed) {
         child.kill('SIGTERM')
       }
+    },
+    stopAndWait: async () => {
+      await stopTree(child)
     },
     token
   }
