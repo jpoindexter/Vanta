@@ -220,8 +220,16 @@ async function switchSettled(ctx) {
   await page.keyboard.press("Escape");
   await page.keyboard.press("Escape");
   await settle(page, 500);
-  const chip = await page.locator("[data-slot='statusbar'], footer").first().innerText().catch(() => "");
-  if (!/bravo/.test(await page.evaluate(() => document.body.innerText))) throw new Error(`status bar does not show project bravo (${chip.slice(0, 80)})`);
+  // The new runtime may still be starting (the proof runs the slower source runtime): wait for the
+  // condition, and record how long it took so a slow start reads as a number, not a flake.
+  const started = Date.now();
+  const SWITCH_WAIT_MS = 60_000;
+  const shown = await page.waitForFunction(() => /bravo/.test(document.body.innerText), undefined, { timeout: SWITCH_WAIT_MS }).then(() => true, () => false);
+  ctx.evidence("e-switch-timing", { msUntilProjectShown: shown ? Date.now() - started : null, waitedMs: Date.now() - started });
+  if (!shown) {
+    const chip = await page.locator("[data-slot='statusbar'], footer").first().innerText().catch(() => "");
+    throw new Error(`status bar does not show project bravo after ${SWITCH_WAIT_MS / 1000}s (${chip.slice(0, 80)})`);
+  }
 }
 
 /** Settings > Sessions > Default project folder, waiting for the pane to finish loading before each click. */
