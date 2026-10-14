@@ -7,6 +7,7 @@
 import { type FixtureLayers, type FixturePage, $fixtureLayers, NO_LAYERS } from '@/dev/shell-fixture-host'
 import type { ShellFixtureName } from '@/dev/shell-fixtures'
 import { closeHome, openHome } from '@/store/home-view'
+import { setSidebarOpen } from '@/store/layout'
 
 export interface FixtureSpec {
   chat?: ShellFixtureName
@@ -40,7 +41,14 @@ function applyChat(chat: ShellFixtureName, seed: Seeder, focusedId: string): voi
   go(chat === 'empty' ? '/' : `/${focusedId}`)
 }
 
+/** Below this width the sidebar is a drawer that closes when a destination is picked. */
+const DRAWER_BELOW_PX = 1024
+
 function applyPage(page: FixturePage): void {
+  if (window.innerWidth < DRAWER_BELOW_PX) {
+    setSidebarOpen(false)
+  }
+
   if (page === 'home') {
     openHome()
   } else {

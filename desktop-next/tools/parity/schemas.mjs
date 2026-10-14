@@ -67,6 +67,8 @@ export const SelectorMap = z
       z.object({ mode: z.literal("frame") }).strict(),
     ]),
     prepare: z.object({ css: z.string().optional(), initScript: z.string().optional() }).strict().default({}),
+    /** CSS selector of decorative subtrees (spinner frame strips) whose text is not content; skipped when reading text. */
+    textIgnore: z.string().optional(),
     frame: LocatorSpec.optional(),
     copyRoot: LocatorSpec.optional(),
     drivers: z.record(z.string(), Driver),

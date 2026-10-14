@@ -198,7 +198,7 @@ const NAMES = SHELL_FIXTURE_NAMES
 /** Opening a seeded chat makes the app try to resume it from a backend that has
  *  never heard of it, which overwrites the seed. Re-assert it once the resume
  *  attempt has settled. */
-const RESEED_DELAYS_MS = [600, 1800]
+const RESEED_DELAYS_MS = [600, 1800, 2500]
 
 /** Seed a chat state now and again after the resume attempt has settled. */
 export function seedShellFixtureLater(name: ShellFixtureName): void {

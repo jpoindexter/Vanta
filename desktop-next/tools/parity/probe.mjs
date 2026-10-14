@@ -11,7 +11,18 @@ export function probeElements(els, ctx) {
   const ownText = (el) => [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ");
   const opts = { checkOpacity: !ctx.ignoreOpacity, opacityProperty: !ctx.ignoreOpacity, checkVisibilityCSS: true, visibilityProperty: true };
 
-  return els.map((el) => {
+  // Geometry first; decorative text (spinner frames) is hidden only while text is read, so it never moves a box.
+  const rawText = (el) => (ctx.textMode === "none" ? "" : ctx.textMode === "own" ? ownText(el) : (el.innerText ?? el.textContent ?? ""));
+  const hidden = ctx.textIgnore ? [...document.querySelectorAll(ctx.textIgnore)] : [];
+  const texts = (() => {
+    const saved = hidden.map((n) => n.style.display);
+    hidden.forEach((n) => (n.style.display = "none"));
+    const read = els.map(rawText);
+    hidden.forEach((n, i) => (n.style.display = saved[i]));
+    return read;
+  })();
+
+  return els.map((el, index) => {
     const cs = getComputedStyle(el);
     const rect = el.getBoundingClientRect();
     const visible = el.checkVisibility(opts);
@@ -22,8 +33,7 @@ export function probeElements(els, ctx) {
     const h = rect.height / sc;
     Object.assign(out, { x: round((rect.x - ctx.frame.x) / sc), y: round((rect.y - ctx.frame.y) / sc), w: round(w), h: round(h) });
 
-    const raw = ctx.textMode === "none" ? "" : ctx.textMode === "own" ? ownText(el) : (el.innerText ?? el.textContent ?? "");
-    const text = norm(transform(cs, raw));
+    const text = norm(transform(cs, texts[index]));
     if (text) Object.assign(out, { text, fontSize: round(parseFloat(cs.fontSize)), fontWeight: Number(cs.fontWeight) || 400 });
     const ph = el.getAttribute("placeholder") ?? el.getAttribute("data-placeholder");
     if (ph) out.placeholder = norm(ph);
@@ -48,7 +58,7 @@ export function probeElements(els, ctx) {
 }
 
 /** Visible strings under `root` in DOM order, with CSS text-transform applied. */
-export function copyStrings(rootEl) {
+export function copyStrings(rootEl, textIgnore) {
   const norm = (s) => s.replace(/\s+/g, " ").trim();
   const transform = (cs, t) => (cs.textTransform === "uppercase" ? t.toUpperCase() : cs.textTransform === "lowercase" ? t.toLowerCase() : t);
   const root = rootEl;
@@ -64,6 +74,7 @@ export function copyStrings(rootEl) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
     const el = n.parentElement;
+    if (el && textIgnore && el.closest(textIgnore)) continue;
     if (el && !["SCRIPT", "STYLE", "TEXTAREA"].includes(el.tagName)) push(el, norm(transform(getComputedStyle(el), n.textContent)));
   }
   for (const el of root.querySelectorAll("[placeholder],[aria-label]")) {
@@ -98,7 +109,7 @@ export async function measureAll(page, map, options) {
       continue;
     }
     const entry = map.keys[key];
-    const ctx = { ...ctxBase, textMode: entry.textMode ?? "all", ignoreOpacity: options.hoverOnlyKeys.has(key) || entry.hoverOnly === true };
+    const ctx = { ...ctxBase, textIgnore: map.textIgnore ?? "", textMode: entry.textMode ?? "all", ignoreOpacity: options.hoverOnlyKeys.has(key) || entry.hoverOnly === true };
     const all = await loc.evaluateAll(probeElements, ctx);
     found[key] = isListKey(key) ? all : all.slice(0, 1);
     counts[key] = all.length;
@@ -109,5 +120,5 @@ export async function measureAll(page, map, options) {
 /** Visible strings for the copy inventory. */
 export async function measureCopy(page, map) {
   const root = map.copyRoot ? locatorFor(page, map, map.copyRoot).first() : page.locator("body");
-  return root.evaluate(copyStrings);
+  return root.evaluate(copyStrings, map.textIgnore ?? "");
 }

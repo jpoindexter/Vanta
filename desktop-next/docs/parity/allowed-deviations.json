@@ -141,7 +141,8 @@
         "aria",
         "radius",
         "fontSize",
-        "fontWeight"
+        "fontWeight",
+        "visibleCount"
       ],
       "transform": "ignore",
       "keys": [
@@ -370,13 +371,17 @@
         "*.dark-waiting",
         "*.waiting-*",
         "*.running-queued",
-        "*.drawer-waiting"
+        "*.drawer-waiting",
+        "*.chat-blocked"
       ],
       "keys": [
         "msg.user.actions[*]",
         "msg.user.action[*]",
         "msg.user.time[*]",
-        "msg.assistant[0]"
+        "msg.assistant[0]",
+        "step[*]",
+        "card.blocked",
+        "card.blocked.*"
       ]
     },
     {
@@ -511,7 +516,8 @@
       "id": "reply-action-row-per-reply",
       "reason": "The wireframe draws a hover action row (Copy, thumbs up and down, Retry) under every assistant paragraph; the build keeps one row per reply, at its end, once the reply is complete (Hermes message model: one assistant message holds the whole turn). The row's own styling is measured by tools/chat-parity (assistantActions) in the done and offline states.",
       "props": [
-        "*"
+        "*",
+        "visibleCount"
       ],
       "transform": "ignore",
       "keys": [
@@ -523,7 +529,8 @@
       "id": "wireframe-failed-offline-keep-waiting",
       "reason": "Wireframe quirk: in its failed and offline states the focused chat's sidebar row stays Waiting (and Needs you keeps 2) while the title bar says Failed or Offline. A real chat has one status that the row, the pill and Needs you all read, so the build's row follows the chat (done) and Needs you counts 1; the focused row also moves from Needs you into its group.",
       "props": [
-        "*"
+        "*",
+        "visibleCount"
       ],
       "transform": "ignore",
       "states": [
@@ -538,6 +545,122 @@
         "row.session.time[*]",
         "sidebar.groupLabel[*]",
         "sidebar.groupName[*]"
+      ]
+    },
+    {
+      "id": "running-spinner-box",
+      "reason": "The wireframe's running spinner is the 7.5px text glyph '\u25cc'; the build draws a 14px braille spinner in a 14px box, so the box is wider and the label starts 6.5px further right. The offset of the label is checked.",
+      "props": [
+        "w",
+        "h",
+        "y"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "running.spinner"
+      ]
+    },
+    {
+      "id": "running-label-shift",
+      "reason": "Consequence of running-spinner-box: the running label starts after a 14px spinner instead of the 7.5px glyph. x must equal the wireframe value plus 6.5.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": 6.5
+      },
+      "keys": [
+        "running.label"
+      ]
+    },
+    {
+      "id": "failed-command-step",
+      "reason": "The failed command keeps its own step row (what ran and its output) above the error card; the wireframe draws only the card, so two step rows show instead of one.",
+      "props": [
+        "visibleCount"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.chat-failed"
+      ],
+      "keys": [
+        "step[]"
+      ]
+    },
+    {
+      "id": "offline-composer-disabled",
+      "reason": "Offline the build disables the composer (placeholder 'Reconnecting to Vanta\u2026', model and effort menus need the backend) instead of accepting queued messages as the wireframe's banner says. Owner decision pending: queue-while-offline is not built.",
+      "props": [
+        "*"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.chat-offline"
+      ],
+      "keys": [
+        "composer.input",
+        "composer.model",
+        "composer.effort",
+        "composer.permission"
+      ]
+    },
+    {
+      "id": "open-chat-row-tint",
+      "reason": "Hermes tints the row of a chat that is open in a pane even while a page is showing (open-in-pane indicator); the wireframe's rows are untinted on pages.",
+      "props": [
+        "filled"
+      ],
+      "transform": "ignore",
+      "states": [
+        "*.view-*"
+      ],
+      "keys": [
+        "row.session[*]"
+      ]
+    },
+    {
+      "id": "failed-command-row-shift",
+      "reason": "The failed command keeps its own 36px step row plus the 14px gap above the error card (see failed-command-step), so the card starts 50px lower than the wireframe's other offsets predict. y must equal the wireframe value minus 45.98 plus 50.",
+      "props": [
+        "y"
+      ],
+      "transform": "shift",
+      "shift": {
+        "y": 4.02
+      },
+      "states": [
+        "*.chat-failed"
+      ],
+      "keys": [
+        "card.error",
+        "card.error.*"
+      ]
+    },
+    {
+      "id": "owner-kept-error-dismiss",
+      "reason": "Owner-kept feature: the failure card keeps its Dismiss error button, which takes a 24px column plus the 6px gap from the title and body width.",
+      "props": [
+        "w"
+      ],
+      "transform": "ignore",
+      "keys": [
+        "card.error.title",
+        "card.error.body"
+      ]
+    },
+    {
+      "id": "banner-glyph-box",
+      "reason": "The offline banner's leading '\u25cb' is a 12px outlined-circle icon with an 8px gap, wider than the wireframe's text glyph, so the Retry button starts 8.85px further right. x must equal the wireframe value plus 8.85.",
+      "props": [
+        "x"
+      ],
+      "transform": "shift",
+      "shift": {
+        "x": 8.85
+      },
+      "keys": [
+        "banner.retry"
       ]
     }
   ]

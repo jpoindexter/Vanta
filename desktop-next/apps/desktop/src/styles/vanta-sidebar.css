@@ -45,8 +45,8 @@
   font-weight: 400;
 }
 
-[data-tour='sessions-sidebar'] button[data-testid^='nav-'][aria-current],
-[data-tour='sessions-sidebar'] button[data-testid^='nav-'].bg-\(--ui-control-active-background\) {
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'][data-active='true'],
+[data-tour='sessions-sidebar'] button[data-testid^='nav-'][data-active='true'] [data-tour^='sidebar-nav-'] {
   font-weight: var(--vs-weight-strong);
 }
 

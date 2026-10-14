@@ -434,15 +434,15 @@
    "textMode": "none"
   },
   "main": {
-   "css": "[data-fixture-main]",
+   "css": "[data-docked-main], [data-testid='shell-main']:not(:has([data-docked-main]))",
    "textMode": "none"
   },
   "banner.offline": {
-   "css": ".vs-banner",
+   "testId": "offline-banner",
    "textMode": "own"
   },
   "banner.retry": {
-   "css": ".vs-banner button"
+   "css": "[data-testid='offline-banner'] button"
   },
   "thread.scroll": {
    "css": "[data-slot=\"aui_thread-viewport\"]",
@@ -493,11 +493,11 @@
    "css": "[data-vp=\"running-line\"]"
   },
   "running.spinner": {
-   "css": "[data-vp=\"running-line\"] [data-vp=\"step\"] svg",
+   "css": "[data-vp=\"running-line\"] [role=\"status\"]",
    "textMode": "none"
   },
   "running.label": {
-   "css": "[data-vp=\"running-line\"] [data-vp=\"step\"]"
+   "css": "[data-vp=\"running-line\"] [data-vp=\"step\"] span.block"
   },
   "running.stop": {
    "css": "[data-vp=\"running-stop\"]"
@@ -834,5 +834,6 @@
    "hug": true,
    "flow": true
   }
- }
+ },
+ "textIgnore": ".glyph-spinner__strip"
 }

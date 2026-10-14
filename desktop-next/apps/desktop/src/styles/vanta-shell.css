@@ -630,3 +630,9 @@ button.vs-chip:hover {
 [data-tree-group] .vs-sidebar[data-slot='sidebar'] {
   border-right: 1px solid var(--ui-stroke-tertiary);
 }
+
+/* The banner is one 43.84px bar: the retry button keeps the wireframe's 30.84px. */
+.vs-banner button {
+  height: 30.84px;
+  padding-block: 0;
+}

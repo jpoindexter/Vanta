@@ -681,3 +681,26 @@
 [data-vp='composer-send'] {
   border: 1px solid var(--vp-ink);
 }
+
+/* A live line reads "spinner, label, Stop" like the wireframe: no caret, and no gutter for an empty trailing stamp. */
+[data-vp='running-line'] .vp-step-caret {
+  display: none;
+}
+
+.vp-step-row > span:has(> span:empty:only-child) {
+  display: none;
+}
+
+.vp-action-time {
+  font-variant-numeric: normal;
+}
+
+/* Reply paragraphs follow the wireframe's 1.45 leading, not the 1.5 prose default. */
+[data-slot='aui_assistant-message-content'] .aui-md p {
+  line-height: var(--vp-leading);
+}
+
+/* The wireframe's live line is a div, not a button: square corners. */
+[data-vp='running-line'] {
+  border-radius: 0;
+}
