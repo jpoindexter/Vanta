@@ -6,7 +6,7 @@ import { type EventLabel } from "../term/event-format.js";
 import { type DesktopAccessMode } from "./access-mode.js";
 import { type PendingApproval } from "./approval.js";
 import { type ProviderAuthRequired } from "./provider-auth-store.js";
-import { type SseClients } from "./session-state.js";
+import { type SessionMap,type SseClients } from "./session-state.js";
 import { type ToolIdTracker } from "./typed-emit.js";
 import { type TypedDesktopEvent } from "./typed-events.js";
 import { DesktopTurnQueue } from "./turn-queue.js";
@@ -50,6 +50,8 @@ export type DesktopState = {
   runtimeHostBySession?: Record<string, string>;
   _sseSessionId?: string;
   _sseClients?: SseClients;
+  /** Every client state of this server, so a project-wide setting reaches all open chats. */
+  _sessions?: SessionMap;
   _toolIds?: ToolIdTracker;
   _env?: NodeJS.ProcessEnv;
   _continuitySessionOff?: boolean;
