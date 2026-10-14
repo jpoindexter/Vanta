@@ -86,14 +86,16 @@ async function finishOneShot(o: {
   if (!o.structured) console.log(`\n[${o.outcome.stoppedReason} · ${o.outcome.iterations} iteration(s)]`);
   await writeRunMemory({ provider: o.setup.provider, goals: o.setup.goals, instruction: o.instruction, finalText: o.outcome.finalText, completionState: o.outcome.completionState });
   if (!choiceWall) await suggestSkillFromRun(o.instruction, process.env);
+  const ledger = { dataDir: join(o.root, ".vanta"), sessionId: "one-shot", agent: "one-shot" };
   await reviewAfterTurn({
     provider: o.setup.provider, safety: o.setup.safety, root: o.root, transcript: o.convo.messages,
-    toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall,
+    toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall, ledger,
   });
   memoryExtractAfterTurn({
     provider: o.setup.provider,
     transcript: o.convo.messages,
     completionState: o.outcome.completionState,
+    ledger,
   });
 }
 
