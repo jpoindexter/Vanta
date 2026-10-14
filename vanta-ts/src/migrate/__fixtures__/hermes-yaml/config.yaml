@@ -1,0 +1,69 @@
+# Fixture: the shape of a Hermes ~/.hermes/config.yaml, trimmed to what migration reads.
+# Values are invented; nothing here is a real credential.
+_config_version: 50
+
+database:
+  journal_mode: "wal"
+
+agent: &base_agent
+  max_turns: none
+  note: |
+    free text that migration must never read
+
+model:
+  default: "claude-opus-4.6"   # comment after a value
+  provider: "anthropic"
+  base_url: https://api.example.test/v1
+  api_key: not-a-real-key
+
+mcp_servers:
+  filesystem:
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/home/user/projects"
+    timeout: 120
+    connect_timeout: 30
+  github:
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "${env:GITHUB_TOKEN}"
+      LOG_LEVEL: "info"
+      SLACK_BOT_TOKEN: "literal-value-in-file"
+    tools:
+      include: [list_issues, get_issue]
+      exclude: [delete_repo]
+      resources: false
+  remote_api:
+    url: "https://mcp.example.test/mcp"
+    headers:
+      Authorization: "Bearer not-a-real-token"
+      X-Team: acme
+      X-Org: "${env:ORG_ID}"
+    ssl_verify: false
+  linear:
+    url: "https://mcp.linear.test/mcp"
+    auth: oauth
+  globby:
+    command: "node"
+    args: ["server.js"]
+    tools:
+      include:
+        - "get_*"
+  paused:
+    command: "node"
+    args: ["paused.js"]
+    enabled: false
+  needs_workspace:
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "${workspaceFolder}"]
+  exotic:
+    command: "node"
+    args: *shared_args
+  anchored: &anchor
+    command: "node"
+
+display:
+  theme: dark

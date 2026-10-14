@@ -79,6 +79,7 @@ import { gitStatusTool, gitDiffTool, gitCommitTool, gitPushTool, gitBranchTool, 
 import { delegateTool } from "./delegate.js";
 import { callAgentTool } from "./call-agent.js";
 import { agentSessionTool } from "./agent-session.js";
+import { sessionSearchTool } from "./session-search.js";
 import { buildWithAgentTool } from "./build-with-agent.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
@@ -251,6 +252,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   delegateTool,
   callAgentTool,
   agentSessionTool,
+  sessionSearchTool,
   buildWithAgentTool,
   gmailSearchTool,
   appleMailAuditTool,
