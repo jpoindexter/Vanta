@@ -8,6 +8,7 @@ import { ensureDesktopConversation,persistActiveSession } from "./handler-conver
 import { sendJson } from "./handler-http.js";
 import { turnQueue } from "./handler-queue.js";
 import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
+import { deleteQueuedImages,loadQueuedImages } from "./turn-queue-images.js";
 import { pushSseEvent } from "./session-state.js";
 import { pushTurnComplete, pushUsage } from "./typed-emit.js";
 import { estimateContextTokens } from "./usage-meter.js";
@@ -38,13 +39,17 @@ async function settleInstruction(context: LiveExecution, instruction: string, ou
   await finishRunCapture(state, receipt.status, outcome.finalText, outcome.usage);
   emitUsage(state, live, outcome.usage);
   if (context.claimedTurnId) {
-    if (outcome.stoppedReason === "done") await turnQueue(state).complete(context.claimedTurnId);
-    else await turnQueue(state).release(context.claimedTurnId, queuedTurnFailureReason(outcome.stoppedReason));
+    if (outcome.stoppedReason === "done") {
+      await turnQueue(state).complete(context.claimedTurnId);
+      await deleteQueuedImages(state.root, context.claimedTurnId);
+    } else await turnQueue(state).release(context.claimedTurnId, queuedTurnFailureReason(outcome.stoppedReason));
     context.claimedTurnId = undefined;
   }
 }
 
-async function claimNextInstruction(context: LiveExecution, outcome: Outcome): Promise<string | undefined> {
+type NextInstruction = { instruction: string; images: ImageAttachment[] };
+
+async function claimNextInstruction(context: LiveExecution, outcome: Outcome): Promise<NextInstruction | undefined> {
   if (outcome.stoppedReason !== "done" || context.controller.signal.aborted) return undefined;
   const { state, events } = context;
   const queued = await turnQueue(state).claimNext(context.activeQueueSessionId);
@@ -53,7 +58,8 @@ async function claimNextInstruction(context: LiveExecution, outcome: Outcome): P
   const event = { label: queued.intent === "steer" ? "Applying queued steer instruction." : "Running queued instruction.", ok: true };
   events.push(event);
   if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
-  return queued.instruction;
+  const images = queued.imageCount ? await loadQueuedImages(state.root, queued.id) : [];
+  return { instruction: queued.instruction, images };
 }
 
 export async function executeChat(context: ChatExecution, res: http.ServerResponse): Promise<void> {
@@ -68,7 +74,8 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
     await settleInstruction(liveContext, instruction, outcome);
     const next = await claimNextInstruction(liveContext, outcome);
     if (next === undefined) break;
-    instruction = next;
+    instruction = next.instruction;
+    attachments = { images: next.images.length ? next.images : undefined, files: [] };
   }
   await persistActiveSession(context.state);
   pushTurnComplete(context.state, { finalText: outcome.finalText, usage: outcome.usage, stoppedReason: outcome.stoppedReason });
