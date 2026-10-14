@@ -5,7 +5,7 @@ import { providerById } from "../providers/catalog.js";
 import { setPlanInstruction } from "../repl/plan-mode.js";
 import { resolveTelegramSetupStatus } from "../setup/telegram-status.js";
 import { listRepoFiles } from "../term/at-context.js";
-import { desktopAccessModeLabel,isDesktopAccessMode,permissionModeForAccess,saveDesktopAccessMode } from "./access-mode.js";
+import { type DesktopAccessMode,desktopAccessModeLabel,isDesktopAccessMode,permissionModeForAccess,saveDesktopAccessMode } from "./access-mode.js";
 import { buildDesktopFileContext,isSafeProjectFile } from "./file-context.js";
 import { startDesktopGateway } from "./gateway-control.js";
 import { ensureDesktopConversation,providerRouteStatus } from "./handler-conversation.js";
@@ -30,6 +30,19 @@ export async function handleTelegramSetupStatus(state: DesktopState, res: http.S
   sendJson(res, 200, await resolveTelegramSetupStatus(process.env, join(state.root, ".vanta")));
 }
 
+/** Persist and apply an access mode for the open project: plan instruction, activity line and audit event included. */
+export async function applyAccessMode(state: DesktopState, mode: DesktopAccessMode): Promise<void> {
+  const live = await ensureDesktopConversation(state);
+  await saveDesktopAccessMode(state.root, mode);
+  state.accessMode = mode;
+  setPlanInstruction(live.convo.messages, mode === "plan");
+  const label = desktopAccessModeLabel(mode);
+  const event = { label: `Access mode changed to ${label} for this project.`, ok: true };
+  state.currentEvents?.push(event);
+  if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
+  await live.setup.safety.logEvent(JSON.stringify({ kind: "desktop_access_mode", mode, scope: "project" })).catch(() => {});
+}
+
 export async function handleAccessMode(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const live = await ensureDesktopConversation(state);
   if (req.method === "GET") return sendJson(res, 200, { mode: live.accessMode, scope: "project" });
@@ -37,14 +50,7 @@ export async function handleAccessMode(state: DesktopState, req: http.IncomingMe
   if (!isDesktopAccessMode(body.mode)) {
     return sendJson(res, 400, { error: "mode must be ask, approve, plan, auto, or full" });
   }
-  await saveDesktopAccessMode(state.root, body.mode);
-  state.accessMode = body.mode;
-  setPlanInstruction(live.convo.messages, body.mode === "plan");
-  const label = desktopAccessModeLabel(body.mode);
-  const event = { label: `Access mode changed to ${label} for this project.`, ok: true };
-  state.currentEvents?.push(event);
-  if (state._sseClients && state._sseSessionId) pushSseEvent(state._sseClients, state._sseSessionId, event);
-  await live.setup.safety.logEvent(JSON.stringify({ kind: "desktop_access_mode", mode: body.mode, scope: "project" })).catch(() => {});
+  await applyAccessMode(state, body.mode);
   sendJson(res, 200, { mode: body.mode, scope: "project" });
 }
 
