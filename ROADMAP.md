@@ -4,13 +4,14 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-10-08
+## Current converged build order — 2026-10-14
 
 Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. Do not hand-edit this section.
 
 **Building**
 
 1. `DESKTOP-OPERATOR-DOSSIER-HIERARCHY` — Desktop ambient workflow — one agent across chat, mini, work and results
+2. `DESKTOP-NEXT-CUTOVER` — Desktop Next — supervision surface for the company engine, Hermes shell as base, wireframe as spec
 
 **Next**
 
@@ -32,7 +33,7 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 No cards currently Blocked.
 
-Inventory: 1363 cards; 1289 shipped; 11 open; 63 parked.
+Inventory: 1364 cards; 1289 shipped; 12 open; 63 parked.
 
 Next means planned, not implemented. Preserve shipped evidence; card completion requires its executed Done contract.
 

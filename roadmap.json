@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-08",
+  "updated": "2026-10-14",
   "items": [
     {
       "id": "VOICE-LOCAL-MODELS-AND-PROVIDERS",
@@ -21631,6 +21631,24 @@
       ],
       "parkedReason": "review",
       "notes": "Owner Jason. New defect slice, not a duplicate of shipped credential-pool support. Prior synthetic probe of codex-auth.ts at installed head 12bc974c0383157abcd943f0c129e1fe9c63ef89 observed two refresh requests, one persistence write, one fulfilled caller and one rejected caller when a second 401 preceded the winning write. No live token or account was used. The implementation has not been changed. Existing four Next slots and twelve open cards are retained; prioritize this defect when an active slot clears or the owner explicitly reprioritizes. Re-entry: retain a two-process regression test, then implement the account-scoped persistence boundary. See docs/upstream-agent-desktop-adoption-2026-10-01.md."
+    },
+    {
+      "id": "DESKTOP-NEXT-CUTOVER",
+      "track": "Operator",
+      "title": "Desktop Next — supervision surface for the company engine, Hermes shell as base, wireframe as spec",
+      "status": "building",
+      "size": "L",
+      "summary": "Replace the current Vanta Desktop renderer with desktop-next: the Hermes desktop shell (MIT, one-time import at 6e7b83a2f1, not a fork) restructured to the approved wireframe (artifact WCkFk4hR3jKhF7UqawMu9f), Vanta colors and icons as the only visual deviations, wired to Vanta's server through a VantaGateway adapter and an Electron bridge facade. Vanta stays the control plane: it runs a company (workers, tickets, budgets, approvals; single owner, no tenancy or RBAC) and Claude Code, Codex, Hermes and Vanta are workers. Every Hermes feature is kept (restore first, streamline later, owner decides cuts) except the gimmicks the owner dropped.",
+      "done": "The Slice-1 path runs end to end in the real Electron app: one user opens the app, starts a chat in a project, sees live tool steps, gets an exact-action approval, chooses Always allow, restarts, starts a new chat in the same project and is not asked again; a different project still asks; the composer never freezes; the window collapses at 1440/1100/800. Then the Vanta-only features in desktop-next/docs/CUTOVER-PARITY.md are each ported with a real-app proof or dropped by the owner, a packaged app passes the same script, and the old renderer is retired only after the owner signs off parity.",
+      "tier": "rock",
+      "model": "sonnet",
+      "effort": "high",
+      "codex": "gpt-5.6-terra",
+      "lens": "tui",
+      "updated": "2026-10-14",
+      "source": "desktop-next/docs/PLAN.md; desktop-next/docs/STATUS-2026-10-14.md; desktop-next/docs/CUTOVER-PARITY.md; desktop-next/docs/GOAL.md",
+      "after": [],
+      "notes": "2026-10-14: Slice-1 Done criterion MET with limits (done-path 20/20, then 6/6 on the combined tree; scripted model, source Electron, macOS only; one unexplained startup failure open). Merged and run in the real app: V-006, V-008, V-012, V-013, V-018, V-019 (jsdom + gateway only), V-022, V-051 (partial: no real external worker run). Owner dropped V-033, V-039, V-046. Remaining: V-034/035/036/037, V-028, V-029/030, V-001, V-044, V-023, packaged-app proof, unexplained startup failure. Trello board 'Vanta — Agent & Desktop Recovery', lists DN 0 to DN 4, is the projection; this card and the docs win if they disagree. All work is on branch claude/desktop-integration-20261013 (no PR opened). Related: DESKTOP-OPERATOR-DOSSIER-HIERARCHY (the parent for the legacy renderer work)."
     }
   ]
 }
