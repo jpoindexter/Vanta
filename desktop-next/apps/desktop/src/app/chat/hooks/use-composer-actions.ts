@@ -7,6 +7,12 @@ import { formatRefValue } from '@/components/assistant-ui/directive-text'
 import { useI18n } from '@/i18n'
 import { attachmentPathNeedsUpload } from '@/lib/attachment-upload-policy'
 import { attachmentId, contextPath, pathLabel } from '@/lib/chat-runtime'
+import {
+  type ImageReadResult,
+  imageBudgetError,
+  imageFromBlob,
+  imageFromDataUrl
+} from '@/lib/composer-images'
 import { readDesktopFileDataUrlLocalFirst, selectDesktopPaths } from '@/lib/desktop-fs'
 import { downscaleDataUrlForPreview } from '@/lib/image-resize'
 import { normalize } from '@/lib/text'
@@ -15,6 +21,7 @@ import {
   type ComposerAttachment,
   type ComposerAttachmentPatch,
   createComposerAttachmentOccurrenceId,
+  $composerAttachments,
   patchMainComposerAttachmentOccurrence,
   removeComposerAttachment,
   setComposerTerminalSelection,
@@ -42,6 +49,31 @@ function blobExtension(blob: Blob): string {
 
   return BLOB_MIME_EXTENSION[mime] || '.png'
 }
+
+interface LoadedChipImage {
+  preview: Pick<ComposerAttachment, 'previewUrl' | 'thumbnailUrl'>
+  read: ImageReadResult
+}
+
+/**
+ * Read an image for a path chip. OS drops and clipboard blobs preview from the in-hand blob so nothing is
+ * base64-loaded over IPC (#63682); path-only picks keep the queued IPC thumbnail path and hold only the bounded
+ * thumbnail on the chip. Either way the full bytes come back for the request body.
+ */
+async function loadChipImage(filePath: string, label: string, previewSource?: Blob | null): Promise<LoadedChipImage> {
+  if (previewSource && previewSource.size > 0) {
+    return { preview: { previewUrl: URL.createObjectURL(previewSource) }, read: await imageFromBlob(previewSource, label) }
+  }
+
+  const { previewUrl, thumbnailUrl } = await queuedAttachmentPreview(filePath)
+
+  return { preview: thumbnailUrl ? { thumbnailUrl } : { previewUrl }, read: imageFromDataUrl(previewUrl, label) }
+}
+
+const isImageBlob = (blob: Blob): boolean => blob.size > 0 && (!blob.type || blob.type.startsWith('image/'))
+
+const blobLabel = (blob: Blob): string =>
+  blob instanceof File && blob.name ? blob.name : `pasted-image${blobExtension(blob)}`
 
 export function isImagePath(filePath: string): boolean {
   return IMAGE_EXTENSION_PATTERN.test(filePath)
@@ -383,6 +415,8 @@ interface ComposerActionsScope {
   remove: (id: string) => ComposerAttachment | null
   update: (attachment: ComposerAttachment) => boolean
   updateIfCurrent: (expected: ComposerAttachment, patch: ComposerAttachmentPatch) => boolean
+  /** The chips currently in this composer; image limits are checked against them. */
+  list?: () => readonly ComposerAttachment[]
   target: string
 }
 
@@ -391,6 +425,7 @@ const MAIN_ACTIONS_SCOPE: ComposerActionsScope = {
   remove: removeComposerAttachment,
   update: updateComposerAttachment,
   updateIfCurrent: patchMainComposerAttachmentOccurrence,
+  list: () => $composerAttachments.get(),
   target: 'main'
 }
 
@@ -526,97 +561,123 @@ export function useComposerActions({
     [attachToMain, currentCwd]
   )
 
+  /** Tell the user why an image was not attached; the chip is never added. */
+  const rejectImage = useCallback(
+    (message: string) => notify({ kind: 'error', title: copy.imageAttach, message }),
+    [copy.imageAttach]
+  )
+
+  /** The image-bearing chips already in this composer, excluding `except`. */
+  const otherChips = useCallback(
+    (except?: ComposerAttachment) => (scope.list?.() ?? []).filter(item => !except || item.occurrenceId !== except.occurrenceId),
+    [scope]
+  )
+
+  /**
+   * Attach an image file by path. The chip appears at once; its bytes are read here and travel with the message
+   * (prompt.submit images[]), so the path only labels the chip. Returns false only when nothing was reported.
+   */
   const attachImagePath = useCallback(
     async (filePath: string, previewSource?: Blob | null) => {
       if (!filePath) {
         return false
       }
 
+      const label = pathLabel(filePath)
+
       const baseAttachment: ComposerAttachment = {
         id: attachmentId('image', filePath),
         occurrenceId: createComposerAttachmentOccurrenceId(),
         kind: 'image',
-        label: pathLabel(filePath),
+        label,
         detail: filePath,
         path: filePath
       }
 
       attachToMain(baseAttachment)
 
+      // A refused image never stays as a chip that would fail at send time.
+      const refuse = (message: string) => {
+        scope.remove(baseAttachment.id)
+        rejectImage(message)
+
+        return true
+      }
+
       try {
-        // OS drops / clipboard blobs pass their File/Blob so preview never
-        // base64-loads the full image over IPC (Windows freeze on Explorer
-        // drag-drop — #63682). Path-only picks keep the queued IPC thumbnail
-        // path; blob previews skip the read entirely.
-        if (previewSource && previewSource.size > 0) {
-          const previewUrl = URL.createObjectURL(previewSource)
+        const loaded = await loadChipImage(filePath, label, previewSource)
 
-          scope.updateIfCurrent(baseAttachment, { previewUrl })
-
-          return true
+        if (!loaded.read.ok) {
+          return refuse(loaded.read.error)
         }
 
-        const { previewUrl, thumbnailUrl } = await queuedAttachmentPreview(filePath)
+        const budget = imageBudgetError(otherChips(baseAttachment), loaded.read.image)
 
-        if (previewUrl) {
-          // Keep only the bounded thumbnail in composer state. The full source
-          // is read on demand for lightbox/download and separately at submit
-          // for the model, so retaining 72 multi-MB data URLs serves no purpose.
-          // Bind the late preview to this attachment occurrence's stable token.
-          // Object identity is insufficient because a session draft round-trip
-          // clones attachments; id alone is insufficient because remove +
-          // reattach of the same path reuses it.
-          scope.updateIfCurrent(baseAttachment, thumbnailUrl ? { thumbnailUrl } : { previewUrl })
+        if (budget) {
+          return refuse(budget)
         }
+
+        scope.updateIfCurrent(baseAttachment, { ...loaded.preview, imageData: loaded.read.image })
 
         return true
       } catch (err) {
+        // Unreadable bytes cannot be sent, so the chip goes too instead of failing later at submit.
+        scope.remove(baseAttachment.id)
         notifyError(err, copy.imagePreviewFailed)
 
         return true
       }
     },
-    [attachToMain, copy.imagePreviewFailed, scope]
+    [attachToMain, copy.imagePreviewFailed, otherChips, rejectImage, scope]
   )
 
+  /** Attach a pasted, dropped or picked image from memory, with no file written. True also when a limit refused it. */
   const attachImageBlob = useCallback(
     async (blob: Blob, isCurrent: () => boolean = () => true) => {
-      if (blob.size === 0 || !isCurrent()) {
+      if (!isImageBlob(blob) || !isCurrent()) {
         return false
       }
 
-      if (blob.type && !blob.type.startsWith('image/')) {
-        return false
-      }
+      const label = blobLabel(blob)
 
       try {
-        const buffer = await blob.arrayBuffer()
+        const read = await imageFromBlob(blob, label)
 
         if (!isCurrent()) {
           return false
         }
 
-        const data = new Uint8Array(buffer)
-        const name = blob instanceof File ? blob.name : undefined
-        const savedPath = await window.hermesDesktop?.saveImageBuffer(data, blobExtension(blob), name)
+        if (!read.ok) {
+          rejectImage(read.error)
 
-        if (!savedPath) {
-          notify({ kind: 'error', title: copy.imageAttach, message: copy.imageWriteFailed })
-
-          return false
+          return true
         }
 
-        // Reuse the in-hand blob for the chip preview — do not re-read the
-        // just-written temp file as a data URL. A late component unmount must
-        // not leak the attach: attach only while still current.
-        return isCurrent() ? attachImagePath(savedPath, blob) : false
+        const budget = imageBudgetError(otherChips(), read.image)
+
+        if (budget) {
+          rejectImage(budget)
+
+          return true
+        }
+
+        attachToMain({
+          id: attachmentId('image', `${label}:${crypto.randomUUID()}`),
+          occurrenceId: createComposerAttachmentOccurrenceId(),
+          kind: 'image',
+          label,
+          imageData: read.image,
+          previewUrl: URL.createObjectURL(blob)
+        })
+
+        return true
       } catch (err) {
         notifyError(err, copy.imageAttachFailed)
 
         return false
       }
     },
-    [attachImagePath, copy.imageAttach, copy.imageAttachFailed, copy.imageWriteFailed]
+    [attachToMain, copy.imageAttachFailed, otherChips, rejectImage]
   )
 
   const pickImages = useCallback(async () => {

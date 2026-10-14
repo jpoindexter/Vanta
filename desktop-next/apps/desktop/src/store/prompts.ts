@@ -1,5 +1,7 @@
 import { atom, computed, type ReadableAtom } from 'nanostores'
 
+import { type PermissionRequest, parsePermissionRequest } from '@/components/chat/vanta/approval-types'
+
 import { $clarifyRequest, $clarifyRequests } from './clarify'
 import { isSessionGone, isSessionGoneForBackgroundPolling, markSessionGone } from './runtime-gone'
 import { respondToServerRequest } from './server-requests'
@@ -88,8 +90,11 @@ export interface ApprovalRequest extends KeyedPrompt {
   command: string
   description: string
   requestId?: string
+  /** The server's exact-action request (headline, kind, tool); absent for Hermes-shaped prompts. */
+  request?: PermissionRequest
   serverRequestId?: string
   smartDenied?: boolean
+  toolName?: string
 }
 
 interface ApprovalGateway {
@@ -103,6 +108,8 @@ interface PendingApprovalPayload {
   description?: unknown
   request_id?: unknown
   smart_denied?: boolean
+  tool_name?: unknown
+  vanta_request?: unknown
 }
 
 export interface SudoRequest extends KeyedPrompt {
@@ -269,6 +276,17 @@ export async function receiveApprovalRequest(gateway: ApprovalGateway | null, re
   }
 }
 
+/** The server's exact-action request and tool, when the prompt came from the Vanta server. */
+export function serverActionFields(
+  request: unknown,
+  toolName: unknown
+): Pick<ApprovalRequest, 'request' | 'toolName'> {
+  return {
+    request: parsePermissionRequest(request),
+    toolName: typeof toolName === 'string' ? toolName : undefined
+  }
+}
+
 export async function replayPendingApproval(gateway: ApprovalGateway | null, sessionId: string | null): Promise<void> {
   if (!gateway || !sessionId || isSessionGone(sessionId)) {
     return
@@ -329,6 +347,7 @@ export async function replayPendingApproval(gateway: ApprovalGateway | null, ses
           : undefined,
         command: typeof pending.command === 'string' ? pending.command : '',
         description: typeof pending.description === 'string' ? pending.description : 'dangerous command',
+        ...serverActionFields(pending.vanta_request, pending.tool_name),
         requestId: pending.request_id,
         sessionId,
         smartDenied: pending.smart_denied === true

@@ -1,6 +1,6 @@
 // F-114..F-141: the composer, driven in a real chat: input, attachments, pills, popovers and the run controls.
 import { attempt, closeMenus, goHome, menuItems, notRun, pick, record, startChat, usable, verdict, waitUntil } from "./kit.mjs";
-import { clearNativeLog, readNativeLog } from "./native-stubs.mjs";
+import { clearNativeLog, readNativeLog, setAnswers } from "./native-stubs.mjs";
 
 const AREA = "composer";
 const sidebar = (page) => page.locator('[data-tour="sessions-sidebar"]').first();
@@ -56,6 +56,26 @@ export async function inputRows(page) {
   });
 }
 
+/** F-115: the menu lists its entries, and Images… really attaches: picked file -> chip -> the model receives it -> chip clears. */
+async function imagePickRow(ctx, items) {
+  const { page, app, project } = ctx;
+  const entries = ["Files…", "Folder…", "Images…", "Paste image"].every((i) => items.includes(i));
+  await setAnswers(app, { pickFolder: `${project}/pixel.png` });
+  await clearNativeLog(app);
+  await pick(page, "Images…");
+  const chip = await waitUntil(async () => /pixel\.png/.test(await page.locator('[data-slot="composer-root"]').first().innerText()), 6000, 250);
+  await editor(page).click();
+  await page.keyboard.type("what is in this picture");
+  await page.keyboard.press("Enter");
+  const answered = await waitUntil(async () => /I can see the attached image/.test(await page.locator("body").innerText()), 25000, 400);
+  const cleared = !/pixel\.png/.test(await page.locator('[data-slot="composer-root"]').first().innerText());
+  await setAnswers(app, { pickFolder: ctx.second });
+  verdict("F-115", AREA, "+ menu: Files…, Folder…, Images…, Paste image", entries && Boolean(chip) && Boolean(answered) && cleared, {
+    pass: `${items.join(" / ")}; Images… (native picker, stubbed to pixel.png) attached a chip, the message carried the image in its request body and the model answered "I can see the attached image.", then the chip cleared`,
+    why: `entries=${entries} chip=${Boolean(chip)} answered=${Boolean(answered)} cleared=${cleared}`
+  });
+}
+
 export async function attachRows(ctx) {
   const { page, app } = ctx;
   await inChat(page);
@@ -63,7 +83,9 @@ export async function attachRows(ctx) {
     await page.getByRole("button", { name: "Add context" }).click();
     await page.waitForTimeout(500);
     const items = await menuItems(page);
-    verdict("F-115", AREA, "+ menu: Files…, Folder…, Images…, Paste image", ["Files…", "Folder…", "Images…", "Paste image"].every((i) => items.includes(i)), { pass: items.join(" / "), why: items.join(" / ") });
+    await imagePickRow(ctx, items);
+    await page.getByRole("button", { name: "Add context" }).click();
+    await page.waitForTimeout(400);
     await clearNativeLog(app);
     await pick(page, "Folder…");
     await page.waitForTimeout(1500);

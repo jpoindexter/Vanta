@@ -64,7 +64,8 @@ function parseSection(value: unknown): PermissionSection | null {
   }
 }
 
-function parseRequest(value: unknown): PermissionRequest | undefined {
+/** Narrow an untrusted permission request (the server's `request` / `vanta_request`); undefined when absent. */
+export function parsePermissionRequest(value: unknown): PermissionRequest | undefined {
   const request = record(value)
 
   if (!request) {
@@ -98,7 +99,7 @@ export function parseApprovalPayload(value: unknown): ApprovalPayload | null {
     action: payload.action,
     id: payload.id,
     reason: text(payload.reason),
-    request: parseRequest(payload.request),
+    request: parsePermissionRequest(payload.request),
     toolName: typeof payload.toolName === 'string' ? payload.toolName : undefined
   }
 }

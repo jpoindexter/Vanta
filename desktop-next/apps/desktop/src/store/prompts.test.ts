@@ -124,6 +124,39 @@ describe('approval prompt store', () => {
     expect($approvalRequest.get()?.requestId).toBe('r2')
   })
 
+  it('keeps the server exact-action request and tool on a replayed approval', async () => {
+    const gateway = {
+      request: async (method: string) =>
+        method === 'approval.pending'
+          ? {
+              approvals: [
+                {
+                  command: 'brief.md',
+                  description: 'modifying existing file content',
+                  request_id: 'r1',
+                  tool_name: 'edit_file',
+                  vanta_request: {
+                    canRemember: true,
+                    kind: 'file_edit',
+                    reason: 'modifying existing file content',
+                    sections: [],
+                    subject: 'brief.md',
+                    title: 'File edit permission request',
+                    toolName: 'edit_file'
+                  }
+                }
+              ]
+            }
+          : { acknowledged: true }
+    }
+
+    await replayPendingApproval(gateway, 's1')
+
+    expect($approvalRequest.get()?.toolName).toBe('edit_file')
+    expect($approvalRequest.get()?.request?.kind).toBe('file_edit')
+    expect($approvalRequest.get()?.request?.subject).toBe('brief.md')
+  })
+
   it('preserves live server request routing for every queued replay entry', async () => {
     for (const id of ['r1', 'r2']) {
       await receiveApprovalRequest(null, {

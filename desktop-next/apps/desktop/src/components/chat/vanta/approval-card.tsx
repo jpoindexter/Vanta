@@ -2,7 +2,7 @@ import { IconAlertTriangle, IconDots } from '@tabler/icons-react'
 import { type FC, useId, useRef, useState } from 'react'
 
 import { summarizeApproval } from './approval-summary'
-import type { ApprovalDecision, ApprovalPayload } from './approval-types'
+import type { ApprovalDecision, ApprovalPayload, PermissionKind } from './approval-types'
 
 export interface ApprovalCardProps {
   /** False hides "More permission options" for hosts that cannot remember a "never" rule. */
@@ -30,7 +30,14 @@ const canRemember = (approval: ApprovalPayload): boolean =>
 
 const scopeOf = (projectName?: string): string => (projectName ? `the ${projectName} project` : 'this project')
 
-/** One honest sentence about what Always covers, chosen by the request's kind. */
+const SCOPE_NOUN: Partial<Record<PermissionKind, string>> = {
+  file_edit: 'file edit',
+  file_write: 'file write'
+}
+
+const toolOf = (approval: ApprovalPayload): string => approval.request?.toolName || approval.toolName || 'this tool'
+
+/** One honest sentence about what Always covers, chosen by the tool the rule is saved for. */
 export function alwaysNote(approval: ApprovalPayload, projectName?: string): string {
   if (approval.request?.fresh) {
     return ONE_WAY_NOTE
@@ -41,16 +48,23 @@ export function alwaysNote(approval: ApprovalPayload, projectName?: string): str
   }
 
   const scope = scopeOf(projectName)
+  const kind = approval.request?.kind ?? 'generic'
 
-  if (approval.request?.kind === 'bash') {
+  if (kind === 'bash') {
     return `Always covers every shell command Vanta runs in ${scope}, not just this one. Irreversible commands (delete, deploy, publish) always ask and do not offer Always.`
   }
 
-  return `Always covers every use of ${approval.toolName} in ${scope}, not just this one. Irreversible actions always ask and do not offer Always.`
+  const noun = SCOPE_NOUN[kind]
+  const covers = noun ? `every ${noun} (${toolOf(approval)}, any file)` : `every use of ${toolOf(approval)}`
+
+  return `Always covers ${covers} in ${scope}, not just this one. Irreversible actions always ask and do not offer Always.`
 }
 
-function alwaysLabel(approval: ApprovalPayload): string {
-  return approval.request?.kind === 'bash' ? 'Always allow shell commands' : 'Always allow this tool'
+/** The button names exactly the rule that gets saved: the tool, in this project. */
+export function alwaysLabel(approval: ApprovalPayload): string {
+  return approval.request?.kind === 'bash'
+    ? 'Always allow shell commands in this project'
+    : `Always allow ${toolOf(approval)} in this project`
 }
 
 /** Flat inline card that names the exact action; Reject carries the same weight as Allow. */
