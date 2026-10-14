@@ -25,6 +25,7 @@ const GROUPS: Record<string, string[]> = {
   // schema callable (under scoping it was hidden → the model shelled out instead).
   agents: ["call_agent", "delegate"],
   workflow: ["compose_workflow", "protect", "brief", "review_artifact"],
+  history: ["session_search"],
 };
 
 const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
@@ -36,6 +37,7 @@ const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
   [/\b(image|screen|camera|audio|voice|transcribe|vision)\b/i, "media"],
   [/\b(desktop|computer|native app|calculator|launch an? app|open an? app)\b/i, "computer"],
   [/\b(claude|codex|gemini|cursor|opencode|another agent|other agent|sub-?agent|call_agent|delegate)\b/i, "agents"],
+  [/\b(earlier session|previous session|past session|last (?:week|session|time)|we (?:decided|discussed|agreed)|did we|remember when)\b/i, "history"],
   [/\b(workflow|architecture|kubernetes|deploy(?:ment)?|isolation|secrets?|health check|rollback|approval gate|reviewable brief)\b/i, "workflow"],
 ];
 

@@ -159,6 +159,7 @@ describe("registry", () => {
       "self_repair",
       "send_chat",
       "send_message",
+      "session_search",
       "shell_cmd",
       "shopify_operations",
       "skill_manage",

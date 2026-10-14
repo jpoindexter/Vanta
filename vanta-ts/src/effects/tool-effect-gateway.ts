@@ -45,6 +45,7 @@ const READ_ONLY_TOOLS = new Set([
   "ref_list",
   "ref_search",
   "roadmap_status",
+  "session_search",
   "sleep",
   "tool_search",
 ]);
