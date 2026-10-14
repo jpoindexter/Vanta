@@ -1,6 +1,7 @@
 import type { ChatClient } from './client-registry'
 import type { MappedEvent } from './event-mapper'
 import type { GatewayHub } from './hub'
+import { isFailureStop } from './run-stop'
 import { completeTurn } from './turn-complete'
 
 function applyMapped(hub: GatewayHub, client: ChatClient, event: MappedEvent): void {
@@ -18,6 +19,11 @@ function applyMapped(hub: GatewayHub, client: ChatClient, event: MappedEvent): v
 
       return
     case 'turn.complete':
+      // A failed run ends from the chat response: only it carries the saved recovery actions and checkpoint.
+      if (client.turn && isFailureStop(event.stoppedReason)) {
+        return
+      }
+
       completeTurn(hub, client, {
         finalText: event.finalText,
         stoppedReason: event.stoppedReason,

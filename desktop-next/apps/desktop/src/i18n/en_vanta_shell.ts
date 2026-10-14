@@ -88,5 +88,12 @@ export const enVantaShell = {
     missingKey: 'Enter the new key first.',
     noKeyRoute: 'Vanta could not find where to save a key for this provider. Open Settings > Providers.',
     failed: 'Could not reconnect.'
+  },
+  runRecovery: {
+    retryStep: 'Retry the step',
+    editRequest: 'Edit request',
+    startFromCheckpoint: 'Start from checkpoint',
+    checkpointReady: 'The checkpoint is in the message box. Review it, then send.',
+    actionsLabel: 'Ways to recover this run'
   }
 } satisfies Translations['vantaShell']

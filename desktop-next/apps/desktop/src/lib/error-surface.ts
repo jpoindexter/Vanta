@@ -7,6 +7,8 @@
 // Advisory contract: older backends never send this — every consumer must
 // keep working when it is absent (legacy string-sniffing stays as fallback).
 
+import { parseRunRecovery, type RunRecovery } from './run-recovery'
+
 export const ERROR_SURFACE_LAYERS = [
   'provider',
   'endpoint',
@@ -92,6 +94,8 @@ export interface ErrorSurface {
   message?: string
   /** A short title the producer wants on the card ("The tests failed"); `message` is then its body. */
   headline?: string
+  /** Vanta only: the recovery the server saved for this run (retry the step, edit the request, start from the checkpoint). */
+  recovery?: RunRecovery
   /** Epoch seconds when the provider said its limit lifts (Retry-After header /
    *  `resets_at` body field on a 429). Rendered as "Limit resets at HH:mm" next
    *  to Retry. Absent when the provider named no reset or on older backends. */
@@ -100,6 +104,13 @@ export interface ErrorSurface {
 
 /** Validate a wire payload into an ErrorSurface, or null when absent/garbled. */
 export function parseErrorSurface(value: unknown): ErrorSurface | null {
+  const surface = parseWireSurface(value)
+  const recovery = surface ? parseRunRecovery((value as { recovery?: unknown }).recovery) : undefined
+
+  return surface && recovery ? { ...surface, recovery } : surface
+}
+
+function parseWireSurface(value: unknown): ErrorSurface | null {
   if (!value || typeof value !== 'object') {
     return null
   }
