@@ -176,11 +176,23 @@ function isInstallMethodToastSnoozed(): boolean {
  * silently drives a newer backend and fails cryptically downstream.
  *
  * Runs on every session open; closing a toast snoozes it for a cooldown so it
- * doesn't nag on every thread switch.
+ * doesn't nag on every thread switch. A backend that reports no contract is
+ * never compared.
  */
 export function reportBackendContract(contract: number | undefined): void {
-  const reported = contract ?? 0
+  // A backend that reports no contract at all (the Vanta server) does not speak this protocol, so there is
+  // nothing to compare; reading that as version 0 warned "Backend out of date" on every launch.
+  if (contract === undefined) {
+    dismissNotification(SKEW_TOAST_ID)
+    dismissNotification(GUI_SKEW_TOAST_ID)
 
+    return
+  }
+
+  compareBackendContract(contract)
+}
+
+function compareBackendContract(reported: number): void {
   if (reported >= REQUIRED_BACKEND_CONTRACT) {
     dismissNotification(SKEW_TOAST_ID)
     // Backend caught up — forget any prior snooze so a future regression warns
