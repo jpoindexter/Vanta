@@ -152,5 +152,5 @@ const PATH_TOOLS = new Set(["edit_file", "write_file", "read_file", "glob_files"
 
 function isOneWayDoor(action: string, toolName?: string): boolean {
   if (toolName && PATH_TOOLS.has(toolName)) return false;
-  return /\b(rm -rf|delete|drop table|reset --hard|push --force|publish|deploy|migrate|production)\b/i.test(action);
+  return /\b(rm -rf|delete|drop table|reset --hard|git push|push --force|publish|deploy|migrate|production)\b/i.test(action);
 }
