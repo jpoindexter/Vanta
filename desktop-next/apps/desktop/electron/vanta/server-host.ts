@@ -40,12 +40,22 @@ export class ServerHost {
 
   /** Start (or replace) the server for a project root. Rejects with the reason the runtime did not come up. */
   start(input: LaunchInput): Promise<void> {
-    this.stopCurrent()
+    const previous = this.current
+    const previousLaunch = this.launching
+
+    previous?.stop()
+    this.current = null
     this.intentionalStop = false
     this.lastError = null
     const generation = (this.generation += 1)
 
-    const ready = this.deps.launch(input).then(async server => {
+    // The old runtime and the kernel it owns must be gone before the new one starts: both want the same kernel port and home.
+    const started =
+      previous || previousLaunch
+        ? Promise.allSettled([previous?.stopAndWait(), previousLaunch]).then(() => this.deps.launch(input))
+        : this.deps.launch(input)
+
+    const ready = started.then(async server => {
       if (generation !== this.generation) {
         await server.stopAndWait()
         throw new Error('The Vanta runtime start was superseded by a newer one.')

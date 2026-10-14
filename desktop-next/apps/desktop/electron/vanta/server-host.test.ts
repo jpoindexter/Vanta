@@ -46,6 +46,43 @@ function setup(servers: Array<ReturnType<typeof fakeServer>>) {
 }
 
 describe('ServerHost', () => {
+  it('waits for the previous runtime to be gone before it launches the next one (project switch)', async () => {
+    const events: string[] = []
+    const first = fakeServer(7801)
+    const second = fakeServer(7802)
+    let finishStop!: () => void
+
+    first.server.stopAndWait = vi.fn(async () => {
+      events.push('old stop begins')
+      await new Promise<void>(resolve => {
+        finishStop = resolve
+      })
+      events.push('old stop done')
+    })
+
+    const { host, launch } = setup([first, second])
+
+    launch.mockImplementation(async () => {
+      events.push('launch')
+
+      return (events.filter(event => event === 'launch').length === 1 ? first : second).server
+    })
+
+    await host.start(input)
+
+    const restarted = host.start(input)
+
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(events).toEqual(['launch', 'old stop begins'])
+
+    finishStop()
+    await restarted
+
+    expect(events).toEqual(['launch', 'old stop begins', 'old stop done', 'launch'])
+    await expect(host.baseUrlWhenReady()).resolves.toBe('http://127.0.0.1:7802')
+  })
+
   it('reports verifying then ready, and exposes the server base URL once it answers', async () => {
     const { boot, host } = setup([fakeServer(7801)])
 
