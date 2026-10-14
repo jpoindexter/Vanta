@@ -55,6 +55,32 @@ function setup(servers: Array<ReturnType<typeof fakeServer>>, now?: () => number
 const settle = () => new Promise(resolve => setImmediate(resolve))
 
 describe('ServerHost restarts a runtime that died on its own', () => {
+  it('does not restart a runtime that an explicit restart already replaced during the delay', async () => {
+    vi.useFakeTimers()
+
+    try {
+      const first = fakeServer(7801)
+      const servers = [first, fakeServer(7802), fakeServer(7803)]
+      const launch = vi.fn(async () => servers.shift()!.server)
+      const boot = { fail: vi.fn(), ready: vi.fn(), verifying: vi.fn() }
+      const host = new ServerHost({ boot, launch, log: vi.fn(), onUnexpectedExit: vi.fn(), respawnDelayMs: 5000 })
+      await host.start(input)
+      first.exit({ code: 1, signal: null })
+      await vi.advanceTimersByTimeAsync(0)
+
+      const waiting = host.baseUrlWhenReady()
+      await vi.advanceTimersByTimeAsync(1000)
+      await host.start(input)
+      await vi.advanceTimersByTimeAsync(6000)
+      await waiting
+
+      expect(launch).toHaveBeenCalledTimes(2)
+      expect(host.baseUrl).toBe('http://127.0.0.1:7802')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('waits the configured delay before starting it again', async () => {
     vi.useFakeTimers()
 

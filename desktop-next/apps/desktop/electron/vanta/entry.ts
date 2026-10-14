@@ -172,7 +172,8 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     ipc,
     log,
     requests,
-    reveal: file => shell.showItemInFolder(file)
+    reveal: file => shell.showItemInFolder(file),
+    restart: () => serverHost.start(launchInput(projectRoot))
   })
 }
 

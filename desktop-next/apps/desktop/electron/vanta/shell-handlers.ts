@@ -16,6 +16,8 @@ export interface ShellDeps {
   log: AppLog
   reveal: (file: string) => void
   requests: RequestBridge
+  /** Stops the runtime and starts it again for the current project (the crash toast's "Restart Vanta"). */
+  restart: () => Promise<void>
 }
 
 interface Sender {
@@ -67,6 +69,11 @@ export function registerShellHandlers(deps: ShellDeps): void {
   ipc.on(CH.focusClient, (event, clientId: unknown) => requests.setFocusedClient(event.sender as Sender, clientId))
 
   ipc.handle(CH.connection, async event => deps.describe(await deps.baseUrl(), deps.getWindow(event.sender)))
+  ipc.handle(CH.backendRecycle, async () => {
+    await deps.restart()
+
+    return { ok: true }
+  })
   ipc.handle(CH.bootProgressGet, () => deps.boot())
   ipc.handle(CH.version, () => versionInfo(deps.appVersion()))
   ipc.handle(CH.logsRecent, () => ({ lines: deps.log.recent(), path: deps.log.file }))

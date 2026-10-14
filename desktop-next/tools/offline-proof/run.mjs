@@ -80,9 +80,19 @@ const STEPS = [
     must(pid, "no runtime process under the app");
     process.kill(pid, "SIGKILL");
     await page().getByTestId("offline-banner").waitFor({ state: "visible", timeout: 30_000 });
+    // The crash toast is sticky and shares the top of the window with the banner: it must sit below it.
+    const toast = page().getByText("Vanta stopped working in the background");
+    await toast.waitFor({ state: "visible", timeout: 10_000 });
+    const gap = await page().evaluate(() => {
+      const banner = document.querySelector("[data-testid='offline-banner']").getBoundingClientRect();
+      const stack = document.querySelector("[data-slot='notification-stack']").getBoundingClientRect();
+      return { bannerBottom: Math.round(banner.bottom), toastTop: Math.round(stack.top) };
+    });
+    must(gap.toastTop >= gap.bannerBottom, `the toast (top ${gap.toastTop}) covers the offline banner (bottom ${gap.bannerBottom})`);
+    ctx.facts.gap = gap;
     await shot("03-offline-banner");
     must(await composer().isEditable(), "the composer is not editable while offline");
-    return { killed: pid, banner: (await page().getByTestId("offline-banner").innerText()).replace(/\s+/g, " ").slice(0, 120) };
+    return { killed: pid, ...ctx.facts.gap, banner: (await page().getByTestId("offline-banner").innerText()).replace(/\s+/g, " ").slice(0, 120) };
   }],
   ["c", "a message typed while offline is queued: the draft clears and nothing reaches the model", async () => {
     await send(OFFLINE_TEXT);
@@ -98,10 +108,12 @@ const STEPS = [
     // Best effort: the banner (and its button) goes away as soon as the backend is back.
     const retried = await page().getByRole("button", { name: "Retry now" }).click({ timeout: 3000 }).then(() => true, () => false);
     ctx.facts.retryClicked = retried;
+    must(retried, "Retry now was not clickable while the backend was down");
     await waitFor(async () => promptsContaining(OFFLINE_TEXT) > 0, "the queued message to reach the model", 60_000);
     await waitFor(async () => (await bodyText()).split(ANSWER).length - 1 >= 2, "the second answer", 30_000);
     await shot("05-drained");
     must(!(await page().getByTestId("offline-banner").isVisible().catch(() => false)), "the offline banner is still showing after the backend came back");
+    must(!(await page().getByText("Vanta stopped working in the background").isVisible().catch(() => false)), "the crash toast is still showing after the backend came back");
     return { requestsAfter: ctx.model.requests.length, retryClicked: retried };
   }],
   ["e", "Memory Graph opens from the command palette and draws the seeded skill and memory", async () => {
@@ -120,7 +132,25 @@ const STEPS = [
     must(!/Nothing learned yet/.test(text), "the graph shows the empty state although a skill and a memory exist");
     must(/skill/.test(text) && /memory/.test(text), "the legend lacks the skill or memory entry");
     const counter = (text.match(/\d+ \/ \d+/) ?? [""])[0];
+    await page().keyboard.press("Escape");
+    await page().evaluate(() => { window.location.hash = "#/"; });
+    await page().waitForTimeout(500);
     return { legend: true, counter };
+  }],
+  ["f", "the toast's Restart Vanta brings a killed backend back at once (not after the automatic delay)", async () => {
+    const before = ctx.model.requests.length;
+    const pid = runtimePid();
+    must(pid, "no runtime process under the app");
+    process.kill(pid, "SIGKILL");
+    await page().getByText("Vanta stopped working in the background").waitFor({ state: "visible", timeout: 30_000 });
+    const started = Date.now();
+    await page().getByRole("button", { name: "Restart Vanta" }).click({ timeout: 5000 });
+    await page().getByTestId("offline-banner").waitFor({ state: "hidden", timeout: 20_000 });
+    const ms = Date.now() - started;
+    must(ms < RESPAWN_DELAY_MS - 2000, `the backend took ${ms} ms to return: Restart waited for the automatic delay`);
+    await waitFor(async () => !(await page().getByText("Vanta stopped working in the background").isVisible().catch(() => false)), "the crash toast to clear");
+    await shot("08-restart-vanta");
+    return { backAfterMs: ms, killed: pid, requestsBefore: before };
   }],
 ];
 

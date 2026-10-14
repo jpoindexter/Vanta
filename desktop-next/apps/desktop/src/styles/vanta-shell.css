@@ -583,6 +583,11 @@ button.vs-chip:hover {
   background: var(--ui-row-hover-background);
 }
 
+/* While the offline banner is showing, the toast stack starts below it so the banner's Retry stays clickable. */
+body:has([data-testid='offline-banner']) [data-slot='notification-stack'] {
+  top: calc(var(--titlebar-height, 34px) + 3.5rem);
+}
+
 /* Drawer / workbench overlays float with the wireframe's elevation. */
 [data-narrow-overlay] {
   box-shadow: var(--vs-elevation);
