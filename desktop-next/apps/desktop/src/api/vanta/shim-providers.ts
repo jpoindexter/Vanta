@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { notifySetupReady } from '@/store/live-sync'
 import type { EnvVarInfo } from '@/types/hermes'
 
 import { statusSchema } from './schemas'
@@ -84,6 +85,9 @@ export async function connectProvider(send: Send, request: ConnectRequest): Prom
   } catch (error) {
     throw new Error(scrub(serverMessage(error), apiKey))
   }
+
+  // The runtime now has a provider: the status bar, onboarding and readiness checks re-ask (as they do at boot).
+  notifySetupReady()
 }
 
 function envRow(option: SetupOption): EnvVarInfo {

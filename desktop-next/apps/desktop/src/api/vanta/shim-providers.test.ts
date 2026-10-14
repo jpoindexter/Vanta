@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { $setupReadyTick } from '@/store/live-sync'
+
 import { vantaRestShim } from './rest-shim'
 
 const KEY = 'sk-proj-fixture-key-that-must-never-be-echoed-1234'
@@ -68,6 +70,17 @@ describe('provider keys over the env routes', () => {
 
     expect(setupPosts(calls)).toHaveLength(1)
     expect(setupPosts(calls)[0]?.body).toEqual({ apiKey: KEY, provider: 'openai' })
+  })
+
+  it('tells the app a provider is now ready only when the server accepted the key', async () => {
+    const before = $setupReadyTick.get()
+    const refused = makeServer({ 'POST /api/setup': new Error('400: {"error":"placeholder"}') })
+
+    await vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: 'sk-secret' }, method: 'PUT', path: '/api/env' }, refused.send).catch(() => undefined)
+    expect($setupReadyTick.get()).toBe(before)
+
+    await vantaRestShim({ body: { key: 'OPENAI_API_KEY', value: KEY }, method: 'PUT', path: '/api/env' }, makeServer().send)
+    expect($setupReadyTick.get()).toBe(before + 1)
   })
 
   it('keeps the model in use when the replaced key is for the provider already running', async () => {

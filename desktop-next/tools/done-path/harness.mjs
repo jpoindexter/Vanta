@@ -61,19 +61,20 @@ export async function makeSandbox() {
 
 export const readPermissions = (box) => (fs.existsSync(box.permissionsFile) ? fs.readFileSync(box.permissionsFile, "utf8") : "(file absent)");
 
-function sandboxEnv({ box, project, modelUrl }) {
+function sandboxEnv({ box, project, modelUrl, extraEnv = {} }) {
   const env = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("HERMES_")) env[key] = value;
   }
+  // No `modelUrl`: a first run with no model provider configured at all.
+  const provider = modelUrl
+    ? { VANTA_PROVIDER: "custom", VANTA_OPENAI_BASE_URL: modelUrl, VANTA_OPENAI_KEY: "proof", VANTA_MODEL: "done-path" }
+    : {};
   return Object.assign(env, {
     HOME: box.home,
     VANTA_HOME: box.vantaHome,
     VANTA_PROJECT_ROOT: project,
-    VANTA_PROVIDER: "custom",
-    VANTA_OPENAI_BASE_URL: modelUrl,
-    VANTA_OPENAI_KEY: "proof",
-    VANTA_MODEL: "done-path",
+    ...provider,
     VANTA_RUNTIME_ROOT: path.join(repoRoot, "vanta-ts"),
     VANTA_KERNEL_URL: `http://127.0.0.1:${box.kernelPort}`,
     // A frontier-size window: with the 32k default the context pipeline legitimately snips a 200 KB message to 4000 chars.
@@ -84,17 +85,18 @@ function sandboxEnv({ box, project, modelUrl }) {
     VANTA_OPERATING_MODE: "default",
     VANTA_PERMISSION_MODE: "default",
     NODE_OPTIONS: `--require ${path.join(here, "..", "hidden-window.cjs")}`,
+    ...extraEnv,
   });
 }
 
 /** Launch the built Electron shell on `project`, hidden and unfocused. */
-export async function launchApp({ box, project, modelUrl, width = 1440, height = 900 }) {
+export async function launchApp({ box, project, modelUrl, extraEnv, width = 1440, height = 900 }) {
   const { _electron } = require("playwright-core");
   const bin = path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
   const app = await _electron.launch({
     executablePath: bin,
     args: [desktopRoot, `--user-data-dir=${box.userData}`, "--disable-gpu", "--no-sandbox", "--disable-backgrounding-occluded-windows", "--disable-renderer-backgrounding"],
-    env: sandboxEnv({ box, project, modelUrl }),
+    env: sandboxEnv({ box, project, modelUrl, extraEnv }),
     cwd: desktopRoot,
   });
   const page = await app.firstWindow();

@@ -1003,7 +1003,9 @@ export function useMessageStream({
               // The reply is already on screen as the sealed interim: settle it
               // instead of appending the same text a second time (#123801).
               nextMessages = settleAt(identicalInterimIndex)
-            } else if (finalText) {
+            } else if (finalText || hasFailure) {
+              // A terminal error frame with nothing streamed still owes the person its error card (Vanta's
+              // provider_auth stop carries no text): without this the failed turn left the thread blank.
               nextMessages = [...prev, newAssistantFromCompletion()]
             }
           } else {
@@ -1023,7 +1025,7 @@ export function useMessageStream({
 
             if (sealed?.interim === true && chatMessageText(sealed).trim() === finalText) {
               nextMessages = settleAt(sealedIndex)
-            } else if (finalText) {
+            } else if (finalText || hasFailure) {
               nextMessages = [...prev, newAssistantFromCompletion()]
             }
           }
