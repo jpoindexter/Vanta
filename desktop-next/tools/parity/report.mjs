@@ -99,7 +99,12 @@ export function renderMarkdown({ summary, rows, copyRows, meta, deviations }) {
   for (const r of rows.filter((x) => x.status === "UNMAPPED" && x.reason !== "key not mapped for the app")) reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
   if (reasons.size) out.push("### States the app could not be driven into", "", ...table(["Reason", "Rows"], [...reasons].map(([k, n]) => [cell(k), n])), "");
   const allowed = allowedGroups(rows);
-  out.push("## ALLOWED deviations", "", ...table(["Deviation", "Rows", "Reason"], [...allowed].map(([id, n]) => [id, n, cell(deviations.find((d) => d.id === id)?.reason)])), "");
+  const full = (v) => String(v ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+  const how = (d) => (d?.na ? "N/A" : d?.transform === "shift" ? `shift ${JSON.stringify(d.shift)}` : d?.transform ?? "");
+  out.push("## Declared deviations", "", "Rows count property differences a deviation excused. Every deviation below is for owner review.", "");
+  out.push(...table(["Deviation", "Rows", "How", "Reason"], [...allowed].sort((a, b) => b[1] - a[1]).map(([id, n]) => [id, n, how(deviations.find((d) => d.id === id)), full(deviations.find((d) => d.id === id)?.reason)])), "");
+  const copyDeclared = deviations.filter((d) => d.copy);
+  if (copyDeclared.length) out.push("### Copy declared absent", "", ...table(["Deviation", "Strings", "States", "Reason"], copyDeclared.map((d) => [d.id, full(d.copy.join(" | ")), (d.states ?? ["all"]).join(", "), full(d.reason)])), "");
   out.push("## Copy by state", "", ...table(["State", "Status", "Found", "Missing (first 3)"], copyRows.map((c) => [c.state, c.status, `${c.found}/${c.total}`, cell((c.missing ?? [c.reason ?? ""]).slice(0, 3).join("; "))])), "");
   return `${out.join("\n")}\n`;
 }
