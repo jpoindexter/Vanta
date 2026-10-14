@@ -1,0 +1,22 @@
+| exit path | VANTA_KERNEL_EPHEMERAL | procs before | runtime alive | kernel alive | survivors |
+|---|---|---|---|---|---|
+| SIGTERM | unset | 2 | false | true | 1 |
+| SIGINT | unset | 2 | false | true | 1 |
+| SIGHUP | unset | 2 | false | true | 1 |
+| SIGKILL | unset | 2 | false | true | 1 |
+| parent-death | unset | 3 | true | true | 2 |
+| SIGTERM | 1 | 2 | false | false | 0 |
+| SIGINT | 1 | 2 | false | false | 0 |
+| SIGHUP | 1 | 2 | false | true | 1 |
+| SIGKILL | 1 | 2 | false | true | 1 |
+| parent-death | 1 | 3 | true | true | 2 |
+  SIGTERM/unset: 14414(ppid 1) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  SIGINT/unset: 14765(ppid 1) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  SIGHUP/unset: 15177(ppid 1) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  SIGKILL/unset: 15878(ppid 1) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  parent-death/unset: 16024(ppid 1) /Users/jasonpoindexter/.hermes/node/bin/node --import file:///Users/ja
+  parent-death/unset: 16445(ppid 16024) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  SIGHUP/1: 18857(ppid 1) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  SIGKILL/1: 19223(ppid 1) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
+  parent-death/1: 19315(ppid 1) /Users/jasonpoindexter/.hermes/node/bin/node --import file:///Users/ja
+  parent-death/1: 19566(ppid 19315) /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-kernel-lifecycle-20
