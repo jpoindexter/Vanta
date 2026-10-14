@@ -28,16 +28,15 @@ export async function paletteRows(page) {
     const all = await items(page);
     const groups = await page.locator("[cmdk-group-heading]").allInnerTexts();
     verdict("F-181", AREA, "Palette shell (⌘K, groups, filter)", all.length > 20 && groups.includes("GO TO"), { pass: `${all.length} rows in groups ${groups.join(" / ")}; typing filters them`, why: `rows=${all.length} groups=${groups.join("/")}` });
-    verdict("F-182", AREA, "Go to: New session, Settings, Capabilities, Messaging, Artifacts, Cron, Profiles", has(all, ["New session", "New window", "Settings", "Capabilities", "Messaging", "Artifacts", "Cron", "Profiles"]), { pass: "all present", why: all.slice(0, 12).join(" / ") });
+    verdict("F-182", AREA, "Go to: New session, Settings, Capabilities, Messaging, Artifacts, Cron, Memory Graph, Profiles", has(all, ["New session", "New window", "Settings", "Capabilities", "Messaging", "Artifacts", "Cron", "Memory Graph", "Profiles"]), { pass: "all present", why: all.slice(0, 12).join(" / ") });
     verdict("F-183", AREA, "Projects: Open folder as project…", has(all, ["Open folder as project"]), { pass: "present with ⌘O", why: "missing" });
     verdict("F-184", AREA, "Commands: layout, status bar, tabs, shortcuts", has(all, ["Toggle layout edit mode", "Reset layout", "Toggle status bar", "Toggle tabs", "Keyboard shortcuts"]), { pass: "present", why: "missing rows" });
     verdict("F-186", AREA, "Command Center group", has(all, ["Sessions", "Import session", "System", "Usage", "Reload window"]), { pass: "Sessions, Import session, System, Usage, Reload window and the update row are present", why: "missing rows" });
     verdict("F-187", AREA, "Appearance group (theme, colour mode)", has(all, ["Change theme", "Change color mode"]), { pass: "Change theme and Change color mode are present", why: "missing rows" });
   });
-  await attempt(page, "F-187P", AREA, "No Pets or Memory Graph rows", async () => {
+  await attempt(page, "F-187P", AREA, "No Pets rows", async () => {
     const pets = await search(page, "pet");
-    const graph = await search(page, "memory graph");
-    verdict("F-187P", AREA, "No Pets / Generate a pet / Memory Graph rows", !pets.some((r) => /pets?\b|generate a pet/i.test(r)) && !graph.some((r) => /memory graph|starmap/i.test(r)), { pass: "searching pet and memory graph finds none (owner decision)", why: `pets=${pets.join("/")} graph=${graph.join("/")}` });
+    verdict("F-187P", AREA, "No Pets / Generate a pet rows", !pets.some((r) => /pets?\b|generate a pet/i.test(r)), { pass: "searching pet finds none (owner decision: pets are dropped)", why: `pets=${pets.join("/")} graph=${graph.join("/")}` });
   });
   await attempt(page, "F-189", AREA, "Chat search results", async () => {
     await openPalette(page);

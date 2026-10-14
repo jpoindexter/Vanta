@@ -48,7 +48,7 @@ it. Everything the agent needs from the human is reachable in one click from any
 Empty states are one line plus one action. No instructional prose.
 
 ## Tokens
-Type 12/13/14/15/18/24 (12px floor), weights 400/500/600. UI 14 on 20 line-height; chat body 15 on 24.
+Type 12/13/14/15/18/24 (12px floor), weights 400/500/600, plus 700 for card and page titles (the approved wireframe sets them bold; the wireframe wins over this document). UI 14 on 20 line-height; chat body 14 on 20.3 (wireframe, set by the owner).
 Radius 4/6/8/12/16/22/pill (composer 22). Space 4px grid, dominant gaps 4/6/8/12. Borders are hairlines (0.5px where the display allows); shadows are for popovers only. Motion 140ms controls, 200ms surfaces, reduced-motion safe.
 Vanta colors, unchanged: light = white and grey surfaces (base #ffffff, panel #f7f7f8, selected #e5e5e7, text #202024), dark = near-black neutrals; Vanta violet #7c3aed is the only accent (focus ring, links, selected state, send button). Primary button is inverted near-black (light) / near-white (dark), Codex-style. No warm tints, no clay accent.
 Fonts: system UI sans (-apple-system) first, Inter as the bundled fallback, JetBrains Mono for code (already bundled by Hermes). Icons: Tabler (MIT). No fonts, icons or logos from Codex or Claude.

@@ -330,9 +330,9 @@ Rule from the owner: keep skills and every feature that does real work; drop onl
 - F-219 Remote first-run connection setup.
 - F-217 Two-profile onboarding mechanics (setup profile, gate, handoff tour). Replace with a simple Vanta first-run (provider connect, pick project, one sample prompt).
 - F-203 HUD 'game overlay' part only (HUD itself becomes the mini window, kept).
-- F-236 Memory Graph / Starmap visualiser: treated as gimmick by default (owner may veto; code stays in tree until confirmed).
 
 **KEEP (useful work, not gimmicks; do not drop)**
+- F-236 Memory Graph (Starmap): KEPT 2026-10-14. An earlier pass treated it as a gimmick "by default" and hid its entry points, but the owner never decided to cut it ("I didn't veto Memory Graph"), and the standing rule is keep every Hermes feature unless the owner cuts it. Palette row restored; route, overlay and `/memory-graph` slash command were never removed.
 - F-073 Bot group chats: PARKED, kept in tree and hidden until server support exists (multi-agent rooms may serve the Company vision; revisit with DN-15).
 - F-075 Bot Screen portal (agent's computer viewer): KEEP, target Workbench > Browser tab.
 - F-147 Credential / sudo / secret prompts: KEEP as a Vanta-brokered 'connect' flow (never ask the model for secrets).
