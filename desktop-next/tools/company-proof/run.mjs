@@ -4,6 +4,7 @@
 // press Run tick, and watch the heartbeat and a new work product appear without leaving the screen.
 //
 //   node tools/company-proof/run.mjs --out docs/proofs/company-complete/run-01 [--no-shots] [--keep] [--control no-department]
+// --fresh-tick adds step a2: a tick before any worker has run must already see the kernel goal.
 // --control no-department skips the department file: the tick must then NOT start T-2 and the proof must fail at step h.
 import fs from "node:fs";
 import path from "node:path";
@@ -50,6 +51,17 @@ const STEPS = [
     for (const name of ["OKRs", "Heartbeats", "Work products"]) must(tabs.includes(name), `tab ${name} missing: ${tabs.join(", ")}`);
     await shot("01-workers-empty");
     return { tabs };
+  }],
+  ["a2", "fresh app, no worker has run: Run tick still sees a goal on the running kernel (--fresh-tick)", async () => {
+    if (!flag("--fresh-tick")) return { skipped: true };
+    const goalId = await addKernelGoal(ctx.box);
+    ctx.facts.goalId = goalId;
+    writeDepartment(ctx.box, "engineer", goalId);
+    const tick = await bridgeCall(page(), "POST", "/api/company/tick", {});
+    must(tick.ok, `tick: ${JSON.stringify(tick).slice(0, 300)}`);
+    const warnings = tick.data.warnings ?? [];
+    must(!warnings.some((w) => /kernel goals/i.test(w)), `tick still reports no goals: ${warnings.join(" | ")}`);
+    return { goalId, warnings };
   }],
   ["b", "hire an Engineer with a $2 budget through the approval card", async () => {
     await page().getByTestId("hire-open").click();
@@ -124,7 +136,7 @@ const STEPS = [
     await dialog.getByLabel("Expected output (optional)").fill("report");
     await dialog.getByRole("button", { name: "Create ticket" }).click();
     await waitFor(async () => (await apiGet("/api/tickets")).tickets.some((t) => t.id === "T-2"), "T-2 to exist");
-    const goalId = await addKernelGoal(ctx.box);
+    const goalId = ctx.facts.goalId ?? (await addKernelGoal(ctx.box));
     if (option("--control", "") !== "no-department") writeDepartment(ctx.box, "engineer", goalId);
     const assigned = await bridgeCall(page(), "POST", "/api/company/tickets/assign", { ticketId: "T-2", workerId: "engineer", start: false });
     must(assigned.ok && assigned.data.run === undefined, `assign: ${JSON.stringify(assigned).slice(0, 300)}`);
@@ -189,7 +201,8 @@ const STEPS = [
     const entries = (await apiGet("/api/activity?limit=200")).entries;
     const kinds = entries.map((e) => e.kind);
     for (const kind of ["okr.created", "okr.progress", "company.tick"]) must(kinds.includes(kind), `activity lacks ${kind}: ${[...new Set(kinds)].join(", ")}`);
-    must(kinds.filter((k) => k === "company.tick").length === 2, `expected 2 ticks in the log, saw ${kinds.filter((k) => k === "company.tick").length}`);
+    const expectedTicks = flag("--fresh-tick") ? 3 : 2;
+    must(kinds.filter((k) => k === "company.tick").length === expectedTicks, `expected ${expectedTicks} ticks in the log, saw ${kinds.filter((k) => k === "company.tick").length}`);
     // "unsupported: <hermes call> is not available in Vanta Desktop yet" is the shell's known, pre-existing stub noise.
     const errors = ctx.cur.errors.filter((e) => !/favicon|ResizeObserver|is not available in Vanta Desktop yet/.test(e));
     must(errors.length === 0, `console errors: ${errors.slice(0, 3).join(" | ")}`);
