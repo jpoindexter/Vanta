@@ -6,6 +6,7 @@ import { TICKET_STATUSES } from '@/api/vanta-company-schemas'
 import { VpButton } from '../../ui/button'
 import { TICKET_STATUS_WORD } from '../copy'
 import { Field } from '../ui/field'
+import { VcSelect } from '../ui/vc-select'
 
 export interface TicketFilterValues {
   project: string
@@ -52,14 +53,7 @@ interface SelectFilterProps {
 function SelectFilter({ allLabel, disabled, label, onChange, options, value }: SelectFilterProps) {
   return (
     <Field label={label}>
-      <select className="vc-input" disabled={disabled} onChange={event => onChange(event.target.value)} value={value}>
-        <option value="">{allLabel}</option>
-        {options.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <VcSelect disabled={disabled} emptyLabel={allLabel} onChange={onChange} options={options} value={value} />
     </Field>
   )
 }

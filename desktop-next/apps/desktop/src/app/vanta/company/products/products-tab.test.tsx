@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { renderCompany } from '../test-utils'
+import { chooseValue, optionLabels, renderCompany } from '../test-utils'
 
 import { previewOf } from './product-card'
 
@@ -39,7 +39,7 @@ describe('Work products tab', () => {
   it('says no product matches the filters', async () => {
     await renderCompany(products)
     await screen.findAllByTestId('work-product')
-    fireEvent.change(screen.getByLabelText('Worker'), { target: { value: 'support' } })
+    await chooseValue(screen.getByLabelText('Worker'), 'support')
 
     expect(await screen.findByText('No work products match these filters.')).toBeTruthy()
   })
@@ -59,11 +59,11 @@ describe('Work products tab', () => {
     const { server } = await renderCompany(products)
 
     await screen.findAllByTestId('work-product')
-    fireEvent.change(screen.getByLabelText('Worker'), { target: { value: 'engineer' } })
+    await chooseValue(screen.getByLabelText('Worker'), 'engineer')
     await waitFor(() => expect(screen.getAllByTestId('work-product')).toHaveLength(2))
     expect(server.calls.some(call => call.path === '/api/work-products?worker=engineer')).toBe(true)
 
-    fireEvent.change(screen.getByLabelText('Ticket'), { target: { value: 'T-3' } })
+    await chooseValue(screen.getByLabelText('Ticket'), 'T-3')
     await waitFor(() => expect(screen.getAllByTestId('work-product')).toHaveLength(1))
     expect(server.calls.some(call => call.path === '/api/work-products?ticket=T-3&worker=engineer')).toBe(true)
   })
@@ -72,7 +72,7 @@ describe('Work products tab', () => {
     await renderCompany(products)
     await screen.findAllByTestId('work-product')
 
-    const options = within(screen.getByLabelText('Ticket')).getAllByRole('option').map(option => option.textContent)
+    const options = await optionLabels(screen.getByLabelText('Ticket'))
 
     expect(options[0]).toBe('All tickets')
     expect(options).toHaveLength(5)

@@ -1,4 +1,4 @@
-import { act, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, waitFor } from '@testing-library/react'
 import { expect } from 'vitest'
 
 import type { Scenario } from './fixtures/fake-company-state'
@@ -28,3 +28,31 @@ export const flush = () =>
   act(async () => {
     await Promise.resolve()
   })
+
+// Radix Select asks the DOM for two things jsdom does not have.
+function prepareRadixSelect() {
+  Element.prototype.scrollIntoView ??= () => undefined
+  Element.prototype.hasPointerCapture ??= () => false
+  Element.prototype.releasePointerCapture ??= () => undefined
+}
+
+const optionFor = (value: string) => document.querySelector<HTMLElement>(`[role="option"][data-value="${value}"]`)
+
+/** Open a VcSelect from the keyboard and pick the row with this value. */
+export async function chooseValue(control: HTMLElement, value: string) {
+  prepareRadixSelect()
+  fireEvent.keyDown(control, { key: 'Enter' })
+  await waitFor(() => expect(optionFor(value)).not.toBeNull())
+  fireEvent.click(optionFor(value) as HTMLElement)
+}
+
+/** The labels a VcSelect offers, in order. Leaves it closed. */
+export async function optionLabels(control: HTMLElement): Promise<string[]> {
+  prepareRadixSelect()
+  fireEvent.keyDown(control, { key: 'Enter' })
+  await waitFor(() => expect(document.querySelectorAll('[role="option"]').length).toBeGreaterThan(0))
+  const labels = [...document.querySelectorAll('[role="option"]')].map(option => option.textContent ?? '')
+  fireEvent.keyDown(control, { key: 'Escape' })
+
+  return labels
+}

@@ -97,26 +97,28 @@ const MoveButtons: FC<{
   onMove: (id: string, direction: "down" | "up") => void;
 }> = ({ disabled, entry, isFirst, isLast, onMove }) => (
   <>
-    <button
-      aria-label="Move earlier"
-      className="vp-btn"
-      disabled={disabled || isFirst}
-      onClick={() => onMove(entry.id, "up")}
-      title="Move earlier"
-      type="button"
-    >
-      <ChevronUp aria-hidden="true" className="size-3" />
-    </button>
-    <button
-      aria-label="Move later"
-      className="vp-btn"
-      disabled={disabled || isLast}
-      onClick={() => onMove(entry.id, "down")}
-      title="Move later"
-      type="button"
-    >
-      <ChevronDown aria-hidden="true" className="size-3" />
-    </button>
+    <Tip label="Move earlier">
+      <button
+        aria-label="Move earlier"
+        className="vp-btn"
+        disabled={disabled || isFirst}
+        onClick={() => onMove(entry.id, "up")}
+        type="button"
+      >
+        <ChevronUp aria-hidden="true" className="size-3" />
+      </button>
+    </Tip>
+    <Tip label="Move later">
+      <button
+        aria-label="Move later"
+        className="vp-btn"
+        disabled={disabled || isLast}
+        onClick={() => onMove(entry.id, "down")}
+        type="button"
+      >
+        <ChevronDown aria-hidden="true" className="size-3" />
+      </button>
+    </Tip>
   </>
 );
 

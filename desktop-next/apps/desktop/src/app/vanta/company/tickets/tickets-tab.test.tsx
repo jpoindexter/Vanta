@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { renderCompany } from '../test-utils'
+import { chooseValue, renderCompany } from '../test-utils'
 
 afterEach(cleanup)
 
@@ -49,7 +49,7 @@ describe('Tickets tab: list', () => {
     const { server } = await renderCompany(tickets)
 
     await screen.findAllByTestId('ticket-row')
-    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'blocked' } })
+    await chooseValue(screen.getByLabelText('Status'), 'blocked')
 
     await waitFor(() => expect(screen.getAllByTestId('ticket-row')).toHaveLength(1))
     expect(server.calls.some(call => call.path.includes('status=blocked'))).toBe(true)
@@ -77,7 +77,7 @@ describe('New ticket', () => {
 
     fireEvent.change(within(dialog).getByLabelText('Title'), { target: { value: 'Write the changelog' } })
     fireEvent.change(within(dialog).getByLabelText('Expected output (optional)'), { target: { value: 'report' } })
-    fireEvent.change(within(dialog).getByLabelText('Assign to (optional)'), { target: { value: 'analyst' } })
+    await chooseValue(within(dialog).getByLabelText('Assign to (optional)'), 'analyst')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Create ticket' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -204,7 +204,7 @@ describe('Ticket detail', () => {
 
   it('assigns an open ticket and reports a run that could not start', async () => {
     await open('T-5')
-    fireEvent.change(await screen.findByLabelText('Worker'), { target: { value: 'engineer' } })
+    await chooseValue(await screen.findByLabelText('Worker'), 'engineer')
     fireEvent.click(screen.getByRole('button', { name: 'Assign' }))
 
     expect(await screen.findByText(/Assigned. The run did not start: .* is waiting. It is queued./)).toBeTruthy()

@@ -2,6 +2,7 @@ import type { CompanyResponse, ProviderOption, RuntimeOption } from '@/api/vanta
 
 import { NATIVE_RUNTIME } from '../format'
 import { Field } from '../ui/field'
+import { VcSelect } from '../ui/vc-select'
 
 import type { HireFormValues } from './hire-form'
 import { RuntimePicker } from './runtime-picker'
@@ -36,13 +37,11 @@ function ProviderField({
 
   return (
     <Field hint={model ? `Runs on ${model}, the provider's default model.` : undefined} label="Provider">
-      <select className="vc-input" onChange={event => onChange(event.target.value)} value={value}>
-        {providers.map(provider => (
-          <option key={provider.id} value={provider.id}>
-            {provider.label}
-          </option>
-        ))}
-      </select>
+      <VcSelect
+        onChange={onChange}
+        options={providers.map(provider => ({ label: provider.label, value: provider.id }))}
+        value={value}
+      />
     </Field>
   )
 }
@@ -59,14 +58,13 @@ interface PickProps {
 function Pick({ busy, empty, label, onChange, options, value }: PickProps) {
   return (
     <Field label={label}>
-      <select className="vc-input" disabled={busy} onChange={event => onChange(event.target.value)} value={value}>
-        <option value="">{empty}</option>
-        {options.map(option => (
-          <option key={option.id} value={option.id}>
-            {option.name}
-          </option>
-        ))}
-      </select>
+      <VcSelect
+        disabled={busy}
+        emptyLabel={empty}
+        onChange={onChange}
+        options={options.map(option => ({ label: option.name, value: option.id }))}
+        value={value}
+      />
     </Field>
   )
 }
