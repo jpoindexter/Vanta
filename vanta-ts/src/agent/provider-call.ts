@@ -16,11 +16,16 @@ import { dispatchTool } from "./dispatch-tool.js";
 import { isTransientError, resolveProviderRetries } from "../tool-retry.js";
 import { classifyProviderError } from "../providers/error-taxonomy.js";
 import { stripAllImages } from "./image-recovery.js";
+import { recordTtftStage } from "../performance/ttft-trace.js";
+import { capabilitySnapshot, injectCapabilitySnapshot, providerCapabilityState, recordCapabilityProviderResult } from "./capability-snapshot.js";
 
 export type ProviderCall = {
   ctx: ToolContext;
   prefetched: Map<string, Promise<DispatchOutcome>>;
   schemas: ToolSchema[];
+  /** Maximum safe tools this provider call may start before the loop dispatches. */
+  prefetchLimit?: number;
+  ttft?: { turnId: string; surface: string };
 };
 
 export type CompletionRetryArgs = {
@@ -111,21 +116,38 @@ export async function getCompletion(
   deps: AgentDeps,
   messages: Message[],
   signal?: AbortSignal,
-  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: ToolSchema[] },
+  pf?: { ctx: ToolContext; prefetched: Map<string, Promise<DispatchOutcome>>; schemas?: ToolSchema[]; prefetchLimit?: number; ttft?: { turnId: string; surface: string } },
 ): Promise<CompletionResult> {
-  const schemas = pf?.schemas ?? schemasWithStructuredOutput(
+  const requested = pf?.schemas ?? schemasWithStructuredOutput(
     scopeToolSchemas(deps.registry.schemas(), toolScopeContext(messages, deps.activeGoalText), { env: process.env }),
     deps.outputSchema,
   );
-  const cfg = { ...(signal ? { signal } : {}), effortLevel: deps.getEffortLevel?.() };
+  const snapshot = capabilitySnapshot(deps.registry.schemas(), requested, {
+    mode: deps.permissionMode?.(), planActive: deps.planGate?.(), recoveringFrom: providerCapabilityState(deps.provider),
+  });
+  const schemas = snapshot.exposed;
+  const callMessages = injectCapabilitySnapshot(messages, snapshot);
+  const cfg = {
+    ...(signal ? { signal } : {}),
+    effortLevel: deps.getEffortLevel?.(),
+    serviceTier: deps.getServiceTier?.(),
+  };
+  recordTtftStage("provider_dispatch", pf?.ttft);
+  try {
   if (deps.provider.stream && deps.onTextDelta) {
+    const exposedTools = new Set(schemas.map((schema) => schema.name));
     const onSafeToolCall = pf
       ? (call: ToolCall) => {
+          if (!exposedTools.has(call.name)) return;
+          if (pf.prefetchLimit !== undefined && pf.prefetched.size >= pf.prefetchLimit) return;
           if (!pf.prefetched.has(call.id)) pf.prefetched.set(call.id, dispatchTool(call, deps, pf.ctx));
         }
       : undefined;
-    const result = await consumeStream({ stream: deps.provider.stream(messages, schemas, cfg), onTextDelta: deps.onTextDelta, onThinkingDelta: deps.onThinkingDelta, signal, onSafeToolCall });
-    if (result) return result;
+    const result = await consumeStream({ stream: deps.provider.stream(callMessages, schemas, cfg), onTextDelta: deps.onTextDelta, onThinkingDelta: deps.onThinkingDelta, signal, onSafeToolCall, ttft: pf?.ttft });
+    if (result) { recordCapabilityProviderResult(deps.provider); return result; }
   }
-  return deps.provider.complete(messages, schemas, cfg);
+  const result = await deps.provider.complete(callMessages, schemas, cfg);
+  recordCapabilityProviderResult(deps.provider);
+  return result;
+  } catch (error) { recordCapabilityProviderResult(deps.provider, error); throw error; }
 }

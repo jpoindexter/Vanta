@@ -27,4 +27,20 @@ describe("runCronScript", () => {
     expect(res.ok).toBe(false);
     expect(res.output).toContain("timed out");
   }, 10_000);
+
+  it("does not expose synthetic provider credentials to the scheduled child", async () => {
+    const res = await runCronScript("env", {
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        OPENAI_API_KEY: "openai-must-not-cross",
+        VANTA_GMAIL_TOKEN: "gmail-must-not-cross",
+      },
+    });
+    expect(res.ok).toBe(true);
+    expect(res.output).not.toContain("openai-must-not-cross");
+    expect(res.output).not.toContain("gmail-must-not-cross");
+    expect(res.output).not.toContain("OPENAI_API_KEY");
+    expect(res.output).not.toContain("VANTA_GMAIL_TOKEN");
+  });
 });

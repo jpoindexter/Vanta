@@ -1,5 +1,4 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { gitExecFile } from "../git/process.js";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -9,7 +8,6 @@ import { fireHooks } from "../hooks/shell-hooks.js";
 // Each isolated agent runs in a fresh worktree on its own branch so parallel
 // code-editing agents don't conflict. Cleanup removes the worktree after use.
 
-const run = promisify(execFile);
 
 export type WorktreeHandle = {
   path: string;
@@ -39,7 +37,7 @@ export async function createWorktree(
   const tmpDir = await mkdtemp(join(parent, "vanta-worktree-"));
 
   // Create the worktree on a new branch based on HEAD.
-  await run("git", ["worktree", "add", "-b", branch, tmpDir, "HEAD"], { cwd: repoRoot });
+  await gitExecFile("git", ["worktree", "add", "-b", branch, tmpDir, "HEAD"], { cwd: repoRoot });
   await fireHooks(join(repoRoot, ".vanta"), "WorktreeCreate", { path: tmpDir, branch }, { cwd: repoRoot });
 
   const cleanup = () => cleanupWorktree(repoRoot, tmpDir, branch);
@@ -50,13 +48,13 @@ export async function createWorktree(
 export async function cleanupWorktree(repoRoot: string, path: string, branch: string): Promise<void> {
   await fireHooks(join(repoRoot, ".vanta"), "WorktreeRemove", { path, branch }, { cwd: repoRoot });
   try {
-    await run("git", ["worktree", "remove", "--force", path], { cwd: repoRoot });
+    await gitExecFile("git", ["worktree", "remove", "--force", path], { cwd: repoRoot });
   } catch { /* already removed */ }
   try {
     await rm(path, { recursive: true, force: true });
   } catch { /* already gone */ }
   try {
-    await run("git", ["branch", "-D", branch], { cwd: repoRoot });
+    await gitExecFile("git", ["branch", "-D", branch], { cwd: repoRoot });
   } catch { /* branch may have been merged */ }
 }
 
@@ -71,7 +69,7 @@ export async function worktreeStatus(
   path: string,
 ): Promise<{ clean: boolean; status: string }> {
   try {
-    const { stdout } = await run("git", ["status", "--porcelain"], { cwd: path });
+    const { stdout } = await gitExecFile("git", ["status", "--porcelain"], { cwd: path });
     const status = stdout.trim();
     return { clean: status === "", status };
   } catch (err) {
@@ -85,7 +83,7 @@ export async function worktreeStatus(
  */
 export async function worktreeDiff(repoRoot: string, branch: string): Promise<string> {
   try {
-    const { stdout } = await run("git", ["diff", `HEAD..${branch}`, "--stat"], { cwd: repoRoot });
+    const { stdout } = await gitExecFile("git", ["diff", `HEAD..${branch}`, "--stat"], { cwd: repoRoot });
     return stdout.trim() || "(no changes)";
   } catch {
     return "(diff unavailable)";
@@ -102,7 +100,7 @@ export async function mergeWorktreeBranch(
   commitMessage: string,
 ): Promise<{ ok: boolean; message: string }> {
   try {
-    await run("git", ["merge", "--no-ff", branch, "-m", commitMessage], { cwd: repoRoot });
+    await gitExecFile("git", ["merge", "--no-ff", branch, "-m", commitMessage], { cwd: repoRoot });
     return { ok: true, message: `merged ${branch}` };
   } catch (err) {
     return { ok: false, message: `merge conflict: ${(err as Error).message.split("\n")[0]}` };

@@ -1,11 +1,9 @@
 import { createElement as h, useEffect, useState, type ReactElement } from "react";
-import { Box, Static, render } from "ink";
+import { Box, Static, Text, render } from "ink";
 import { Banner } from "../src/ui/banner.js";
 import { Composer } from "../src/ui/composer.js";
 import { TodoPanel } from "../src/ui/todo-panel.js";
 import { Footer } from "../src/ui/app.js";
-import { ThemeProvider } from "../src/ui/theme.js";
-import { resolveTheme } from "../src/term/theme.js";
 import { installResizeGhostFix } from "../src/term/resize-fix.js";
 import { EntryView } from "../src/ui/transcript.js";
 import { PinnedRegion, resolveComposerAnchor } from "../src/ui/pinned-region.js";
@@ -20,6 +18,7 @@ import type { Entry } from "../src/ui/types.js";
 
 const GOAL = "Analyze Vanta roadmap, choose the best next build item(s), and produce a Codex-ready implementation plan";
 const ENTRIES = Number(process.env.ENTRIES ?? 0);
+const STREAMING = process.env.PROOF_MODE === "streaming";
 
 /** Fake committed transcript for testing the estimator-driven bottom-pin. */
 function fakeEntries(n: number): Entry[] {
@@ -32,25 +31,31 @@ function fakeEntries(n: number): Entry[] {
 }
 
 function Repro(): ReactElement {
-  const theme = resolveTheme(process.env);
   const vp = useViewportRows();
   const [goal, setGoal] = useState<string | null>(null);
+  const [streamTick, setStreamTick] = useState(0);
   useEffect(() => { const id = setTimeout(() => setGoal(GOAL), 80); return () => clearTimeout(id); }, []);
+  useEffect(() => {
+    if (!STREAMING) return;
+    const id = setInterval(() => setStreamTick((tick) => tick + 1), 35);
+    return () => clearInterval(id);
+  }, []);
   const entries = fakeEntries(ENTRIES);
   const staticItems = [
     { key: "banner", node: h(Banner, { model: "gpt-5.5", cwd: "~/dev/Vanta", kernel: "127.0.0.1:7788", tools: 81, cmds: 95 }) },
     ...entries.map((e, i) => ({ key: `e${i}`, node: h(EntryView, { entry: e }) })),
   ];
   const committedRows = estimateCommittedRows(entries, vp.cols);
-  return h(ThemeProvider, { theme }, h(Box, { flexDirection: "column" },
+  return h(Box, { flexDirection: "column" },
     h(Static, { items: staticItems }, (item: { key: string; node: ReactElement }) => h(Box, { key: item.key }, item.node)),
     h(PinnedRegion, { enabled: resolveComposerAnchor(process.env) === "bottom", viewportRows: vp.rows, committedRows },
       h(TodoPanel, { todos: [] }),
+      STREAMING ? h(Text, null, `RESIZE_ACTIVE_RUN ${"·".repeat((streamTick % 4) + 1)}`) : null,
       h(Box, { flexDirection: "column" },
         h(Composer, { focused: true, onSubmit: () => {}, placeholder: "Ask Vanta anything — /help for commands", files: [], history: [] })),
       h(Footer, { model: "gpt-5.5", effortLevel: "medium", ctxPct: 0, tokens: 12000, contextWindow: 272000, turns: 0, busy: false, queued: 0, goal, mcp: false, elapsed: "0s" }),
     ),
-  ));
+  );
 }
 
 render(h(Repro));

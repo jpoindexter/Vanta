@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { resolveShellInvocation } from "../platform/shell.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { buildAgentInvocation, runExternalAgent, type Invocation } from "../agents/external-cli.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 import { parseClaudeStreamLine } from "../agents/claude-stream.js";
 import { runBuildLoop, type BuildAttempt, type VerifyResult } from "../agents/build-loop.js";
 
@@ -38,7 +39,12 @@ async function delegateClaude(ctx: ToolContext, inv: Invocation): Promise<BuildA
     if (ev.progress && ev.progress !== last) { last = ev.progress; ctx.onProgress?.(`⋯ claude: ${ev.progress}`); }
     if (ev.result !== undefined) { result = ev.result; isError = ev.isError === true; }
   };
-  const res = await runExternalAgent(inv, { cwd: ctx.root, onChunk, timeoutMs: BUILD_TIMEOUT_MS });
+  const res = await runExternalAgent(inv, {
+    cwd: ctx.root,
+    onChunk,
+    timeoutMs: BUILD_TIMEOUT_MS,
+    effectGate: effectGateFromToolContext(ctx),
+  });
   if (res.notInstalled) return { ok: false, output: "claude CLI not found on PATH" };
   return { ok: res.ok && !isError && result !== "", output: result || `did not finish: ${res.stderr.slice(0, 300)}` };
 }
@@ -48,7 +54,12 @@ async function delegateBuild(ctx: ToolContext, agent: string, instruction: strin
   const inv = buildAgentInvocation(agent, instruction, { coding: true });
   if (!inv) return { ok: false, output: `unknown agent "${agent}"` };
   if (agent === "claude") return delegateClaude(ctx, inv);
-  const res = await runExternalAgent(inv, { cwd: ctx.root, onChunk: ctx.onProgress, timeoutMs: BUILD_TIMEOUT_MS });
+  const res = await runExternalAgent(inv, {
+    cwd: ctx.root,
+    onChunk: ctx.onProgress,
+    timeoutMs: BUILD_TIMEOUT_MS,
+    effectGate: effectGateFromToolContext(ctx),
+  });
   if (res.notInstalled) return { ok: false, output: `${agent} not installed` };
   return { ok: res.ok, output: (res.stdout.trim() || res.stderr.trim()).slice(0, 600) };
 }

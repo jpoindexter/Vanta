@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "target": "darwin-arm64",
+  "sourceReceipt": "scripts/fixtures/ttft-baseline-darwin-arm64.json",
+  "groups": {
+    "cli:fresh": {
+      "processToInteractiveMs": {
+        "baselineP95": 2998,
+        "regressionPercent": 25,
+        "maxP95": 5996
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 11,
+        "regressionPercent": 25,
+        "maxP95": 1011
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 14805,
+        "regressionPercent": 25,
+        "maxP95": 29610
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 2297,
+        "regressionPercent": 25,
+        "maxP95": 4594
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 17111,
+        "regressionPercent": 25,
+        "maxP95": 34222
+      }
+    },
+    "cli:warm": {
+      "processToInteractiveMs": {
+        "baselineP95": 4471,
+        "regressionPercent": 25,
+        "maxP95": 8942
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 79,
+        "regressionPercent": 25,
+        "maxP95": 1079
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 17382,
+        "regressionPercent": 25,
+        "maxP95": 34764
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 2496,
+        "regressionPercent": 25,
+        "maxP95": 4992
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 19902,
+        "regressionPercent": 25,
+        "maxP95": 39804
+      }
+    },
+    "tui:fresh": {
+      "processToInteractiveMs": {
+        "baselineP95": 2502,
+        "regressionPercent": 25,
+        "maxP95": 5004
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 20,
+        "regressionPercent": 25,
+        "maxP95": 1020
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 14928,
+        "regressionPercent": 25,
+        "maxP95": 29856
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 26,
+        "regressionPercent": 25,
+        "maxP95": 1026
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 14956,
+        "regressionPercent": 25,
+        "maxP95": 29912
+      }
+    },
+    "tui:warm": {
+      "processToInteractiveMs": {
+        "baselineP95": 2188,
+        "regressionPercent": 25,
+        "maxP95": 4376
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 16,
+        "regressionPercent": 25,
+        "maxP95": 1016
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 13964,
+        "regressionPercent": 25,
+        "maxP95": 27928
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 27,
+        "regressionPercent": 25,
+        "maxP95": 1027
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 14000,
+        "regressionPercent": 25,
+        "maxP95": 28000
+      }
+    },
+    "gateway:fresh": {
+      "processToInteractiveMs": {
+        "baselineP95": 2370,
+        "regressionPercent": 25,
+        "maxP95": 4740
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 398,
+        "regressionPercent": 25,
+        "maxP95": 1398
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 13884,
+        "regressionPercent": 25,
+        "maxP95": 27768
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 5,
+        "regressionPercent": 25,
+        "maxP95": 1005
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 14214,
+        "regressionPercent": 25,
+        "maxP95": 28428
+      }
+    },
+    "gateway:warm": {
+      "processToInteractiveMs": {
+        "baselineP95": 2190,
+        "regressionPercent": 25,
+        "maxP95": 4380
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 301,
+        "regressionPercent": 25,
+        "maxP95": 1301
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 16427,
+        "regressionPercent": 25,
+        "maxP95": 32854
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 4,
+        "regressionPercent": 25,
+        "maxP95": 1004
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 16677,
+        "regressionPercent": 25,
+        "maxP95": 33354
+      }
+    },
+    "desktop:fresh": {
+      "processToInteractiveMs": {
+        "baselineP95": 11337,
+        "regressionPercent": 25,
+        "maxP95": 22674
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 940,
+        "regressionPercent": 25,
+        "maxP95": 1940
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 20465,
+        "regressionPercent": 25,
+        "maxP95": 40930
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 22,
+        "regressionPercent": 25,
+        "maxP95": 1022
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 21427,
+        "regressionPercent": 25,
+        "maxP95": 42854
+      }
+    },
+    "desktop:warm": {
+      "processToInteractiveMs": {
+        "baselineP95": 6867,
+        "regressionPercent": 25,
+        "maxP95": 13734
+      },
+      "submitToDispatchMs": {
+        "baselineP95": 632,
+        "regressionPercent": 25,
+        "maxP95": 1632
+      },
+      "providerToFirstDeltaMs": {
+        "baselineP95": 17622,
+        "regressionPercent": 25,
+        "maxP95": 35244
+      },
+      "deltaToFirstPaintMs": {
+        "baselineP95": 13,
+        "regressionPercent": 25,
+        "maxP95": 1013
+      },
+      "submitToFirstPaintMs": {
+        "baselineP95": 17988,
+        "regressionPercent": 25,
+        "maxP95": 35976
+      }
+    }
+  }
+}

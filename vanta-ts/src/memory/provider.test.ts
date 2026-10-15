@@ -124,6 +124,18 @@ describe("resolveMemoryProvider", () => {
     // qdrant is configured here but its adapter isn't built → must not activate.
     expect(resolveMemoryProvider(FULL_ENV).id).toBe("local");
   });
+
+  it("selects the MSA adapter only when its safe service URL is configured", () => {
+    expect(resolveMemoryProvider({ VANTA_MEMORY: "msa" }).id).toBe("local");
+    expect(resolveMemoryProvider({
+      VANTA_MEMORY: "msa",
+      VANTA_MSA_URL: "http://127.0.0.1:8123",
+    }).id).toBe("msa");
+    expect(resolveMemoryProvider({
+      VANTA_MEMORY: "msa",
+      VANTA_MSA_URL: "http://10.0.0.4:8123",
+    }).id).toBe("local");
+  });
 });
 
 describe("local adapter pass-through", () => {
@@ -131,13 +143,27 @@ describe("local adapter pass-through", () => {
     const { brain, remember } = spyBrain();
     const mp = localMemoryProvider(brain);
     await mp.remember("a fact");
-    expect(remember).toHaveBeenCalledWith({ region: "semantic", content: "a fact", env: undefined });
+    expect(remember).toHaveBeenCalledWith({
+      region: "semantic",
+      content: "a fact",
+      env: undefined,
+      entryType: undefined,
+      strength: undefined,
+      forgetAfter: undefined,
+    });
   });
 
   it("honors an explicit region on remember", async () => {
     const { brain, remember } = spyBrain();
     await localMemoryProvider(brain).remember("a pref", { region: "user_model" });
-    expect(remember).toHaveBeenCalledWith({ region: "user_model", content: "a pref", env: undefined });
+    expect(remember).toHaveBeenCalledWith({
+      region: "user_model",
+      content: "a pref",
+      env: undefined,
+      entryType: undefined,
+      strength: undefined,
+      forgetAfter: undefined,
+    });
   });
 
   it("delegates recall to the brain with the query and topK", async () => {

@@ -35,11 +35,15 @@ describe("syncSkillTriggers", () => {
 
   it("compiles the skill's triggers into ~/.vanta/hooks.json", async () => {
     const r = await syncSkillTriggers({ env: env() });
-    expect(r.written).toBe(2);
+    expect(r.written).toBeGreaterThanOrEqual(2);
     const cfg = JSON.parse(await readFile(hooksPath(), "utf8"));
-    expect(cfg.PreToolUse[0].command).toContain("skills trigger-emit ship-preflight PreToolUse");
-    expect(cfg.PreToolUse[0].toolNamePattern).toBe("git_push");
-    expect(cfg.Stop[0].command).toContain("skills trigger-emit ship-preflight Stop");
+    const preflight = cfg.PreToolUse.find((hook: { command: string }) =>
+      hook.command.includes("skills trigger-emit ship-preflight PreToolUse")
+    );
+    expect(preflight?.toolNamePattern).toBe("git_push");
+    expect(cfg.Stop.some((hook: { command: string }) =>
+      hook.command.includes("skills trigger-emit ship-preflight Stop")
+    )).toBe(true);
   });
 
   it("is idempotent — two syncs produce identical hooks.json", async () => {
@@ -55,5 +59,27 @@ describe("syncSkillTriggers", () => {
     const cfg = JSON.parse(await readFile(hooksPath(), "utf8"));
     expect(cfg.Stop).toHaveLength(2); // hand-written + generated
     expect(cfg.Stop.some((h: { command: string }) => h.command === "echo handwritten")).toBe(true);
+  });
+
+  it("includes bundled triggers without copying the skill into the user store", async () => {
+    const bundled = join(home, "bundled");
+    const dir = join(bundled, "bundled-preflight");
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "SKILL.md"), serializeSkill({
+      ...skill,
+      meta: {
+        ...skill.meta,
+        name: "bundled-preflight",
+        triggers: [{ event: "Stop" }],
+      },
+    }), "utf8");
+
+    const result = await syncSkillTriggers({ env: env(), sources: [bundled] });
+    const cfg = JSON.parse(await readFile(hooksPath(), "utf8"));
+    expect(result.written).toBe(3);
+    expect(cfg.Stop.some((hook: { command: string }) =>
+      hook.command.includes("skills trigger-emit bundled-preflight Stop")
+    )).toBe(true);
+    await expect(readFile(join(home, "skills", "bundled-preflight", "SKILL.md"), "utf8")).rejects.toThrow();
   });
 });

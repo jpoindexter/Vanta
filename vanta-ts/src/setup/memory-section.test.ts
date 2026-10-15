@@ -17,8 +17,8 @@ function choiceByValue(value: string): MemoryBackendChoice {
 }
 
 describe("MEMORY_BACKEND_CHOICES", () => {
-  it("offers exactly local, drive, mem0, memanto", () => {
-    expect(MEMORY_BACKEND_CHOICES.map((c) => c.value)).toEqual(["local", "drive", "mem0", "memanto"]);
+  it("offers local, existing adapters, and MSA", () => {
+    expect(MEMORY_BACKEND_CHOICES.map((c) => c.value)).toEqual(["local", "drive", "mem0", "memanto", "msa"]);
   });
 
   it("local is the default and writes nothing", () => {
@@ -72,6 +72,7 @@ describe("memoryChoiceEnv", () => {
       { [MEMORY_BACKEND_KEY]: "drive" },
       { [MEMORY_BACKEND_KEY]: "mem0" },
       { [MEMORY_BACKEND_KEY]: "memanto", VANTA_MEMANTO_URL: "http://localhost:8000" },
+      { [MEMORY_BACKEND_KEY]: "msa" },
     ]);
   });
 });
@@ -96,6 +97,7 @@ describe("buildMemorySection", () => {
       { [MEMORY_BACKEND_KEY]: "drive" },
       { [MEMORY_BACKEND_KEY]: "mem0" },
       { [MEMORY_BACKEND_KEY]: "memanto", VANTA_MEMANTO_URL: "http://localhost:8000" },
+      { [MEMORY_BACKEND_KEY]: "msa" },
     ]);
   });
 
@@ -107,7 +109,7 @@ describe("buildMemorySection", () => {
 
   it("non-mem0 choices carry no secret prompt", () => {
     const section = buildMemorySection();
-    for (const value of ["local", "drive", "memanto"]) {
+    for (const value of ["local", "drive", "memanto", "msa"]) {
       const idx = MEMORY_BACKEND_CHOICES.findIndex((c) => c.value === value);
       expect(section.choices[idx]?.keyEnv).toBeUndefined();
     }

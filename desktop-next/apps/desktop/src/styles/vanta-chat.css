@@ -1,0 +1,737 @@
+/* Vanta chat surface (DN-03). Imported after styles.css and unlayered, so these
+ * rules beat the Tailwind utility layer without !important.
+ *
+ * Every number below is a design-contract value from the approved wireframe
+ * (desktop-next/docs/wireframe). Colours are tokens only: the surface is neutral,
+ * blue appears on keyboard focus rings and links, and primary buttons
+ * are ink-filled. Component classes are `vp-*`; measured parts carry a
+ * `data-vp` hook that tools/chat-parity reads.
+ */
+
+:root {
+  --vp-column: 720px;
+  --vp-gutter: 16px;
+  --vp-gap: 14px;
+  --vp-text: 14px;
+  --vp-leading: 1.45;
+  --vp-small: 13px;
+  --vp-meta: 12px;
+  --vp-radius-bubble: var(--radius-surface);
+  --vp-radius-card: var(--radius-surface);
+  --vp-radius-composer: var(--radius-surface);
+  --vp-radius-control: var(--radius-control);
+  --vp-radius-code: var(--radius-md);
+  --vp-hit: 30px;
+  --vp-send: 32px;
+
+  --vp-bg: var(--dt-background);
+  --vp-panel: var(--ui-bg-sidebar);
+  --vp-raised: var(--ui-chat-bubble-background);
+  --vp-line: var(--ui-stroke-primary);
+  --vp-hair: var(--ui-stroke-secondary);
+  --vp-ink: var(--ui-text-primary);
+  --vp-ink2: var(--ui-text-secondary);
+  --vp-ink3: var(--ui-text-tertiary);
+  --vp-ring: var(--ui-accent);
+
+  /* The thread and the dock share one column. */
+  --composer-width: var(--vp-column);
+  --conversation-text-base-size: var(--vp-text);
+  --conversation-text-font-size: var(--vp-text);
+  --conversation-base-line-height: calc(var(--vp-text) * var(--vp-leading));
+  --conversation-line-height: calc(var(--vp-text) * var(--vp-leading));
+  --conversation-tool-base-size: var(--vp-meta);
+  --conversation-turn-gap: var(--vp-gap);
+  --turn-block-gap: var(--vp-gap);
+  --message-text-indent: 0px;
+
+  --composer-shell-pad-block-end: 12px;
+  /* Inset so the controls row clears the rounded corner instead of being clipped by it. */
+  --composer-surface-pad-x: 6px;
+  --composer-surface-pad-y: 6px;
+  /* The wireframe leaves a 5.3px gap under the textarea before the tools row. */
+  --composer-row-gap: 5.29px;
+  --composer-control-gap: 6px;
+  --composer-control-primary-size: var(--vp-send);
+  --composer-input-min-height: 44px;
+  --composer-input-max-height: calc(10 * var(--vp-text) * var(--vp-leading));
+}
+
+/* ---------- shared primitives ---------- */
+
+.vp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-control);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  font: inherit;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+  cursor: pointer;
+}
+
+.vp-btn:hover:not(:disabled) {
+  background: var(--vp-panel);
+}
+
+.vp-btn[data-tone='primary'] {
+  border-color: var(--vp-ink);
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+.vp-btn[data-tone='primary']:hover:not(:disabled) {
+  background: var(--vp-ink);
+  opacity: 0.88;
+}
+
+.vp-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.vp-btn:focus-visible,
+.vp-action:focus-visible,
+.vp-step:focus-visible,
+.vp-chip:focus-visible {
+  outline: 2px solid var(--vp-ring);
+  outline-offset: 2px;
+}
+
+.vp-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-card);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 2px;
+  font-size: var(--vp-text);
+  /* The wireframe's h4 is the UA bold (700). */
+  font-weight: 700;
+  line-height: var(--vp-leading);
+}
+
+.vp-card-icon {
+  flex: none;
+}
+
+.vp-sub {
+  margin-bottom: 8px;
+  color: var(--vp-ink2);
+  font-size: var(--vp-small);
+}
+
+.vp-code {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid var(--vp-hair);
+  border-radius: var(--vp-radius-code);
+  background: var(--vp-panel);
+  color: var(--vp-ink);
+  font: var(--vp-meta) / 1.5 var(--dt-font-mono);
+  white-space: pre;
+}
+
+.vp-acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.vp-note {
+  margin-top: 8px;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+}
+
+.vp-error {
+  margin-top: 8px;
+  color: var(--dt-destructive);
+  font-size: var(--vp-meta);
+}
+
+/* Hover-only message actions: hidden at rest, shown on hover or keyboard focus,
+   always visible where there is no hover (touch). */
+.vp-hover-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+
+[data-vp-hover]:hover .vp-hover-actions,
+[data-vp-hover]:focus-within .vp-hover-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .vp-hover-actions {
+    opacity: 1;
+  }
+}
+
+.vp-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--vp-radius-control);
+  /* Like the wireframe's buttons: filled with the page colour, hairline invisible until hover. */
+  background: var(--vp-bg);
+  color: var(--vp-ink2);
+  font: inherit;
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+  cursor: pointer;
+}
+
+.vp-action:hover {
+  background: var(--vp-panel);
+}
+
+.vp-action[aria-pressed='true'] {
+  color: var(--vp-ink);
+  background: var(--vp-raised);
+}
+
+.vp-action-time {
+  padding: 0;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+}
+
+/* ---------- thread ---------- */
+
+[data-slot='aui_thread-viewport'] {
+  padding-block-start: 22px;
+  padding-inline: var(--vp-gutter);
+}
+
+[data-slot='aui_thread-content'][data-vp='column'] {
+  max-width: var(--vp-column);
+  padding-inline: 0;
+}
+
+[data-slot='aui_assistant-message-content'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vp-gap);
+  padding-left: 0;
+  line-height: var(--vp-leading);
+}
+
+[data-slot='aui_assistant-message-root'] {
+  overflow: visible;
+}
+
+.vp-assistant-footer {
+  padding: 0;
+}
+
+.vp-user-bubble {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--vp-radius-bubble);
+  background: var(--vp-raised);
+  color: var(--vp-ink);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-user .vp-hover-actions {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* The restore-checkpoint button is a Hermes control inside the Vanta action row: it must not make the row taller. */
+.vp-hover-actions .size-6 {
+  width: 21.39px;
+  height: 21.39px;
+}
+
+/* ---------- tool steps ---------- */
+
+.vp-step {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-lg);
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--vp-ink2);
+  font: inherit;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+  text-align: left;
+}
+
+.vp-step > span {
+  min-width: 0;
+}
+
+.vp-step span,
+.vp-step span span {
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+  color: inherit;
+}
+
+.vp-step-caret {
+  flex: none;
+  transition: transform 140ms;
+}
+
+.vp-step-caret[data-open] {
+  transform: rotate(90deg);
+}
+
+.vp-diff {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vp-diff-text {
+  min-width: 0;
+}
+
+.vp-diff .vp-sub {
+  margin: 0;
+}
+
+.vp-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.vp-link:hover {
+  text-decoration: underline;
+}
+
+.vp-more {
+  position: relative;
+  margin-left: auto;
+}
+
+.vp-more-toggle {
+  padding-inline: 6px;
+}
+
+.vp-more-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 5;
+  display: flex;
+  padding: 4px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-card);
+  background: var(--vp-bg);
+  box-shadow: 0 8px 16px -4px color-mix(in srgb, #000 18%, transparent);
+  white-space: nowrap;
+}
+
+.vp-details > summary {
+  width: fit-content;
+  margin-bottom: 8px;
+  color: var(--vp-ink2);
+  font-size: var(--vp-meta);
+  cursor: pointer;
+}
+
+/* Hermes strips padding and dims every button in the action bar; the Vanta bar
+   draws its own flat buttons, so restore them at higher specificity. */
+[data-slot='aui_msg-actions'].vp-hover-actions button.vp-action {
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--vp-radius-control);
+  color: var(--vp-ink2);
+  opacity: 1;
+}
+
+[data-slot='aui_msg-actions'].vp-hover-actions button.vp-action:hover {
+  background: var(--vp-panel);
+  color: var(--vp-ink);
+}
+
+[data-slot='aui_msg-actions'].vp-hover-actions button.vp-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+.vp-position {
+  margin-left: auto;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  font-weight: 400;
+}
+
+/* The approval card is the only surface for an approval: the activity summary
+   that used to stand in for the held tool rows would repeat it. */
+[data-slot='tool-approval-stack'] [data-approval-activity] {
+  display: none;
+}
+
+/* ---------- composer ---------- */
+
+[data-slot='composer-root'] {
+  border-radius: var(--vp-radius-composer);
+}
+
+[data-slot='composer-surface'][data-vp='composer'] {
+  padding: 10px 12px;
+  border-width: 1px;
+  /* styles.css pins this colour with !important. */
+  border-color: var(--vp-line) !important;
+  border-radius: var(--vp-radius-composer);
+  background: var(--vp-bg);
+  box-shadow: none;
+}
+
+[data-slot='composer-surface'][data-vp='composer'] [data-slot='composer-fade'] {
+  min-height: 0;
+}
+
+[data-vp='composer-input'] {
+  min-height: var(--composer-input-min-height);
+  padding: 0;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-composer-left {
+  align-self: center;
+}
+
+.vp-composer-left > button,
+.vp-composer-left [data-slot='fan-menu-anchor'] > button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--vp-hit);
+  height: var(--vp-hit);
+  padding: 0;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-control);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  opacity: 1;
+}
+
+.vp-composer-left [data-slot='fan-menu-anchor'] {
+  width: var(--vp-hit);
+  height: var(--vp-hit);
+}
+
+[data-vp='composer-send'] {
+  width: var(--vp-send);
+  height: var(--vp-send);
+  border-radius: 50%;
+  /* Codex: the send control is the inverted primary (ink on paper), never the accent. */
+  background-color: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+[data-vp='composer-send']:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--vp-ink) 88%, var(--vp-bg));
+}
+
+.vp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: auto;
+  padding: 1px 9px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--radius-pill);
+  background: var(--vp-bg);
+  color: var(--vp-ink2);
+  font: inherit;
+  font-size: var(--vp-meta);
+  font-weight: 400;
+  line-height: var(--vp-leading);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.vp-chip:hover:not(:disabled) {
+  background: var(--vp-panel);
+  color: var(--vp-ink);
+}
+
+.vp-chip:focus-visible {
+  outline: 2px solid var(--vp-ring);
+  outline-offset: 2px;
+}
+
+.vp-chip:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.vp-hint {
+  margin: 8px 0 0;
+  padding-inline: 5px;
+  color: var(--vp-ink3);
+  font-size: var(--vp-meta);
+  line-height: var(--vp-leading);
+  text-align: center;
+}
+
+.vp-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0 5px;
+  list-style: none;
+}
+
+.vp-queue {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--vp-hair);
+  border-radius: var(--vp-radius-card);
+  background: var(--vp-bg);
+  color: var(--vp-ink2);
+  font-size: var(--vp-small);
+}
+
+.vp-queue[data-editing] {
+  border-color: var(--vp-ring);
+}
+
+.vp-queue-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.vp-queue-meta {
+  color: var(--vp-ink3);
+}
+
+.vp-queue-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+/* ---------- empty state ---------- */
+
+.vp-empty[data-slot='aui_intro'] {
+  align-self: start;
+  max-width: 640px;
+  /* styles.css reserves the composer's measured height under the intro; the wireframe does not. */
+  padding-bottom: 0;
+  /* 114px from the pane top in the wireframe: 22 viewport padding + 32 column padding + this. */
+  margin: 16px auto 0;
+  text-align: center;
+}
+
+.vp-empty h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: var(--vp-leading);
+}
+
+.vp-empty p {
+  margin: 0 0 8px;
+  color: var(--vp-ink2);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* The starter chips are buttons at body size, pill-shaped. */
+.vp-chip--lg {
+  padding: 5px 10px;
+  font-size: var(--vp-text);
+  color: var(--vp-ink);
+}
+
+/* ---------- live line and step actions ---------- */
+
+.vp-btn--inline {
+  margin-left: auto;
+}
+
+/* The column's gap is the only block rhythm: the Hermes adjacency margins would double it. */
+[data-slot='aui_assistant-message-content'][data-slot]
+  > :is([data-slot='tool-block'], [data-slot='aui_thinking-disclosure'], [data-slot='aui_turn-activity'], .aui-md)
+  + :is([data-slot='tool-block'], [data-slot='aui_thinking-disclosure'], [data-slot='aui_turn-activity'], .aui-md),
+[data-slot='aui_assistant-message-content'][data-slot] > .aui-md + .aui-md {
+  margin-top: 0;
+}
+
+/* A step row with nothing trailing must not give up 6px of its width to an empty slot. */
+.vp-step-row > span:empty {
+  display: none;
+}
+
+.vp-step-row {
+  border-radius: var(--radius-lg);
+  gap: 8px;
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-step-row:has([data-slot='button']) {
+  padding-block: 2px;
+}
+
+/* ---------- failed run ---------- */
+
+/* The recovery actions are ordinary Vanta buttons, not tinted pills. */
+.vp-failure .aui-error-action {
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--vp-line);
+  border-radius: var(--vp-radius-control);
+  background: var(--vp-bg);
+  color: var(--vp-ink);
+  font-size: var(--vp-text);
+  line-height: var(--vp-leading);
+}
+
+.vp-failure .aui-error-action:hover {
+  background: var(--vp-panel);
+}
+
+.vp-failure .aui-error-action[data-tone='primary'] {
+  border-color: var(--vp-ink);
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+.vp-failure h4 .vp-card-icon {
+  color: var(--dt-destructive);
+}
+
+/* The approval stack sits in the column like any other block: the same 14px
+   rhythm, no extra padding around the card. */
+[data-slot='tool-approval-stack'] {
+  padding-block: 0 !important;
+}
+
+/* One approval is a plain card in the column: no room reserved above it for a
+   stack peek that only exists when several approvals wait. */
+[data-slot='tool-approval-stack'] [data-slot='card-stack'][data-stack-count='1'] {
+  padding-top: 0 !important;
+}
+
+[data-slot='tool-approval-stack'] [data-slot='card-stack'][data-stack-count='1'] > [data-slot='card-stack-front'] {
+  top: 0 !important;
+}
+
+/* ---------- composer dock ---------- */
+
+/* The dock is the wireframe's full-width strip under the thread (padding 0 16px 12px); the
+   composer and its hint sit in one centred 720px column. The composer root keeps its 5px grab margin. */
+[data-slot='composer-dock']:not([data-popped-out]) {
+  right: 0;
+  left: 0;
+  align-items: center;
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--vp-gutter);
+  translate: none;
+}
+
+[data-slot='composer-dock']:not([data-popped-out]) > * {
+  width: 100%;
+  max-width: calc(var(--vp-column) + 10px);
+}
+
+[data-slot='composer-dock']:not([data-popped-out]) > .vp-hint {
+  max-width: var(--vp-column);
+}
+
+[data-vp='composer-send'] {
+  border: 1px solid var(--vp-ink);
+}
+
+/* A live line reads "spinner, label, Stop" like the wireframe: no caret, and no gutter for an empty trailing stamp. */
+[data-vp='running-line'] .vp-step-caret {
+  display: none;
+}
+
+.vp-step-row > span:has(> span:empty:only-child) {
+  display: none;
+}
+
+.vp-action-time {
+  font-variant-numeric: normal;
+}
+
+/* Reply paragraphs follow the wireframe's 1.45 leading, not the 1.5 prose default. */
+[data-slot='aui_assistant-message-content'] .aui-md p {
+  line-height: var(--vp-leading);
+}
+
+/* The wireframe's live line is a div, not a button: square corners. */
+[data-vp='running-line'] {
+  border-radius: 0;
+}
+
+/* ---------- toast ---------- */
+
+/* The wireframe's confirmation: ink pill, 13px, centred 78px above the bottom of the pane. */
+.vp-toast {
+  position: absolute;
+  bottom: 78px;
+  left: 50%;
+  z-index: 10;
+  max-width: 90%;
+  padding: 7px 12px;
+  border-radius: var(--radius-xl);
+  background: var(--vp-ink);
+  color: var(--vp-bg);
+  font-size: var(--vp-small);
+  line-height: var(--vp-leading);
+  translate: -50% 0;
+}
+
+/* Like every wireframe button, a step takes the panel colour under the pointer. */
+.vp-step:hover {
+  background: var(--vp-panel);
+}

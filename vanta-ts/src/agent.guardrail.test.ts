@@ -4,6 +4,9 @@ import type { LLMProvider, CompletionResult } from "./providers/interface.js";
 import type { SafetyClient } from "./safety-client.js";
 import type { ToolRegistry } from "./tools/registry.js";
 import type { Tool } from "./tools/types.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // A provider that keeps issuing the exact same tool call every iteration.
 class SpinningProvider implements LLMProvider {
@@ -42,19 +45,23 @@ const registry = {
 
 describe("agent loop guardrail", () => {
   it("stops after the same tool+args is called MAX_IDENTICAL_CALLS times", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-agent-guardrail-"));
     const provider = new SpinningProvider();
     const convo = createConversation("sys", {
       provider,
       safety: fakeSafety,
       registry,
-      root: "/x",
+      root,
       requestApproval: async () => false,
     });
-    const outcome = await convo.send("keep going");
-
-    expect(outcome.stoppedReason).toBe("repeated_failure");
-    expect(outcome.finalText).toContain("spin");
-    expect(outcome.finalText).toContain("identical");
-    expect(provider.calls).toBe(3); // stopped on the 3rd identical call
+    try {
+      const outcome = await convo.send("keep going");
+      expect(outcome.stoppedReason).toBe("repeated_failure");
+      expect(outcome.finalText).toContain("spin");
+      expect(outcome.finalText).toContain("identical");
+      expect(provider.calls).toBe(3); // stopped on the 3rd identical call
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

@@ -3,13 +3,21 @@ import { parseVantaHints, formatHintSuggestion } from "../hints/vanta-hints.js";
 import { limitOutput, resolveMaxOutput } from "./bash-output-limit.js";
 import { shouldShowTiming, buildTimingNote } from "./shell-timing.js";
 import { formatJsonInOutput } from "../term/json-format.js";
+import { formatSandboxViolation, parseSandboxViolation } from "../sandbox/violation-view.js";
 
 // Pure output/result formatting for shell_cmd. Extracted from shell-cmd.ts (size
 // gate). NONE of this touches the gating/assess/sandbox decision path — it only
 // shapes captured stdout/stderr/exit/timing into a ToolResult. shell-cmd.ts
 // re-exports lastCommandWord/classifyExitCode so external importers stay unchanged.
 
-export type RunError = { code?: number | string; stdout?: string; stderr?: string; message: string };
+export type RunError = {
+  code?: number | string;
+  stdout?: string;
+  stderr?: string;
+  message: string;
+  killed?: boolean;
+  signal?: string;
+};
 
 /** Combine captured stdout/stderr into the tool output, stripping any subprocess
  *  plugin-hint tags from stderr and appending an install suggestion so the model
@@ -41,17 +49,80 @@ export function formatRunFailure(command: string, e: RunError, pfx: string): Too
     const cls = classifyExitCode(command, e.code);
     if (cls.ok) return { ok: true, output: pfx + (out ? `${cls.note}\n${out}` : `(${cls.note})`) };
   }
-  return { ok: false, output: pfx + (out || e.message) };
+  if (e.killed || e.signal === "SIGTERM") {
+    const detail = out ? `\n${out}` : "";
+    return {
+      ok: false,
+      output:
+        `${pfx}Command timed out before completion.${detail}\n` +
+        "Recovery: retry with a larger bounded timeout_ms (max 120000), narrow the input, process it in chunks, or run it as a background task outside sandbox mode.",
+    };
+  }
+  const failure = out || e.message;
+  const violation = parseSandboxViolation(failure);
+  const recovery = violation ? `\n${formatSandboxViolation(violation)}` : "";
+  return { ok: false, output: pfx + failure + recovery };
+}
+
+/**
+ * Some macOS utilities return exit 0 after printing a fatal diagnostic. Keep
+ * this command-scoped: arbitrary output containing the word "failed" can be a
+ * legitimate log or test fixture and must not flip a successful result.
+ */
+export function formatRunSuccess(command: string, out: string, pfx: string): ToolResult {
+  const program = lastCommandWord(command);
+  if (program === "mdfind" && /(?:^|\n)Failed to create query for\b/i.test(out)) {
+    return { ok: false, output: pfx + out };
+  }
+  return { ok: true, output: pfx + (out || "(command produced no output)") };
+}
+
+/** Return the final shell segment without treating quoted operators as syntax. */
+function lastShellSegment(command: string): string {
+  let start = 0;
+  let quote: "'" | '"' | null = null;
+  let escaped = false;
+
+  for (let i = 0; i < command.length; i++) {
+    const char = command[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (quote) {
+      if (quote === '"' && char === "\\") escaped = true;
+      else if (char === quote) quote = null;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char === ";" || char === "|") {
+      if (char === "|" && command[i + 1] === "|") i += 1;
+      start = i + 1;
+      continue;
+    }
+    if (char === "&" && command[i + 1] === "&") {
+      i += 1;
+      start = i + 1;
+    }
+  }
+  return command.slice(start);
 }
 
 /**
  * The program whose exit code we actually received: the first token of the
- * LAST segment of a pipeline/chain (`a | grep x`, `find . && echo`), since the
- * shell reports that command's status. `git grep`/`git diff` keep both words;
- * a leading path (`/usr/bin/grep`) is stripped to its basename.
+ * LAST unquoted segment of a pipeline/chain (`a | grep x`, `find . && echo`),
+ * since the shell reports that command's status. `git grep`/`git diff` keep
+ * both words; a leading path (`/usr/bin/grep`) is stripped to its basename.
  */
 export function lastCommandWord(command: string): string {
-  const seg = command.split(/&&|\|\||;|\|/).pop() ?? command;
+  const seg = lastShellSegment(command);
   const tok = seg.trim().split(/\s+/).filter(Boolean);
   let w = tok[0] ?? "";
   if (w === "git" && tok[1]) w = `git ${tok[1]}`;

@@ -39,6 +39,8 @@ import { startWorkflowWebhookServer, type WorkflowWebhookServer } from "../webho
 import type { ContextRefScope } from "../context/ref-preprocess.js";
 import type { ExpandDeps } from "../context/ref-expand.js";
 import { writeGatewayReadiness } from "./readiness-state.js";
+import type { EffectGateContext } from "../effects/execute-effect.js";
+import { runScheduledScript } from "../schedule/effect-run.js";
 
 const DEFAULT_TICK_MS = 60_000;
 const DEFAULT_CHANNEL_POLL_MS = 1_000;
@@ -46,6 +48,8 @@ const DEFAULT_CHANNEL_POLL_MS = 1_000;
 export type GatewayDeps = {
   dataDir: string;
   run: RunTask;
+  /** Required for every consequential gateway send and launch. Missing fails closed. */
+  effectGate?: EffectGateContext;
   /** Maintenance cadence for cron, sentinels, loops, and watchdog work. */
   tickMs?: number;
   /** Inbound channel polling cadence. Kept separate so chat stays responsive. */
@@ -57,7 +61,7 @@ export type GatewayDeps = {
   handle?: GatewayHandle;
   media?: MediaBridgeDeps; // MSG-MEDIA-IMAGES: inbound image→vision, voice→STT
   progressBubble?: ProgressBubbleConfig;
-  spawnLoop?: (id: string, wake: WakeContext) => void;
+  spawnLoop?: (id: string, wake: WakeContext) => void | Promise<void>;
   webhook?: {
     port: number;
     secret?: string;
@@ -101,7 +105,7 @@ function firstLine(text: string): string {
 
 async function fireQueuedWakes(
   deps: Pick<GatewayDeps, "dataDir">,
-  spawnLoop: (id: string, wake: WakeContext) => void,
+  spawnLoop: (id: string, wake: WakeContext) => void | Promise<void>,
   log: (msg: string) => void,
 ): Promise<number> {
   const queuedWakes = await drainLoopWakes(deps.dataDir).catch(() => []);
@@ -112,7 +116,7 @@ async function fireQueuedWakes(
       log(`loop ${wake.goal_id}: wake ${wake.wake_reason} skipped (not active)`);
       continue;
     }
-    spawnLoop(wake.goal_id, wake);
+    await spawnLoop(wake.goal_id, wake);
     log(`loop ${wake.goal_id}: wake ${wake.wake_reason} → spawned`);
     fired++;
   }
@@ -122,11 +126,11 @@ async function fireQueuedWakes(
 export async function gatewayTick(deps: GatewayDeps): Promise<number> {
   const now = (deps.now ?? (() => new Date()))();
   const log = deps.log ?? ((m: string) => console.log(m));
-  const spawnLoop = deps.spawnLoop ?? ((id: string, wake: WakeContext) => spawnLoopChild(id, log, wake));
+  const spawnLoop = deps.spawnLoop ?? ((id: string, wake: WakeContext) => spawnLoopChild(id, log, wake, deps.effectGate));
   const queuedWakes = await fireQueuedWakes(deps, spawnLoop, log);
   const { factoryEntries, regularEntries } = await dueTaskGroups(deps, now);
   for (const _entry of factoryEntries) {
-    spawnFactoryChild(deps.dataDir, log);
+    await spawnFactoryChild(deps.dataDir, log, deps.effectGate);
   }
   // At-most-once: overlapping gateway ticks within the same minute fire each
   // due task once; the next minute is a new window and fires.
@@ -138,7 +142,13 @@ export async function gatewayTick(deps: GatewayDeps): Promise<number> {
     load: async () => regularEntries,
     lastFired,
     claim: (id, windowKey) => claimFire(deps.dataDir, id, windowKey),
-    runScript: (script) => runCronScript(script),
+    runScript: (script, entry) => runScheduledScript({
+      entry,
+      script,
+      context: deps.effectGate,
+      windowKey: fireWindowKey(now),
+      run: runCronScript,
+    }),
     createIssue: (title) => createRoutineIssue(deps.dataDir, title),
   });
   await saveLastFired(deps.dataDir, updatedFired);
@@ -232,7 +242,7 @@ export async function startMessagingWebhook(
 
 /** Start persisted, multi-route workflow webhooks when at least one is enabled. */
 export async function startWorkflowWebhooks(
-  deps: Pick<GatewayDeps, "dataDir" | "handle" | "workflowWebhooks">,
+  deps: Pick<GatewayDeps, "dataDir" | "handle" | "workflowWebhooks" | "effectGate">,
   log: (message: string) => void,
 ): Promise<WorkflowWebhookServer | undefined> {
   if (!deps.handle || !deps.workflowWebhooks) return undefined;
@@ -243,6 +253,7 @@ export async function startWorkflowWebhooks(
     dataDir: deps.dataDir,
     handle: deps.handle,
     resolveDeliver: deps.workflowWebhooks.resolveDeliver,
+    effectGate: deps.effectGate,
     log,
   }).catch((error: unknown) => {
     log(`vanta gateway: workflow webhook listener failed — ${error instanceof Error ? error.message : String(error)}`);
@@ -294,7 +305,7 @@ export async function runGateway(deps: GatewayDeps): Promise<void> {
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   if (deps.platform) await deps.platform.connect().catch(() => {});
-  const webhookServer: WebhookServer | undefined = await startWebhookIfConfigured(deps.webhook, deps.handle, log);
+  const webhookServer: WebhookServer | undefined = await startWebhookIfConfigured(deps.webhook, deps.handle, log, deps.effectGate);
   const workflowWebhookServer = await startWorkflowWebhooks(deps, log);
   const platformWebhookServer = await startMessagingWebhook(deps, log);
   log(

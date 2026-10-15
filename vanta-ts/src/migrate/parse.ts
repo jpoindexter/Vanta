@@ -17,11 +17,13 @@ export type SourceLayout = {
   skillsDir: string;
   /** Config files to probe, in order, for MCP servers + model config. */
   configFiles: readonly string[];
+  /** YAML config read through hermes-config.ts; wins over the JSON probes when it yields content. */
+  yamlConfig?: string;
 };
 
 export const SOURCE_LAYOUTS: Record<MigrateSource, SourceLayout> = {
   openclaw: { skillsDir: "skills", configFiles: ["mcp.json", "config.json", "settings.json"] },
-  hermes: { skillsDir: "skills", configFiles: ["mcp.json", "config.json", "hermes.json", "settings.json"] },
+  hermes: { skillsDir: "skills", configFiles: ["mcp.json", "config.json", "hermes.json", "settings.json"], yamlConfig: "config.yaml" },
 };
 
 /** A skill found in the source tree, normalized for writeSkill. */

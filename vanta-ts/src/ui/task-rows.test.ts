@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { ACTIVITY, HEALTH, RISK } from "../term/palette.js";
 import {
   classifyTaskType,
   typeBadge,
@@ -49,10 +50,13 @@ describe("typeBadge", () => {
 
 describe("statusGlyph", () => {
   it("maps each status to a glyph + color", () => {
+    // Assert against the palette, not literals — hardcoded hexes in the panels are
+    // exactly how the TUI drifted off-brand in the first place.
     expect(statusGlyph("running").glyph).toBe("▶");
     expect(statusGlyph("done").glyph).toBe("✓");
-    expect(statusGlyph("done").color).toBe("#83f2b0");
-    expect(statusGlyph("removed").color).toBe("#ff6b7a");
+    expect(statusGlyph("running").color).toBe(ACTIVITY);
+    expect(statusGlyph("done").color).toBe(HEALTH);
+    expect(statusGlyph("removed").color).toBe(RISK);
     expect(statusGlyph("stopped").glyph).toBe("■");
   });
 });

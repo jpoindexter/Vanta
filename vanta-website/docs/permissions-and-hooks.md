@@ -10,7 +10,9 @@ How approvals are decided beyond the kernel verdict, and how to fire your own au
 
 ## Permission modes
 
-Every action is first classified by the kernel ([allow / ask / block](./safety-model.md)). For `ask` actions, a permission layer decides whether to prompt:
+On the standard dispatcher, an action is first classified by the kernel
+([allow / ask / block](./safety-model.md)). For `ask` actions, a permission
+layer decides whether to prompt:
 
 - **default** — prompt on every `ask`.
 - **auto** (`--permission-mode auto`, `VANTA_AUTO_MODE`) — a classifier auto-allows read-only actions and applies soft-deny presets; a kernel **block** is still immovable.
@@ -46,7 +48,10 @@ OS privacy grants are separate from Vanta's kernel approvals. Sight requires **S
 
 ## Shell hooks
 
-Fire external commands around the agent lifecycle via `.vanta/hooks.json`:
+Fire external commands around the agent lifecycle via `.vanta/hooks.json`.
+Hooks are an audited control-plane risk: model-controlled project writes,
+same-run activation, `shell: true`, and inherited environments must be closed
+before hooks share the universal action-gateway claim.
 
 | Event | Fires |
 |-------|-------|

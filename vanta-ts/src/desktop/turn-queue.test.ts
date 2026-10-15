@@ -82,13 +82,19 @@ describe("DesktopTurnQueue", () => {
     expect(snapshot.items[0]?.ownerPid).toBeUndefined();
   });
 
-  it("releases a failed claimed turn and removes a completed one", async () => {
+  it("keeps a failed turn in place with a reason until the operator retries it", async () => {
     const h = harness();
     const queue = new DesktopTurnQueue(h.deps);
     await queue.enqueue({ instruction: "Retryable", target });
     const claimed = await queue.claimNext("session-1");
-    await queue.release(claimed!.id);
-    expect((await queue.list("session-1")).items[0]?.status).toBe("queued");
+    await queue.release(claimed!.id, "Tool failed after three attempts.");
+    expect((await queue.list("session-1")).items[0]).toMatchObject({
+      status: "failed",
+      failure: { reason: "Tool failed after three attempts.", attempts: 1 },
+    });
+    expect(await queue.claimNext("session-1")).toBeUndefined();
+    const failed = (await queue.list("session-1")).items[0]!;
+    await queue.retry(failed.id, failed.revision);
     const retried = await queue.claimNext("session-1");
     await queue.complete(retried!.id);
     expect((await queue.list("session-1")).items).toEqual([]);

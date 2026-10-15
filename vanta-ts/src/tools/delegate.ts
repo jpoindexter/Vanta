@@ -122,7 +122,23 @@ async function runDelegate(
   ]);
   const workerSettings: Settings = await loadSettings(workerRoot, process.env).catch(() => ({}));
   if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
-    await mountMcpServers(registry, process.env, () => {}, { cwd: workerRoot });
+    await mountMcpServers(registry, process.env, () => {}, {
+      cwd: workerRoot,
+      effectGate: {
+        kernel: ctx.safety,
+        approval: {
+          request: (request) => ctx.requestApproval(
+            request.action,
+            request.reason,
+            "mcp_mount",
+            { fresh: true },
+          ),
+        },
+        projectRoot: workerRoot,
+        sessionId: ctx.sessionId,
+        permissionMode: ctx.permissionMode?.() ?? "default",
+      },
+    });
 
   try {
     const outcome = await spawnSubagent({

@@ -1,0 +1,485 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Vanta Desktop Wireframe</title>
+<style>
+/* Layout concept: a toolbar of state switches above one scaled app frame (sidebar, thread, workbench), annotations and concepts below.
+   Grayscale on purpose: structure only. Vanta violet is reserved for focus, links and send in the visual pass. */
+:root{--bg:#ffffff;--bg2:#f4f4f5;--bg3:#e8e8eb;--ink:#1a1a1c;--ink2:#55555c;--ink3:#82828a;--line:#c9c9cf;--hair:#e3e3e7;--pin:#1a1a1c;--pinfg:#ffffff;--warn:#e9e9ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--bg2:#1f1f23;--bg3:#2a2a30;--ink:#ececf0;--ink2:#b0b0b8;--ink3:#80808a;--line:#3b3b43;--hair:#2c2c32;--pin:#ececf0;--pinfg:#17171a;--warn:#2a2a30;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17171a;--bg2:#1f1f23;--bg3:#2a2a30;--ink:#ececf0;--ink2:#b0b0b8;--ink3:#80808a;--line:#3b3b43;--hair:#2c2c32;--pin:#ececf0;--pinfg:#17171a;--warn:#2a2a30;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;padding-inline:16px;padding-block:20px}
+h1{font-size:20px;margin:0 0 4px;font-weight:600}
+h2{font-size:15px;margin:22px 0 8px;font-weight:600}
+p{margin:0 0 8px}
+.wrap{max-width:1500px;margin:0 auto}
+.muted{color:var(--ink2)}
+button{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+button:hover{background:var(--bg2)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0}
+.brief div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.brief b{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px;font-weight:600}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.tabs button{border-radius:999px}
+.bar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:8px 0 10px}
+.grp{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.grp>span{font-size:12px;color:var(--ink3);margin-right:2px}
+.stage{overflow-x:auto;border:1px dashed var(--line);border-radius:12px;padding:10px;background:var(--bg2)}
+.fit{transform-origin:top left}
+/* ---------- app frame ---------- */
+.frame{position:relative;height:660px;border:1px solid var(--line);border-radius:12px;background:var(--bg);overflow:hidden;display:grid;grid-template-rows:44px 1fr;font-size:14px}
+.titlebar{display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--hair);min-width:0}
+.tb-left{display:flex;gap:6px;align-items:center}
+.dots{display:flex;gap:6px;margin-right:6px}.dots i{width:11px;height:11px;border-radius:50%;background:var(--bg3);border:1px solid var(--line);display:block}
+.tb-title{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.tb-title strong{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{border:1px solid var(--line);border-radius:999px;padding:1px 9px;font-size:12px;color:var(--ink2);white-space:nowrap;background:var(--bg)}
+.pill{border:1px solid var(--ink);border-radius:999px;padding:1px 10px;font-size:12px;white-space:nowrap}
+.tb-right{display:flex;gap:6px;align-items:center}
+.icon{width:30px;height:30px;padding:0;display:inline-grid;place-items:center;border-radius:8px;font-size:15px}
+.body{display:grid;min-height:0;grid-template-columns:275px minmax(0,1fr) auto}
+.w1100 .body{grid-template-columns:56px minmax(0,1fr) auto}
+.w800 .body{grid-template-columns:minmax(0,1fr) auto}
+.sidebar{border-right:1px solid var(--hair);background:var(--bg2);padding:10px 8px;overflow:auto;position:relative;min-width:0}
+.w800 .sidebar{display:none}
+.w800.drawer .sidebar{display:block;position:absolute;z-index:6;left:0;top:44px;bottom:0;width:275px;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.nav{display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 10px;border:0;background:transparent;border-radius:8px;text-align:left}
+.nav:hover,.row:hover{background:var(--bg3)}
+.nav.sel,.row.sel{background:var(--bg3);font-weight:600}
+.nav .g{width:18px;text-align:center;flex:none}
+.nav .k{margin-left:auto;font-size:12px;color:var(--ink3)}
+.w1100 .nav .t,.w1100 .nav .k,.w1100 .grouplabel,.w1100 .row,.w1100 .badge{display:none}
+.w1100 .nav{justify-content:center;padding:0}
+.grouplabel{font-size:12px;color:var(--ink3);padding:12px 10px 4px;display:flex;justify-content:space-between;letter-spacing:.02em}
+.badge{border:1px solid var(--ink);border-radius:999px;padding:0 7px;font-size:12px;color:var(--ink)}
+.row{display:flex;align-items:center;gap:8px;width:100%;height:32px;padding:0 10px;border:0;background:transparent;border-radius:8px;text-align:left;min-width:0}
+.row .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .time{font-size:12px;color:var(--ink3)}
+.dot{width:16px;text-align:center;flex:none;font-size:12px}
+.spin{display:inline-block;animation:sp 1.1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.sbfoot{position:sticky;bottom:-10px;background:var(--bg2);padding:8px 0 2px;border-top:1px solid var(--hair);margin-top:10px;display:flex;gap:8px;align-items:center}
+.main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-width:0;min-height:0;position:relative}
+.banner{background:var(--bg3);border-bottom:1px solid var(--line);padding:6px 14px;font-size:13px}
+.scroll{overflow:auto;padding:22px 16px}
+.col{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.msg-u{align-self:flex-end;background:var(--bg3);border-radius:16px;padding:8px 14px;max-width:80%}
+.msg-a{max-width:100%}
+.hover-actions{display:flex;gap:4px;opacity:0;transition:opacity .12s;margin-top:4px}
+.hov:hover .hover-actions,.hov:focus-within .hover-actions{opacity:1}
+@media (hover:none){.hover-actions{opacity:1}}
+.hover-actions button{padding:1px 8px;font-size:12px;border-color:transparent;color:var(--ink2)}
+.step{border:0;background:transparent;color:var(--ink2);padding:2px 0;text-align:left;width:100%;display:flex;gap:8px;align-items:center}
+.stepbody{margin:2px 0 4px 22px;padding:6px 10px;border-left:2px solid var(--hair);color:var(--ink2);font-size:13px}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}
+.card h4{margin:0 0 2px;font-size:14px}
+.card .sub{color:var(--ink2);font-size:13px;margin-bottom:8px}
+.code{border:1px solid var(--hair);border-radius:6px;background:var(--bg2);padding:6px 8px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:8px;overflow-x:auto}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.note{font-size:12px;color:var(--ink3);margin-top:8px}
+.diff{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.empty{max-width:640px;margin:48px auto 0;text-align:center}
+.empty h3{font-size:20px;margin:0 0 6px;font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.chips button{border-radius:999px}
+.dock{padding:0 16px 12px}
+.dock .col{gap:8px}
+.queue{border:1px solid var(--hair);border-radius:12px;padding:6px 10px;font-size:13px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
+.composer{border:1px solid var(--line);border-radius:22px;padding:10px 12px;background:var(--bg)}
+.composer textarea{width:100%;border:0;background:transparent;color:inherit;font:inherit;resize:none;min-height:44px;outline:none}
+.composer .tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.composer .sp{flex:1}
+.send{width:32px;height:32px;border-radius:50%;padding:0;background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hint{font-size:12px;color:var(--ink3);text-align:center}
+.wb{border-left:1px solid var(--hair);width:400px;display:flex;flex-direction:column;min-height:0;background:var(--bg)}
+.w1100 .wb{position:absolute;z-index:5;right:0;top:44px;bottom:0;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.w800 .wb{position:absolute;z-index:5;left:0;right:0;top:44px;bottom:0;width:auto}
+.wbtabs{display:flex;gap:2px;border-bottom:1px solid var(--hair);padding:6px 8px;overflow:auto}
+.wbtabs button{border-color:transparent;border-radius:8px}
+.wbtabs button.on{background:var(--bg3);color:var(--ink);border-color:transparent}
+.wbbody{padding:12px;overflow:auto;flex:1;font-size:13px}
+.ph{border:1px dashed var(--line);border-radius:8px;display:grid;place-items:center;color:var(--ink3);min-height:90px;font-size:12px}
+.list-row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--hair)}
+.page{padding:22px 24px;overflow:auto;min-height:0}
+.page .col{max-width:860px}
+.sec{display:flex;flex-direction:column;gap:6px}
+.sec h3{margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center}
+.sechead{display:flex;justify-content:space-between;align-items:center}
+.box{border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.overlay{position:absolute;inset:44px 0 0 0;background:rgba(0,0,0,.28);z-index:9;display:grid;place-items:start center;padding-top:60px}
+.sheet{width:min(560px,92%);border:1px solid var(--line);border-radius:14px;background:var(--bg);padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.sheet input{width:100%;border:0;border-bottom:1px solid var(--hair);background:transparent;color:inherit;font:inherit;padding:8px;outline:none}
+.sheet .opt{display:flex;justify-content:space-between;padding:7px 8px;border-radius:8px;width:100%;border:0;background:transparent;text-align:left}
+.sheet .opt:hover,.sheet .opt.first{background:var(--bg3)}
+.toast{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:10px;padding:7px 12px;font-size:13px;z-index:10;max-width:90%}
+.pin{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:50%;background:var(--pin);color:var(--pinfg);font-size:11px;display:grid;place-items:center;z-index:12;font-weight:600}
+.rel{position:relative}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px 18px;margin-top:10px}
+.notes div{display:flex;gap:8px;min-width:0}
+.notes b{flex:none;width:20px;height:20px;border-radius:50%;background:var(--pin);color:var(--pinfg);font-size:11px;display:grid;place-items:center}
+.notes span{min-width:0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--hair);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--bg2);font-weight:600}
+.scrollx{overflow-x:auto}
+.concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.concept{border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.mini{display:grid;gap:4px;height:150px;margin:8px 0;font-size:11px;color:var(--ink3)}
+.mini div{border:1px dashed var(--line);border-radius:6px;display:grid;place-items:center;padding:2px;text-align:center}
+.verdict{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:0 10px;font-size:12px}
+ul{margin:4px 0 8px;padding-left:18px}
+[hidden]{display:none!important}
+</style>
+
+<div class="wrap">
+<h1>Vanta Desktop wireframe</h1>
+<p class="muted">Structure for the agent dashboard and chat, grayscale on purpose. Click through it: it is the recommended layout, with the alternatives we compared and the open questions below.</p>
+
+<div class="brief">
+  <div><b>Who</b>One operator running research, documents, files, schedules and bounded business tasks, who needs to supervise an agent that keeps working while they are elsewhere.</div>
+  <div><b>Goals</b>Start work in one step. See what needs me right now. Approve exactly what will happen. Find outputs. Recover after a stop or restart.</div>
+  <div><b>Problem</b>The current app hides status, repeats approvals, mixes five styles and treats chat, settings and monitoring as separate worlds.</div>
+  <div><b>Decision pending</b>Approve the shell structure (sidebar, thread, workbench, Home) before any more build. Visual pass follows approval.</div>
+</div>
+
+<div class="tabs" role="tablist" aria-label="Wireframe sections">
+  <button role="tab" id="tab-i" class="on" data-tab="i" aria-selected="true">Interactive wireframe</button>
+  <button role="tab" id="tab-c" data-tab="c" aria-selected="false">Concepts compared</button>
+  <button role="tab" id="tab-s" data-tab="s" aria-selected="false">Screens, states and open questions</button>
+</div>
+
+<!-- ============ TAB I ============ -->
+<section id="pane-i">
+  <div class="bar" aria-label="Wireframe controls">
+    <div class="grp"><span>Window</span><button data-w="1440" class="on">1440</button><button data-w="1100">1100</button><button data-w="800">800</button></div>
+    <div class="grp"><span>Chat state</span>
+      <button data-cs="empty">Empty</button><button data-cs="running">Running</button><button data-cs="waiting" class="on">Waiting for you</button><button data-cs="blocked">Blocked</button><button data-cs="done">Done</button><button data-cs="failed">Failed</button><button data-cs="offline">Offline</button></div>
+    <div class="grp"><span>Workbench</span><button data-wb="closed" class="on">Closed</button><button data-wb="changes">Changes</button><button data-wb="files">Files</button><button data-wb="browser">Browser</button><button data-wb="terminal">Terminal</button><button data-wb="outputs">Outputs</button></div>
+    <div class="grp"><button id="b-anno">Annotations</button><button id="b-dark">Dark</button><button id="b-pal">Command palette ⌘K</button><button id="b-set">Settings</button></div>
+  </div>
+  <div class="stage" id="stage"><div class="fit" id="fit"><div id="app"></div></div></div>
+  <h2>Annotations</h2>
+  <div class="notes" id="notes"></div>
+</section>
+
+<!-- ============ TAB C ============ -->
+<section id="pane-c" hidden>
+  <h2>Three structurally different concepts</h2>
+  <p class="muted">Compared against the shell patterns in flow-app-shell and the AI-chat flow rules. Concept A is chat-first with a supervision Home; B and C each lend one idea to it.</p>
+  <div class="concepts">
+    <div class="concept">
+      <b>A. Sidebar + thread + workbench</b> <span class="verdict">Recommended base</span>
+      <div class="mini" style="grid-template-columns:70px 1fr 60px;grid-template-rows:1fr"><div>Sidebar<br>sessions<br>Needs you</div><div>Thread<br>tool steps<br>approval card<br>composer</div><div>Work<br>bench</div></div>
+      <p><b>Wins:</b> matches how work is done (one task at a time), proven by Slack, Linear and Codex-style apps; approvals are inline where the action happened; the thread stays calm.</p>
+      <p><b>Costs:</b> supervising many runs needs a second surface, which is Home.</p>
+    </div>
+    <div class="concept">
+      <b>B. Triage three-pane (run inbox)</b> <span class="verdict">Borrowed: status list</span>
+      <div class="mini" style="grid-template-columns:90px 1fr 80px;grid-template-rows:1fr"><div>Run list<br>filters<br>status</div><div>Selected run<br>transcript</div><div>Inspector<br>files, steps</div></div>
+      <p><b>Wins:</b> best for scanning many runs, keyboard j/k, status first.</p>
+      <p><b>Costs:</b> three columns squeeze the thread below 480px on laptops; feels like a mail client for a task that is a conversation.</p>
+      <p><b>Taken from it:</b> the sidebar session rows carry status shape and time, and Needs you works like a priority filter.</p>
+    </div>
+    <div class="concept">
+      <b>C. Dashboard-first board</b> <span class="verdict">Borrowed: Home blocks</span>
+      <div class="mini" style="grid-template-columns:repeat(4,1fr);grid-template-rows:1fr"><div>Needs you</div><div>Running</div><div>Waiting</div><div>Done</div></div>
+      <p><b>Wins:</b> instant answer to "what is the agent doing", good for the business-operator story.</p>
+      <p><b>Costs:</b> a board is a poor place to read or steer one task; users would open every card in a slide-over, which becomes concept A anyway.</p>
+      <p><b>Taken from it:</b> Home shows Needs you, Running now, Next up and Recent outputs as the first screen of supervision.</p>
+    </div>
+  </div>
+  <h2>Why A, merged with B and C</h2>
+  <div class="scrollx"><table>
+    <tr><th>Criterion</th><th>A</th><th>B</th><th>C</th></tr>
+    <tr><td>Start work in one step (composer focused)</td><td>Yes</td><td>Needs a new-run action first</td><td>Needs a card first</td></tr>
+    <tr><td>Approve the exact action in context</td><td>Inline in the thread</td><td>Inline, in the middle pane</td><td>In a slide-over</td></tr>
+    <tr><td>See everything that needs me</td><td>Needs you group + Home</td><td>Filter</td><td>Column</td></tr>
+    <tr><td>Reading width on a 1440 laptop</td><td>720 column, workbench optional</td><td>Under 480 with three panes</td><td>Full width, but not a reading surface</td></tr>
+    <tr><td>Fits Codex-style muscle memory</td><td>Yes</td><td>No</td><td>No</td></tr>
+  </table></div>
+  <h2>Controlled convergence: still unexplored</h2>
+  <ul><li>A split Home that keeps the composer as a docked bar on every screen.</li><li>Session tabs in the titlebar (Hermes had them; not carried over because the sidebar already switches sessions).</li><li>A compact mini window for the tray that opens the same session.</li></ul>
+</section>
+
+<!-- ============ TAB S ============ -->
+<section id="pane-s" hidden>
+  <h2>Screen inventory</h2>
+  <div class="scrollx"><table>
+    <tr><th>Screen</th><th>Purpose</th><th>Primary action</th><th>Empty</th><th>Loading</th><th>Error / blocked</th></tr>
+    <tr><td>Home</td><td>Supervise: what needs me, what runs, what is next, what finished</td><td>Start a task in the composer</td><td>"Nothing needs you." plus one starter prompt</td><td>Skeleton rows per block</td><td>Block-level retry; offline banner</td></tr>
+    <tr><td>Chat</td><td>Do and steer one task</td><td>Send (Stop while running)</td><td>One capability line, 4 concrete prompts, composer focused</td><td>First activity within 1s (running line)</td><td>Inline error with Retry, partial output kept; blocked question card</td></tr>
+    <tr><td>Approval (inline)</td><td>Authorize one exact action</td><td>Allow once</td><td>n/a</td><td>Allowing... (disabled controls)</td><td>Failed decision shows why and keeps the card</td></tr>
+    <tr><td>Workbench</td><td>Changes, files, browser, terminal, outputs for this task</td><td>Review changes</td><td>"No changes yet."</td><td>Spinner in tab</td><td>Per-tab error with Retry</td></tr>
+    <tr><td>Schedules</td><td>See and edit monitors and recurring work</td><td>New schedule</td><td>"No schedules." plus New schedule</td><td>Skeleton rows</td><td>"Missed run (laptop asleep)" with Run now</td></tr>
+    <tr><td>Connections</td><td>Accounts and tools Vanta can use</td><td>Connect</td><td>"Nothing connected." plus Connect</td><td>Status check per row</td><td>Needs reconnect row with Reconnect</td></tr>
+    <tr><td>Skills &amp; tools</td><td>What the agent can do, enable or disable</td><td>Enable</td><td>Starter set</td><td>Skeleton grid</td><td>Install failed with Retry</td></tr>
+    <tr><td>Outputs</td><td>Documents and files Vanta made</td><td>Open</td><td>"Outputs appear here."</td><td>Skeleton</td><td>Missing file row with Locate</td></tr>
+    <tr><td>Command palette</td><td>Jump anywhere, run any action</td><td>Enter</td><td>"No matches"</td><td>n/a</td><td>n/a</td></tr>
+    <tr><td>Settings (overlay)</td><td>Models, permissions, voice, appearance</td><td>Change one setting (saves immediately)</td><td>n/a</td><td>n/a</td><td>Save failed rolls back visibly</td></tr>
+  </table></div>
+  <h2>Open questions (this artifact does not answer them)</h2>
+  <ul>
+    <li><b>Launch screen:</b> reopen the last chat (recommended) or land on Home?</li>
+    <li><b>Workbench default tab:</b> Changes for coding tasks, Outputs for research tasks, or last used?</li>
+    <li><b>Sessions in the titlebar:</b> drop tabs for good, or allow tabs only when two chats are pinned side by side?</li>
+    <li><b>Schedules scope:</b> do monitors appear in the session list or only under Schedules?</li>
+    <li><b>Mini window and tray:</b> opens the same session read-only until focused, or full composer?</li>
+    <li><b>Approval for shell commands:</b> keep project-wide Always, or move to per-command-prefix grants (owner decision pending)?</li>
+  </ul>
+  <h2>Anti-pattern check</h2>
+  <p class="muted">wireframe-fundamentals: three concepts compared, fidelity matched to what is decided. wireframe-elements: standard components only, real labels on every button and nav item. wireframe-principles: one primary action per region, three hierarchy levels, state shown by shape and word, never color alone. flow-ai-chat: stop replaces send, tool steps collapsed, scoped approvals, jump to latest not yet drawn (listed below). flow-app-shell: collapse order sidebar to rail to drawer, panels overlay rather than squeeze.</p>
+  <p class="muted"><b>Not drawn yet:</b> jump-to-latest pill, version pager for regenerate, edit-message fork, message search, drag and drop attachments, per-connection setup flows, onboarding.</p>
+</section>
+</div>
+
+<script>
+(function(){
+var NOTES=[
+ 'Titlebar, 44px. One status pill only (Running, Waiting for you, Needs your input, Offline). The title opens rename, pin and archive. The project chip scopes approvals and Always rules.',
+ 'Sidebar, 275px (resize 240 to 520). Nav rows 36px, session rows 32px, selected row is a filled pill. Status is a shape plus a word on hover, never color alone.',
+ 'Needs you appears only when something waits. The count badge is the only badge in the app. Each row jumps to the exact card.',
+ 'Destinations are nouns (Home, Schedules, Connections, Skills). Actions (New chat, Search) sit above them. The command palette duplicates all of it.',
+ 'Thread column 720px (65 to 75 characters). User messages are soft right bubbles, assistant text is plain. Copy, rate and time appear on hover or focus only.',
+ 'Tool steps are collapsed by default, one level deep. A failed step stays visible with its own Retry.',
+ 'The diff card summarises edits and offers Review changes. It never opens the workbench on its own.',
+ 'Approval card names the exact action and what Always covers (this project). Reject has equal weight. Irreversible actions hide Always and say why.',
+ 'Composer: radius 22, docked, grows to about 10 lines. Send becomes Stop in the same slot while running. Queued messages show above it.',
+ 'Model, effort and permission mode are visible chips, not hidden settings.',
+ 'Workbench closed by default, 400px docked at 1280 and wider, overlay below. It opens only on user intent.',
+ 'Home reads in supervision order: Needs you, Running now, Next up, Recent outputs. Empty states are one line plus one action.',
+ 'Responsive: 1280 and up full shell. 1024 to 1279 the sidebar becomes a 56px rail and the workbench overlays. Below 1024 the sidebar is a drawer and the workbench is a sheet.',
+ 'Offline banner pushes content down. The composer stays usable and messages queue until the connection returns.'
+];
+var SESS=[
+ {id:'s1',t:'Refactor billing webhooks',p:'Vanta',st:'waiting',time:'2m'},
+ {id:'s2',t:'Weekly competitor brief',p:'Research',st:'blocked',time:'14m'},
+ {id:'s3',t:'Q4 launch plan',p:'Pinned',st:'done',time:'1h'},
+ {id:'s4',t:'Fix flaky skills test',p:'Vanta',st:'running',time:'now'},
+ {id:'s5',t:'Approval persistence',p:'Vanta',st:'done',time:'3h'},
+ {id:'s6',t:'Work section v4 layout',p:'Portfolio',st:'done',time:'1d'}
+];
+var S={w:1440,view:'chat',chat:'waiting',sid:'s1',wb:'closed',anno:false,dark:false,sent:[],queue:[],pal:false,set:false,drawer:false,open:{},toast:'',note:'',cmp:'',timer:null};
+var app=document.getElementById('app'),fit=document.getElementById('fit'),stage=document.getElementById('stage');
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function pin(n){return S.anno?'<span class="pin">'+n+'</span>':''}
+function stGlyph(st){return st==='running'?'<span class="spin">◌</span>':st==='waiting'||st==='blocked'?'▲':st==='failed'?'✕':st==='done'?'':'•'}
+function stWord(st){return {running:'Running',waiting:'Waiting for you',blocked:'Needs your input',done:'Done',failed:'Failed',offline:'Offline',empty:''}[st]||''}
+function sess(id){return SESS.filter(function(s){return s.id===id})[0]}
+function needs(){return SESS.filter(function(s){return s.st==='waiting'||s.st==='blocked'})}
+
+/* ---------- sidebar ---------- */
+function sidebar(){
+  var h='<aside class="sidebar rel" aria-label="Sidebar">'+pin(2);
+  h+='<button class="nav" data-act="new"><span class="g">＋</span><span class="t">New chat</span><span class="k">⌘N</span></button>';
+  h+='<button class="nav" data-act="pal"><span class="g">⌕</span><span class="t">Search</span><span class="k">⌘K</span></button>';
+  h+='<div class="rel">'+pin(4)+['home|⌂|Home','schedules|◷|Schedules','connections|⇄|Connections','skills|✦|Skills &amp; tools','outputs|▤|Outputs'].map(function(x){var p=x.split('|');return '<button class="nav '+(S.view===p[0]?'sel':'')+'" data-view="'+p[0]+'"><span class="g">'+p[1]+'</span><span class="t">'+p[2]+'</span></button>'}).join('')+'</div>';
+  var n=needs();
+  if(n.length){h+='<div class="grouplabel rel">'+pin(3)+'<span>NEEDS YOU</span><span class="badge">'+n.length+'</span></div>'+n.map(row).join('')}
+  h+='<div class="grouplabel"><span>PINNED</span></div>'+SESS.filter(function(s){return s.p==='Pinned'}).map(row).join('');
+  ['Vanta','Research','Portfolio'].forEach(function(p){var l=SESS.filter(function(s){return s.p===p&&s.st!=='waiting'&&s.st!=='blocked'});if(l.length)h+='<div class="grouplabel"><span>'+p.toUpperCase()+'</span><span>＋</span></div>'+l.map(row).join('')});
+  h+='<div class="sbfoot"><span class="icon chip" title="">J</span><div class="t" style="flex:1;min-width:0"><div style="font-size:13px">Jason</div><div class="note" style="margin:0">Local · Sonnet 5.5</div></div><button class="icon" data-act="set" aria-label="Settings">⚙</button></div>';
+  return h+'</aside>';
+}
+function row(s){return '<button class="row '+(S.view==='chat'&&S.sid===s.id?'sel':'')+'" data-sid="'+s.id+'"><span class="dot" aria-hidden="true">'+stGlyph(s.st)+'</span><span class="t">'+esc(s.t)+'</span><span class="time">'+s.time+'</span><span class="sr" hidden>'+stWord(s.st)+'</span></button>'}
+
+/* ---------- titlebar ---------- */
+function titlebar(){
+  var title=S.view==='chat'?esc(sess(S.sid).t):{home:'Home',schedules:'Schedules',connections:'Connections',skills:'Skills & tools',outputs:'Outputs'}[S.view];
+  var stt=S.view==='chat'?S.chat:'';
+  var pillTxt=stt==='running'?'◌ Running 0:42':stt==='waiting'?'▲ Waiting for you':stt==='blocked'?'▲ Needs your input':stt==='offline'?'○ Offline':stt==='done'?'✓ Done':stt==='failed'?'✕ Failed':'';
+  return '<header class="titlebar rel">'+pin(1)+'<div class="tb-left"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>'+(S.w===800?'<button class="icon" data-act="drawer" aria-label="Open sidebar">☰</button>':'')+'<button class="icon" data-act="new" aria-label="New chat">＋</button></div>'+
+   '<div class="tb-title"><strong>'+title+'</strong>'+(S.view==='chat'?'<span class="chip">▾</span><span class="chip">'+esc(sess(S.sid).p==='Pinned'?'Vanta':sess(S.sid).p)+'</span>':'')+(pillTxt?'<span class="pill">'+pillTxt+'</span>':'')+'</div>'+
+   '<div class="tb-right"><button class="icon" data-wbt="changes" aria-label="Changes">±</button><button class="icon" data-wbt="terminal" aria-label="Terminal">&gt;_</button><button class="icon" data-wbt="browser" aria-label="Browser">◎</button><button class="icon" data-wbt="files" aria-label="Files">▤</button><button class="icon" data-act="set" aria-label="More">⋯</button></div></header>';
+}
+
+/* ---------- thread parts ---------- */
+function userMsg(t){return '<div class="hov" style="align-self:flex-end;max-width:80%"><div class="msg-u">'+esc(t)+'</div><div class="hover-actions" style="justify-content:flex-end"><button>Copy</button><button>Edit</button><span class="note" style="margin:3px 0 0 6px">09:41</span></div></div>'}
+function asstMsg(t){return '<div class="hov msg-a"><div>'+t+'</div><div class="hover-actions"><button>Copy</button><button>👍</button><button>👎</button><button>Retry</button></div></div>'}
+function step(id,label,body){var o=S.open[id];return '<div><button class="step" data-step="'+id+'" aria-expanded="'+(o?'true':'false')+'"><span>'+(o?'▾':'▸')+'</span><span>'+label+'</span></button>'+(o?'<div class="stepbody">'+body+'</div>':'')+'</div>'}
+function diffCard(){return '<div class="card rel">'+pin(7)+'<div class="diff"><div><h4>Edited 2 files</h4><div class="sub" style="margin:0">billing/webhooks.ts  +24 −6 · billing/retry.ts  +18 −0</div></div><button data-wbt="changes">Review changes</button></div></div>'}
+function approvalCard(){return '<div class="card rel" role="alert">'+pin(8)+'<h4>▲ Run a command</h4><div class="sub">Vanta wants to run the billing tests after the edit.</div><div class="code">npm test -- billing</div><div class="acts"><button class="primary" data-ap="once">Allow once</button><button data-ap="always">Always allow shell commands</button><button data-ap="reject">Reject</button></div><div class="note">Always covers every shell command Vanta runs in the Vanta project, not just this one. Irreversible commands (delete, deploy, publish) always ask and do not offer Always.</div></div>'}
+function blockedCard(){return '<div class="card" role="alert"><h4>▲ I need a source</h4><div class="sub">The Acme pricing page needs a login, so I cannot read it. Choose how to continue.</div><div class="acts"><button class="primary" data-ap="skip">Skip Acme</button><button data-ap="paste">Paste the page text</button><button data-ap="browser">Open browser to sign in</button></div></div>'}
+function errorCard(){return '<div class="card" role="alert"><h4>✕ The tests failed</h4><div class="sub">3 of 41 billing tests failed after the edit. Partial output is kept. Nothing was committed.</div><div class="acts"><button class="primary" data-ap="retry">Retry the step</button><button data-wbt="terminal">View output</button></div></div>'}
+function runningLine(){return '<div class="step" aria-live="polite"><span class="spin">◌</span><span>Running tests: billing (12 of 41)</span><button style="margin-left:auto" data-act="stop">Stop</button></div>'}
+function emptyState(){return '<div class="empty rel">'+pin(5)+'<h3>What should Vanta do?</h3><p class="muted">Research, write, work with files and websites, or keep an eye on something for you. Bring in tools when you need them.</p><div class="chips"><button data-fill="Compare three CRM tools and save a brief">Compare three CRM tools</button><button data-fill="Summarise the PDFs in my Downloads folder">Summarise my Downloads PDFs</button><button data-fill="Check competitor pricing every morning and tell me what changed">Watch competitor pricing</button><button data-fill="Draft a follow-up email to the last three leads">Draft follow-ups</button></div></div>'}
+function thread(){
+  if(S.chat==='empty'&&!S.sent.length)return emptyState();
+  var blocked=S.chat==='blocked';
+  var h='<div class="col rel">'+pin(5);
+  if(blocked){
+    h+=userMsg('Write this week’s competitor pricing brief');
+    h+=step('b1','Searched 6 sources','acme.com/pricing (login required), rival.io/pricing, plans.example.org, and 3 review sites.');
+    h+=blockedCard();
+  }else{
+    h+=userMsg('Add retry with backoff to the billing webhook handler, then run the billing tests');
+    h+=asstMsg('I will read the handler, add a bounded exponential backoff, and run the tests.');
+    h+='<div class="rel">'+pin(6)+step('t1','Read 3 files','billing/webhooks.ts, billing/retry.ts, billing/webhooks.test.ts')+'</div>';
+    h+=diffCard();
+    if(S.chat==='waiting')h+=approvalCard();
+    if(S.chat==='running')h+=runningLine();
+    if(S.chat==='failed')h+=errorCard();
+    if(S.chat==='done')h+=asstMsg('Done. The handler now retries up to 5 times with backoff, and all 41 billing tests pass. The change is in the Changes panel.');
+    if(S.chat==='offline')h+=asstMsg('I lost the connection while running the tests. Your message and this thread are saved. I will continue when you are back online.');
+  }
+  S.sent.forEach(function(m){h+=userMsg(m)});
+  if(S.note)h+='<div class="note">'+esc(S.note)+'</div>';
+  return h+'</div>';
+}
+function composer(){
+  var run=S.chat==='running';
+  return '<div class="dock rel">'+pin(9)+'<div class="col">'+S.queue.map(function(q,i){return '<div class="queue"><span>Queued: '+esc(q)+'</span><span><button data-qdel="'+i+'">Remove</button></span></div>'}).join('')+
+   '<div class="composer"><textarea id="cmp" rows="2" placeholder="'+(S.chat==='empty'?'What are we building?':'Ask Vanta to do something')+'" aria-label="Message Vanta">'+esc(S.cmp)+'</textarea><div class="tools"><button class="icon" aria-label="Attach">＋</button><button class="icon" aria-label="Dictate">🎙</button><span class="sp"></span><span class="rel">'+pin(10)+'<button class="chip">Sonnet 5.5 ▾</button> <button class="chip">Medium ▾</button> <button class="chip">Ask each time ▾</button></span><button class="send" data-act="'+(run?'stop':'send')+'" aria-label="'+(run?'Stop':'Send')+'">'+(run?'■':'↑')+'</button></div></div>'+
+   '<div class="hint">Enter to send · Shift Enter for a new line'+(run?' · messages queue while running':'')+'</div></div></div>';
+}
+
+/* ---------- pages ---------- */
+function home(){
+  var n=needs();
+  var h='<div class="page"><div class="col rel">'+pin(12);
+  h+='<div class="composer"><textarea id="cmp" rows="2" placeholder="What should Vanta do?" aria-label="Start a task">'+esc(S.cmp)+'</textarea><div class="tools"><button class="icon">＋</button><span class="sp"></span><button class="chip">Vanta project ▾</button><button class="send" data-act="send" aria-label="Send">↑</button></div></div>';
+  h+='<div class="chips" style="justify-content:flex-start;margin:0"><button class="chip">Vanta</button><button class="chip">Research</button><button class="chip">Portfolio</button></div>';
+  h+='<div class="sec"><div class="sechead"><h3>Needs you <span class="badge">'+n.length+'</span></h3></div>'+(n.length?'<div class="box">'+n.map(function(s){return '<div class="list-row"><span>▲ '+esc(s.t)+'<br><span class="note" style="margin:0">'+(s.st==='waiting'?'Run a command: npm test -- billing':'Needs a source for Acme')+'</span></span><span class="acts">'+(s.st==='waiting'?'<button class="primary" data-hap="'+s.id+'">Allow once</button>':'')+'<button data-sid="'+s.id+'">Open</button></span></div>'}).join('')+'</div>':'<p class="muted">Nothing needs you.</p>')+'</div>';
+  h+='<div class="sec"><h3>Running now</h3><div class="box"><div class="list-row"><span><span class="spin">◌</span> Fix flaky skills test<br><span class="note" style="margin:0">Running tests: skills library (12 of 41) · 0:42</span></span><span class="acts"><button data-sid="s4">Open</button><button>Stop</button></span></div></div></div>';
+  h+='<div class="sec"><h3>Next up</h3><div class="box"><div class="list-row"><span>◷ Competitor pricing monitor<br><span class="note" style="margin:0">Last checked 06:40 · no change · next 12:40</span></span><button>Run now</button></div><div class="list-row"><span>◷ Weekly brief<br><span class="note" style="margin:0">Fri 09:00 · drafts to Outputs, never sends</span></span><button>Edit</button></div></div></div>';
+  h+='<div class="sec"><h3>Recent outputs</h3><div class="box"><div class="list-row"><span>▤ q4-launch-plan.md</span><span class="acts"><button>Open</button><button>Reveal</button></span></div><div class="list-row"><span>▤ competitor-brief-w41.pdf</span><span class="acts"><button>Open</button><button>Reveal</button></span></div><div class="list-row"><span>▤ billing-retry.diff</span><span class="acts"><button>Open</button><button>Reveal</button></span></div></div></div>';
+  return h+'</div></div>';
+}
+function listPage(title,sub,rows,cta){
+  return '<div class="page"><div class="col"><div class="sechead"><div><h3 style="margin:0;font-size:18px">'+title+'</h3><p class="muted" style="margin:0">'+sub+'</p></div><button class="primary" style="background:var(--ink);color:var(--bg)">'+cta+'</button></div><div class="box">'+rows.map(function(r){return '<div class="list-row"><span>'+r[0]+'<br><span class="note" style="margin:0">'+r[1]+'</span></span><span class="acts"><button>'+r[2]+'</button></span></div>'}).join('')+'</div></div></div>';
+}
+function page(){
+  if(S.view==='home')return home();
+  if(S.view==='schedules')return listPage('Schedules','Monitors and recurring work. Nothing sends or posts without your approval.',[['◷ Competitor pricing monitor','Every day 06:40 · last checked 06:40 · no change','Edit'],['◷ Weekly brief','Fri 09:00 · drafts only','Edit'],['▲ Inbox digest','Missed run: laptop was asleep at 07:00','Run now']],'New schedule');
+  if(S.view==='connections')return listPage('Connections','Accounts and tools Vanta can use.',[['⇄ Google (Gmail, Calendar, Drive)','Read only · connected','Manage'],['⇄ LinkedIn','Posting needs approval each time','Manage'],['▲ GitHub','Needs reconnect','Reconnect'],['⇄ MCP: filesystem','3 tools','Manage']],'Connect');
+  if(S.view==='skills')return listPage('Skills &amp; tools','What the agent can do. Turn things off you do not want.',[['✦ Research and cite','On','Disable'],['✦ Documents (read, write, convert)','On','Disable'],['✦ Browser (isolated profile)','On','Disable'],['✦ Shell commands','Ask each time','Change']],'Browse skills');
+  if(S.view==='outputs')return listPage('Outputs','Documents and files Vanta made.',[['▤ q4-launch-plan.md','Today 09:12 · from Q4 launch plan','Open'],['▤ competitor-brief-w41.pdf','Yesterday · from Weekly competitor brief','Open'],['▲ old-report.docx','File missing from disk','Locate']],'Open folder');
+  return '';
+}
+
+/* ---------- workbench ---------- */
+function workbench(){
+  if(S.wb==='closed')return '';
+  var tabs=['changes|Changes','files|Files','browser|Browser','terminal|Terminal','outputs|Outputs'];
+  var b='';
+  if(S.wb==='changes')b='<div class="list-row"><span>billing/webhooks.ts</span><span>+24 −6</span></div><div class="code" style="margin-top:8px">− await send(payload)\n+ await withBackoff(() =&gt; send(payload), {max:5})</div><div class="list-row"><span>billing/retry.ts</span><span>+18 −0</span></div><div class="acts" style="margin-top:10px"><button>Restore to before this run</button></div>';
+  if(S.wb==='files')b='<div class="code">▾ billing\n   ▸ webhooks.ts\n   ▸ retry.ts\n   ▸ webhooks.test.ts\n▸ docs</div><div class="ph">file preview</div>';
+  if(S.wb==='browser')b='<div class="composer" style="border-radius:8px;padding:4px 8px;margin-bottom:8px">https://stripe.com/docs/webhooks</div><div class="ph" style="min-height:260px">page preview</div>';
+  if(S.wb==='terminal')b='<div class="code">$ npm test -- billing\nPASS  38 tests\nFAIL  3 tests</div><div class="ph">live output</div>';
+  if(S.wb==='outputs')b='<div class="list-row"><span>▤ billing-retry.diff</span><button>Open</button></div><div class="list-row"><span>▤ test-report.html</span><button>Open</button></div>';
+  return '<aside class="wb rel" aria-label="Workbench">'+pin(11)+'<div class="wbtabs">'+tabs.map(function(t){var p=t.split('|');return '<button class="'+(S.wb===p[0]?'on':'')+'" data-wbt="'+p[0]+'">'+p[1]+'</button>'}).join('')+'<button style="margin-left:auto" data-wbt="closed" aria-label="Close workbench">✕</button></div><div class="wbbody">'+b+'</div></aside>';
+}
+
+/* ---------- overlays ---------- */
+function palette(){
+  var items=[['New chat','⌘N','new'],['Go to Home','','v:home'],['Go to Schedules','','v:schedules'],['Go to Connections','','v:connections'],['Open: Refactor billing webhooks','','s:s1'],['Open: Weekly competitor brief','','s:s2'],['Toggle workbench','⌘B','wb'],['Switch theme','','dark'],['Stop current run','⌘.','stop']];
+  var q=(S.q||'').toLowerCase();
+  var f=items.filter(function(i){return i[0].toLowerCase().indexOf(q)>-1});
+  return '<div class="overlay" data-act="palclose"><div class="sheet" data-keep="1"><input id="palq" placeholder="Search chats, go anywhere, run an action" value="'+esc(S.q||'')+'" aria-label="Command palette"><div style="margin-top:6px">'+(f.length?f.map(function(i,k){return '<button class="opt '+(k===0?'first':'')+'" data-pal="'+i[2]+'"><span>'+i[0]+'</span><span class="muted">'+i[1]+'</span></button>'}).join(''):'<p class="muted" style="padding:8px">No matches.</p>')+'</div></div></div>';
+}
+function settings(){
+  return '<div class="overlay" data-act="setclose"><div class="sheet" data-keep="1" style="width:min(640px,94%)"><div class="sechead"><b>Settings</b><button data-act="setclose" aria-label="Close settings">✕</button></div><div style="display:grid;grid-template-columns:150px 1fr;gap:14px;margin-top:10px"><div><button class="nav sel">General</button><button class="nav">Models</button><button class="nav">Permissions</button><button class="nav">Voice</button><button class="nav">Appearance</button></div><div class="box"><div class="list-row"><span>Remembered approvals<br><span class="note" style="margin:0">Review and revoke what Always allow covers</span></span><button>Manage</button></div><div class="list-row"><span>Default permission mode<br><span class="note" style="margin:0">Ask each time</span></span><button>Change</button></div><div class="list-row"><span>Launch<br><span class="note" style="margin:0">Reopen last chat</span></span><button>Change</button></div></div></div></div></div>';
+}
+
+/* ---------- main render ---------- */
+function render(){
+  var hadFocus=document.activeElement&&(document.activeElement.id==='cmp'||document.activeElement.id==='palq');
+  var fid=hadFocus?document.activeElement.id:null;var pos=hadFocus?document.activeElement.selectionStart:0;
+  var main;
+  if(S.view==='chat'){
+    main='<main class="main">'+(S.chat==='offline'?'<div class="banner rel">'+pin(14)+'○ Offline. Messages queue until Vanta reconnects. <button>Retry now</button></div>':'<div></div>')+'<div class="scroll" id="scr">'+thread()+'</div>'+composer()+(S.toast?'<div class="toast" role="status">'+esc(S.toast)+'</div>':'')+'</main>';
+  }else{
+    main='<main class="main"><div></div><div style="overflow:auto;min-height:0">'+page()+'</div><div></div>'+(S.toast?'<div class="toast" role="status">'+esc(S.toast)+'</div>':'')+'</main>';
+  }
+  app.innerHTML='<div class="frame w'+S.w+(S.drawer?' drawer':'')+'" id="frame">'+titlebar()+'<div class="body">'+sidebar()+main+workbench()+'</div>'+(S.pal?palette():'')+(S.set?settings():'')+'</div>';
+  document.getElementById('frame').style.width=S.w+'px';
+  var wr=document.querySelectorAll('#pane-i [data-w]');for(var i=0;i<wr.length;i++)wr[i].classList.toggle('on',+wr[i].dataset.w===S.w);
+  wr=document.querySelectorAll('#pane-i [data-cs]');for(i=0;i<wr.length;i++)wr[i].classList.toggle('on',wr[i].dataset.cs===S.chat&&S.view==='chat');
+  wr=document.querySelectorAll('#pane-i .bar [data-wb]');for(i=0;i<wr.length;i++)wr[i].classList.toggle('on',wr[i].dataset.wb===S.wb);
+  document.getElementById('b-anno').classList.toggle('on',S.anno);document.getElementById('b-dark').classList.toggle('on',S.dark);
+  if(fid){var el=document.getElementById(fid);if(el){el.focus();try{el.setSelectionRange(pos,pos)}catch(e){}}}
+  if(S.view==='chat'){var sc=document.getElementById('scr');if(sc)sc.scrollTop=sc.scrollHeight}
+  rescale();
+}
+function rescale(){
+  var avail=stage.clientWidth-20,s=Math.min(1,avail/S.w);
+  fit.style.transform='scale('+s+')';fit.style.width=S.w+'px';
+  var fr=document.getElementById('frame');if(fr)fit.parentNode.style.height=(fr.offsetHeight*s+0)+'px';
+}
+window.addEventListener('resize',rescale);
+
+/* ---------- behaviour ---------- */
+function toast(t){S.toast=t;clearTimeout(S.tt);S.tt=setTimeout(function(){S.toast='';render()},2600)}
+function setChat(c){S.chat=c;var s=sess(S.sid);if(s&&(c==='waiting'||c==='blocked'||c==='running'||c==='done'))s.st=c}
+function finishLater(msg){clearTimeout(S.timer);S.timer=setTimeout(function(){setChat('done');if(msg)S.note=msg;render()},1800)}
+function send(){
+  var t=(S.cmp||'').trim();if(!t)return;
+  if(S.chat==='running'){S.queue.push(t);S.cmp='';render();return}
+  if(S.view!=='chat'){S.view='chat'}
+  S.sent.push(t);S.cmp='';S.note='';setChat('running');render();finishLater('Done. Summary saved to Outputs.');
+}
+function go(act,arg){
+  if(act==='new'){S.view='chat';S.chat='empty';S.sent=[];S.queue=[];S.note='';S.cmp='';S.drawer=false}
+  else if(act==='send')send();
+  else if(act==='stop'){clearTimeout(S.timer);setChat('done');S.note='Stopped. Partial output is kept.';if(S.queue.length){var q=S.queue.shift();S.sent.push(q);setChat('running');finishLater('Done.')}}
+  else if(act==='pal'){S.pal=true;S.q=''}
+  else if(act==='palclose'){S.pal=false}
+  else if(act==='set'){S.set=true}
+  else if(act==='setclose'){S.set=false}
+  else if(act==='drawer'){S.drawer=!S.drawer}
+  render();
+  if(act==='pal'){var q2=document.getElementById('palq');if(q2)q2.focus()}
+}
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-tab],[data-w],[data-cs],[data-wb],[data-view],[data-sid],[data-act],[data-step],[data-ap],[data-hap],[data-fill],[data-wbt],[data-qdel],[data-pal],#b-anno,#b-dark,#b-pal,#b-set');
+  if(!el)return;
+  if(el.closest('[data-keep]')&&el.dataset.act==='palclose'){return}
+  if(el.dataset.tab){var ids=['i','c','s'];ids.forEach(function(k){document.getElementById('pane-'+k).hidden=k!==el.dataset.tab;var b=document.getElementById('tab-'+k);b.classList.toggle('on',k===el.dataset.tab);b.setAttribute('aria-selected',k===el.dataset.tab)});if(el.dataset.tab==='i')render();return}
+  if(el.dataset.w){S.w=+el.dataset.w;S.drawer=false;render();return}
+  if(el.dataset.cs){S.view='chat';setChat(el.dataset.cs);if(el.dataset.cs==='empty'){S.sent=[];S.note=''}render();return}
+  if(el.dataset.wb){S.wb=el.dataset.wb;render();return}
+  if(el.dataset.view){S.view=el.dataset.view;S.drawer=false;render();return}
+  if(el.dataset.sid){S.view='chat';S.sid=el.dataset.sid;var s=sess(S.sid);S.chat=s.st==='running'?'running':s.st;S.sent=[];S.note='';S.drawer=false;render();return}
+  if(el.dataset.step){S.open[el.dataset.step]=!S.open[el.dataset.step];render();return}
+  if(el.dataset.fill){S.cmp=el.dataset.fill;render();var c=document.getElementById('cmp');if(c)c.focus();return}
+  if(el.dataset.wbt){S.wb=el.dataset.wbt==='closed'?'closed':el.dataset.wbt;render();return}
+  if(el.dataset.qdel){S.queue.splice(+el.dataset.qdel,1);render();return}
+  if(el.dataset.ap){var a=el.dataset.ap;
+    if(a==='once'){setChat('running');S.note='';render();finishLater('Allowed once. Tests finished.')}
+    else if(a==='always'){setChat('running');S.note='';toast('Saved: always allow shell commands in the Vanta project. Manage in Settings.');render();finishLater('Tests finished. This project no longer asks for shell commands.')}
+    else if(a==='reject'){setChat('done');S.note='Rejected. Nothing ran.';render()}
+    else if(a==='skip'||a==='paste'||a==='browser'||a==='retry'){setChat('running');render();finishLater('Continuing with your choice.')}
+    return}
+  if(el.dataset.hap){var s2=sess(el.dataset.hap);s2.st='running';if(S.sid===s2.id)S.chat='running';toast('Allowed once. Vanta is running the tests.');render();return}
+  if(el.dataset.pal){var v=el.dataset.pal;S.pal=false;
+    if(v==='new')go('new');
+    else if(v.indexOf('v:')===0){S.view=v.slice(2);render()}
+    else if(v.indexOf('s:')===0){S.view='chat';S.sid=v.slice(2);var s3=sess(S.sid);S.chat=s3.st;S.sent=[];render()}
+    else if(v==='wb'){S.wb=S.wb==='closed'?'changes':'closed';render()}
+    else if(v==='dark'){document.getElementById('b-dark').click()}
+    else if(v==='stop'){go('stop')}
+    return}
+  if(el.id==='b-anno'){S.anno=!S.anno;render();return}
+  if(el.id==='b-dark'){S.dark=!S.dark;document.documentElement.setAttribute('data-theme',S.dark?'dark':'light');render();return}
+  if(el.id==='b-pal'){go('pal');return}
+  if(el.id==='b-set'){go('set');return}
+  if(el.dataset.act){go(el.dataset.act)}
+});
+document.addEventListener('input',function(e){if(e.target.id==='cmp'){S.cmp=e.target.value}if(e.target.id==='palq'){S.q=e.target.value;var p=e.target.selectionStart;render();var q=document.getElementById('palq');if(q){q.focus();q.setSelectionRange(p,p)}}});
+document.addEventListener('keydown',function(e){
+  if(e.target.id==='cmp'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();return}
+  if(e.target.id==='palq'&&e.key==='Enter'){var f=document.querySelector('.sheet .opt');if(f)f.click();return}
+  if(e.key==='Escape'){if(S.pal||S.set||S.drawer||S.wb!=='closed'){S.pal=false;S.set=false;S.drawer=false;if(!S.pal&&S.wb!=='closed'&&!S.set)S.wb='closed';render()}return}
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();go('pal')}
+});
+
+/* notes list */
+document.getElementById('notes').innerHTML=NOTES.map(function(n,i){return '<div><b>'+(i+1)+'</b><span>'+n+'</span></div>'}).join('');
+try{if(window.matchMedia('(prefers-color-scheme: dark)').matches){S.dark=true}}catch(e){}
+render();
+})();
+</script>
+
+</body></html>

@@ -30,4 +30,38 @@ describe("compactTrace", () => {
     ]);
     expect(groups).toEqual([{ label: "✗ shell_cmd: permission denied", status: "attention", evidence: [expect.objectContaining({ detail: "permission denied" })] }]);
   });
+
+  // A long turn used to render one row per write — eleven of them buried the
+  // composer. Consecutive same-tool successes collapse to one counted row.
+  it("collapses a run of consecutive edits into one counted row", () => {
+    const edit = (file: string) => ({ label: `✓ edit_file: ${file}`, kind: "tool_end" as const, name: "edit_file", ok: true });
+    const groups = compactTrace([edit("app-body.tsx"), edit("app-body.tsx"), edit("app-body.tsx"), edit("app.tsx")]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.label).toBe("✓ edit_file: app-body.tsx ×4");
+    expect(groups[0]?.evidence).toHaveLength(4); // every original stays available
+  });
+
+  it("never merges a failure into a success run", () => {
+    const groups = compactTrace([
+      { label: "✓ edit_file: a", kind: "tool_end", name: "edit_file", ok: true },
+      { label: "✗ edit_file: old_string not found", kind: "tool_end", name: "edit_file", ok: false },
+      { label: "✓ edit_file: b", kind: "tool_end", name: "edit_file", ok: true },
+    ]);
+    expect(groups.map((group) => group.status)).toEqual(["done", "attention", "done"]);
+  });
+
+  it("keeps a non-adjacent repeat as its own step", () => {
+    const groups = compactTrace([
+      { label: "✓ todo: plan updated", kind: "tool_end", name: "todo", ok: true },
+      { label: "✓ write_file: queue-panel.tsx", kind: "tool_end", name: "write_file", ok: true },
+      { label: "✓ todo: plan updated", kind: "tool_end", name: "todo", ok: true },
+    ]);
+    expect(groups).toHaveLength(3); // separate moments in the turn, not a run
+    expect(groups.every((group) => !group.label.includes("×"))).toBe(true);
+  });
+
+  it("leaves a lone call uncounted", () => {
+    const groups = compactTrace([{ label: "✓ write_file: x", kind: "tool_end", name: "write_file", ok: true }]);
+    expect(groups[0]?.label).toBe("✓ write_file: x");
+  });
 });

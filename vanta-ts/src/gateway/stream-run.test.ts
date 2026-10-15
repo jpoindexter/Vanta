@@ -6,6 +6,7 @@ import { pollPlatformSession } from "./run.js";
 import { initialState } from "./session-manager.js";
 import { lookupSent, nodeReplyFs } from "./reply-store.js";
 import type { InboundMessage, OutboundFile, OutboundMessage, PlatformAdapter } from "./platforms/base.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const dirs: string[] = [];
 afterEach(async () => Promise.all(dirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))));
@@ -31,6 +32,7 @@ describe("gateway typed stream path", () => {
     const platform = new RecordingAdapter([{ chatId: "chat-1", text: "run it" }]);
     const result = await pollPlatformSession({
       dataDir,
+      effectGate: allowTestEffectGate(dataDir),
       run: async () => ({ finalText: "" }),
       load: async () => [],
       log: () => {},
@@ -47,6 +49,7 @@ describe("gateway typed stream path", () => {
     expect(result.count).toBe(1);
     expect(platform.sent).toEqual([{ id: "out-1", chatId: "chat-1", threadId: undefined, text: "canonical answer" }]);
     await expect(lookupSent({ fs: nodeReplyFs(), dir: dataDir }, "out-1")).resolves.toBe("canonical answer");
+    expect(await readFile(join(dataDir, ".vanta", "tool-effects.jsonl"), "utf8")).toContain('"kind":"gateway.final"');
   });
 
   it("sanitizes a produced path, uploads it natively, and writes a receipt", async () => {
@@ -54,11 +57,14 @@ describe("gateway typed stream path", () => {
     const artifact = join(dataDir, "report.pdf"); await writeFile(artifact, "PDF body");
     const platform = new RecordingAdapter([{ chatId: "chat-1", text: "build report" }]);
     await pollPlatformSession({
-      dataDir, run: async () => ({ finalText: "" }), load: async () => [], log: () => {},
+      dataDir, effectGate: allowTestEffectGate(dataDir), run: async () => ({ finalText: "" }), load: async () => [], log: () => {},
       platform, handle: async () => `Report ready: ${artifact}`,
     }, initialState());
     expect(platform.sent[0]?.text).toBe("Report ready:");
     expect(platform.files).toMatchObject([{ chatId: "chat-1", name: "report.pdf", mime: "application/pdf" }]);
     expect(await readFile(join(dataDir, "deliverable-receipts.jsonl"), "utf8")).toContain('"name":"report.pdf"');
+    const effects = await readFile(join(dataDir, ".vanta", "tool-effects.jsonl"), "utf8");
+    expect(effects).toContain('"kind":"gateway.final"');
+    expect(effects).toContain('"kind":"gateway.native-file"');
   });
 });

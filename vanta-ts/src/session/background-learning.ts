@@ -7,15 +7,22 @@ import { runDialecticPass, type DialecticResult } from "../operator-profile/dial
 import { shouldLearn, learnFromTranscript } from "../brain/learn.js";
 import { scoreTurn, formatCriticNote } from "../observe/critic.js";
 import { runCompletionVerifier, shouldVerifyCompletion } from "../verify/completion-verifier.js";
+import { forkProvider, type ForkLedger } from "../routing/fork-provider.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
+import type { WorkItemState } from "../work-items/contract.js";
 
 // The post-turn background forks that grow or check Vanta from a finished turn:
 // skill capture, session scratchpad, opt-in fact extraction, durable brain
 // memories, completion verification, and critic scoring. Each is gated and
 // best-effort: a failure never touches the main turn. Split from after-turn.ts
 // (size budget); re-exported there, so the public surface is unchanged.
+//
+// Each fork calls forkProvider(): with VANTA_MODEL_LEARN / VANTA_LEARN_PROVIDER
+// set it runs on that cheaper route, and with `ledger` given every call is
+// recorded with purpose "learn" (or "verify" for the critic and the completion
+// verifier). Neither set = the main provider, unchanged.
 
 const CHOICE_REQUEST = /\b(?:choose|pick|select|confirm|approve|reply(?:\s+with)?|tell\s+me\s+which)\b/i;
 const DEFERRED_ACTION = /(?:\b(?:i\s+)?(?:won't|will\s+not|don't|do\s+not)\b[^.!?\n]{0,80}\b(?:start|act|proceed|execute|change|write|send)\b|\b(?:start|act|proceed|execute|change|write|send)\b[^.!?\n]{0,50}\b(?:only\s+after|until)\b[^.!?\n]{0,50}\b(?:you\s+)?(?:choose|pick|select|confirm|approve|reply)\b|\b(?:wait|hold)\b[^.!?\n]{0,80}\b(?:choice|selection|confirmation|you\s+(?:choose|pick|select|confirm|approve|reply))\b|\bbefore\s+i\s+(?:start|act|proceed|execute|change|write|send)\b)/i;
@@ -43,6 +50,7 @@ export async function reviewAfterTurn(opts: {
   turnIndex: number;
   env?: NodeJS.ProcessEnv;
   deferMutation?: boolean;
+  ledger?: ForkLedger;
 }): Promise<ReviewAfterTurnResult> {
   const env = opts.env ?? process.env;
   let reviewStatus: ReviewAfterTurnResult = opts.deferMutation ? "deferred" : "skipped";
@@ -51,7 +59,7 @@ export async function reviewAfterTurn(opts: {
     // eval-gate → adopt-or-archive → measure (ledger). On by default, gated.
     const cycle = await runLearningCycle(
       defaultLearningDeps({
-        provider: opts.provider,
+        provider: forkProvider(opts.provider, { purpose: "learn", env, ledger: opts.ledger }),
         safety: opts.safety,
         root: opts.root,
         dataDir: join(opts.root, ".vanta"),
@@ -68,6 +76,7 @@ export async function reviewAfterTurn(opts: {
     safety: opts.safety,
     transcript: opts.transcript,
     env,
+    ledger: opts.ledger,
   });
   return reviewStatus;
 }
@@ -82,10 +91,12 @@ export function completionVerifierAfterTurn(opts: {
   safety: KernelClient;
   transcript: Message[];
   env?: NodeJS.ProcessEnv;
+  ledger?: ForkLedger;
 }): void {
   const env = opts.env ?? process.env;
   if (!shouldVerifyCompletion({ messages: opts.transcript }, env)) return;
-  void runVerifierFork(opts, env);
+  const provider = forkProvider(opts.provider, { purpose: "verify", env, ledger: opts.ledger });
+  void runVerifierFork({ provider, safety: opts.safety, transcript: opts.transcript }, env);
 }
 
 async function runVerifierFork(
@@ -125,11 +136,12 @@ export async function sessionMemoryAfterTurn(opts: {
   toolIterations: number;
   turnIndex: number;
   env?: NodeJS.ProcessEnv;
+  ledger?: ForkLedger;
 }): Promise<string | null> {
   const env = opts.env ?? process.env;
   if (!shouldUpdateSessionMemory(opts.turnIndex, opts.toolIterations, env)) return null;
   const { updated, content } = await updateSessionMemory({
-    provider: opts.provider,
+    provider: forkProvider(opts.provider, { purpose: "learn", env, ledger: opts.ledger }),
     dataDir: opts.dataDir,
     transcript: opts.transcript,
     env,
@@ -149,11 +161,18 @@ export async function brainLearnAfterTurn(opts: {
   transcript: Message[];
   toolIterations: number;
   turnIndex: number;
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
+  ledger?: ForkLedger;
 }): Promise<string[]> {
   const env = opts.env ?? process.env;
   if (!shouldLearn(opts.turnIndex, opts.toolIterations, env)) return [];
-  return learnFromTranscript({ provider: opts.provider, transcript: opts.transcript, env });
+  return learnFromTranscript({
+    provider: forkProvider(opts.provider, { purpose: "learn", env, ledger: opts.ledger }),
+    transcript: opts.transcript,
+    completionState: opts.completionState,
+    env,
+  });
 }
 
 /**
@@ -167,9 +186,11 @@ export async function dialecticAfterTurn(opts: {
   sessionId: string;
   turnIndex: number;
   env?: NodeJS.ProcessEnv;
+  ledger?: ForkLedger;
 }): Promise<DialecticResult> {
+  const { ledger, ...rest } = opts;
   try {
-    return await runDialecticPass(opts);
+    return await runDialecticPass({ ...rest, provider: forkProvider(opts.provider, { purpose: "learn", env: opts.env, ledger }) });
   } catch {
     return { ran: true, changed: [], reason: "failed" };
   }
@@ -183,11 +204,17 @@ export async function dialecticAfterTurn(opts: {
 export function memoryExtractAfterTurn(opts: {
   provider: LLMProvider;
   transcript: Message[];
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
+  ledger?: ForkLedger;
 }): void {
   const env = opts.env ?? process.env;
   if (env.VANTA_EXTRACT_MEMORIES !== "1") return;
-  void runMemoryExtractor(opts.transcript, { provider: opts.provider, env }).catch(() => {});
+  void runMemoryExtractor(opts.transcript, {
+    provider: forkProvider(opts.provider, { purpose: "learn", env, ledger: opts.ledger }),
+    completionState: opts.completionState,
+    env,
+  }).catch(() => {});
 }
 
 /**
@@ -201,11 +228,12 @@ export async function criticAfterTurn(opts: {
   messages: Message[];
   onNote: (text: string) => void;
   env?: NodeJS.ProcessEnv;
+  ledger?: ForkLedger;
 }): Promise<void> {
   const env = opts.env ?? process.env;
   if (env.VANTA_CRITIC !== "1") return;
   try {
-    const score = await scoreTurn({ provider: opts.provider, goal: opts.goal, messages: opts.messages, env });
+    const score = await scoreTurn({ provider: forkProvider(opts.provider, { purpose: "verify", env, ledger: opts.ledger }), goal: opts.goal, messages: opts.messages, env });
     if (score) opts.onNote(formatCriticNote(score));
   } catch { /* best-effort — never surface a critic failure to the user */ }
 }

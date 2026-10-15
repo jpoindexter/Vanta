@@ -17,6 +17,8 @@ export type McpCatalogEntry = {
   url?: string;
   /** Env vars the server needs (the user supplies the values). */
   authEnv?: string[];
+  /** A single bearer-token env var for a remote server. */
+  tokenEnv?: string;
   /** The read-mostly tool subset installed by default (mutating tools omitted). */
   defaultTools: string[];
   /** Mutating/dangerous tools the entry documents as opt-in (not installed by default). */
@@ -31,7 +33,7 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     name: "filesystem",
     description: "Local filesystem access (official reference server).",
     command: "npx",
-    args: ["-y", "@modelcontextprotocol/server-filesystem"],
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "."],
     defaultTools: ["read_file", "read_multiple_files", "list_directory", "directory_tree", "search_files", "get_file_info"],
     optInTools: ["write_file", "edit_file", "create_directory", "move_file"],
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
@@ -55,6 +57,15 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     docsUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
   },
   {
+    name: "scrapling",
+    description: "Local open-source adaptive scraper: HTTP first, browser or stealth fallback.",
+    command: "scrapling",
+    args: ["mcp"],
+    defaultTools: ["get", "fetch", "stealthy_fetch"],
+    optInTools: ["bulk_get", "bulk_fetch", "bulk_stealthy_fetch"],
+    docsUrl: "https://scrapling.readthedocs.io/en/latest/ai/mcp-server.html",
+  },
+  {
     name: "homeassistant",
     description: "Home Assistant via its built-in MCP server and local mcp-proxy.",
     command: "mcp-proxy",
@@ -63,6 +74,24 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     defaultTools: ["GetLiveContext"],
     optInTools: ["GetDateTime", "HassTurnOn", "HassTurnOff", "HassLightSet", "HassClimateSetTemperature", "HassCancelAllTimers"],
     docsUrl: "https://www.home-assistant.io/integrations/mcp_server/",
+  },
+  {
+    name: "box-remote-mcp",
+    description: "Box's hosted MCP server for authorized file and folder work.",
+    url: "https://mcp.box.com",
+    authEnv: ["VANTA_BOX_MCP_TOKEN"],
+    tokenEnv: "VANTA_BOX_MCP_TOKEN",
+    defaultTools: [],
+    docsUrl: "https://developer.box.com/guides/box-mcp/setup",
+  },
+  {
+    name: "atlassian-rovo-mcp",
+    description: "Atlassian Rovo's hosted MCP server for Jira, Confluence, and Bitbucket.",
+    url: "https://mcp.atlassian.com/v1/mcp/authv2",
+    authEnv: ["VANTA_ATLASSIAN_ROVO_MCP_TOKEN"],
+    tokenEnv: "VANTA_ATLASSIAN_ROVO_MCP_TOKEN",
+    defaultTools: [],
+    docsUrl: "https://developer.atlassian.com/cloud/rovo-mcp/guides/getting-started/",
   },
 ];
 
@@ -86,9 +115,11 @@ export function buildInstallSpec(entry: McpCatalogEntry, withTools: readonly str
     }
   }
   const tools = [...entry.defaultTools, ...withTools];
+  const env = entry.authEnv?.length ? { env: Object.fromEntries(entry.authEnv.map((key) => [key, `\${${key}}`])) } : {};
+  const token = entry.tokenEnv ? { token: `\${${entry.tokenEnv}}` } : {};
   const spec: ServerSpec = entry.url
-    ? { url: entry.url, tools }
-    : { command: entry.command, args: entry.args, tools, ...(entry.authEnv?.length ? { env: Object.fromEntries(entry.authEnv.map((k) => [k, `\${${k}}`])) } : {}) };
+    ? { url: entry.url, tools, ...env, ...token }
+    : { command: entry.command, args: entry.args, tools, ...env };
   return { ok: true, spec, toolCount: tools.length };
 }
 

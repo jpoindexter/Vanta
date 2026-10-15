@@ -10,6 +10,7 @@ import { mountMcpServers } from "../mcp/mount.js";
 import { AuthPendingRegistry } from "../mcp/auth-pending.js";
 import { saveMcpToken } from "../mcp/auth-store.js";
 import type { ToolContext } from "./types.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 // A loopback HTTP server standing in for an MCP-over-HTTP server that requires
 // OAuth. Without a Bearer token it returns 401 (the auth-required signal);
@@ -50,7 +51,12 @@ let home: string;
 let mcp: ReturnType<typeof fakeMcpServer>;
 
 function ctx(): ToolContext {
-  return { root: process.cwd(), safety: {} as ToolContext["safety"], requestApproval: async () => true };
+  return {
+    root: home,
+    sessionId: "mcp-auth-test",
+    safety: { assess: async () => ({ risk: "allow", reason: "test" }) } as unknown as ToolContext["safety"],
+    requestApproval: async () => true,
+  };
 }
 
 beforeEach(async () => {
@@ -89,7 +95,11 @@ describe("mcp_auth — full flow with a mocked HTTP MCP server", () => {
     process.env.VANTA_MCP_SERVERS = serverConfig();
     const registry = new InMemoryToolRegistry();
     const pending = new AuthPendingRegistry();
-    await mountMcpServers(registry, process.env, () => {}, { cwd: home, pending });
+    await mountMcpServers(registry, process.env, () => {}, {
+      cwd: home,
+      pending,
+      effectGate: allowTestEffectGate(home),
+    });
     expect(pending.has("remote")).toBe(true);
     expect(registry.schemas().some((s) => s.name === "mcp_remote_ping")).toBe(false);
   });
@@ -98,7 +108,11 @@ describe("mcp_auth — full flow with a mocked HTTP MCP server", () => {
     process.env.VANTA_MCP_SERVERS = serverConfig();
     const registry = new InMemoryToolRegistry();
     const pending = new AuthPendingRegistry();
-    await mountMcpServers(registry, process.env, () => {}, { cwd: home, pending });
+    await mountMcpServers(registry, process.env, () => {}, {
+      cwd: home,
+      pending,
+      effectGate: allowTestEffectGate(home),
+    });
 
     const tool = buildMcpAuthTool(registry, pending);
     const res = await tool.execute({ server: "remote" }, ctx());
@@ -118,7 +132,11 @@ describe("mcp_auth — full flow with a mocked HTTP MCP server", () => {
     process.env.VANTA_MCP_SERVERS = serverConfig();
     const registry = new InMemoryToolRegistry();
     const pending = new AuthPendingRegistry();
-    await mountMcpServers(registry, process.env, () => {}, { cwd: home, pending });
+    await mountMcpServers(registry, process.env, () => {}, {
+      cwd: home,
+      pending,
+      effectGate: allowTestEffectGate(home),
+    });
     expect(pending.has("remote")).toBe(true);
 
     // Simulate the completed OAuth flow: the access token is now persisted.

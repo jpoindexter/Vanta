@@ -6,7 +6,10 @@ sidebar_position: 2
 
 # Plugins
 
-Vanta has an opt-in, in-process plugin framework. Plugins add tools and slash commands; everything they register runs through the same kernel-gated dispatch path.
+Vanta has an opt-in, in-process plugin framework. Registered plugin tools use
+the standard dispatch path, but plugin loading and any secondary effects remain
+part of the universal effect-path audit. Registration is not proof of complete
+mediation.
 
 ## Where plugins live
 
@@ -19,7 +22,8 @@ Only plugins in the `plugins.enabled` allow-list load; disabled plugins are not 
 
 A plugin's `register(ctx)` receives a `PluginContext` exposing:
 
-- `registerTool` — plugin tools must be namespaced (`plugin_<name>_...`), define `describeForSafety`, avoid collisions, and execute through the kernel-gated dispatch like any tool.
+- `registerTool` — plugin tools must be namespaced (`plugin_<name>_...`), define
+  `describeForSafety`, avoid collisions, and use the standard dispatcher.
 - `registerCommand` — adds a slash command.
 
 ## Manifest

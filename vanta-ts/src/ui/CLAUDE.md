@@ -13,3 +13,13 @@ When adding UI behavior, prefer pure helpers and co-located tests. Do not use `i
 Approval prompt: `approval-prompt.tsx` consumes `permissions/request.ts` for per-tool context and `permissions/grant.ts` for Always/Never tool-scoped rules. Esc maps to deny, not never.
 
 Hook host: `app.tsx`, `use-agent.ts`, and `use-slash.ts` mirror readline hook coverage for SessionStart/End, UserPromptSubmit, UserPromptExpansion, Stop, StopFailure, and FileChanged watcher startup.
+
+Operating modes: `mode-line.tsx` renders Manual, Accept edits, Plan, and Auto below the composer. `focus.ts` reserves Shift+Tab for this cycle while the composer is focused, including when prompt suggestions are visible. Duplicate terminal Shift+Tab events are debounced. The TUI passes its live mode directly into `createConversation`; Auto clears routine file-tool asks before a prompt exists, while consequential/unsafe asks remain visible.
+
+Reload continuity: `launch.tsx` may pass a saved `initialSession` after `/restart`. `app.tsx` rebuilds session state from it, and `use-agent.ts` seeds `createConversation` with its messages and checkpoints every completed turn. Do not render old tool outputs as new receipts or reuse prior approvals.
+
+Closeout truth: `turn-summary.ts` keeps `Verification: Not run` unless a qualifying check ran, labels exact successful retries as recovered, and sends the operator to Ctrl+T only for unresolved failures.
+
+Output hierarchy: `quiet-tool-group.ts` preserves detailed receipts for runs of one to three actions. At four or more actions it collapses successful work into one categorized evidence line while failures remain expanded; Ctrl+T retains the full raw receipts. `layout-rows.ts` must use the same grouping helper so bottom pinning remains accurate. Markdown headings render as bold hierarchy without printing their source `#` markers.
+
+Terminal loop receipts: normal provider answers already arrive through `onTextDelta`; do not duplicate them. `use-agent.ts` adds only non-`done` `AgentOutcome.finalText` to the live reducer so synthetic stop reasons are visible and committed before `turnEnd`.

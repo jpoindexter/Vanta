@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { skillsDir } from "../store/home.js";
-import { writeSkill, readSkill, listSkills, auditSkills } from "./store.js";
+import { writeSkill, readSkill, listSkills, auditSkills, skillIndexCachePath } from "./store.js";
 
 const HOME = join(tmpdir(), "vanta-skills-store-test");
 const env = { ...process.env, VANTA_HOME: HOME };
@@ -119,5 +119,25 @@ describe("skills store", () => {
 
   it("returns an empty list when no skills exist", async () => {
     expect(await listSkills(env)).toEqual([]);
+  });
+
+  it("persists the parsed skill index and invalidates it when a skill changes", async () => {
+    await writeSkill({ name: "Cached", description: "first", body: "body" }, { env, now: T1 });
+    expect((await listSkills(env))[0]?.meta.description).toBe("first");
+    expect(JSON.parse(await import("node:fs/promises").then(({ readFile }) => readFile(skillIndexCachePath(env), "utf8"))).version).toBe(1);
+
+    await writeFile(
+      join(skillsDir(env), "cached", "SKILL.md"),
+      "---\nname: Cached\ndescription: changed\ncreated: 2026-06-02T10:00:00.000Z\nupdated: 2026-06-02T12:30:00.000Z\ntags: []\n---\nbody changed",
+      "utf8",
+    );
+    expect((await listSkills(env))[0]?.meta.description).toBe("changed");
+  });
+
+  it("recovers from a corrupt persisted skill index", async () => {
+    await writeSkill({ name: "Cached", description: "first", body: "body" }, { env, now: T1 });
+    await listSkills(env);
+    await writeFile(skillIndexCachePath(env), "{broken", "utf8");
+    expect((await listSkills(env))[0]?.meta.name).toBe("Cached");
   });
 });

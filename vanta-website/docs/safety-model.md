@@ -6,17 +6,22 @@ sidebar_position: 4
 
 # Safety model
 
-Vanta's safety guarantee is structural, not advisory. The agent layer asks the kernel to classify every action, and it has no path to execute an action the kernel blocks.
+Vanta's target safety contract is structural, not advisory. The standard agent
+dispatcher asks the kernel to classify an action and does not loosen a kernel
+Block. The current audit found secondary effect paths that do not yet share this
+complete contract.
 
 ## Rule Zero
 
 > No deletes, overwrites, out-of-scope writes, or secret handling without explicit approval.
 
-This is enforced by the kernel on every tool call — not a guideline the model is asked to follow.
+This is enforced on the verified standard-dispatch path. Universal mediation
+across hooks, plugins, MCP, factory, schedulers, workers, extensions, and local
+APIs remains release-blocking work.
 
 ## The three verdicts
 
-Every action is classified into exactly one tier:
+Kernel-assessed actions are classified into exactly one tier:
 
 | Verdict | Meaning | What happens |
 |---------|---------|--------------|
@@ -39,7 +44,8 @@ When an action lands on `Ask`, it enters the approval queue, persisted to `.vant
 Keeping the boundary in a small, zero-dependency Rust process means:
 
 - The safety logic is auditable in isolation, separate from the much larger agent loop.
-- A bug in the TypeScript layer cannot grant itself more authority — it can only ask.
+- The intended architecture keeps policy outside model prose; audited secondary
+  paths must be removed before this is a universal guarantee.
 - The decision log (`.vanta/events.jsonl`) is an independent record of what was assessed and what ran.
 
 ## The approval lifecycle

@@ -1,9 +1,16 @@
 import { z } from "zod";
 import { stdioTransport, McpClient } from "../mcp/client.js";
-import { mcpToolToVantaTool } from "../mcp/mount.js";
+import { buildMcpChildEnv, mcpToolToVantaTool } from "../mcp/mount.js";
 import { mcpClientEvents } from "../mcp/events.js";
-import type { Tool, ToolResult } from "./types.js";
+import { guardLaunch } from "../mcp/package-guard.js";
+import type { Tool, ToolContext, ToolResult } from "./types.js";
 import type { ToolRegistry } from "./registry.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+} from "../effects/execute-effect.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 
 const Args = z.object({
   name: z.string().min(1),
@@ -41,41 +48,80 @@ const MOUNT_MCP_SCHEMA: Tool["schema"] = {
   },
 };
 
+/** Refuse a deny-listed package before any effect or approval is attempted. */
+function refuseDeniedPackage(rawArgs: unknown): ToolResult | null {
+  const r = Args.safeParse(rawArgs);
+  if (!r.success) return null;
+  const guard = guardLaunch(r.data.command, r.data.args ?? [], process.env);
+  return guard.ok ? null : { ok: false, output: `mount_mcp: ${guard.error}` };
+}
+
+async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, ctx: ToolContext): Promise<ToolResult> {
+  return refuseDeniedPackage(rawArgs) ?? spawnAndRegister(registry, rawArgs, ctx);
+}
+
+function registerMountedTools(
+  registry: ToolRegistry,
+  name: string,
+  mounted: { client: McpClient; defs: Parameters<typeof mcpToolToVantaTool>[2][] },
+): ToolResult {
+  const names: string[] = [];
+  for (const def of mounted.defs) {
+    const tool = mcpToolToVantaTool(mounted.client, name, def);
+    registry.register(tool);
+    names.push(tool.schema.name);
+  }
+  return {
+    ok: true,
+    output:
+      names.length > 0
+        ? `mounted ${names.length} tool(s) from ${name}: ${names.join(", ")}`
+        : `connected to ${name} — no tools discovered`,
+  };
+}
+
 /** Spawn the MCP server, initialize it, and register its tools into the live registry. */
-async function executeMountMcp(registry: ToolRegistry, rawArgs: unknown, repoRoot: string): Promise<ToolResult> {
+async function spawnAndRegister(registry: ToolRegistry, rawArgs: unknown, ctx: ToolContext): Promise<ToolResult> {
   const r = Args.safeParse(rawArgs);
   if (!r.success) return { ok: false, output: `invalid args: ${r.error.message}` };
   const { name, command, args: cmdArgs = [], env: cmdEnv = {} } = r.data;
 
   try {
-    const { transport, child } = stdioTransport(command, cmdArgs, {
-      ...process.env,
-      ...cmdEnv,
-    });
-    process.once("exit", () => {
-      try {
-        child.kill();
-      } catch {
-        /* already gone */
-      }
-    });
-
-    const client = new McpClient(transport, mcpClientEvents(repoRoot, name));
-    await client.initialize();
-    const defs = await client.listTools();
-    const names: string[] = [];
-    for (const def of defs) {
-      const tool = mcpToolToVantaTool(client, name, def);
-      registry.register(tool);
-      names.push(tool.schema.name);
-    }
-    return {
-      ok: true,
-      output:
-        names.length > 0
-          ? `mounted ${names.length} tool(s) from ${name}: ${names.join(", ")}`
-          : `connected to ${name} — no tools discovered`,
+    const payload = JSON.stringify({ name, command, args: cmdArgs, envKeys: Object.keys(cmdEnv).sort() });
+    const seed = {
+      host: "tool-host",
+      kind: "mcp.server.launch",
+      targetClass: "model-selected-mcp-process",
+      payloadSha256: payloadSha256(payload),
+      idempotencyKey: effectOperationKey("mount-mcp", ctx),
     };
+    const mounted = await executeEffect({
+      id: stableEffectId(seed),
+      actor: "mount_mcp",
+      action: `spawn and initialize MCP server ${name} with command ${command}`,
+      ...seed,
+    }, effectGateFromToolContext(ctx), async () => {
+      const { transport, child } = stdioTransport(command, cmdArgs, buildMcpChildEnv(process.env, cmdEnv));
+      process.once("exit", () => {
+        try {
+          child.kill();
+        } catch {
+          /* already gone */
+        }
+      });
+
+      const client = new McpClient(transport, mcpClientEvents(ctx.root, name));
+      await client.initialize();
+      const defs = await client.listTools();
+      return {
+        value: { client, defs },
+        acknowledgementId: `${name}:initialized`,
+      };
+    });
+    if ((mounted.outcome !== "confirmed" && mounted.outcome !== "verified") || !mounted.value) {
+      return { ok: false, output: `mount_mcp: effect ${mounted.outcome}` };
+    }
+    return registerMountedTools(registry, name, mounted.value);
   } catch (err) {
     return { ok: false, output: `mount_mcp: ${(err as Error).message}` };
   }
@@ -93,6 +139,6 @@ export function buildMountMcpTool(registry: ToolRegistry): Tool {
       if (!r.success) return "mount_mcp (invalid args)";
       return `spawn mcp server ${r.data.name}: ${r.data.command}`;
     },
-    execute: (rawArgs, ctx) => executeMountMcp(registry, rawArgs, ctx.root),
+    execute: (rawArgs, ctx) => executeMountMcp(registry, rawArgs, ctx),
   };
 }

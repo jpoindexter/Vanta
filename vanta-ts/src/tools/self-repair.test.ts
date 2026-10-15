@@ -9,7 +9,10 @@ import type { ToolContext } from "./types.js";
 function makeCtx(approve: boolean): ToolContext {
   return {
     root: process.cwd(),
-    safety: {} as ToolContext["safety"],
+    sessionId: `self-repair-test-${home}`,
+    safety: {
+      assess: async () => ({ risk: "ask", reason: "self-repair test approval" }),
+    } as unknown as ToolContext["safety"],
     requestApproval: vi.fn(async () => approve),
   };
 }
@@ -75,7 +78,8 @@ describe("self_repair rollback safety rails", () => {
     expect(ctx.requestApproval).toHaveBeenCalledOnce();
     const [prompt, reason] = (ctx.requestApproval as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
     expect(prompt).toContain("git checkout");
-    expect(reason).toContain("discards");
+    expect(prompt).toContain("discards");
+    expect(reason).toContain("self-repair");
     expect(r.ok).toBe(false);
     expect(r.output).toBe("denied");
   });
@@ -119,7 +123,8 @@ describe("self_repair sandbox_test", () => {
     const [prompt, reason] = (ctx.requestApproval as ReturnType<typeof vi.fn>).mock.calls[0] ?? [];
     expect(prompt).toContain("sandbox-test");
     expect(prompt).toContain("npm --prefix vanta-ts test -- src/tools/web-fetch.test.ts");
-    expect(reason).toContain("before attach");
+    expect(prompt).toContain("before attach");
+    expect(reason).toContain("self-repair");
     expect(r.ok).toBe(false);
     expect(r.output).toBe("denied");
   });

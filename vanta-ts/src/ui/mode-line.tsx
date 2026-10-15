@@ -1,46 +1,52 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { Text } from "ink";
-import { envForPermissionMode, resolvePermissionMode, type PermissionMode } from "../modes/permission-mode.js";
-import type { Pending } from "./use-agent.js";
+import {
+  envForOperatingMode,
+  nextOperatingMode,
+  resolveOperatingMode,
+  type OperatingMode,
+} from "../modes/operating-mode.js";
+import { ACTIVITY, FOCUS, GOAL } from "../term/palette.js";
 
-export type Mode = PermissionMode;
-const NEXT_MODE: Record<Mode, Mode> = {
-  default: "acceptEdits",
-  acceptEdits: "auto",
-  auto: "default",
-  fullAccess: "default",
-};
+export type Mode = OperatingMode;
 
-export function cycleMode(mode: Mode, setMode: (m: Mode) => void, runSlash: (s: string) => void): void {
-  const next = NEXT_MODE[mode];
-  void runSlash;
-  setMode(next);
-}
-
-export function shouldAutoApprove(pending: Pending | null, mode: Mode): boolean {
-  return Boolean(pending && !pending.fresh && mode === "auto");
-}
-
-function useAutoApprove(pending: Pending | null, mode: Mode, setPending: (p: Pending | null) => void): void {
-  useEffect(() => {
-    if (pending && shouldAutoApprove(pending, mode)) { pending.resolve(true); setPending(null); }
-  }, [pending, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+export function cycleMode(mode: Mode, setMode: (m: Mode) => void): void {
+  setMode(nextOperatingMode(mode));
 }
 
 export function useModeState(
-  pending: Pending | null,
-  setPending: (p: Pending | null) => void,
-  runSlash: (s: string) => void,
-): { mode: Mode; cycle: () => void } {
-  const [mode, setMode] = useState<Mode>(() => resolvePermissionMode(process.env));
-  useAutoApprove(pending, mode, setPending);
-  useEffect(() => { Object.assign(process.env, envForPermissionMode(mode)); }, [mode]);
-  return { mode, cycle: () => cycleMode(mode, setMode, runSlash) };
+  setPlanActive: (active: boolean) => void,
+): { mode: Mode; cycle: () => void; getMode: () => Mode } {
+  const [mode, setMode] = useState<Mode>(() => resolveOperatingMode(process.env));
+  const lastCycleAt = useRef(0);
+  useEffect(() => {
+    setPlanActive(resolveOperatingMode(process.env) === "plan");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const cycle = (): void => {
+    const now = Date.now();
+    if (now - lastCycleAt.current < 75) return;
+    lastCycleAt.current = now;
+    const next = nextOperatingMode(mode);
+    Object.assign(process.env, envForOperatingMode(next));
+    setPlanActive(next === "plan");
+    setMode(next);
+  };
+  const getMode = useCallback((): Mode => resolveOperatingMode(process.env), []);
+  return { mode, cycle, getMode };
 }
 
-export function ModeLine(props: { mode: Mode }): ReactElement | null {
-  if (props.mode === "acceptEdits") return <Text bold>EDITS <Text>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "auto") return <Text bold>AUTO <Text>(shift+tab to cycle)</Text></Text>;
-  if (props.mode === "fullAccess") return <Text bold color="yellow">FULL ACCESS <Text>(shift+tab to cycle)</Text></Text>;
-  return null;
+export function ModeLine(props: { mode: Mode }): ReactElement {
+  if (props.mode === "default") {
+    return <Text><Text dimColor>  ▮▮ manual mode on</Text><Text dimColor> · ? for shortcuts</Text></Text>;
+  }
+  if (props.mode === "acceptEdits") {
+    return <Text><Text bold color={GOAL}>  ▸▸ accept edits on</Text><Text dimColor> (shift+tab to cycle)</Text></Text>;
+  }
+  if (props.mode === "plan") {
+    return <Text><Text bold color={FOCUS}>  ▮▮ plan mode on</Text><Text dimColor> (shift+tab to cycle)</Text></Text>;
+  }
+  if (props.mode === "auto") {
+    return <Text><Text bold color={ACTIVITY}>  ▸▸ auto mode on</Text><Text dimColor> (shift+tab to cycle)</Text></Text>;
+  }
+  return <Text><Text bold color="yellow">  ⚠ full access on</Text><Text dimColor> (shift+tab returns to manual)</Text></Text>;
 }

@@ -46,7 +46,7 @@ export const SettingsSchema = z.object({
   }).optional(),
   /** Desktop project-scoped action approval mode. */
   desktop: z.object({
-    accessMode: z.enum(["ask", "approve", "full"]).optional(),
+    accessMode: z.enum(["ask", "approve", "plan", "auto", "full"]).optional(),
   }).optional(),
   /** UI preferences. VANTA-SETTINGS-UX folds in the display/UX toggles
    *  (spinnerVerbs/messageTimestamps/timestampStyle/effortIndicator/

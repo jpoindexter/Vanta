@@ -39,6 +39,7 @@ describe("registry", () => {
     const names = r.schemas().map((s) => s.name).sort();
     expect(names).toEqual([
       "agent_session",
+      "apple_mail_audit",
       "ask_user",
       "bg_list",
       "bg_status",
@@ -72,9 +73,12 @@ describe("registry", () => {
       "delegate",
       "describe_image",
       "distill_trace",
+      "document_read",
       "drive_create",
       "drive_read",
       "drive_update",
+      "dropbox_read",
+      "dropbox_write",
       "edit_file",
       "enter_worktree",
       "exit_worktree",
@@ -97,9 +101,11 @@ describe("registry", () => {
       "grep_files",
       "inspect_context",
       "inspect_state",
+      "job_profile_scan",
       "lan_control",
       "lan_discover",
       "life_search",
+      "linkedin_post",
       "linkedin_read",
       "list_mcp_resources",
       "list_peers",
@@ -116,6 +122,8 @@ describe("registry", () => {
       "media_studio",
       "money",
       "mount_mcp",
+      "msa_memory",
+      "native_app_launch",
       "nl_assertions",
       "open_deep_link",
       "outreach",
@@ -151,10 +159,12 @@ describe("registry", () => {
       "self_repair",
       "send_chat",
       "send_message",
+      "session_search",
       "shell_cmd",
       "shopify_operations",
       "skill_manage",
       "sleep",
+      "sparge_attention",
       "speak",
       "spreadsheet_workbook",
       "swarm",
@@ -166,6 +176,8 @@ describe("registry", () => {
       "todo",
       "tool_search",
       "transcribe",
+      "trello_read",
+      "trello_write",
       "twitter_read",
       "v2ex_read",
       "vision_action",
@@ -380,6 +392,71 @@ describe("shell_cmd", () => {
     expect(res.output).toContain("hi");
   });
 
+  it("keeps a quoted approved external mkdir target writable for the session", async () => {
+    const target = join(dirname(root), `vanta new project ${Date.now()}`);
+    const previous = process.env.VANTA_EXTRA_DIRS;
+    try {
+      delete process.env.VANTA_EXTRA_DIRS;
+      const res = await shellCmdTool.execute(
+        { command: `mkdir '${target}'` },
+        ctx({ sandboxWritableDirs: [canonicalPath(dirname(root))] }),
+      );
+      expect(res.ok).toBe(true);
+      expect(String(process.env.VANTA_EXTRA_DIRS ?? "").split(",")).toContain(canonicalPath(target));
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = previous;
+      await rm(target, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps every approved multi-target mkdir writable for the session", async () => {
+    const parent = dirname(root);
+    const first = join(parent, `vanta setup first ${Date.now()}`);
+    const second = join(parent, `vanta setup second ${Date.now()}`);
+    const previous = process.env.VANTA_EXTRA_DIRS;
+    try {
+      delete process.env.VANTA_EXTRA_DIRS;
+      const res = await shellCmdTool.execute(
+        { command: `mkdir -p '${first}' '${second}'` },
+        ctx({ sandboxWritableDirs: [canonicalPath(parent)] }),
+      );
+      expect(res.ok).toBe(true);
+      const sessionDirs = String(process.env.VANTA_EXTRA_DIRS ?? "").split(",");
+      expect(sessionDirs).toContain(canonicalPath(first));
+      expect(sessionDirs).toContain(canonicalPath(second));
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = previous;
+      await rm(first, { recursive: true, force: true });
+      await rm(second, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps an approved external project writable for a later git init", async () => {
+    const target = join(dirname(root), `vanta git project ${Date.now()}`);
+    const previous = process.env.VANTA_EXTRA_DIRS;
+    try {
+      delete process.env.VANTA_EXTRA_DIRS;
+      const created = await shellCmdTool.execute(
+        { command: `mkdir '${target}'` },
+        ctx({ sandboxWritableDirs: [canonicalPath(dirname(root))] }),
+      );
+      expect(created.ok).toBe(true);
+
+      const initialized = await shellCmdTool.execute(
+        { command: `cd '${target}' && git init` },
+        ctx(),
+      );
+      expect(initialized.ok).toBe(true);
+      await expect(readFile(join(target, ".git", "HEAD"), "utf8")).resolves.toContain("ref:");
+    } finally {
+      if (previous === undefined) delete process.env.VANTA_EXTRA_DIRS;
+      else process.env.VANTA_EXTRA_DIRS = previous;
+      await rm(target, { recursive: true, force: true });
+    }
+  });
+
   it("refuses a destructive command locally", async () => {
     const res = await shellCmdTool.execute({ command: "rm -rf /" }, ctx());
     expect(res.ok).toBe(false);
@@ -457,6 +534,9 @@ describe("classifyExitCode", () => {
   it("classifies by the LAST command in a pipeline/chain", () => {
     expect(classifyExitCode("cat x | grep y", 1).ok).toBe(true);
     expect(classifyExitCode("grep y file && echo done", 1).ok).toBe(false); // last = echo
+    // The `|` inside grep's quoted regex is data, not another shell pipeline.
+    expect(classifyExitCode("pdftotext -layout guide.pdf - | grep -E '^Part [0-9]{2}:|^Part [0-9]+:'", 1))
+      .toEqual({ ok: true, note: "No matches found" });
   });
   it("handles git grep / git diff and path-qualified binaries", () => {
     expect(classifyExitCode("git grep foo", 1).ok).toBe(true);
@@ -470,6 +550,7 @@ describe("lastCommandWord", () => {
     expect(lastCommandWord("grep x f")).toBe("grep");
     expect(lastCommandWord("cat x | grep y")).toBe("grep");
     expect(lastCommandWord("find . && echo hi")).toBe("echo");
+    expect(lastCommandWord("pdftotext -layout guide.pdf - | grep -E '^Part [0-9]{2}:|^Part [0-9]+:'")).toBe("grep");
     expect(lastCommandWord("git grep foo")).toBe("git grep");
     expect(lastCommandWord("/usr/bin/grep -n x")).toBe("grep");
   });
@@ -505,6 +586,10 @@ describe("config_sandbox", () => {
     expect(scoped.schemas().map((s) => s.name).sort()).toEqual(["read_file", "shell_cmd"]);
     // No subset → the full registry.
     expect(buildScopedRegistry().schemas().length).toBeGreaterThan(2);
+  });
+
+  it("treats an explicit empty override.toolNames as zero tools", () => {
+    expect(buildScopedRegistry([]).schemas()).toEqual([]);
   });
 });
 

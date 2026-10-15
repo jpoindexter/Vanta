@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { BRAIN_REGIONS, isBrainRegion } from "../brain/regions.js";
 import { resolveBrain } from "../brain/interface.js";
+import { resolveMemoryProvider } from "../memory/provider.js";
 import { guardMemoryRecall } from "../memory/guardrails.js";
 import { routeRecall, formatRoutedHit } from "../brain/router.js";
 import { defaultLookups } from "../brain/router-stores.js";
@@ -41,13 +42,12 @@ async function handleRegionAction(a: ParsedArgs): Promise<ToolResult> {
 }
 
 async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
-  if (!a.region || !isBrainRegion(a.region)) {
+  if (a.region && !isBrainRegion(a.region)) {
     return { ok: false, output: `remember needs a valid region. Use action=list to see them.` };
   }
   if (!a.content?.trim()) return { ok: false, output: "remember needs content" };
-  const e = await resolveBrain().remember({
+  const e = await resolveMemoryProvider().remember(a.content, {
     region: a.region,
-    content: a.content,
     entryType: a.entry_type,
     strength: a.strength,
     forgetAfter: a.forget_after,
@@ -56,7 +56,10 @@ async function handleRemember(a: ParsedArgs): Promise<ToolResult> {
 }
 
 async function handleRecall(a: ParsedArgs): Promise<ToolResult> {
-  const r = await resolveBrain().recall({ query: a.query, region: a.region, topK: a.top_k ?? 10 });
+  const r = await resolveMemoryProvider().recall(a.query ?? "", {
+    region: a.region,
+    topK: a.top_k ?? 10,
+  });
   if (!r.entries.length) return { ok: true, output: "(no matching memories)" };
   return { ok: true, output: guardMemoryRecall(r.entries).formatted };
 }
@@ -79,13 +82,13 @@ export const brainTool: Tool = {
       "learned (preferred — non-destructive), replace to rewrite a region. Update user_model/" +
       "semantic/episodic as you learn about the user and world; reflections after mistakes; " +
       "identity/personality as it forms. For discrete memories use remember (typed entry with " +
-      "strength + optional forget_after decay) and recall (top memories by strength×recency; " +
+      "strength + optional forget_after decay; omitted region defaults to semantic) and recall (top memories by strength×recency; " +
       "recalling reinforces them).",
     parameters: {
       type: "object",
       properties: {
         action: { type: "string", enum: ["read", "append", "replace", "list", "remember", "recall", "route"], description: "What to do" },
-        region: { type: "string", description: "Brain region (see list). Required except for list/recall." },
+        region: { type: "string", description: "Brain region (see list). Required for read/append/replace; remember defaults to semantic." },
         content: { type: "string", description: "Text for append/replace/remember." },
         query: { type: "string", description: "recall: substring filter over memories." },
         entry_type: { type: "string", enum: ["fact", "skill", "preference", "pattern", "insight", "plan", "emotion"], description: "remember: kind of memory (default fact)." },

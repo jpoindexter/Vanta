@@ -1,0 +1,62 @@
+import type { Conversation } from "../agent.js";
+import { type ProviderEffortLevel,type ProviderSpeed } from "../providers/model-settings.js";
+import { type RunEvent,type RunInput,type RunLineage } from "../runs/store.js";
+import type { RunSetup } from "../session.js";
+import { type EventLabel } from "../term/event-format.js";
+import { type DesktopAccessMode } from "./access-mode.js";
+import { type PendingApproval } from "./approval.js";
+import { type ProviderAuthRequired } from "./provider-auth-store.js";
+import { type SessionMap,type SseClients } from "./session-state.js";
+import { type ToolIdTracker } from "./typed-emit.js";
+import { type TypedDesktopEvent } from "./typed-events.js";
+import { DesktopTurnQueue } from "./turn-queue.js";
+
+/** One SSE frame. `typed` is the additive machine-readable event (see typed-events.ts); legacy fields are unchanged. */
+export type DesktopEvent = EventLabel & { delta?: string; turnStarted?: { sessionId: string; requestId: string }; typed?: TypedDesktopEvent };
+
+export type DesktopState = {
+  setup?: RunSetup;
+  _setupPromise?: Promise<RunSetup>;
+  _setupError?: { message: string; at: number };
+  _providerAuthRequired?: ProviderAuthRequired;
+  /** The provider setup this state has caught up with (see setup-generation.ts). */
+  _setupGeneration?: number;
+  /** History carried across a provider setup, used once to rebuild the conversation. */
+  _resumeHistory?: Conversation["messages"];
+  _chatActive?: boolean;
+  _chatAbort?: AbortController;
+  _chatDeltas?: string[];
+  _turnQueue?: DesktopTurnQueue;
+  _streamTextDeltas?: boolean;
+  convo?: Conversation;
+  root: string;
+  sessionId?: string;
+  sessionStarted?: string;
+  providerId?: string;
+  modelId?: string;
+  effortLevel?: ProviderEffortLevel;
+  providerSpeed?: ProviderSpeed;
+  currentEvents?: DesktopEvent[];
+  currentRunEvents?: RunEvent[];
+  activeRunCapture?: {
+    id: string;
+    instruction: string;
+    startedAt: string;
+    turnIndex: number;
+    inputs: RunInput[];
+    lineage: RunLineage;
+  };
+  pendingRunLineage?: RunLineage;
+  pendingRunPreparedAt?: number;
+  forceFreshApprovals?: boolean;
+  pendingApproval?: PendingApproval;
+  accessMode?: DesktopAccessMode;
+  runtimeHostBySession?: Record<string, string>;
+  _sseSessionId?: string;
+  _sseClients?: SseClients;
+  /** Every client state of this server, so a project-wide setting reaches all open chats. */
+  _sessions?: SessionMap;
+  _toolIds?: ToolIdTracker;
+  _env?: NodeJS.ProcessEnv;
+  _continuitySessionOff?: boolean;
+};

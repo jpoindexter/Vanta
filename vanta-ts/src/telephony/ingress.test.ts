@@ -11,6 +11,8 @@ describe("telephony callback ingress", () => {
     const server = startTelephonyIngress({ root: "/tmp", profile, publicUrl: "https://public.example/twilio", port: 7798, ingest });
     await once(server, "listening");
     try {
+      // Intentional loopback-only HTTP to a process-local test server; public callback URLs remain HTTPS.
+      // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       const response = await fetch("http://127.0.0.1:7798/twilio", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": "signature" }, body: new URLSearchParams({ MessageSid: `SM${"a".repeat(32)}`, MessageStatus: "delivered" }) });
       expect(response.status).toBe(204);
       expect(ingest).toHaveBeenCalledWith(expect.objectContaining({ url: "https://public.example/twilio", signature: "signature", params: expect.objectContaining({ MessageStatus: "delivered" }) }));
@@ -21,8 +23,14 @@ describe("telephony callback ingress", () => {
     const server = startTelephonyIngress({ root: "/tmp", profile, publicUrl: "https://public.example/twilio", port: 7797, ingest: async () => ({ ok: false, state: "invalid_signature" }) });
     await once(server, "listening");
     try {
+      // Intentional loopback-only HTTP to a process-local test server; public callback URLs remain HTTPS.
+      // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       expect((await fetch("http://127.0.0.1:7797/twilio")).status).toBe(404);
+      // Intentional loopback-only HTTP to a process-local test server; public callback URLs remain HTTPS.
+      // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       expect((await fetch("http://127.0.0.1:7797/twilio", { method: "POST", body: "x" })).status).toBe(415);
+      // Intentional loopback-only HTTP to a process-local test server; public callback URLs remain HTTPS.
+      // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
       expect((await fetch("http://127.0.0.1:7797/twilio", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: "MessageStatus=sent" })).status).toBe(403);
     } finally { server.close(); await once(server, "close"); }
   });

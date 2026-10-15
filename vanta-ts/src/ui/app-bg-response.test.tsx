@@ -148,6 +148,9 @@ describe("App /bg response continuation", () => {
 
     completeSend(0);
     await waitUntil(() => completedTexts.includes("hello"));
+    // The mock records completion immediately before returning. Let useAgent's
+    // continuation persist the detached response before Ctrl+B reads the ref.
+    await tick();
 
     inst.input("\x02");
     await waitForFrame(inst, "completed background response");

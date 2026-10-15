@@ -7,6 +7,8 @@ import { z } from "zod";
 import type { Tool, ToolResult } from "./types.js";
 import { isSandboxError } from "../sandbox/run.js";
 import { wrapExec } from "../exec/backend.js";
+import { buildSafeChildEnv } from "../exec/child-env.js";
+import { shellSandboxEnv } from "./shell-cmd.js";
 
 const run = promisify(execFile);
 
@@ -46,13 +48,14 @@ async function runStep(
 ): Promise<ToolResult> {
   // Execution backend: docker (VANTA_EXEC_BACKEND=docker) → container; else OS
   // sandbox (VANTA_SANDBOX=1) → wrapped; else base unchanged.
-  const sb = await wrapExec({ env: process.env, root, workdir: cwd, baseCmd: cmd[0], baseArgs: cmd[1] });
+  const sb = await wrapExec({ env: shellSandboxEnv(process.env), root, workdir: cwd, baseCmd: cmd[0], baseArgs: cmd[1] });
   if (isSandboxError(sb)) return { ok: false, output: sb.error };
   try {
     const { stdout, stderr } = await run(sb.cmd, sb.args, {
       cwd,
       timeout: TIMEOUT_MS,
       maxBuffer: MAX_OUTPUT,
+      env: buildSafeChildEnv(process.env),
     });
     return { ok: true, output: combine(stdout, stderr) };
   } catch (err) {

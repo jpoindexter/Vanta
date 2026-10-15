@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Vanta total-realignment correction audit v2 — 2026-07-30</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0e0f12;
+      --surface: #17191f;
+      --surface-2: #20232b;
+      --text: #f4f5f7;
+      --muted: #b9bec8;
+      --line: #454b59;
+      --accent: #cabdff;
+      --good: #8ee6b3;
+      --warn: #ffd276;
+      --bad: #ff9d9d;
+      --info: #91d7ff;
+      --max: 78rem;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        color-scheme: light;
+        --bg: #f3f4f7;
+        --surface: #ffffff;
+        --surface-2: #eceef3;
+        --text: #16181d;
+        --muted: #545b68;
+        --line: #bcc2ce;
+        --accent: #4d3295;
+        --good: #0d6337;
+        --warn: #745000;
+        --bad: #a22222;
+        --info: #075f8c;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      scroll-behavior: auto;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid var(--info);
+      outline-offset: 3px;
+    }
+
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    code {
+      overflow-wrap: anywhere;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 0.45rem;
+      background: var(--surface-2);
+      white-space: pre-wrap;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      z-index: 2;
+      padding: 0.6rem 0.8rem;
+      background: var(--text);
+      color: var(--bg);
+      transform: translateY(-160%);
+    }
+
+    .skip-link:focus {
+      transform: none;
+    }
+
+    header,
+    main,
+    footer {
+      width: min(calc(100% - 2rem), var(--max));
+      margin-inline: auto;
+    }
+
+    header {
+      padding: clamp(3rem, 8vw, 7rem) 0 2rem;
+    }
+
+    .eyebrow,
+    .label {
+      margin: 0 0 0.45rem;
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.12;
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 19ch;
+      font-size: clamp(2.4rem, 7vw, 5.6rem);
+      letter-spacing: -0.05em;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      font-size: clamp(1.55rem, 3.5vw, 2.4rem);
+      letter-spacing: -0.025em;
+    }
+
+    h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.08rem;
+    }
+
+    p {
+      max-width: 75ch;
+    }
+
+    .lede {
+      max-width: 67ch;
+      margin: 1.2rem 0;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+    }
+
+    .verdict {
+      max-width: 72ch;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--good);
+      border-left-width: 0.45rem;
+      border-radius: 0.45rem;
+      background: var(--surface);
+    }
+
+    .section {
+      margin: 1rem 0;
+      padding: clamp(1.1rem, 3vw, 2rem);
+      border: 1px solid var(--line);
+      border-radius: 0.7rem;
+      background: var(--surface);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+      gap: 0.75rem;
+    }
+
+    .metric,
+    .card {
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      background: var(--surface-2);
+    }
+
+    .metric span {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--text);
+      font-size: clamp(1.4rem, 4vw, 2.35rem);
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid currentColor;
+      border-radius: 99rem;
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .status::before {
+      content: "●";
+    }
+
+    .good {
+      color: var(--good);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .info {
+      color: var(--info);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface-2);
+    }
+
+    th,
+    td {
+      padding: 0.7rem 0.8rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.76rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.25rem;
+    }
+
+    li + li {
+      margin-top: 0.35rem;
+    }
+
+    .contract {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .callout {
+      padding: 0.9rem 1rem;
+      border-left: 0.35rem solid var(--warn);
+      background: var(--surface-2);
+    }
+
+    footer {
+      padding: 1rem 0 4rem;
+      color: var(--muted);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .section,
+      .metric,
+      .card,
+      tr {
+        break-inside: avoid;
+      }
+
+      .skip-link {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to audit</a>
+  <header>
+    <p class="eyebrow">Controlling correction · audit v2 · 2026-07-30</p>
+    <h1>Active history preserved. Contracts corrected.</h1>
+    <p class="lede">
+      This standalone audit records the correction from the exact active Vanta
+      commit, the complete 1,319-record preservation proof, the 1,331-record
+      result, the autonomy and lifecycle contracts installed, the public claims
+      bounded, and the source work deliberately left undone.
+    </p>
+    <p class="verdict">
+      <span class="status good">Validated</span><br>
+      The reproducible repository validator, native generators, 209 focused
+      roadmap tests, Docusaurus production build, changed-file credential scan,
+      and protected-source guard passed. This validates the documentation and
+      roadmap correction; it does not claim the unresolved runtime trust and
+      product slices are implemented.
+    </p>
+  </header>
+
+  <main id="main">
+    <section class="section" aria-labelledby="boundary-title">
+      <p class="label">Mutation boundary</p>
+      <h2 id="boundary-title">A reversible branch from the live reset point</h2>
+      <div class="grid">
+        <article class="metric">
+          <span>Base commit</span>
+          <strong><code>a751cb17</code></strong>
+        </article>
+        <article class="metric">
+          <span>Original divergence</span>
+          <strong>0 / 0</strong>
+        </article>
+        <article class="metric">
+          <span>Commit / push / tag</span>
+          <strong>0 / 0 / 0</strong>
+        </article>
+        <article class="metric">
+          <span>Protected source edits</span>
+          <strong>0</strong>
+        </article>
+      </div>
+      <p>
+        Branch: <code>codex/total-realignment-correction-20260730</code><br>
+        Worktree:
+        <code>separate local correction worktree</code><br>
+        Reset point:
+        <code>a751cb17dcb768097798b4278882a64103527811</code>
+      </p>
+      <p>
+        A tag was not created because the controlling handoff prohibits
+        Git-history mutation. The base SHA and isolated branch are the clear,
+        reversible review point.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="counts-title">
+      <p class="label">Roadmap integrity</p>
+      <h2 id="counts-title">1,319 preserved + 12 added = 1,331</h2>
+      <div class="grid">
+        <article class="metric">
+          <span>Active baseline</span>
+          <strong>1,319</strong>
+        </article>
+        <article class="metric">
+          <span>Active IDs preserved</span>
+          <strong>1,319</strong>
+        </article>
+        <article class="metric">
+          <span>New records</span>
+          <strong>12</strong>
+        </article>
+        <article class="metric">
+          <span>Corrected unique IDs</span>
+          <strong>1,331</strong>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>Before, superseded first pass, and corrected status counts</caption>
+          <thead>
+            <tr>
+              <th>Snapshot</th>
+              <th>Shipped</th>
+              <th>Parked</th>
+              <th>Building</th>
+              <th>Next</th>
+              <th>Horizon</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Stale <code>origin/main</code></td>
+              <td>1,272</td><td>15</td><td>0</td><td>2</td><td>16</td><td>1,305</td>
+            </tr>
+            <tr>
+              <td>Verified active baseline</td>
+              <td>1,281</td><td>16</td><td>0</td><td>1</td><td>21</td><td>1,319</td>
+            </tr>
+            <tr>
+              <td>Superseded first pass</td>
+              <td>1,272</td><td>33</td><td>2</td><td>4</td><td>6</td><td>1,317</td>
+            </tr>
+            <tr>
+              <td><strong>Corrected result</strong></td>
+              <td>1,281</td><td>38</td><td>2</td><td>4</td><td>6</td><td>1,331</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Active SHA-256:
+        <code>1f1334605d51c9fe5794bc53396655e987082013a73eef5e71f82b55ad50288c</code><br>
+        Corrected SHA-256:
+        <code>c98ca5b4662216b42111d98ceadfef01b6fe0b5e547794b134f11f4512e0dd1f</code>
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="discrepancy-title">
+      <p class="label">Reported discrepancy</p>
+      <h2 id="discrepancy-title">The packet’s 14 labels are not roadmap IDs</h2>
+      <p class="callout">
+        The handoff calls fourteen strings active roadmap IDs, but direct parsing
+        and whole-repository search found none of those literal strings in the
+        active, stale, or first-pass roadmaps. Adding them would create
+        duplicates and contradict the required 1,331 total.
+      </p>
+      <p>
+        The actual active-vs-stale set difference contains fourteen canonical
+        IDs, all preserved:
+      </p>
+      <pre>CONNECT-BOX-DRIVE-ROVO-PACKS
+CONNECT-DROPBOX-ADAPTER
+CONNECT-INTEGRATION-STATE-CATALOG
+CONNECT-TRELLO-ADAPTER
+TUI-DETERMINISTIC-TURN-SUMMARY
+TUI-OUTPUT-HIERARCHY
+TUI-RESTART-CONTINUITY
+TUI-TASK-SCOPED-GO-AHEAD
+VANTA-MSA-NATIVE-RUNTIME-PORT
+VANTA-MSA-NVIDIA-RUNTIME-PROOF
+VANTA-MSA-TS-INTEGRATION
+VANTA-REUSABLE-RUN-LIBRARY
+VANTA-STREAMING-TTS-FIRST-CLAUSE
+VANTA-STREAMING-TTS-GATEWAY-AUDIO</pre>
+      <p>
+        The correction report maps each packet label to the closest canonical
+        active record or acceptance receipt. The eight packet “shared ID”
+        strings are also absent as literal roadmap IDs; their current active
+        evidence was retained rather than replaced with fabricated aliases.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="contracts-title">
+      <p class="label">Canonical vocabulary</p>
+      <h2 id="contracts-title">One autonomy ladder. One lifecycle.</h2>
+      <div class="contract">
+        <article class="card">
+          <h3>R0–R5: autonomy only</h3>
+          <ol>
+            <li><strong>R0 — Observe:</strong> read, classify, report; no mutation.</li>
+            <li><strong>R1 — Recommend:</strong> outcome plus one next action; no mutation.</li>
+            <li><strong>R2 — Prepare:</strong> private reversible drafts or isolated artifacts.</li>
+            <li><strong>R3 — Confirm:</strong> exact preview plus fresh one-use authority.</li>
+            <li><strong>R4 — Delegate:</strong> allowlisted recurring workflow inside exact bounds.</li>
+            <li><strong>R5 — Autonomous delegate:</strong> proven bounded domain may chain, coordinate, communicate, monitor, reconcile, follow up, and recover.</li>
+          </ol>
+          <p><code>E0–E5</code> is the separate consequence scale.</p>
+        </article>
+        <article class="card">
+          <h3>WorkItem lifecycle</h3>
+          <pre>draft
+→ queued
+→ running
+→ waiting
+→ needs human
+→ stopped
+→ failed
+→ unverified
+→ verified</pre>
+          <p>
+            <code>denied</code>, <code>expired</code>, <code>unknown</code>,
+            and <code>compensated</code> are receipt/action dispositions.
+            Inbox, Today, Doing, Waiting, Needs You, and Done are UI projections.
+          </p>
+        </article>
+      </div>
+      <p>
+        The validator requires the complete literal contract in eight governing
+        artifacts: AGENTS, CLAUDE, STRATEGY, SOUL, DECISIONS, README, PRD, and
+        the public autonomy page.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="authority-title">
+      <p class="label">Curb-cut and authority contract</p>
+      <h2 id="authority-title">Support without diagnosis, coercion, or silent power</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Concrete access</h3>
+          <p>
+            Aphantasia-safe literal previews; no color-only meaning; high
+            contrast; reduced motion; optional streaming/auto-scroll; stable
+            reading position; summary first.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Variable capacity</h3>
+          <p>
+            Cognitive, attentional, sensory, social, emotional, physical, time,
+            and <code>unknown</code>. Support state is scoped, reviewable, and
+            expiring.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Literal control</h3>
+          <p>
+            <code>do it</code>, <code>show me</code>, <code>snooze</code>,
+            <code>skip</code>, and <code>off</code>; session, pattern, and
+            global refusal; quiet hours and interruption budgets.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Human boundaries</h3>
+          <p>
+            Bilateral trusted-person consent, least privilege, expiry, and
+            revocation. Portable data excludes credentials, tokens, grants,
+            signing material, device identity, and restored authority.
+          </p>
+        </article>
+      </div>
+      <p>
+        The contract forbids bargaining, shame, nagging, coercive urgency,
+        streak or catch-up punishment, silent surveillance, and authority
+        escalation. Re-entry names the outcome, last evidence, waiting party,
+        and one prepared next action.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="mapping-title">
+      <p class="label">Existing record changes</p>
+      <h2 id="mapping-title">22 active cards parked, none deleted</h2>
+      <p>
+        Each changed record altered only <code>status</code>,
+        <code>updated</code>, <code>notes</code>, and
+        <code>parkedReason</code>. The other 1,297 active records are
+        deep-equal to the active baseline.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <caption>Intentional active-card transitions</caption>
+          <thead>
+            <tr><th>Existing ID</th><th>Before</th><th>After</th><th>Destination</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>VANTA-STREAMING-TTS-GATEWAY-AUDIO</code></td><td>horizon</td><td>parked</td><td>UX-04 / LIFE-01</td></tr>
+            <tr><td><code>VANTA-MSA-NATIVE-RUNTIME-PORT</code></td><td>horizon</td><td>parked</td><td>PACK-01 / LAB-01</td></tr>
+            <tr><td><code>BROWSER-WORKFLOW-ACTION-BOUNDARY</code></td><td>horizon</td><td>parked</td><td>TRUST-03 / TRUST-05</td></tr>
+            <tr><td><code>QUICKSILVER-STARTUP-CRITICAL-PATH</code></td><td>next</td><td>parked</td><td>UX-04 / EVAL-01</td></tr>
+            <tr><td><code>QUICKSILVER-DESKTOP-STREAM-PERF</code></td><td>horizon</td><td>parked</td><td>UX-04 / EVAL-01</td></tr>
+            <tr><td><code>GATEWAY-DELIVERY-OBLIGATION-LEDGER</code></td><td>horizon</td><td>parked</td><td>OP-04 / TRUST-04</td></tr>
+            <tr><td><code>EF-SUPPORT-DESKTOP-CONTROLS</code></td><td>horizon</td><td>parked</td><td>UX-03</td></tr>
+            <tr><td><code>EF-SUPPORT-STATE-EXPIRY</code></td><td>horizon</td><td>parked</td><td>UX-03</td></tr>
+            <tr><td><code>EF-SUPPORT-NONOVERREACH-EVALS</code></td><td>horizon</td><td>parked</td><td>UX-03 / UX-04 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-THREAT-MODEL</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-PROCESS-INTEGRITY-BOUNDARY</code></td><td>horizon</td><td>parked</td><td>TRUST-06 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-CONTRASTIVE-DETECTOR</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-BEHAVIORAL-SIGNAL-SUITE</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-CALIBRATION-CONTROLS</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-EVAL-AWARENESS-REDTEAM</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-OVERSIGHT-GENERALIZATION</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-MODEL-LEDGER</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>REWARD-SEEKING-RELEASE-GATE</code></td><td>horizon</td><td>parked</td><td>LAB-01 / EVAL-01</td></tr>
+            <tr><td><code>CONNECT-INTEGRATION-STATE-CATALOG</code></td><td>horizon</td><td>parked</td><td>TRUST-01 / LIFE-01</td></tr>
+            <tr><td><code>CONNECT-TRELLO-ADAPTER</code></td><td>horizon</td><td>parked</td><td>TRUST-01 / TRUST-03</td></tr>
+            <tr><td><code>CONNECT-DROPBOX-ADAPTER</code></td><td>horizon</td><td>parked</td><td>TRUST-01 / TRUST-03</td></tr>
+            <tr><td><code>CONNECT-BOX-DRIVE-ROVO-PACKS</code></td><td>horizon</td><td>parked</td><td>PACK-01 / TRUST-01</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="new-title">
+      <p class="label">Bounded open inventory</p>
+      <h2 id="new-title">Twelve records, not 28 projects</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Building · 2</h3>
+          <p><code>TRUST-02</code><br><code>UX-03</code></p>
+        </article>
+        <article class="card">
+          <h3>Next · 4</h3>
+          <p><code>TRUST-04</code><br><code>TRUST-01</code><br><code>OP-01</code><br><code>GROW-01</code></p>
+        </article>
+        <article class="card">
+          <h3>Horizon · 6</h3>
+          <p><code>TRUST-03</code><br><code>TRUST-05</code><br><code>TRUST-06</code><br><code>OP-03</code><br><code>UX-04</code><br><code>LIFE-02</code></p>
+        </article>
+      </div>
+      <p>
+        The exact 28-outcome set is set-equal in STRATEGY, PRD, ROADMAP, and the
+        correction report:
+      </p>
+      <pre>TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 TRUST-06
+OP-01 OP-02 OP-03 OP-04 OP-05
+UX-01 UX-02 UX-03 UX-04
+LIFE-01 LIFE-02 LIFE-03 LIFE-04
+GROW-01 GROW-02 GROW-03 GROW-04 GROW-05
+PACK-01 LAB-01 EVAL-01 DOGFOOD-01</pre>
+    </section>
+
+    <section class="section" aria-labelledby="truth-title">
+      <p class="label">Public semantic truth</p>
+      <h2 id="truth-title">Executed evidence separated from target behavior</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Claim reconciliation</caption>
+          <thead>
+            <tr><th>Overstatement</th><th>Current bounded truth</th><th>Open gap</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Every effect is kernel-gated</td>
+              <td>Standard dispatch is assessed and fails closed where exercised</td>
+              <td>Hooks, plugins, MCP lifecycle, factory, scheduler, worker, credential, and local API paths</td>
+            </tr>
+            <tr>
+              <td>The boundary cannot be bypassed</td>
+              <td>Unavoidability is the target root-of-trust contract</td>
+              <td>TRUST-01/02/03/05 and exact adversarial proof</td>
+            </tr>
+            <tr>
+              <td>Unattended work always finishes verified</td>
+              <td>Tracked reliability evidence proves only exercised scenarios</td>
+              <td>TRUST-04 and OP-01 typed completion truth</td>
+            </tr>
+            <tr>
+              <td>Npm is currently vulnerability-free</td>
+              <td>An older zero-advisory receipt is historical</td>
+              <td>July 30 observed 14 high-severity advisories requiring disposition</td>
+            </tr>
+            <tr>
+              <td>Google is one broad grant</td>
+              <td>Gmail, Calendar, and Drive require incremental scopes and bounded effects</td>
+              <td>CR/LF header, revocation, scope separation, and live-account proof</td>
+            </tr>
+            <tr>
+              <td>Self-repair is safely closed</td>
+              <td>Proposal/adoption paths have narrow tests</td>
+              <td>No self-adoption, evaluator weakening, protected-test mutation, or production-default Lab</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="validation-title">
+      <p class="label">Executed validation ledger</p>
+      <h2 id="validation-title">Commands, exits, and evidence</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Executed correction checks</caption>
+          <thead>
+            <tr><th>Command</th><th>Exit</th><th>Salient result</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>node docs/strategy-realignment-validation-2026-07-30.mjs '&lt;first-pass-roadmap.json&gt;'</code></td>
+              <td><span class="status good">0</span></td>
+              <td>1,319 preserved; 12 added; 22 intentional changes; 1,331 unique; dependencies, ceilings, contracts, decisions prefix, outcomes, and source guard passed.</td>
+            </tr>
+            <tr>
+              <td><code>node scripts/build-order.mjs docs/vanta-build-order-agent-readable.md</code></td>
+              <td><span class="status good">0</span></td>
+              <td>Generated 12-card order; 1,331 total; output SHA-256 <code>5d7fb1e0…</code>.</td>
+            </tr>
+            <tr>
+              <td><code>node vanta-website/scripts/gen-roadmap.mjs</code></td>
+              <td><span class="status good">0</span></td>
+              <td>2 Building, 4 Next, 20 recent, 14 external-proof, 6 Horizon.</td>
+            </tr>
+            <tr>
+              <td><code>tsx -e '…buildRoadmap(correctionWorktree)…'</code></td>
+              <td><span class="status good">0</span></td>
+              <td>Native schema parse and ignored <code>roadmap.html</code> generation; SHA-256 <code>b5648083…</code>, 1,459,370 bytes.</td>
+            </tr>
+            <tr>
+              <td><code>./node_modules/.bin/vitest run src/roadmap/*.test.ts src/cli/roadmap-cmd.test.ts src/tools/roadmap-tools.test.ts</code></td>
+              <td><span class="status good">0</span></td>
+              <td>17 test files, 209 tests passed against the unchanged active roadmap source.</td>
+            </tr>
+            <tr>
+              <td><code>NODE_PATH='…/vanta-website/node_modules' …/docusaurus build</code></td>
+              <td><span class="status good">0</span></td>
+              <td>Optimized production site generated; current-page and broken-link build checks passed.</td>
+            </tr>
+            <tr>
+              <td><code>gitleaks detect --no-git --source &lt;changed-files-tempdir&gt; --redact --no-banner --exit-code 1</code></td>
+              <td><span class="status good">0</span></td>
+              <td>2.33 MB changed-file corpus; no leaks found.</td>
+            </tr>
+            <tr>
+              <td><code>git diff --check</code> plus untracked <code>git diff --no-index --check</code></td>
+              <td><span class="status good">0</span></td>
+              <td>Tracked and all six untracked artifacts passed whitespace validation.</td>
+            </tr>
+            <tr>
+              <td>Original-checkout exact status/HEAD/upstream/divergence comparator</td>
+              <td><span class="status good">0</span></td>
+              <td>Active branch remained at <code>a751cb17</code>, 0/0 from upstream, with the same nine pre-existing dirty entries.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        One initial roadmap-HTML invocation exited 1 because top-level
+        <code>await</code> was used with CommonJS eval output. The corrected
+        async-IIFE invocation above exited 0 and produced the audited artifact.
+        A whole-worktree credential scan also flagged one ignored generated-site
+        placeholder (<code>OPENAI_API_KEY=vanta</code>), not a credential; the
+        changed-file-only scan was clean.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="artifacts-title">
+      <p class="label">Artifact handling</p>
+      <h2 id="artifacts-title">Transferable truth stays tracked</h2>
+      <ul>
+        <li><code>roadmap.json</code> is canonical and tracked.</li>
+        <li><code>vanta-website/docs/roadmap.md</code> is generated and tracked.</li>
+        <li><code>roadmap.html</code> is generated and ignored.</li>
+        <li><code>docs/vanta-build-order-agent-readable.md</code> is generated and untracked.</li>
+        <li><code>HANDOFF.md</code> is locally updated and ignored; durable facts are in the tracked correction report.</li>
+        <li>The first Markdown report and first HTML audit remain, clearly labeled superseded.</li>
+      </ul>
+      <p class="callout">
+        The build-order generator still emits stale five-pillar prose and an
+        instruction to commit. Generator source is protected by this handoff's
+        no-product-source boundary, so that generated prose is disclosed as
+        non-authoritative rather than hand-edited.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="blockers-title">
+      <p class="label">Not implemented here</p>
+      <h2 id="blockers-title">Documentation did not close runtime gaps</h2>
+      <ol>
+        <li><strong>TRUST-02:</strong> urgent hook, environment, audit-state, and local-authentication closure.</li>
+        <li><strong>UX-03:</strong> one safe capture-to-re-entry continuity slice with exact state and access behavior.</li>
+        <li><strong>TRUST-04:</strong> typed receipt and truthful completion across hosts.</li>
+        <li><strong>TRUST-01:</strong> universal effect-path inventory and one trusted gateway.</li>
+        <li><strong>Generator slice:</strong> remove stale strategy and commit/push prose from the build-order generator with focused tests.</li>
+      </ol>
+      <p>
+        No source, credential, user state, release, deployment, or publication
+        mutation was authorized or performed.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Controlling detail:
+      <code>docs/strategy-realignment-correction-2026-07-30.md</code><br>
+      Reproducible validator:
+      <code>docs/strategy-realignment-validation-2026-07-30.mjs</code>
+    </p>
+  </footer>
+</body>
+</html>

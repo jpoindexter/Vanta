@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +8,7 @@ import { loadEnabledPlugins } from "./loader.js";
 import { ToolRegistry } from "../tools/registry.js";
 import { PluginCommandRegistry } from "./commands.js";
 import type { PluginManifest } from "./manifest.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const dirs: string[] = [];
 const handles: PluginWorkerHandle[] = [];
@@ -49,6 +50,7 @@ describe("plugin worker host", () => {
       panels,
       log: (line) => logs.push(line),
       schedule: (_intervalMs, fire) => { fireJob = fire; return () => { fireJob = undefined; }; },
+      effectGate: allowTestEffectGate(dir),
     });
     handles.push(handle);
 
@@ -61,8 +63,10 @@ describe("plugin worker host", () => {
     expect(panels.list()[0]?.actions?.[0]?.prompt).toBe("Refresh worker status");
     await expect(readFile(join(home, "plugin-data", "operator.json"), "utf8")).rejects.toThrow();
 
+    const settledBeforeJob = await waitForSettledClaims(dir);
     fireJob?.();
     await waitFor(() => logs.some((line) => line.includes("job heartbeat ran")));
+    await waitForSettledClaims(dir, settledBeforeJob + 1);
   });
 
   it("loads a worker through the enabled-plugin loader with operator grants", async () => {
@@ -88,6 +92,7 @@ describe("plugin worker host", () => {
       panels,
       log: (line) => logs.push(line),
       workerSchedule: () => () => {},
+      effectGate: allowTestEffectGate(root),
     });
     handles.push(...loaded.workers);
 
@@ -95,6 +100,27 @@ describe("plugin worker host", () => {
     expect(loaded.diagnostics).toContainEqual(expect.objectContaining({ plugin: "operator", ok: true, message: "worker loaded" }));
     expect(loaded.workers).toHaveLength(1);
     expect(loaded.panels.list()).toHaveLength(1);
+  });
+
+  it("rejects a worker entry symlink that resolves outside the plugin directory", async () => {
+    const dir = await fixtureDir("symlink-root");
+    const outside = await fixtureDir("symlink-outside");
+    await writeFile(join(outside, "worker.mjs"), 'process.stdout.write("{\\"type\\":\\"ready\\"}\\n");', "utf8");
+    await symlink(join(outside, "worker.mjs"), join(dir, "worker.mjs"));
+    const manifest: PluginManifest = {
+      name: "escaped",
+      version: "1.0.0",
+      main: "index.mjs",
+      worker: { main: "worker.mjs", capabilities: [] },
+    };
+
+    await expect(launchPluginWorker({
+      manifest,
+      pluginDir: dir,
+      vantaHome: join(dir, "home"),
+      granted: [],
+      panels: new PluginPanelRegistry(),
+    })).rejects.toThrow("plugin worker main must stay inside plugin directory");
   });
 });
 
@@ -104,12 +130,27 @@ async function fixtureDir(name: string): Promise<string> {
   return dir;
 }
 
-async function waitFor(predicate: () => boolean): Promise<void> {
+async function waitFor(predicate: () => boolean | Promise<boolean>): Promise<void> {
   const deadline = Date.now() + 1_000;
-  while (!predicate()) {
+  while (!await predicate()) {
     if (Date.now() >= deadline) throw new Error("timed out waiting for worker event");
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
+}
+
+async function waitForSettledClaims(root: string, minimum = 1): Promise<number> {
+  const claims = join(root, ".vanta", "effect-claims");
+  let settled = 0;
+  await waitFor(async () => {
+    const files = (await readdir(claims).catch(() => [])).filter((file) => file.endsWith(".json"));
+    if (files.length < minimum) return false;
+    const values = await Promise.all(files.map(async (file) => JSON.parse(
+      await readFile(join(claims, file), "utf8"),
+    ) as { state?: string }));
+    settled = values.filter((value) => value.state === "settled").length;
+    return settled === files.length;
+  });
+  return settled;
 }
 
 const WORKER_FIXTURE = String.raw`

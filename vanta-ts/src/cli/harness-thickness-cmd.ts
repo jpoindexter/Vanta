@@ -34,6 +34,14 @@ export async function runHarnessThicknessCommand(repoRoot: string, args: string[
   return 0;
 }
 
+/** Read-only report shared by `vanta doctor` and interactive `/doctor`. */
+export async function contextDoctorReport(repoRoot: string, limit = 5): Promise<string> {
+  const sources = await collectHarnessSources(repoRoot);
+  const previous = await latestRecordedRun(repoRoot);
+  const run = auditHarnessThickness(sources);
+  return formatThicknessReport(run, thicknessTrend(run, previous), limit);
+}
+
 export async function collectHarnessSources(repoRoot: string): Promise<HarnessSource[]> {
   const out: HarnessSource[] = [];
   for (const rel of SOURCE_PATHS) {

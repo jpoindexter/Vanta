@@ -1,5 +1,6 @@
 import { buildClient, pollKernelForCode, readApiToken, resolveClientCreds } from "./auth.js";
 import { parseTokenFile, saveTokens } from "./auth-store.js";
+import { googleScopesFor, type GoogleService } from "./capability.js";
 
 export type GoogleAuthStart = { authUrl: string };
 
@@ -7,15 +8,10 @@ export function googleKernelBase(env: NodeJS.ProcessEnv = process.env): string {
   return (env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788").replace(/\/$/, "");
 }
 
-const SCOPES = [
-  "https://www.googleapis.com/auth/gmail.modify",
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/drive",
-];
-
 export async function beginGoogleKernelAuth(
   env: NodeJS.ProcessEnv = process.env,
   fetchImpl: typeof fetch = fetch,
+  service: GoogleService = "gmail",
 ): Promise<GoogleAuthStart> {
   const base = googleKernelBase(env);
   const creds = await resolveClientCreds(undefined, env);
@@ -24,7 +20,7 @@ export async function beginGoogleKernelAuth(
   const authUrl = client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
-    scope: SCOPES,
+    scope: googleScopesFor(service),
     redirect_uri: redirectUri,
   });
   const token = await readApiToken(env);
@@ -34,7 +30,10 @@ export async function beginGoogleKernelAuth(
   return { authUrl };
 }
 
-export async function completeGoogleKernelAuth(env: NodeJS.ProcessEnv = process.env): Promise<void> {
+export async function completeGoogleKernelAuth(
+  env: NodeJS.ProcessEnv = process.env,
+  service: GoogleService = "gmail",
+): Promise<void> {
   const base = googleKernelBase(env);
   const apiToken = await readApiToken(env);
   if (!apiToken) throw new Error("Kernel API token not found — run `vanta doctor` to check kernel health.");
@@ -45,5 +44,5 @@ export async function completeGoogleKernelAuth(env: NodeJS.ProcessEnv = process.
   if (!parsed?.refresh_token) {
     throw new Error("Google did not return a refresh_token. Revoke Vanta access, then start Google authorization again.");
   }
-  await saveTokens(parsed, env);
+  await saveTokens(parsed, env, service);
 }

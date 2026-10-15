@@ -133,6 +133,7 @@ const ShellHooksConfigSchema = z.object(Object.fromEntries(hookEventEntries) as 
 export type ShellHooksConfig = z.infer<typeof ShellHooksConfigSchema>;
 
 const HOOKS_FILE = "hooks.json";
+const PROJECT_HOOK_SNAPSHOTS = new Map<string, ShellHooksConfig>();
 
 export function shellHooksPath(dataDir: string): string {
   return join(dataDir, HOOKS_FILE);
@@ -153,15 +154,21 @@ export async function hooksAllowed(dataDir: string, env: NodeJS.ProcessEnv = pro
 }
 
 /** Load + validate .vanta/hooks.json. Returns {} when untrusted, missing, or malformed. */
-export async function loadShellHooks(dataDir: string): Promise<ShellHooksConfig> {
-  if (!(await hooksAllowed(dataDir, process.env))) return {};
+export async function loadShellHooks(dataDir: string, env: NodeJS.ProcessEnv = process.env): Promise<ShellHooksConfig> {
+  if (!(await hooksAllowed(dataDir, env))) return {};
+  const key = resolve(dataDir);
+  const userScope = key === resolve(resolveVantaHome(env));
+  if (!userScope && PROJECT_HOOK_SNAPSHOTS.has(key)) return PROJECT_HOOK_SNAPSHOTS.get(key)!;
+  let loaded: ShellHooksConfig = {};
   try {
     const raw: unknown = JSON.parse(await readFile(shellHooksPath(dataDir), "utf8"));
     const parsed = ShellHooksConfigSchema.safeParse(raw);
-    return parsed.success ? parsed.data : {};
+    loaded = parsed.success ? parsed.data : {};
   } catch {
-    return {};
+    loaded = {};
   }
+  if (!userScope) PROJECT_HOOK_SNAPSHOTS.set(key, loaded);
+  return loaded;
 }
 
 // The conditional-matcher logic (which hooks fire for an event) lives in a

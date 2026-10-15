@@ -69,6 +69,22 @@ describe("saveSandboxInput / loadSandboxInput", () => {
 });
 
 describe("runSandbox", () => {
+  it("preserves an explicit empty tool override for the isolated runner", async () => {
+    const seen: Array<string[] | undefined> = [];
+    await runSandbox({
+      input: { name: "zero-tools", instruction: "answer without tools" },
+      override: { toolNames: [] },
+      deps: {
+        runner: async ({ override }) => {
+          seen.push(override.toolNames);
+          return { finalText: "ok", toolCalls: [], stoppedReason: "done" };
+        },
+      },
+    });
+
+    expect(seen).toEqual([[], undefined]);
+  });
+
   it("runs candidate and baseline against a saved input and reports a comparable trace", async () => {
     const input = await loadSandboxInput(dataDir, "seed").catch(async () => {
       await saveSandboxInput(dataDir, { name: "seed", instruction: "summarize the repo" });

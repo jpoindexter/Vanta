@@ -1,15 +1,13 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { gitExecFile } from "../git/process.js";
 import { basename, dirname } from "node:path";
 import { createHash } from "node:crypto";
 import { statSync } from "node:fs";
 
-const execAsync = promisify(execFile);
 
 /** Returns the git remote URL for origin, null if not a git repo or no remote. */
 export async function getGitRemoteUrl(root: string): Promise<string | null> {
   try {
-    const { stdout } = await execAsync("git", ["-C", root, "remote", "get-url", "origin"], { timeout: 5_000 });
+    const { stdout } = await gitExecFile("git", ["-C", root, "remote", "get-url", "origin"], { timeout: 5_000 });
     return stdout.trim() || null;
   } catch {
     return null;
@@ -27,7 +25,7 @@ export async function resolveMainRepoRoot(root: string): Promise<string> {
     const stat = statSync(gitPath);
     if (stat.isDirectory()) return root; // main repo
     // Worktree: .git is a file pointing to the shared git dir. Use git to find it.
-    const { stdout } = await execAsync("git", ["-C", root, "rev-parse", "--git-common-dir"], { timeout: 5_000 });
+    const { stdout } = await gitExecFile("git", ["-C", root, "rev-parse", "--git-common-dir"], { timeout: 5_000 });
     const commonDir = stdout.trim();
     // commonDir is absolute (e.g. /repo/.git) in a worktree, relative in main.
     if (commonDir.startsWith("/")) return dirname(commonDir);

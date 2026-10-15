@@ -8,6 +8,7 @@ import { FOCUS, RISK } from "../term/palette.js";
 import type { Entry, ToolEntry } from "./types.js";
 import type { DiffLine } from "../util/diff.js";
 import { quietToolRows } from "./quiet-tool-group.js";
+import { turnSummaryLines } from "./turn-summary.js";
 
 // Pure renderers for one committed entry. Tools render Claude-style: each call is
 // a ⏺ Verb(detail) line over a dim ⎿ result line (+ inline diff for edits). Real
@@ -24,7 +25,9 @@ const DIFF_MAX = 12;
 const THINK_MAX = 3;
 // A subtle background highlights the user's own turn (Claude Code's userMessageBackground
 // pattern) so what YOU said reads distinctly from the assistant's prose.
-const USER_BG = "#2b2f3a";
+// A tonal layer of Vanta Black lifted toward Bone — the brand book bars a new hue
+// for hierarchy, so this carries no blue cast.
+const USER_BG = "#232325";
 
 export function EntryView(props: { entry: Entry }): ReactElement {
   const e = props.entry;
@@ -55,6 +58,13 @@ export function EntryView(props: { entry: Entry }): ReactElement {
   }
   if (e.kind === "thinking") return <ThinkingView text={e.text} />;
   if (e.kind === "note") return <NoteView text={e.text} />;
+  if (e.kind === "turnSummary") {
+    const lines = turnSummaryLines(e);
+    return <Box flexDirection="column" marginTop={1}>
+      <Text bold>{lines[0]}</Text>
+      {lines.slice(1).map((line, index) => <Text key={index}>  {line}</Text>)}
+    </Box>;
+  }
   if (e.kind === "toolGroup") return <ToolGroupView tools={e.tools} />;
   return <ToolCallView entry={e} />;
 }
@@ -70,6 +80,8 @@ function ToolGroupView(props: { tools: ToolEntry[] }): ReactElement {
     <Box flexDirection="column" marginTop={1}>
       {rows.map((row, i) => row.kind === "reads"
         ? <Text key={i}><Text color={FOCUS}>⏺ </Text>{row.label} <Text dimColor>· {row.tools.length} receipt{row.tools.length === 1 ? "" : "s"} · Ctrl+T evidence</Text></Text>
+        : row.kind === "summary"
+        ? <Text key={i}><Text color={FOCUS}>⏺ </Text>{row.label} <Text dimColor>· Ctrl+T evidence</Text></Text>
         : <ToolCallView key={i} entry={row.tool} />)}
     </Box>
   );
@@ -84,10 +96,13 @@ function ToolCallView(props: { entry: ToolEntry }): ReactElement {
     <Box flexDirection="column">
       <Box>
         <Text color={ok ? FOCUS : RISK}>⏺ </Text>
-        <Text>{head}</Text>
+        {/* Tool rows are where paths actually appear (`Edit(src/ui/app.tsx)`), so
+            they carry the OSC-8 affordance too — notes alone were not enough.
+            Clip BEFORE linkify: truncating after would cut an escape sequence. */}
+        <Text>{linkify(head)}</Text>
       </Box>
-      {meta ? <Text color={ok ? undefined : RISK}>{"  ⎿  "}{clip(meta, 92)}</Text> : null}
-      {!ok ? <Text color={RISK}>{"  ↳  Recovery: review the failed input, then retry this step."}</Text> : null}
+      {meta ? <Text color={ok ? undefined : RISK} dimColor={ok}>{"  ⎿  "}{linkify(clip(meta, 92))}</Text> : null}
+      {!ok ? <Text color={RISK}>{"  ↳  Open trace evidence for full output."}</Text> : null}
       {e.diff && e.diff.length > 0 ? <DiffView diff={e.diff} /> : null}
     </Box>
   );

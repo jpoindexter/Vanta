@@ -105,10 +105,9 @@ export const calendarReadTool: Tool = {
     } catch (err) {
       const e = err as Error;
       if (isAuthError(e)) {
-        return { ok: false, output: "Google not authorized — run: vanta auth google" };
+        return { ok: false, output: "Google calendar not authorized — run: vanta auth google calendar" };
       }
       return { ok: false, output: `calendar_read failed: ${e.message}` };
     }
   },
 };
-

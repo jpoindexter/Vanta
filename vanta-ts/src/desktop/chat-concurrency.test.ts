@@ -1,10 +1,24 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleChat, handleQueueChat, handleStopChat, type DesktopState } from "./handlers.js";
 import { DesktopTurnQueue, type TurnQueueDeps } from "./turn-queue.js";
 import { providerAuthRequiredPath } from "./provider-auth-store.js";
+
+let testHome: string;
+const originalHome = process.env.VANTA_HOME;
+
+beforeEach(async () => {
+  testHome = await mkdtemp(join(tmpdir(), "vanta-desktop-chat-"));
+  process.env.VANTA_HOME = testHome;
+});
+
+afterEach(async () => {
+  if (originalHome === undefined) delete process.env.VANTA_HOME;
+  else process.env.VANTA_HOME = originalHome;
+  await rm(testHome, { recursive: true, force: true });
+});
 
 function response() {
   let status = 0; let body = "";
@@ -14,8 +28,8 @@ function response() {
   };
 }
 
-function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>) {
-  const body = JSON.stringify({ message, ...(images ? { images } : {}) });
+function chatRequest(message: string, images?: Array<{ mime: string; dataBase64: string }>, sessionId?: string, requestId?: string) {
+  const body = JSON.stringify({ message, ...(images ? { images } : {}), ...(sessionId ? { sessionId } : {}), ...(requestId ? { requestId } : {}) });
   const req = { on: (event: string, listener: (value?: Buffer) => void) => { if (event === "data") listener(Buffer.from(body)); if (event === "end") listener(); return req; } } as any;
   return req;
 }
@@ -43,6 +57,42 @@ function recoveryState(send: FakeSend, root = "/repo"): DesktopState {
 }
 
 describe("desktop chat concurrency", () => {
+  it("acknowledges the exact admitted request before queueing and retains its follow-up", async () => {
+    const frames: string[] = [];
+    let state: DesktopState;
+    const send = vi.fn(async () => {
+      expect(state._chatActive).toBe(true);
+      const frame = frames.find((value) => value.includes('"turnStarted"'))!;
+      expect(JSON.parse(frame.slice(6))).toMatchObject({ turnStarted: { sessionId: "desktop-test", requestId: "request-1" } });
+      const queued = response();
+      await handleQueueChat(state, chatRequest("Retained follow-up"), queued.res);
+      expect(queued.result().status).toBe(202);
+      return { finalText: "Stopped.", iterations: 1, stoppedReason: "interrupted" as const, toolIterations: 0 };
+    });
+    state = { ...recoveryState(send), _turnQueue: queueForTest(), _sseSessionId: "default",
+      _sseClients: new Map([["default", new Set([{ response: { write: (frame: string) => frames.push(frame) }, encode: (event: unknown) => ({ data: event }) }])]]) as any };
+    await handleChat(state, chatRequest("First instruction", undefined, "desktop-test", "request-1"), response().res);
+    expect(send).toHaveBeenCalledOnce();
+    expect((await state._turnQueue!.list("desktop-test")).items).toMatchObject([{ instruction: "Retained follow-up" }]);
+  });
+
+  it("rejects malformed request identity before provider admission", async () => {
+    const send = vi.fn(); const reply = response();
+    await handleChat(recoveryState(send), chatRequest("Never admitted", undefined, "desktop-test", "bad\nidentity"), reply.res);
+    expect(reply.result()).toEqual({ status: 400, body: { error: "invalid chat request identity" } });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("rejects a stale renderer session before invoking the provider or recording a turn", async () => {
+    const send = vi.fn(async () => ({ finalText: "Must not run", iterations: 1, stoppedReason: "done" as const, toolIterations: 0 }));
+    const state = recoveryState(send);
+    const reply = response();
+    await handleChat(state, chatRequest("Wrong chat draft", undefined, "different-chat"), reply.res);
+    expect(reply.result()).toEqual({ status: 409, body: { error: "The active chat changed. Reopen the intended chat before sending." } });
+    expect(send).not.toHaveBeenCalled();
+    expect(state.convo?.messages).toHaveLength(1);
+  });
+
   it("rejects an overlapping turn before reading another request body", async () => {
     const state: DesktopState = { root: "/repo", _chatActive: true };
     const reply = response();
@@ -132,7 +182,11 @@ describe("desktop chat concurrency", () => {
     await handleChat(state, chatRequest("do work"), reply.res);
 
     expect(send).toHaveBeenCalledTimes(2);
-    expect((await queue.list("desktop-test")).items).toMatchObject([{ instruction: "queued follow-up", status: "queued" }]);
+    expect((await queue.list("desktop-test")).items).toMatchObject([{
+      instruction: "queued follow-up",
+      status: "failed",
+      failure: { reason: "Task stopped after repeated failures.", attempts: 1 },
+    }]);
     expect(reply.result().body.receipt).toMatchObject({ status: "failed", checkpoint: { instruction: "queued follow-up" } });
   });
 

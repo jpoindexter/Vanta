@@ -14,7 +14,8 @@ export const globFilesTool: Tool = {
     name: "glob_files",
     description:
       "Find files matching a glob pattern (e.g. 'src/**/*.ts', '**/*.{json,yaml}'). " +
-      "Returns matching paths sorted alphabetically. Read-only.",
+      "Returns matching paths sorted alphabetically. Read-only and project-scoped: " +
+      "do not pass a base_path outside the active project. For an operator-named external path, use a foreground shell_cmd instead.",
     parameters: {
       type: "object",
       properties: {
@@ -39,7 +40,10 @@ export const globFilesTool: Tool = {
     const { pattern, base_path } = parsed.data;
     const scoped = resolveInScope(base_path ? expandHome(base_path) : ctx.root, ctx.root);
     if (!scoped.ok) {
-      return { ok: false, output: `glob_files: base_path is outside project scope: ${scoped.path}` };
+      return {
+        ok: false,
+        output: `glob_files: base_path is outside project scope: ${scoped.path}\nRecovery: do not retry glob_files for this path. If the operator explicitly named it, inspect it with a foreground shell_cmd using the exact absolute path.`,
+      };
     }
     const base = scoped.path;
 

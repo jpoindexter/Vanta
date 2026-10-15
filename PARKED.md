@@ -86,3 +86,66 @@ Agentic Harness Engineering (https://github.com/china-qijizhifeng/agentic-harnes
 
 ## Reference-agent cloud/platform half — against local-first (2026-06-16)
 Extracted the local-compatible operator slice of a reference agent into 5 horizon cards (VANTA-KANBAN/-BLUEPRINTS/-SKILLS-HUB/-COST-GUARD/-SUGGESTIONS). The rest is **parked, deliberately** — it's the opposite of Vanta's north star (local-first, kernel-gated, no platform, no SaaS): cloud/serverless terminal backends (Modal, Daytona, Singularity, cloud-VM, hibernate-wake), the 6 comms platforms beyond Vanta's scope (already parked, Rule of 3), the web dashboard + account/subscription, and the batch trajectory/datagen pipeline (already parked). Most of that operator surface (cron, webhooks, comms, brain, skills, sessions, subagents, MCP, providers, profiles, voice, pairing, cost tracking) Vanta already has.
+
+## Total-realignment parks (2026-07-30)
+
+The controlling correction started from active commit
+`a751cb17dcb768097798b4278882a64103527811`, not stale `origin/main`. It
+preserved all 1,319 active records and parked all 22 cards that were open on
+that active baseline. They were not deleted; their complete IDs, bodies,
+dependencies, sources, and prior notes remain in `roadmap.json`.
+
+Dispositions:
+
+- browser workflow action → hidden behind intent and dependency-gated by
+  TRUST-03/TRUST-05;
+- streaming audio, native-runtime, startup/stream performance, and EF support
+  controls/expiry →
+  consolidated into UX-03/UX-04/EVAL-01;
+- gateway delivery obligation → consolidated into OP-04/TRUST-04;
+- reward-seeking research/evaluation/release cards → deferred to LAB-01/EVAL-01,
+  with evaluator-integrity requirements retained under TRUST-06.
+- integration-state, Trello, Dropbox, and Box/Drive/Rovo connector work →
+  deferred behind TRUST-01/LIFE-01/PACK-01.
+
+The complete 22-card one-to-one mapping is in
+`docs/strategy-realignment-correction-2026-07-30.md`. The earlier
+`docs/strategy-realignment-2026-07-30.md` records the superseded stale-baseline
+first pass. Revival requires its canonical dependency and acceptance owner to
+be active; do not revive a duplicate product lane.
+
+## size-gate baseline for vendored desktop-next code (ratchet: only new/worsened violations block)
+**Captured:** 2026-10-13. The vendored Hermes renderer under `desktop-next/apps/desktop` carries large pre-existing size-gate violations (for example `src/components/assistant-ui/tool/fallback.tsx` at 1212 lines, plus many functions over 50 lines or complexity 10). The whole-file pre-commit lint blocks any commit that stages such a file.
+**Why parked:** Splitting vendored upstream files is not shippable value before the desktop-next milestone; it also makes future upstream diffs harder to read. Interim rule: commit with `VANTA_LINT_BLOCK=0` (warn-only) after verifying the functions you touched are within limits and say so in the commit body. gitleaks and the architecture boundary check always run.
+**Cost to revisit:** Add a baseline file (path -> violation count/size) for `desktop-next/`, make the lint compare against it so only new or worsened violations block, then decompose the worst offenders one file per slice.
+
+## Full-access warning: reset control in Settings (2026-10-14)
+Captured: the legacy Safety settings had "reset acknowledgement". `resetFullAccessAcknowledgement(root)` exists and is tested in
+`desktop-next/apps/desktop/src/store/full-access-warning.ts`, but no settings page calls it.
+Why parked: V-019 done criterion is the warning before Full access, not a reset surface; the version bump already re-asks.
+Cost to revisit: one row in a Safety settings page (the settings pages that read /api/config are still inert).
+
+## Queued messages are not shown as chat bubbles while the server runs them (2026-10-14)
+Captured: when the server drains its queue inside one `POST /api/chat` (or `queue.run`), the live thread shows the streamed text but not the queued user messages, and only the last answer survives as the final bubble. Reopening the chat (or restarting) shows the saved transcript in the right order (proof step b7).
+Why parked: V-006 done criterion is the durable queue with edit/reorder/cancel/steer/retry and correct run order, all proven; the live rendering needs a per-instruction boundary event from the server (`queue.started` with the text) mapped to a user bubble plus `message.interim`.
+Cost to revisit: one typed SSE event in `vanta-ts/src/desktop/handler-chat-execution.ts` (`claimNextInstruction`), one mapper case in `desktop-next/apps/desktop/src/api/vanta/event-mapper.ts`, a renderer path that appends a user message. About half a day with a real-app proof.
+
+## Stepping through queued edits with the arrow keys loses the words if the save is refused (2026-10-14)
+Captured: saving an edit of a server-saved message and then arrow-stepping on to the next one cannot put the typed words back when the server refuses the first save (changed elsewhere). The panel shows why; the typed words of that one edit are gone. Plain Enter-save keeps them.
+Why parked: needs the step flow to await the save; rare (requires a second writer and arrow stepping).
+Cost to revisit: make `stepQueuedEdit` async or hold the step until `saveRemoteEdit` resolves (`app/chat/composer/hooks/use-composer-queue.ts`).
+
+## Server failure classifier reads "rejected" as "a needed action was not approved" (2026-10-14)
+Captured: `classifyDesktopFailure` (`vanta-ts/src/desktop/handler-chat-receipts.ts`) matches /denied|rejected|not approved|approval/ on the error text, so a provider reply such as "the model server rejected the request" shows the user_denied reason. Found while writing the run-recovery integration test (the test uses different wording).
+Why parked: shared server code used by the old renderer too; the fix is a classifier ordering decision, not a UI one.
+Cost to revisit: put the shared provider-error taxonomy ahead of the text bank for non-auth reasons and add the case to `provider-auth-recovery.test.ts`'s neighbour.
+
+## Messages with attachments stay in the window queue, not the server queue (2026-10-14)
+Captured: `POST /api/chat/queue` carries text and images only. A queued message with a file attachment or a frozen terminal selection uses the Hermes window-local queue (localStorage), so it does not survive a cleared profile and is not part of the durable list.
+Why parked: V-006 is the durable queue for text; attachments need a queue-side file reference format.
+Cost to revisit: extend `turn-queue-images.ts` to files (paths relative to the project) and send `files` from `queue.enqueue`.
+
+## Ideas from the ECC harness (affaan-m/ECC), not its code
+**Captured:** 2026-10-14. Audited statically (MIT, v2.2.3, no install-time scripts, no obfuscation, hooks write locally, no injection or exfiltration text found; not every skill read line by line). Not installed: it duplicates what the owner already has (feature and debug orchestrators, learning loop, secret and size gates, cost tracking), and adds 311 skills and 71 agents to every session. Worth reading, not installing: `mcp-dependency-review` (static review of MCP config for mutable package references; extends the local package guard), `loop-design-check` (failure modes of agent loops: spinning, gaming the verifier; relevant to the company tick and heartbeats), `agent-security-hardening` (checklist for agents that process untrusted content), `skill-comply` (shows whether skills and rules are actually followed).
+**Why parked:** none of it blocks a v0 criterion; the current work is Desktop Next parity and the startup and offline fixes.
+**Cost to revisit:** small (read three skill files, turn the useful checks into Vanta tests); clone is at ~/Documents/GitHub/_vendor/ECC.

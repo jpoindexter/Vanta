@@ -6,7 +6,12 @@ sidebar_position: 1
 
 # MCP integration
 
-Vanta speaks the Model Context Protocol both directions — it mounts other MCP servers as tools, and it can expose itself as an MCP server. Either way, every call stays kernel-gated.
+Vanta speaks the Model Context Protocol both directions — it mounts other MCP
+servers as tools, and it can expose a bounded allowlist as an MCP server.
+Mounted calls, connector launches, configuration effects, and the bounded
+read-only server path are classified by the shared effect gateway and kernel.
+The checked effect inventory is the coverage boundary; a new transport or tool
+must be classified and tested before it is considered mediated.
 
 ## Connector lifecycle
 
@@ -24,7 +29,11 @@ vanta mcp receipts
 
 A connector is not **Ready** until its transport test passes and project trust is explicit. OAuth connectors report **Needs setup** until authorization completes. Disabling writes the project-local MCP policy, so every Vanta host sees the same decision. Test, reconnect, trust, enable/disable, install, and import actions write credential-free receipts under `.vanta/mcp/`.
 
-The registry does not weaken execution safety. Trust decides whether a connector may mount; every MCP tool call still passes through the kernel, and a kernel `Block` cannot be overridden by connector settings.
+The registry does not weaken the standard execution path. Trust decides whether
+a connector may mount; mounted calls are assessed by the shared gateway and
+kernel, and connector settings cannot loosen a kernel `Block`. Connector
+configuration, launch, operation, and receipts are included in the checked
+effect inventory.
 
 To deliberately mount enabled connectors at every session start, set
 `mcp.autoMount` to `true` in Vanta settings or export
@@ -48,6 +57,27 @@ The client is a dependency-free stdio and remote HTTP JSON-RPC implementation (`
 ### Mount at runtime
 
 The `mount_mcp` tool spawns an MCP server mid-session and registers its tools into the live registry. The spawn itself is gated by the kernel.
+
+### Optional Scrapling fallback
+
+Vanta's catalog includes Scrapling for sites that need stronger extraction than
+`web_fetch`. Keep it in an isolated user-owned environment, then install the
+read-mostly connector:
+
+```bash
+python3 -m venv ~/.vanta/tools/scrapling
+~/.vanta/tools/scrapling/bin/pip install 'scrapling[ai]==0.4.14'
+~/.vanta/tools/scrapling/bin/scrapling install
+mkdir -p ~/.local/bin
+ln -sf ~/.vanta/tools/scrapling/bin/scrapling ~/.local/bin/scrapling
+vanta mcp install scrapling
+vanta mcp trust scrapling allow
+vanta mcp test scrapling
+```
+
+The default allowlist exposes only `get`, `fetch`, and `stealthy_fetch`.
+Bulk variants require an explicit `--with-tool`; every target, proxy, and CDP URL
+passes Vanta's public-network SSRF guard before Scrapling receives it.
 
 ## As a server — expose Vanta
 

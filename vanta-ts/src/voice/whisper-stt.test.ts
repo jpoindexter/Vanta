@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -40,9 +40,37 @@ describe("transcribeAudio (injected whisper)", () => {
   });
 });
 
+describe("transcribeAudio model selection (injected whisper)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    { env: "base", model: undefined, expected: "base" },
+    { env: "  small  ", model: undefined, expected: "small" },
+    { env: "base", model: "medium", expected: "medium" },
+    { env: undefined, model: undefined, expected: "tiny" },
+    { env: "", model: undefined, expected: "tiny" },
+    { env: "   ", model: undefined, expected: "tiny" },
+  ])("uses $expected for env=$env and explicit model=$model", ({ env, model, expected }) => {
+    vi.stubEnv("VANTA_STT_MODEL", env);
+    const run = vi.fn<WhisperRunner>(() => "");
+    const res = transcribeAudio("/a/model-selection.wav", {
+      run,
+      readText: () => "hello vanta",
+      model,
+    });
+    expect(res).toEqual({ ok: true, text: "hello vanta" });
+    expect(run).toHaveBeenNthCalledWith(1, ["--help"]);
+    expect(run).toHaveBeenNthCalledWith(2, buildWhisperArgs("/a/model-selection.wav", {
+      model: expected,
+      outputDir: tmpdir(),
+    }));
+    expect(run).toHaveBeenCalledTimes(2);
+  });
+});
+
 // LIVE: say → whisper → text. Opt-in (a model run is slow) — proven manually +
 // here with VANTA_TEST_VOICE=1. The mocked unit tests above always run.
-const LIVE = whisperAvailable() && process.env.VANTA_TEST_VOICE === "1";
+const LIVE = process.env.VANTA_TEST_VOICE === "1" && whisperAvailable();
 
 describe.skipIf(!LIVE)("transcribeAudio (LIVE whisper)", () => {
   it("transcribes real say-generated speech to text", () => {

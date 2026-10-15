@@ -23,6 +23,7 @@ import type { Goal } from "../types.js";
 import type { buildRegistry } from "../tools/index.js";
 import type { KernelClient } from "../kernel/client.js";
 import { appendDocRouterEvent } from "../context/router-health.js";
+import { skillVisibleToModel } from "../skills/overrides.js";
 
 // Runtime extensions (settings env apply + MCP servers / plugins / MCP skills
 // mounting) are a distinct sub-concern — moved to ./runtime-extensions.ts and
@@ -77,13 +78,18 @@ export async function loadPromptContext(repoRoot: string, activeGoalIds: number[
 
 /** Install the bundled skill library + read the skill index (name + description). */
 async function loadSkillIndex(): Promise<{ name: string; description: string }[]> {
-  const { installSkillLibrary } = await import("../skills/library.js");
-  await installSkillLibrary({ env: process.env }).catch(() => {});
+  const { listBundledSkills } = await import("../skills/library.js");
   // SKILL-TRIGGERS: (re)register declared triggers into ~/.vanta/hooks.json (user
   // scope, idempotent). Best-effort — never blocks session start.
   const { syncSkillTriggers } = await import("../skills/triggers-sync.js");
   await syncSkillTriggers({ env: process.env }).catch(() => {});
-  return (await listSkills(process.env).catch(() => [])).map((s) => ({
+  const [bundled, user] = await Promise.all([
+    listBundledSkills({ env: process.env }).catch(() => []),
+    listSkills(process.env).catch(() => []),
+  ]);
+  const byName = new Map(bundled.map((skill) => [skill.meta.name.toLowerCase(), skill]));
+  for (const skill of user) byName.set(skill.meta.name.toLowerCase(), skill);
+  return [...byName.values()].sort((a, b) => a.meta.name.localeCompare(b.meta.name)).map((s) => ({
     name: s.meta.name,
     description: s.meta.description,
   }));
@@ -181,10 +187,11 @@ export async function buildRunPrompt(o: {
   const ralphContinuity = skipMemory(isolation) ? undefined : await loadRalphContinuity(o.repoRoot);
   // Task-condition the skill index for a real one-shot task (interactive keeps the full
   // index → stable cached prefix). Opt out with VANTA_SKILL_SUBSET=0.
-  const skills = process.env.VANTA_SKILL_SUBSET === "0"
-    ? ctx.skills
-    : selectSkillsForTask(ctx.skills ?? [], o.instruction);
   const settings = skipSettings(isolation) ? {} : await loadSettings(o.repoRoot, process.env);
+  const offered = (ctx.skills ?? []).filter((skill) => skillVisibleToModel(skill.name, settings.skillOverrides));
+  const skills = process.env.VANTA_SKILL_SUBSET === "0"
+    ? (ctx.skills ? offered : ctx.skills)
+    : selectSkillsForTask(offered, o.instruction);
   const ndPreferences = await loadPromptNdPreferences(process.env);
   const systemPrompt = await buildSystemPrompt({
     root: o.repoRoot,

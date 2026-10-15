@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TRUST-02 Packaged Closure Audit</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TRUST-02 Packaged Closure Audit</h1>
+</header>
+<h1 id="trust-02-packaged-closure-audit">TRUST-02 Packaged Closure
+Audit</h1>
+<p>Date: 2026-08-01</p>
+<p>Branch: <code>codex/trust-02-packaged-receipts-20260801</code></p>
+<p>Base: <code>9cd34c3575b4bbac188c69d9d7ec7dd8b44cff1c</code></p>
+<p>Observed remote <code>main</code>:
+<code>4911ae44bbb35beef4511ba298475ba5a82b7e1c</code></p>
+<p>Roadmap state: <code>TRUST-02</code> remains
+<code>building</code></p>
+<h2 id="verdict">Verdict</h2>
+<p>The exact local packaged Darwin ARM64 Done path for the bounded
+<code>TRUST-02</code> card passes. A signed packaged Desktop app denied
+unauthenticated local API use, kept synthetic project and audit secrets
+out of model-visible tool results, required a fresh exact decision for
+the complete hook payload, kept the hook inactive in the writing
+process, activated it only after restart, and produced durable approval,
+effect-transition, and action-receipt evidence.</p>
+<p>This is not a shipment, release, merge, notarization, live-provider,
+or cross-platform claim. The roadmap card remains <code>building</code>
+on this unmerged draft stack.</p>
+<h2 id="before-and-after">Before and after</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Before this branch</th>
+<th>After this branch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Protected project reads/writes</td>
+<td>A protected refusal from the file-path policy could be treated as an
+out-of-zone request. Full Access could approve it, exposing
+<code>.env</code> or <code>.vanta/audit.key</code>.</td>
+<td>Protected project credential and audit refusals are explicitly
+non-approvable. Full Access cannot convert them into access.</td>
+</tr>
+<tr>
+<td>Exact control-plane approvals</td>
+<td>Fresh exact confirmation reached the operator, but the tool-internal
+transition was not durably written to <code>approvals.jsonl</code>.</td>
+<td>Exact confirmation persists <code>requested</code> and terminal
+<code>approved</code>, <code>denied</code>, or <code>expired</code>
+transitions with an action SHA-256.</td>
+</tr>
+<tr>
+<td>Denial truth</td>
+<td>Several definite file denials omitted an effect disposition and
+could settle as <code>unknown</code>.</td>
+<td>Project control-plane, shell-startup, and Git-hook denials carry
+<code>effectDisposition: denied</code>.</td>
+</tr>
+<tr>
+<td>Desktop authentication proof</td>
+<td>The source smoke covered a narrower local boundary.</td>
+<td>The packaged smoke denies nine missing-token, wrong-token, and
+hostile-origin read/mutation routes and verifies trusted renderer
+access.</td>
+</tr>
+<tr>
+<td>Packaged restart evidence</td>
+<td>No single retained proof exercised hook denial, credential
+inspection, exact approval, same-run inactivity, process restart,
+activation, and receipts together.</td>
+<td>One packaged proof executes the whole sequence with a local
+synthetic provider and emits a redacted machine-readable receipt.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="exact-packaged-path">Exact packaged path</h2>
+<p>The proof created a disposable project and synthetic values for
+<code>.env</code>, <code>.vanta/audit.key</code>, and
+<code>.vanta/events.jsonl</code>. It then executed:</p>
+<ol type="1">
+<li>A model-requested <code>.vanta/hooks.json</code> write denied
+through the live Desktop approval API. No file was created.</li>
+<li>Model-requested <code>read_file</code> calls for project credentials
+and audit state, plus a <code>shell_cmd</code> attempt to read both
+secrets and overwrite <code>.env</code>. No synthetic secret reached the
+model and <code>.env</code> remained byte-identical.</li>
+<li>The same hook payload approved through the live Desktop API. The
+approval description included the exact byte count and payload
+SHA-256.</li>
+<li>A normal file write in the same process. The newly written hook did
+not run.</li>
+<li>A packaged app shutdown and restart against the same project,
+followed by a normal file write. The hook ran only after restart.</li>
+<li>Parsing of <code>tool-effects.jsonl</code>,
+<code>action-receipts.jsonl</code>, and <code>approvals.jsonl</code>
+before disposal. Every required tool call had pending and settled
+evidence, and neither synthetic secret appeared in the evidence.</li>
+</ol>
+<p>Observed receipt totals:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th style="text-align: right;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hostile Desktop requests denied</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td>Synthetic secret exposures</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Synthetic secret mutations</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Exact approval transitions</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>Same-run hook activation</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>Restart hook activation</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Required action receipts</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td>Retained tool transitions</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr>
+<td>Retained action receipts</td>
+<td style="text-align: right;">8</td>
+</tr>
+</tbody>
+</table>
+<p>Hook payload SHA-256:
+<code>5ba1867041025c0dcce39a3f16a4d8e45c6de6c21d7bd37ffc0520e965ea4214</code>.</p>
+<h2 id="verification-ledger">Verification ledger</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 30%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th style="text-align: right;">Exit</th>
+<th>Observed result</th>
+<th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>node --test scripts/lib/trust-02-packaged-proof.node-test.mjs</code></td>
+<td style="text-align: right;">0</td>
+<td>3/3 proof-helper and malformed-evidence checks passed.</td>
+<td>Packaged behavior by itself.</td>
+</tr>
+<tr>
+<td>Focused writable-zone, file-write, and permission Vitest run</td>
+<td style="text-align: right;">0</td>
+<td>85/85 passed.</td>
+<td>Electron or restart behavior.</td>
+</tr>
+<tr>
+<td><code>npm run typecheck</code></td>
+<td style="text-align: right;">0</td>
+<td>Runtime TypeScript passed.</td>
+<td>Runtime behavior.</td>
+</tr>
+<tr>
+<td><code>npm run desktop:renderer:typecheck</code></td>
+<td style="text-align: right;">0</td>
+<td>Renderer TypeScript passed.</td>
+<td>Packaged renderer behavior.</td>
+</tr>
+<tr>
+<td><code>npm run desktop:trust-02:proof</code></td>
+<td style="text-align: right;">0</td>
+<td>Signed package, 9/9 hostile Desktop denials, exact
+hook/secret/restart proof, and retained receipt checks passed.</td>
+<td>Other OSes, notarization, or live external providers.</td>
+</tr>
+<tr>
+<td><code>npm test</code></td>
+<td style="text-align: right;">0</td>
+<td>1,507 files; 13,909 passed; 3 skipped.</td>
+<td>Rust, website, or package signing.</td>
+</tr>
+<tr>
+<td><code>cargo test</code></td>
+<td style="text-align: right;">0</td>
+<td>70/70 passed; one pre-existing unused-import warning.</td>
+<td>Protected Rust changes; none were made.</td>
+</tr>
+<tr>
+<td><code>npm run build</code> in <code>vanta-website</code></td>
+<td style="text-align: right;">0</td>
+<td>Optimized production build generated.</td>
+<td>Deployment.</td>
+</tr>
+<tr>
+<td>Semgrep scoped scan</td>
+<td style="text-align: right;">0</td>
+<td>0 findings after replacing a harness dynamic regular
+expression.</td>
+<td>Whole-history security review.</td>
+</tr>
+<tr>
+<td>Gitleaks scoped file scans</td>
+<td style="text-align: right;">0</td>
+<td>0 findings with redaction enabled.</td>
+<td>Credentials outside the scoped files.</td>
+</tr>
+<tr>
+<td><code>git diff --check</code></td>
+<td style="text-align: right;">0</td>
+<td>No whitespace errors.</td>
+<td>Behavioral correctness.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="repository-and-authority-boundary">Repository and authority
+boundary</h2>
+<ul>
+<li>Root <code>src/**</code>, <code>vanta-ts/src/factory/**</code>, and
+<code>MANIFESTO.md</code> are unchanged.</li>
+<li>The separate dirty checkout was read only. At the evidence
+checkpoint it had 15 status entries with status SHA-256
+<code>300a0aa01479359b3cee0ca8ba17432c625bb62707022e909991fad507b6bd53</code>.</li>
+<li>The package reused the verified protected Rust kernel; no Rust
+source changed.</li>
+<li>The package was signed locally with the existing Developer ID. It
+was not notarized, uploaded, published, deployed, or released.</li>
+<li>GitHub Actions remain disabled and were not invoked.</li>
+<li>No merge, force-push, direct push to <code>main</code>,
+external-account action, or live provider effect occurred.</li>
+</ul>
+<p>Package evidence:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Vanta.app</code> <code>app.asar</code></td>
+<td><code>aee2a72f1cd0afe6d4ae682f047462523beb00bb1e38d1040c4e39fbc71387c7</code></td>
+</tr>
+<tr>
+<td>Embedded kernel</td>
+<td><code>dbce0757421076e0d2d85e872cdf5dbcca09078fccfb9c5291f15fb4454c0695</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="claim-ledger">Claim ledger</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Status</th>
+<th>Evidence boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unauthenticated local Desktop/API requests produce no tested host
+mutation</td>
+<td>Executed</td>
+<td>Nine packaged hostile requests plus draft readback; not every future
+route.</td>
+</tr>
+<tr>
+<td>Project credentials and audit signing state remain outside ordinary
+model tool reach</td>
+<td>Executed</td>
+<td>Packaged <code>read_file</code> and shell attempts using synthetic
+secrets; no live credential values.</td>
+</tr>
+<tr>
+<td>Exact control-plane approval is durable and payload-bound</td>
+<td>Executed</td>
+<td>Four approval transitions and one hook payload hash in the packaged
+flow.</td>
+</tr>
+<tr>
+<td>Hook activation is restart-bounded</td>
+<td>Executed</td>
+<td>Same-run absence and post-restart activation in the packaged
+flow.</td>
+</tr>
+<tr>
+<td>Required effect evidence is retained and secret-free</td>
+<td>Executed</td>
+<td>21 tool transitions and eight action receipts parsed before
+disposal; redacted summary retained in the repository.</td>
+</tr>
+<tr>
+<td><code>TRUST-02</code> is shipped</td>
+<td>Not claimed</td>
+<td>Branch is unmerged; cross-platform, live-provider, notarization,
+publication, and release gates were not run.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="retained-evidence">Retained evidence</h2>
+<ul>
+<li>Machine-readable receipt:
+<code>docs/trust-02-packaged-receipt-2026-08-01.json</code></li>
+<li>Human-readable audit:
+<code>docs/trust-02-packaged-closure-audit-2026-08-01.html</code></li>
+<li>Effect inventory:
+<code>docs/trust-02-effect-inventory-2026-07-31.md</code></li>
+</ul>
+<p>No new roadmap record was added, and <code>TRUST-02</code> was not
+promoted.</p>
+</body>
+</html>

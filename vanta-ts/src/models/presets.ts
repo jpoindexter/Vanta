@@ -7,9 +7,9 @@ import { EFFORT_LEVELS, type EffortLevel } from "../types.js";
 // OP-MODEL-PRESETS — per-model preference memory: selecting a model re-applies
 // the effort you last used WITH THAT MODEL (a local 8B wants high effort, a
 // frontier model medium — re-tuning on every switch is the friction). Stored at
-// ~/.vanta/model-presets.json, keyed by modelId. Vanta has no separate "fast
-// mode" toggle (effort IS the speed/quality dial here), so the preset carries
-// effort; the schema leaves room for future per-model keys.
+// ~/.vanta/model-presets.json, keyed by modelId. This legacy preference store
+// remembers effort only. Provider-declared speed is a live session/project
+// setting handled by the shared model-settings capability contract.
 
 export const ModelPresetSchema = z.object({
   effort: z.enum(EFFORT_LEVELS).optional(),

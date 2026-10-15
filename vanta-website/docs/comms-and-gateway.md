@@ -10,7 +10,10 @@ Vanta can read and (with approval) send across email, calendar, drive, and chat 
 
 ## Google (Gmail / Calendar / Drive)
 
-One-time OAuth, then per-user tokens stored at `~/.vanta/google-tokens.json` (auto-refresh):
+One-time OAuth, then per-user tokens stored at `~/.vanta/google-tokens.json`
+(auto-refresh). Gmail, Calendar, and Drive authorization must be requested
+separately and incrementally; connecting one service must not silently widen
+another service's scope.
 
 ```bash
 vanta auth google
@@ -19,11 +22,17 @@ vanta auth google
 | Tool | Access |
 |------|--------|
 | `gmail_search`, `gmail_read` | read |
-| `gmail_draft`, `gmail_send` | **always approval-gated** |
+| `gmail_draft`, `gmail_send` | standard tool path requires exact fresh approval |
 | `calendar_read` + `calendar_create`/`calendar_update` | read + gated writes |
 | `drive_read` + `drive_create`/`drive_update` | read + gated writes |
 
-Every outbound action (send / draft / create / update) is approval-gated. Provision the OAuth client once (`VANTA_GOOGLE_CLIENT_ID` / `VANTA_GOOGLE_CLIENT_SECRET`).
+The target contract requires an exact preview and fresh authority for outbound
+effects. Before MIME construction or authorization hashing, Gmail `to` and
+`subject` must reject CR and LF. Mutations require immutable provider IDs,
+preconditions, idempotency, readback, and compensation where possible. These
+are active acceptance requirements, not implied by the current tool labels.
+Provision the OAuth client once (`VANTA_GOOGLE_CLIENT_ID` /
+`VANTA_GOOGLE_CLIENT_SECRET`).
 
 ## Messaging
 
@@ -31,7 +40,10 @@ Every outbound action (send / draft / create / update) is approval-gated. Provis
 
 Telegram uses a long-poll `getUpdates` + `sendMessage` loop (no SDK). Its setup flow checks existing state, validates token syntax and calls Bot API `getMe` before persisting, then collects an optional numeric owner allowlist. The prior configuration remains intact when verification fails. The TUI and Desktop share deterministic unconfigured, repair-needed, gateway-stopped, polling-live, and webhook-live status rules with one next action. Desktop answers setup questions without requiring an active model provider; its `/` palette opens Telegram's existing Connect form directly.
 
-The `send_message` tool delivers an outbound message through a configured platform (approval-gated).
+The standard `send_message` tool delivers an outbound message through a
+configured platform using the normal approval path. Gateway progress, reply,
+and native-deliverable paths have direct adapter calls and remain in the
+universal effect-path inventory.
 
 Allowlisted inbound messages accept the same bounded context syntax as the local composer:
 `@file`, `@folder`, `@diff`, `@staged`, `@git:N`, and `@url`. Expansion uses that message's

@@ -5,7 +5,7 @@ import { readCanvasArtifact } from "../canvas/artifact.js";
 import { MESSAGING_CATALOG, messagingPlatformById, platformAvailability } from "../gateway/platforms/registry.js";
 import { upsertEnvMigratingLegacy } from "../setup.js";
 import { probeMessaging } from "../setup/assistant.js";
-import { validateTelegramAllowlist, validateTelegramToken } from "../setup-messaging.js";
+import { labelForEnv, messagingCredentialUpdates, validateTelegramUpdates } from "./messaging-input.js";
 import { listAllSessions, loadSession } from "../sessions/store.js";
 import { listSkills } from "../skills/store.js";
 
@@ -44,8 +44,8 @@ export type DesktopArtifact = {
 export async function desktopCapabilities(tools: { name: string; description: string }[]): Promise<DesktopCapability[]> {
   const skillRows = await listSkills(process.env).catch(() => []);
   return [
-    ...tools.map((tool) => ({ id: `tool:${tool.name}`, kind: "tool" as const, name: tool.name, description: tool.description, tags: ["Vanta tool"] })),
-    ...skillRows.map((skill) => ({ id: `skill:${skill.meta.name}`, kind: "skill" as const, name: skill.meta.name, description: skill.meta.description || "Project skill", tags: skill.meta.tags ?? [] })),
+    ...tools.map((tool) => ({ id: `tool:${tool.name}`, kind: "tool" as const, name: tool.name, description: tool.description, tags: ["Registered", "Setup checked when used"] })),
+    ...skillRows.map((skill) => ({ id: `skill:${skill.meta.name}`, kind: "skill" as const, name: skill.meta.name, description: skill.meta.description || "Project skill", tags: ["Instructions, not tool access", ...(skill.meta.tags ?? [])] })),
   ].sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -90,32 +90,9 @@ export async function testDesktopMessagingPlatform(id: string, env: NodeJS.Proce
 export async function saveDesktopMessagingPlatform(root: string, id: string, values: unknown, deps: MessagingProbeDeps = {}): Promise<DesktopMessagingPlatform> {
   const platform = messagingPlatformById(id);
   if (!platform?.implemented) throw new Error("Messaging platform is not available.");
-  if (!values || typeof values !== "object" || Array.isArray(values)) throw new Error("Credential values are required.");
-  const supplied = values as Record<string, unknown>;
-  const updates: Record<string, string> = { ...(platform.enableEnv ?? {}) };
-  for (const key of platform.requiredEnv) {
-    const value = supplied[key];
-    if (typeof value === "string" && value.trim()) {
-      if (value.length > 16_000) throw new Error(`${labelForEnv(key)} is too long.`);
-      updates[key] = value.trim();
-    } else if (!process.env[key]?.trim()) {
-      throw new Error(`${labelForEnv(key)} is required.`);
-    }
-  }
+  const { supplied, updates } = messagingCredentialUpdates(platform, values, process.env);
   if (id === "telegram") {
-    const accessMode = supplied.accessMode;
-    const allow = typeof supplied.VANTA_TELEGRAM_ALLOW === "string" ? supplied.VANTA_TELEGRAM_ALLOW.trim() : "";
-    if (accessMode !== "pairing" && accessMode !== "allowlist") throw new Error("Choose how new Telegram chats are authorized.");
-    if (accessMode === "allowlist") {
-      const effectiveAllow = allow || process.env.VANTA_TELEGRAM_ALLOW?.trim() || "";
-      if (!effectiveAllow) throw new Error("Enter at least one Telegram chat ID for allowlist access.");
-      if (!validateTelegramAllowlist(effectiveAllow)) throw new Error("Telegram chat IDs must be comma-separated numbers.");
-      if (allow) updates.VANTA_TELEGRAM_ALLOW = allow.replace(/\s+/g, "");
-    } else {
-      updates.VANTA_TELEGRAM_ALLOW = "";
-    }
-    const token = updates.VANTA_TELEGRAM_TOKEN ?? process.env.VANTA_TELEGRAM_TOKEN ?? "";
-    if (!validateTelegramToken(token)) throw new Error("Telegram token format is invalid. Paste the complete HTTP API token from @BotFather.");
+    validateTelegramUpdates(supplied, updates, process.env);
     const check = await (deps.probe ?? probeMessaging)({ ...process.env, ...updates });
     if (!check.ok) throw new Error(`Telegram verification failed: ${check.detail}. Nothing was saved.`);
   }
@@ -136,6 +113,7 @@ export async function desktopArtifacts(root: string): Promise<DesktopArtifact[]>
   const sessions = await listAllSessions(process.env);
   const seen = new Set(artifacts.map((item) => item.id));
   for (const meta of sessions) {
+    if (meta.diagnostic) continue;
     const session = await loadSession(meta.id, process.env);
     if (!session) continue;
     for (const message of session.messages) {
@@ -145,10 +123,6 @@ export async function desktopArtifacts(root: string): Promise<DesktopArtifact[]>
     }
   }
   return artifacts;
-}
-
-function labelForEnv(key: string): string {
-  return key.replace(/^VANTA_/, "").toLowerCase().split("_").map((part) => part[0]?.toUpperCase() + part.slice(1)).join(" ");
 }
 
 function extractUrls(content: string): string[] {

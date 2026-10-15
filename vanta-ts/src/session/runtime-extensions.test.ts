@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { constants } from "node:fs";
 import { loadRuntimeExtensions } from "./runtime-extensions.js";
 import { ToolRegistry } from "../tools/registry.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 const TMP_BASE = fileURLToPath(new URL("../../.vitest-tmp/", import.meta.url));
 
@@ -49,7 +50,7 @@ describe("loadRuntimeExtensions — safe mode", () => {
 
   it("imports no enabled user plugin and spawns no configured MCP server", async () => {
     const registry = new ToolRegistry();
-    const result = await loadRuntimeExtensions(root, registry as never, undefined, { plugins: { enabled: ["unsafe"] } });
+    const result = await loadRuntimeExtensions(root, registry as never, undefined, { settings: { plugins: { enabled: ["unsafe"] } } });
 
     expect(result.pluginCommands.loadedPlugins()).toEqual([]);
     expect(result.mcpSkills).toEqual([]);
@@ -98,7 +99,12 @@ describe("loadRuntimeExtensions — MCP startup is opt-in", () => {
   });
 
   it("mounts at startup only after an explicit settings opt-in", async () => {
-    await loadRuntimeExtensions(root, new ToolRegistry() as never, undefined, { mcp: { autoMount: true } });
+    await loadRuntimeExtensions(
+      root,
+      new ToolRegistry() as never,
+      undefined,
+      { settings: { mcp: { autoMount: true } }, effectGate: allowTestEffectGate(root) },
+    );
     await expect(access(marker, constants.F_OK)).resolves.toBeUndefined();
   });
 });

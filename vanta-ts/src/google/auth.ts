@@ -3,21 +3,17 @@ import type { OAuth2Client, Credentials } from "google-auth-library";
 import { parseTokenFile, loadClientCreds, loadTokens, saveClientCreds, saveTokens, type StoredTokens } from "./auth-store.js";
 import { parseClientJson, publishStateWarning, type ClientCreds } from "./client-json.js";
 import { awaitLoopbackCode, awaitCodeViaKernelRelay } from "./auth-callback.js";
+import { googleScopesFor, type GoogleService } from "./capability.js";
 export { parseTokenFile } from "./auth-store.js";
 export { readApiToken, pollKernelForCode } from "./auth-callback.js";
+export { googleScopesFor, GOOGLE_SERVICES, isGoogleService } from "./capability.js";
+export type { GoogleService } from "./capability.js";
 
 /**
  * One-time Google OAuth (loopback redirect consent) and token persistence.
- * Tokens live at <VANTA_HOME>/google-tokens.json and carry the refresh_token so
- * getAccessToken can mint fresh access tokens forever without re-consent.
+ * Tokens live in one file/keychain slot per Google capability so Gmail,
+ * Calendar, and Drive authority can be granted and revoked independently.
  */
-
-/** All scopes the gmail/calendar/drive tools need, requested once up front. */
-const SCOPES = [
-  "https://www.googleapis.com/auth/gmail.modify",
-  "https://www.googleapis.com/auth/calendar",
-  "https://www.googleapis.com/auth/drive",
-];
 
 function envClientCreds(env: NodeJS.ProcessEnv): ClientCreds | null {
   const clientId = env.VANTA_GOOGLE_CLIENT_ID?.trim();
@@ -27,7 +23,7 @@ function envClientCreds(env: NodeJS.ProcessEnv): ClientCreds | null {
 
 const MISSING_CLIENT =
   "Google client credentials missing. One-time setup: download the OAuth client JSON " +
-  "(type: Desktop app) from Google Cloud Console and run: vanta auth google --client " +
+  "(type: Desktop app) from Google Cloud Console and run: vanta auth google gmail --client " +
   "<client_secret.json> (no copy-paste). Or connect Google from Vanta Desktop.";
 
 /**
@@ -92,6 +88,8 @@ export interface GoogleAuthOptions {
   clientPath?: string;
   /** Sink for the 7-day-expiry guidance (defaults to console.log). */
   notify?: (msg: string) => void;
+  /** One independently revocable Google capability. Defaults to Gmail. */
+  service?: GoogleService;
 }
 
 export async function runGoogleAuth(
@@ -100,6 +98,7 @@ export async function runGoogleAuth(
 ): Promise<void> {
   // eslint-disable-next-line no-console -- interactive CLI consent step
   const notify = opts.notify ?? ((m: string) => console.log(m));
+  const service = opts.service ?? "gmail";
   // Fail on missing/bad creds before opening a listener, so we never orphan a server.
   const creds = await resolveClientCreds(opts.clientPath, env);
   // Best-effort: client_secret.json carries no publishing-status field, so the
@@ -121,7 +120,7 @@ export async function runGoogleAuth(
   const authUrl = client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
-    scope: SCOPES,
+    scope: googleScopesFor(service),
     redirect_uri: redirectUri,
   });
   notify(`\nOpen this URL to authorize Vanta with Google:\n\n${authUrl}\n`);
@@ -131,10 +130,10 @@ export async function runGoogleAuth(
   if (!parsed?.refresh_token) {
     throw new Error(
       "Google did not return a refresh_token. Revoke Vanta's access at " +
-        "myaccount.google.com/permissions and run: vanta auth google",
+        `myaccount.google.com/permissions and run: vanta auth google ${service}`,
     );
   }
-  await saveTokens(parsed, env);
+  await saveTokens(parsed, env, service);
 }
 
 /**
@@ -145,21 +144,22 @@ export async function runGoogleAuth(
 export async function getAccessToken(
   env: NodeJS.ProcessEnv = process.env,
   clientFactory: typeof buildClient = buildClient,
+  service: GoogleService = "gmail",
 ): Promise<string> {
-  const stored = await loadTokens(env);
+  const stored = await loadTokens(env, service);
   if (!stored?.refresh_token) {
-    throw new Error("Google not authorized — run: vanta auth google");
+    throw new Error(`Google ${service} not authorized — run: vanta auth google ${service}`);
   }
   const client = await clientFactory(undefined, await resolveClientCreds(undefined, env));
   client.setCredentials({ refresh_token: stored.refresh_token });
 
   const { token } = await client.getAccessToken();
   if (!token) {
-    throw new Error("Google token refresh failed — run: vanta auth google");
+    throw new Error(`Google ${service} token refresh failed — run: vanta auth google ${service}`);
   }
   // getAccessToken() mutates client.credentials with the fresh access_token +
   // expiry_date; persist the merged set so the refresh_token is never lost.
-  await saveTokens(mergeCredentials(stored, client.credentials), env);
+  await saveTokens(mergeCredentials(stored, client.credentials), env, service);
   return token;
 }
 
@@ -178,7 +178,8 @@ function mergeCredentials(
 /** True when a token file exists and parses with a usable refresh_token. */
 export async function hasGoogleAuth(
   env: NodeJS.ProcessEnv = process.env,
+  service: GoogleService = "gmail",
 ): Promise<boolean> {
-  const stored = await loadTokens(env);
+  const stored = await loadTokens(env, service);
   return Boolean(stored?.refresh_token);
 }

@@ -1,0 +1,56 @@
+/* OKRs, heartbeats and work products. Same tokens as company.css; no new colours. */
+.vc-board-list {
+  display: grid;
+  gap: 10px;
+}
+
+.vc-meter--wide {
+  width: 100%;
+}
+
+.vc-krs {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.vc-kr {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  justify-content: space-between;
+}
+
+.vc-kr__form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vc-kr__input {
+  width: 96px;
+}
+
+.vc-kr-fields {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  align-items: end;
+}
+
+.vc-tick {
+  border: 1px solid var(--vp-line);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.vc-tick ul {
+  margin: 0;
+}

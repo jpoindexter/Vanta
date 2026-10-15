@@ -6,7 +6,10 @@ sidebar_position: 3
 
 # The agent loop
 
-The agent layer (`vanta-ts/`) orchestrates a model, a tool catalog, and a three-tier prompt. Every action it takes is gated through the kernel.
+The agent layer (`vanta-ts/`) orchestrates a model, a tool catalog, and a
+three-tier prompt. Its standard tool dispatcher consults the kernel; audited
+secondary effect paths remain outside universal coverage until the trusted
+action gateway is complete.
 
 ## The loop
 

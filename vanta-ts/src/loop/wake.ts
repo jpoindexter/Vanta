@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { loopsDir } from "./store.js";
 import { WakeContextSchema } from "./types.js";
 import type { LoopDef, LoopState, WakeContext } from "./types.js";
+import { buildSafeChildEnv } from "../exec/child-env.js";
 
 const WAKE_QUEUE = "wake-events.jsonl";
 const ENV_KEY = "VANTA_LOOP_WAKE_CONTEXT";
@@ -93,7 +94,8 @@ export function decodeWakeContext(raw: string | undefined): WakeContext | null {
 }
 
 export function wakeEnv(ctx: WakeContext | null | undefined): NodeJS.ProcessEnv {
-  return ctx ? { ...process.env, [ENV_KEY]: encodeWakeContext(ctx) } : process.env;
+  const env = buildSafeChildEnv(process.env);
+  return ctx ? { ...env, [ENV_KEY]: encodeWakeContext(ctx) } : env;
 }
 
 export function wakeContextFromEnv(env: NodeJS.ProcessEnv = process.env): WakeContext | null {

@@ -69,7 +69,7 @@ export async function writeOperatorProfile(profile: OperatorProfile, env: NodeJS
 export function inferProfileFromSignals(signals: ProfileSignal[]): InferredProfile {
   const denied = signals.filter((s) => !s.approved);
   const broadDenied = denied.filter((s) => isBroadScope(s.action)).length;
-  const riskyDenied = denied.filter((s) => isOneWayDoor(s.action) || isRiskyTool(s.toolName)).length;
+  const riskyDenied = denied.filter((s) => isOneWayDoor(s.action, s.toolName) || isRiskyTool(s.toolName)).length;
   return {
     autonomyLevel: denied.length >= 3 ? "low" : "medium",
     scopeAppetite: broadDenied > 0 ? "narrow" : "normal",
@@ -106,10 +106,11 @@ export function detectProfileDrift(
 export function approvalPreferenceFor(
   profile: OperatorProfile,
   request: { toolName: string; action: string; currentDecision: "allow" | "ask" | "block"; kernelRisk: "allow" | "ask" | "block" },
-): { decision: "allow" | "ask" | "block"; reason: string } {
+): { decision: "allow" | "ask" | "block"; reason: string; canRemember?: boolean } {
   if (request.currentDecision === "block" || request.kernelRisk === "block") return { decision: "block", reason: "kernel block is immovable" };
   const pref = profile.approvalPreferences[request.toolName] ?? profile.approvalPreferences["*"];
-  if (isOneWayDoor(request.action)) return { decision: "ask", reason: "one-way-door action requires asking" };
+  // A saved Always can never satisfy this ask, so the card must not offer one.
+  if (isOneWayDoor(request.action, request.toolName)) return { decision: "ask", canRemember: false, reason: "This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow." };
   if (request.currentDecision === "ask") return { decision: "ask", reason: "kernel or permission rule requires asking" };
   if (pref === "always_ask") return { decision: "ask", reason: "operator profile always_ask" };
   return { decision: "allow", reason: pref ? `operator profile ${pref}` : "no operator profile preference" };
@@ -145,6 +146,11 @@ function isBroadScope(action: string): boolean {
   return /\b(all|every|workspace|system|production|deploy|global|outside)\b/i.test(action);
 }
 
-function isOneWayDoor(action: string): boolean {
-  return /\b(rm -rf|delete|drop table|reset --hard|push --force|publish|deploy|migrate|production)\b/i.test(action);
+// File tools carry a path, not a command: a folder called deploy/ or a note named
+// production-plan.md is not an irreversible action.
+const PATH_TOOLS = new Set(["edit_file", "write_file", "read_file", "glob_files", "grep_files"]);
+
+function isOneWayDoor(action: string, toolName?: string): boolean {
+  if (toolName && PATH_TOOLS.has(toolName)) return false;
+  return /\b(rm -rf|delete|drop table|reset --hard|git push|push --force|publish|deploy|migrate|production)\b/i.test(action);
 }

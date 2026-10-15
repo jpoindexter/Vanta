@@ -24,7 +24,7 @@ describe("desktop local-origin boundary", () => {
       const initialSessions = await initialResponse.json() as unknown[];
 
       const draftBody = JSON.stringify({ action: "save", id: "security-proof", value: "trusted draft" });
-      for (const pathname of ["/api/status", "/api/sessions", "/api/files", "/api/approval", "/api/connect/mcp"]) {
+      for (const pathname of ["/api/status", "/api/sessions", "/api/files", "/api/file-preview?path=brief.md", "/api/approval", "/api/connect/mcp"]) {
         await expect(fetch(`${base}${pathname}`), `hostile read ${pathname}`).resolves.toMatchObject({ status: 403 });
       }
       for (const [pathname, body] of [
@@ -54,7 +54,7 @@ describe("desktop local-origin boundary", () => {
       const connector = await fetch(`${base}/api/connect/google`, { headers: trusted });
       expect(connector.status).toBe(200);
 
-      const companion = await fetch(`${base}/api/companion/info`);
+      const companion = await fetch(`${base}/api/companion/info`, { headers: trusted });
       expect(companion.status).toBe(200);
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));

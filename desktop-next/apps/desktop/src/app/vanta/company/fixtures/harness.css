@@ -1,0 +1,47 @@
+/* Company fixtures harness only (never shipped). A stand-in app frame at the shell's real
+   geometry, tall enough to hold a whole tab so one screenshot shows all of it. */
+.vcx-frame {
+  background: var(--dt-background);
+  border: 1px solid color-mix(in srgb, var(--dt-foreground) 22%, var(--dt-background));
+  border-radius: var(--radius-2xl);
+  box-sizing: border-box;
+  display: grid;
+  font-size: 14px;
+  grid-template-rows: 44px 1fr;
+  min-height: 860px;
+  overflow: hidden;
+  position: relative;
+}
+
+.vcx-frame *,
+.vcx-frame *::before,
+.vcx-frame *::after {
+  box-sizing: border-box;
+}
+
+.vcx-titlebar {
+  border-bottom: 1px solid var(--dt-border);
+}
+
+.vcx-body {
+  display: grid;
+  grid-template-columns: 275px minmax(0, 1fr);
+}
+
+.vcx-w1100 .vcx-body {
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+
+.vcx-sidebar {
+  background: var(--dt-card);
+  border-right: 1px solid var(--dt-border);
+}
+
+.vcx-main {
+  min-width: 0;
+}
+
+/* A fixed overlay would escape the frame; keep dialogs inside it for screenshots. */
+.vcx-frame .vc-overlay {
+  position: absolute;
+}

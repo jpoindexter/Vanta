@@ -32,14 +32,18 @@ describe("rootScopedKernelPort", () => {
   });
 });
 
+function fakeChild() {
+  return Object.assign(new EventEmitter(), {
+    exitCode: null as number | null,
+    killed: false,
+    kill: vi.fn(() => true),
+  });
+}
+
 describe("registerKernelCleanup", () => {
   it("stops an ephemeral kernel when its owning runtime exits", () => {
     const runtime = new EventEmitter();
-    const child = Object.assign(new EventEmitter(), {
-      exitCode: null as number | null,
-      killed: false,
-      kill: vi.fn(() => true),
-    });
+    const child = fakeChild();
 
     registerKernelCleanup(child, runtime);
     runtime.emit("exit");
@@ -49,11 +53,7 @@ describe("registerKernelCleanup", () => {
 
   it("removes the runtime exit hook after the kernel exits", () => {
     const runtime = new EventEmitter();
-    const child = Object.assign(new EventEmitter(), {
-      exitCode: null as number | null,
-      killed: false,
-      kill: vi.fn(() => true),
-    });
+    const child = fakeChild();
 
     registerKernelCleanup(child, runtime);
     child.exitCode = 0;
@@ -61,20 +61,51 @@ describe("registerKernelCleanup", () => {
     runtime.emit("exit");
 
     expect(child.kill).not.toHaveBeenCalled();
+    expect(runtime.listenerCount("SIGHUP")).toBe(0);
   });
 
-  it("stops the kernel and exits when the runtime receives SIGTERM", () => {
-    const runtime = Object.assign(new EventEmitter(), { exit: vi.fn() });
-    const child = Object.assign(new EventEmitter(), {
-      exitCode: null as number | null,
-      killed: false,
-      kill: vi.fn(() => true),
-    });
+  it.each(["SIGINT", "SIGTERM", "SIGHUP", "disconnect"])(
+    "stops the kernel and exits once it is gone when the runtime gets %s",
+    async (event) => {
+      const runtime = Object.assign(new EventEmitter(), { exit: vi.fn() });
+      const child = fakeChild();
+      child.kill.mockImplementation(() => {
+        queueMicrotask(() => { child.exitCode = 0; child.emit("exit"); });
+        return true;
+      });
 
-    registerKernelCleanup(child, runtime);
+      registerKernelCleanup(child, runtime);
+      runtime.emit(event);
+      await vi.waitFor(() => expect(runtime.exit).toHaveBeenCalledWith(0));
+
+      expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+    },
+  );
+
+  it("force-stops and still exits when the kernel ignores SIGTERM", async () => {
+    const runtime = Object.assign(new EventEmitter(), { exit: vi.fn() });
+    const child = fakeChild();
+    const forceStop = vi.fn();
+    const log = vi.fn();
+
+    registerKernelCleanup(child, runtime, { graceMs: 20, forceStop, log });
     runtime.emit("SIGTERM");
+    await vi.waitFor(() => expect(runtime.exit).toHaveBeenCalledWith(0));
+
+    expect(forceStop).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("did not exit within 20ms"));
+  });
+
+  it("stops the kernel and exits non-zero on an uncaught exception", async () => {
+    const runtime = Object.assign(new EventEmitter(), { exit: vi.fn() });
+    const child = fakeChild();
+    const log = vi.fn();
+
+    registerKernelCleanup(child, runtime, { graceMs: 20, log });
+    runtime.emit("uncaughtException", new Error("boom"));
+    await vi.waitFor(() => expect(runtime.exit).toHaveBeenCalledWith(1));
 
     expect(child.kill).toHaveBeenCalledWith("SIGTERM");
-    expect(runtime.exit).toHaveBeenCalledWith(0);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("boom"));
   });
 });

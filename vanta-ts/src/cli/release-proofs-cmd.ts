@@ -1,4 +1,5 @@
-import { execFile, execFileSync } from "node:child_process";
+import { gitExecFileSync } from "../git/process.js";
+import { execFile } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -176,7 +177,7 @@ async function captureTelegram(repoRoot: string, commit: string): Promise<Extern
   if (!hasServerlessProof && live.state !== "polling_live" && live.state !== "webhook_live") {
     throw new Error(`${live.title} ${live.action.command}`);
   }
-  const committedAt = Date.parse(execFileSync("git", ["show", "-s", "--format=%cI", commit], { cwd: repoRoot, encoding: "utf8" }).trim());
+  const committedAt = Date.parse(gitExecFileSync("git", ["show", "-s", "--format=%cI", commit], { cwd: repoRoot, encoding: "utf8" }).trim());
   if (!latest || Date.parse(latest.acceptedAt) < committedAt) {
     throw new Error(`No Telegram inbound-to-reply receipt exists after commit ${commit.slice(0, 8)}. Send a new message to the configured bot, then retry.`);
   }
@@ -218,7 +219,11 @@ export async function runReleaseProofsCommand(repoRoot: string, args: string[]):
   const ids = args[1] === "all" ? ReleaseAccountIdSchema.options : [parsedId.data!];
   const written: Array<{ id: ReleaseAccountId; path: string }> = [];
   for (const id of ids) written.push({ id, path: await writeExternalAccountProof(repoRoot, await capture(repoRoot, id)) });
+  reportWritten(written, json);
+  return 0;
+}
+
+function reportWritten(written: Array<{ id: ReleaseAccountId; path: string }>, json: boolean): void {
   if (json) console.log(JSON.stringify({ written }, null, 2));
   else for (const item of written) console.log(`✓ ${item.id} release proof recorded: ${item.path}`);
-  return 0;
 }

@@ -96,6 +96,15 @@ describe("StatusBar effort indicator", () => {
     inst.unmount();
   });
 
+  it("renders Codex ultra and fast as live model settings", async () => {
+    const inst = renderUi(h(StatusBar, { ...base, effortLevel: "ultra", serviceTier: "fast", rich: [] }), WIDE);
+    await tick();
+    const frame = inst.lastFrame();
+    expect(frame).toContain("ultra");
+    expect(frame).toContain("fast");
+    inst.unmount();
+  });
+
   it("shows no effort chip for the default (medium) level", async () => {
     const inst = renderUi(h(StatusBar, { ...base, effortLevel: "medium", rich: [] }), WIDE);
     await tick();

@@ -5,8 +5,8 @@ import { Box, Text } from "ink";
 // `max` are clamped so a caller can never overflow or underflow the track. Pure
 // fill computation lives in `barCells` so the half-filled etc. cases are exact.
 
-const FILLED = "█";
-const EMPTY = "░";
+const BLOCK_GLYPHS = { filled: "█", empty: "░" } as const;
+const SQUARE_GLYPHS = { filled: "■", empty: "□" } as const;
 const DEFAULT_WIDTH = 20;
 
 /** Pure: how many of `width` cells are filled for `value/max` (clamped 0..width). */
@@ -22,17 +22,23 @@ export function ProgressBar(props: {
   width?: number;
   color?: string;
   showPercent?: boolean;
+  /** Square cells are visually discrete and avoid the slanted/striped look. */
+  variant?: "blocks" | "squares";
+  /** The compacting meter uses a bare track; existing bars remain bracketed. */
+  bracketed?: boolean;
 }): ReactElement {
   const max = props.max ?? 1;
   const width = props.width ?? DEFAULT_WIDTH;
   const filled = barCells(props.value, max, width);
   const pct = Math.round(Math.max(0, Math.min(1, max <= 0 ? 0 : props.value / max)) * 100);
+  const glyphs = props.variant === "squares" ? SQUARE_GLYPHS : BLOCK_GLYPHS;
+  const bracketed = props.bracketed ?? true;
   return (
     <Box>
-      <Text dimColor>[</Text>
-      <Text color={props.color}>{FILLED.repeat(filled)}</Text>
-      <Text dimColor>{EMPTY.repeat(width - filled)}</Text>
-      <Text dimColor>]</Text>
+      {bracketed ? <Text dimColor>[</Text> : null}
+      <Text color={props.color}>{glyphs.filled.repeat(filled)}</Text>
+      <Text dimColor>{glyphs.empty.repeat(width - filled)}</Text>
+      {bracketed ? <Text dimColor>]</Text> : null}
       {props.showPercent ? <Text> {pct}%</Text> : null}
     </Box>
   );

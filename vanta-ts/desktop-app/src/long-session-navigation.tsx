@@ -196,9 +196,20 @@ export function PromptMarkers(props: { messages: Message[]; onJump: (index: numb
   if (!markers.length) return null;
   return (
     <nav className="prompt-markers" aria-label="Session prompts">
-      {markers.map((marker, slot) => (
-        <button key={`${marker.index}-${slot}`} type="button" aria-label={`Jump to prompt: ${marker.label}`} title={marker.label} data-current={slot === markers.length - 1 || undefined} onClick={() => props.onJump(marker.index)}><span /></button>
-      ))}
+      {markers.map((marker, slot) => {
+        const previewId = `prompt-marker-preview-${slot}`;
+        return (
+          <span className="prompt-marker-item" key={`${marker.index}-${slot}`}>
+            <button type="button" aria-label={`Jump to prompt: ${marker.label}`} aria-describedby={previewId} data-current={slot === markers.length - 1 || undefined} onClick={() => props.onJump(marker.index)}>
+              <span className="prompt-marker-line" aria-hidden="true" />
+            </button>
+            <span className="prompt-marker-preview" id={previewId} role="tooltip">
+              <small>Prompt {slot + 1} of {markers.length}</small>
+              <strong>{marker.label}</strong>
+            </span>
+          </span>
+        );
+      })}
     </nav>
   );
 }

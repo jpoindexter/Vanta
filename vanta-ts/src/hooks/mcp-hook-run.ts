@@ -1,4 +1,4 @@
-import { readMcpConfig } from "../mcp/mount.js";
+import { buildMcpChildEnv, readMcpConfig } from "../mcp/mount.js";
 import { McpClient, stdioTransport } from "../mcp/client.js";
 import { mcpClientEvents } from "../mcp/events.js";
 import type { ShellHookResult } from "./shell-hook-run.js";
@@ -19,7 +19,7 @@ export async function runMcpToolHook(
   if (!server || !tool) return { code: 1, stdout: "", stderr: "mcp_tool hook requires server and tool" };
   const serverCfg = (await readMcpConfig(process.env, opts.cwd ?? process.cwd())).servers[server];
   if (!serverCfg?.command) return { code: 1, stdout: "", stderr: `MCP server "${server}" not in config or has no command` };
-  const env = serverCfg.env ? { ...process.env, ...serverCfg.env } : process.env;
+  const env = buildMcpChildEnv(process.env, serverCfg.env);
   const { transport, child } = stdioTransport(serverCfg.command, serverCfg.args ?? [], env);
   const cwd = opts.cwd ?? process.cwd();
   const client = new McpClient(transport, mcpClientEvents(cwd, server));

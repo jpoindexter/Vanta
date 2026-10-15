@@ -8,7 +8,7 @@ if ! command -v gitleaks &>/dev/null; then
   exit 0
 fi
 
-if ! gitleaks protect --staged --config .gitleaks.toml 2>&1; then
+if ! gitleaks git --staged --config .gitleaks.toml --redact --no-banner 2>&1; then
   echo ""
   echo "✗  gitleaks found potential secrets in staged files."
   echo "   Review the findings above, then rotate any real secrets before committing."

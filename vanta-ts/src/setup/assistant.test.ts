@@ -52,6 +52,7 @@ describe("setup assistant probes", () => {
       env: { VANTA_GOOGLE_CLIENT_ID: "id", VANTA_GOOGLE_CLIENT_SECRET: "secret" },
       select: async () => 0,
       runAuth: async () => { seen.push("auth"); },
+      hasClient: async () => true,
       hasAuth: async () => seen.includes("auth"),
       log: () => {},
     });
@@ -59,13 +60,21 @@ describe("setup assistant probes", () => {
   });
 
   it("mcp probe mounts configured servers and reports discovered tools", async () => {
+    let mountOpts: Record<string, unknown> | undefined;
     const result = await probeMcp({
       env: {},
       cwd: "/repo",
       readConfig: async () => ({ servers: { fs: { command: "mcp-fs" } } }),
-      mount: async () => ({ servers: ["fs"], toolCount: 3, dispose: () => {} }),
+      mount: async (_registry, _env, _log, opts) => {
+        mountOpts = opts;
+        return { servers: ["fs"], toolCount: 3, dispose: () => {} };
+      },
     });
     expect(result).toEqual({ ok: true, detail: "mounted 1 server(s), 3 tool(s)" });
+    expect(mountOpts).toMatchObject({
+      cwd: "/repo",
+      effectGate: expect.objectContaining({ projectRoot: "/repo" }),
+    });
   });
 
   it("mcp probe is optional when no config exists", async () => {

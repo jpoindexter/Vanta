@@ -2,6 +2,7 @@ import type { ToolResult } from "./types.js";
 import { acquirePage } from "../browser/launch.js";
 import type { BrowserAction } from "../browser/act.js";
 import { summarizeElements, formatElements, type RawElement } from "../browser/observe.js";
+import { cookieToPlaywright } from "../reach/browser-session.js";
 
 // Browser action execution helpers. Extracted from browser-act.ts (size gate).
 
@@ -18,6 +19,11 @@ export function cap(text: string): string {
 // The page surface the body drives. Declared structurally — playwright-core's
 // Page type isn't imported at top level (lazy dep, no DOM lib Node-side).
 type ActPage = {
+  context: () => {
+    addCookies: (
+      cookies: Array<{ name: string; value: string; url: string }>,
+    ) => Promise<void>;
+  };
   goto: (url: string, opts: { timeout: number }) => Promise<unknown>;
   click: (selector: string, opts: { timeout: number }) => Promise<void>;
   fill: (selector: string, value: string, opts: { timeout: number }) => Promise<void>;
@@ -27,6 +33,8 @@ type ActPage = {
   innerText: (selector: string) => Promise<string>;
   $$eval: <T>(selector: string, fn: (els: Element[]) => T) => Promise<T>;
 };
+
+export type StoredBrowserSession = { cookie: string; url: string };
 
 export async function applyAct(page: ActPage, a: BrowserAction): Promise<void> {
   const t = { timeout: ACTION_TIMEOUT_MS };
@@ -76,12 +84,20 @@ export async function runActions(
   env: NodeJS.ProcessEnv,
   actions: BrowserAction[],
   observe?: boolean,
+  session?: StoredBrowserSession,
 ): Promise<ToolResult> {
   let close: (() => Promise<void>) | null = null;
   try {
     const acquired = await acquirePage(chromium, env);
     close = acquired.close;
     const page = acquired.page as unknown as ActPage;
+    if (session) {
+      const cookies = cookieToPlaywright(session.cookie, session.url);
+      if (cookies.length === 0) {
+        return { ok: false, output: "Stored browser session contains no usable cookies." };
+      }
+      await page.context().addCookies(cookies);
+    }
     for (const a of actions) await applyAct(page, a);
     const bodyText = cap(await page.innerText("body"));
     const observeBlock = observe ? await collectElements(page) : "";

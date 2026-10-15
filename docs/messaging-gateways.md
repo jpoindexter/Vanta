@@ -13,6 +13,34 @@ default, configurable with `VANTA_CHANNEL_POLL_MS`) while cron, sentinels, loops
 and watchdog maintenance stay on `VANTA_GATEWAY_TICK_MS`. So every new platform is **one adapter
 file + registration** — no core changes.
 
+## Buzz via ACP
+
+Buzz is intentionally not another `PlatformAdapter`. Its `buzz-acp` harness owns
+relay subscriptions, channel membership, Nostr identity, batching, and recovery;
+Vanta runs behind it as an ACP stdio agent:
+
+```text
+Buzz relay → buzz-acp → vanta acp serve
+                         └→ buzz CLI / client-provided MCP tools
+```
+
+Build `buzz-acp` and the `buzz` CLI from `block/buzz`, mint a separate Buzz
+identity for Vanta, then run:
+
+```bash
+export BUZZ_PRIVATE_KEY="nsec1..."
+export BUZZ_RELAY_URL="ws://localhost:3000"
+vanta buzz test       # bounded authenticated channel read
+vanta buzz serve      # foreground mention/reply loop
+```
+
+`vanta buzz configure` prints the complete setup without echoing a configured
+private key. The launcher sets Buzz's comma-delimited custom-agent contract to
+`vanta` plus `acp,serve`. Vanta consumes the harness-supplied `systemPrompt` and
+session MCP definitions; tool calls still pass through the kernel. Buzz defaults
+to owner-only inbound access, so registering the agent owner and channel
+membership remains a Buzz-side requirement.
+
 ## Per-platform approach for a local macOS operator
 
 | Platform | Approach | Send | Receive | Setup / risk |
@@ -28,24 +56,22 @@ live device/DB/daemon in tests (same discipline as `parseUpdates`).
 
 ## Setup wizard (`MSG-WIZARD`)
 
-`setup.ts` today picks an LLM provider only (`PROVIDER_CATALOG` + `runSetup` + `upsertEnv`).
-Extend with a messaging step / `vanta setup messaging`:
-1. List platforms with **availability** from the registry (configured? prereqs present?).
-2. For the chosen ones, write env (`upsertEnv`, idempotent).
-3. Print **exact setup/pairing steps**: BotFather link (Telegram); the Full-Disk-Access +
-   Automation grant walkthrough (iMessage); QR scan + Node check (WhatsApp); `signal-cli`
-   link (Signal).
-Mirror `renderProviderMenu`/`runSetup`. No crashes on missing prereqs — explain them.
+`vanta setup messaging` is the shell-owned setup hub. It lists registered
+platforms with configured/prerequisite state, keeps secret entry hidden, writes
+configuration idempotently, and prints the exact platform-specific pairing or
+permission steps. The TUI `/setup messaging` and natural-language repair
+intents are status-only so Ink remains mounted and pasted credentials cannot
+fall through to the shell.
 
 ### Telegram setup contract
 
-The targeted CLI command is `vanta setup messaging telegram`. It recognizes an existing configuration before replacing it, validates the BotFather token format, calls `getMe` before persisting, and then offers an owner/chat allowlist. Empty allowlist means **pairing**, not open access: an unknown chat receives a short-lived code before Vanta accepts instructions. Failed validation preserves the existing `.env`.
+The targeted CLI command is `vanta setup messaging telegram`. It recognizes an existing configuration before replacing it, validates the BotFather token format, calls `getMe` before persisting, and then offers a numeric owner/chat allowlist. Empty allowlist means **pairing**, not open access: an unknown chat receives a short-lived code before Vanta accepts instructions. Failed validation preserves the existing `.env`. Telegram tokens are entered only through the hidden prompt; a token exposed in a terminal, chat, or log must be revoked in @BotFather.
 
-Interactive `/setup` is a hub for Model, Messaging, MCP, and Voice; `/setup telegram` reports unconfigured, repair-needed, configured-but-stopped, polling-live, or webhook-live state and then hands control to the targeted wizard. The TUI is unmounted while readline owns the terminal and is freshly prepared after the wizard returns, so hidden input and keyboard modes do not conflict. `/setup telegram status` is read-only.
+Interactive `/setup` is a hub for Model, Messaging, MCP, and Voice; `/setup telegram` reports unconfigured, repair-needed, configured-but-stopped, polling-live, or webhook-live state and stays inside the TUI. `fix telegram` and `repair telegram` route to the same status view. The explicit shell command `vanta setup messaging telegram` owns hidden token entry; `/setup telegram status` is read-only. This separation keeps the TUI mounted and prevents a pasted token from falling through to the shell.
 
 Desktop follows the same contract. `/setup` opens Connect overview without creating an agent turn, `/setup model` opens the model picker, `/setup mcp` opens MCP, and `/setup telegram` opens Connect > Messaging > Telegram. The Telegram form verifies `getMe` before writing `.vanta/.env`, makes pairing versus an explicit allowlist visible, tests the saved bot against Telegram rather than checking for a local string, and can launch the project gateway with a readiness result. Telegram's native command menu remains deferred until the gateway owns every command it advertises.
 
-The flow is adapted from the useful parts of Hermes' current gateway wizard: setup hub, existing-configuration detection, verification before persistence, explicit authorization posture, and post-save gateway lifecycle. Vanta does not copy Hermes' Nous-hosted managed-bot QR provisioning; keeping BotFather credentials local avoids adding a required third-party onboarding service.
+The flow uses a local-first setup hub, existing-configuration detection, verification before persistence, explicit numeric authorization, and post-save gateway lifecycle checks. Vanta also uses a dependency-free IPv4 transport with bounded Telegram-IP fallback and preserves the `api.telegram.org` Host/SNI when local dual-stack routing is broken. BotFather credentials remain local, so setup does not require a managed-bot onboarding service.
 
 ## Reference patterns
 
@@ -71,10 +97,10 @@ The flow is adapted from the useful parts of Hermes' current gateway wizard: set
   prefer Business API if a real account matters.
 - **Telegram + Signal** are the low-risk official/CLI paths.
 
-## Build order
+## Current boundary
 
-1. `MSG-REGISTRY` (tiny, unblocks clean multi-platform wiring + the wizard).
-2. `MSG-WIZARD` (config only — no OS perms, ships clean, gives the UX).
-3. `MSG-PAIRING` (security; reused by all adapters).
-4. `MSG-IMESSAGE` (native send+receive; needs Jason's perms for live test).
-5. `MSG-SIGNAL`, then `MSG-WHATSAPP` (most fragile, last).
+The registry, wizard, pairing flow, and Telegram status/repair separation are
+implemented. Telegram's Bot API path has focused setup, IPv4 fallback, gateway,
+and TUI replay evidence. Other adapters still require their own credentials,
+platform permissions, and real-service acceptance before live delivery is
+claimed.

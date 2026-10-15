@@ -22,33 +22,40 @@ describe("buildSeatbeltProfile", () => {
 
   it("binds the project root and every writable zone for write", () => {
     const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
-    expect(p).toContain(`(allow file-write* (subpath "${resolve(ROOT)}"))`);
+    expect(p).toContain(`(allow file-write* (require-all (subpath "${resolve(ROOT)}")`);
     for (const z of ZONES) {
-      expect(p).toContain(`(allow file-write* (subpath "${z}"))`);
+      expect(p).toContain(`(allow file-write* (require-all (subpath "${z}")`);
     }
   });
 
-  it("denies EVERY dangerous dir (credential/system floor)", () => {
+  it("never emits an unconditional host-filesystem read grant", () => {
     const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
-    for (const d of DANGER_ABS) {
-      expect(p).toContain(`(deny file* (subpath "${d}"))`);
-    }
+    expect(p).not.toMatch(/\(allow file-read\*\)\s*$/m);
+    expect(p).toContain("(allow file-read* (require-all ");
   });
 
-  it("places dangerous-dir denies AFTER the broad read-allow (last-match-wins)", () => {
-    const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
-    const readAllowIdx = p.indexOf("(allow file-read*)");
-    expect(readAllowIdx).toBeGreaterThan(-1);
-    for (const d of DANGER_ABS) {
-      const denyIdx = p.indexOf(`(deny file* (subpath "${d}"))`);
-      // The deny must come AFTER the read-allow or it is dead (allow would win).
-      expect(denyIdx).toBeGreaterThan(readAllowIdx);
+  it("carries every protected project path into the read and write grants", () => {
+    const secret = `${ROOT}/.env`;
+    const p = buildSeatbeltProfile(ROOT, ZONES, { net: false, deniedPaths: [secret] });
+    const grants = p
+      .split("\n")
+      .filter((line) => line.startsWith("(allow file-read* (require-all") || line.startsWith("(allow file-write*"));
+    expect(grants).toHaveLength(1 + 1 + ZONES.length);
+    for (const grant of grants) {
+      expect(grant).toContain(`(require-not (subpath "${secret}"))`);
     }
   });
 
   it("denies network unless opts.net", () => {
     expect(buildSeatbeltProfile(ROOT, ZONES, { net: false })).toContain("(deny network*)");
-    expect(buildSeatbeltProfile(ROOT, ZONES, { net: true })).not.toContain("(deny network*)");
+    const allowed = buildSeatbeltProfile(ROOT, ZONES, { net: true });
+    expect(allowed).not.toContain("(deny network*)");
+    expect(allowed).toContain("(allow network*)");
+  });
+
+  it("allows a sandboxed parent to signal a child in the same sandbox", () => {
+    const p = buildSeatbeltProfile(ROOT, ZONES, { net: false });
+    expect(p).toContain("(allow signal (target same-sandbox))");
   });
 
   it("INVARIANT: the only file-write allows are root + zones — nothing else", () => {

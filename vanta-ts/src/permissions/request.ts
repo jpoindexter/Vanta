@@ -1,16 +1,24 @@
 export type PermissionKind =
   | "bash" | "file_edit" | "file_write" | "web_fetch" | "computer_use" | "sandbox" | "skill" | "generic";
 export type PermissionSection = { label: string; value: string; tone?: "code" | "muted" | "danger" };
+export type ApprovalDetail = {
+  diff?: string;
+  fresh?: boolean;
+  /** False means a policy requires a one-time decision; hosts cannot save it. */
+  canRemember?: boolean;
+};
 export type PermissionRequest = {
   kind: PermissionKind;
   title: string;
   subject: string;
   reason: string;
   toolName?: string;
+  fresh?: boolean;
+  canRemember?: boolean;
   sections: PermissionSection[];
 };
 
-type Args = { toolName?: string; action: string; reason: string; detail?: { diff?: string; fresh?: boolean } };
+type Args = { toolName?: string; action: string; reason: string; detail?: ApprovalDetail };
 
 const TITLES: Record<PermissionKind, string> = {
   bash: "Bash permission request",
@@ -32,6 +40,8 @@ export function buildPermissionRequest(args: Args): PermissionRequest {
     subject,
     reason: args.reason,
     toolName: args.toolName,
+    fresh: args.detail?.fresh === true,
+    canRemember: Boolean(args.toolName) && args.detail?.fresh !== true && args.detail?.canRemember !== false,
     sections: sectionsFor(kind, subject, args.action, args.detail),
   };
 }
@@ -41,7 +51,7 @@ function kindFor(toolName = ""): PermissionKind {
   if (toolName === "edit_file") return "file_edit";
   if (toolName === "write_file") return "file_write";
   if (["web_fetch", "browser_read", "browser_navigate", "screenshot"].includes(toolName)) return "web_fetch";
-  if (["browser_act", "look_at_screen", "look_at_camera"].includes(toolName)) return "computer_use";
+  if (["browser_act", "look_at_screen", "look_at_camera", "native_app_launch"].includes(toolName)) return "computer_use";
   if (toolName === "run_code" || toolName === "workflow") return "sandbox";
   if (toolName === "write_skill") return "skill";
   return "generic";

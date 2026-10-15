@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { chmod, mkdtemp, rm, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -21,6 +21,7 @@ import {
 } from "./store.js";
 import { reorderPinnedSessions, setSessionPinned } from "./pinning.js";
 import type { Message } from "../types.js";
+import { listRuns, saveRun, type RunRecord } from "../runs/store.js";
 
 const TRANSCRIPT: Message[] = [
   { role: "system", content: "you are vanta" },
@@ -83,6 +84,36 @@ describe("session store", () => {
 
   it("returns null for a missing session", async () => {
     expect(await loadSession("nope", env())).toBeNull();
+  });
+
+  it("deletes unsaved run records with a session while preserving saved runs", async () => {
+    const record = (id: string, saved: boolean): RunRecord => ({
+      version: 1,
+      id,
+      sessionId: "cleanup-runs",
+      turnIndex: 0,
+      title: id,
+      prompt: "Inspect this",
+      projectRoot: home,
+      startedAt: "2026-07-24T12:00:00.000Z",
+      completedAt: "2026-07-24T12:00:01.000Z",
+      status: "done",
+      saved,
+      tags: [],
+      provenance: "captured",
+      lineage: { mode: "original" },
+      inputs: [],
+      events: [],
+      finalOutput: "Complete",
+    });
+    await saveSession("cleanup-runs", TRANSCRIPT, { env: env() });
+    await saveRun(record("keep-run", true), env());
+    await saveRun(record("remove-run", false), env());
+
+    await deleteSession("cleanup-runs", env());
+
+    expect(await loadSession("cleanup-runs", env())).toBeNull();
+    expect((await listRuns({}, env())).map((run) => run.id)).toEqual(["keep-run"]);
   });
 
   it("lists sessions newest-first with a turn count", async () => {
@@ -204,6 +235,26 @@ describe("session store", () => {
       await readFile(join(home, "sessions", "interrupted.json"), "utf8"),
     ) as Session;
     expect(raw.messages.at(-1)).toEqual(result);
+  });
+
+  it("lists interrupted sessions without rewriting them", async () => {
+    const interrupted: Message[] = [
+      { role: "system", content: "sys" },
+      { role: "user", content: "publish it" },
+      { role: "assistant", content: "", toolCalls: [{ id: "mutate-list", name: "publish_release", arguments: {}, effectState: "started" }] },
+    ];
+    await saveSession("interrupted-list", interrupted, { env: env(), now: "2026-06-03T09:00:00.000Z" });
+    const path = join(home, "sessions", "interrupted-list.json");
+    await chmod(path, 0o444);
+    const before = await stat(path);
+
+    const list = await listSessions(env());
+
+    const after = await stat(path);
+    expect(list.map((session) => session.id)).toContain("interrupted-list");
+    expect(after.mtimeMs).toBe(before.mtimeMs);
+    expect(after.size).toBe(before.size);
+    await chmod(path, 0o644);
   });
 
   it("does not reconcile a pending call during a live checkpoint", async () => {

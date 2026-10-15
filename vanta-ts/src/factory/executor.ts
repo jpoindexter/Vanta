@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { join } from "node:path";
 import type { FactoryPlan, SliceArtifact } from "./types.js";
 
@@ -59,9 +60,6 @@ export async function execute(
 ): Promise<SliceArtifact> {
   const { createConversation } = await import("../agent.js");
   const { prepareRun, buildSummarizer } = await import("../session.js");
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
 
   const dirContexts = await readDirContexts(root, plan.touchedDirs);
   const instruction = buildFactoryInstruction(plan, budgetTokens, dirContexts);
@@ -82,8 +80,8 @@ export async function execute(
   outputTokens = outcome.usage?.outputTokens ?? 0;
 
   // Harvest all files changed or added since branch creation
-  const diffOut = await exec("git", ["diff", "--name-only", "HEAD"], { cwd: root }).catch(() => ({ stdout: "" }));
-  const untrackedOut = await exec("git", ["ls-files", "--others", "--exclude-standard"], { cwd: root }).catch(() => ({ stdout: "" }));
+  const diffOut = await gitExecFile("git", ["diff", "--name-only", "HEAD"], { cwd: root }).catch(() => ({ stdout: "" }));
+  const untrackedOut = await gitExecFile("git", ["ls-files", "--others", "--exclude-standard"], { cwd: root }).catch(() => ({ stdout: "" }));
   const touchedFiles = parseTouchedFiles(diffOut.stdout + "\n" + untrackedOut.stdout);
 
   return { newTestFiles: [], touchedFiles, tokenSpend: outputTokens };

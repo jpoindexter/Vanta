@@ -6,4 +6,14 @@ Ink 7 TUI surface. The existing `app.tsx` path is the default v1 UI and should s
 
 Approval UI (`approval-prompt.tsx`) renders typed request context from `../permissions/request.ts` and four decisions: allow once, always allow, deny, never allow.
 
+`mode-line.tsx` owns the shared Manual → Accept edits → Plan → Auto cycle. Shift+Tab cycles whenever the composer has focus. Auto clears routine read/file-edit Ask decisions in the gate and tool execution context; consequential or classifier-unsafe Ask decisions remain visible approvals. Never auto-resolve a pending prompt in the renderer.
+
 Default TUI host responsibilities: fire session lifecycle hooks, prompt submit/expansion hooks, per-turn Stop hooks, StopFailure on send errors, and start the opt-in FileChanged watcher.
+
+Completed turns must be saved through the existing session store. `/restart` supplies `initialSession` on the next process; initialize the conversation with that transcript, retain its provider/model scope, show a compact reload receipt, and reset only process-local display timing.
+
+Turn summaries retain every tool receipt but treat a failed action as recovered when a later successful tool has the same name and displayed target. Trace loop warnings require consecutive identical tool arguments; repeated reads or commands against different targets are normal progress.
+
+Output hierarchy keeps one-to-three completed tools visible. At four or more actions, collapse successful work into one categorized line and keep failed actions expanded; full raw output remains in Ctrl+T evidence. Markdown headings render as hierarchy without literal `#` prefixes, and `layout-rows.ts` must mirror any transcript-density change.
+
+The TUI normally receives final text through provider deltas. Loop-generated terminal outcomes (tool budget, repeated failure, interruption, or max iterations) do not have provider deltas, so `use-agent.ts` must surface them exactly once before `turnEnd`.

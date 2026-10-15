@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TRUST-02 Local Gap Closure</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TRUST-02 Local Gap Closure</h1>
+</header>
+<h1 id="trust-02-local-gap-closure">TRUST-02 Local Gap Closure</h1>
+<p>Date: 2026-08-01 Branch:
+<code>codex/trust-02-effect-mediation-20260731</code> Roadmap state:
+<code>TRUST-02</code> remains <code>building</code></p>
+<h2 id="outcome">Outcome</h2>
+<p>This checkpoint closes the locally actionable visual and
+packaged-dependency gaps on the stacked TRUST-02 branch. It does not
+claim release readiness or shipment.</p>
+<p>GitHub Actions are disabled for <code>jpoindexter/Vanta</code>; all
+evidence in this report is local. No hosted workflow, merge, deployment,
+notarization, publication, or release was performed.</p>
+<h2 id="repository-boundary">Repository boundary</h2>
+<ul>
+<li>The active repository and every tracked change in this checkpoint
+belong to Vanta.</li>
+<li>Tracked Vanta content contains no reference to the unrelated
+repository.</li>
+<li>The accidental remote PR in the unrelated repository was closed and
+its remote branch and checkpoint tag were deleted. A local recovery
+branch/tag remains recoverable outside Vanta.</li>
+<li>Root <code>src/**</code>, <code>vanta-ts/src/factory/**</code>, and
+<code>MANIFESTO.md</code> are unchanged by this closure.</li>
+<li>The original dirty Vanta checkout was observed but not
+modified.</li>
+</ul>
+<h2 id="visual-closure">Visual closure</h2>
+<p>The desktop shell replacement in the stack intentionally changed the
+rendered UI, while the 36 Darwin ARM64 reference captures still
+represented the previous shell. The first approval capture therefore
+failed at <code>2.912%</code> against the unchanged <code>1.100%</code>
+limit.</p>
+<p>The reference set was intentionally regenerated, representative
+approval, work, recovery, setup, model-picker, and bulk-session states
+were visually inspected across themes and viewport sizes, and the exact
+proof was rerun. No mismatch tolerance or UI source was changed.</p>
+<h2 id="dependency-closure">Dependency closure</h2>
+<p>The safe lockfile update patches <code>brace-expansion</code>. The
+runtime’s optional <code>winnow</code> dependency exposes a local-ML
+chain through <code>@huggingface/transformers</code>,
+<code>onnxruntime-*</code>, <code>sharp</code>, <code>@img</code>,
+<code>adm-zip</code>, and <code>global-agent</code>; Vanta does not
+invoke that optional path.</p>
+<p>The desktop package manifest now explicitly excludes that unused
+chain. A policy test guards the exclusions, and a real package proof
+enumerates <code>app.asar</code> plus <code>app.asar.unpacked</code> and
+fails if any excluded package is present.</p>
+<p>Current audit interpretation:</p>
+<ul>
+<li>Production dependencies with optional packages excluded: zero
+vulnerabilities.</li>
+<li>Full production lock graph: five high findings, all in the unused
+optional local-ML chain; no upstream fix is available.</li>
+<li>Website production dependencies: zero vulnerabilities.</li>
+<li>Packaged macOS app: zero forbidden optional-chain entries in the
+archive and unpacked resources.</li>
+</ul>
+<p>The package proof locally signed the generated app using the already
+configured Developer ID. It did not notarize, upload, publish, deploy,
+or release the artifact.</p>
+<h2 id="claim-ledger">Claim ledger</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Status</th>
+<th>Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vanta contains no tracked unrelated-repository material</td>
+<td>Executed</td>
+<td>Case-insensitive tracked-file search; does not inspect unrelated
+local recovery refs.</td>
+</tr>
+<tr>
+<td>Desktop visual proof passes</td>
+<td>Executed</td>
+<td>36 local Darwin ARM64 captures at the existing limit; does not
+establish other OS rendering.</td>
+</tr>
+<tr>
+<td>Shipped desktop dependency boundary excludes the unused optional
+chain</td>
+<td>Executed</td>
+<td>Real local macOS package archive/unpacked enumeration; does not
+erase findings from the full lock graph.</td>
+</tr>
+<tr>
+<td>GitHub Actions will not incur Vanta workflow usage</td>
+<td>Executed</td>
+<td>Repository Actions setting is disabled; does not control a future
+administrator re-enabling it.</td>
+</tr>
+<tr>
+<td>Protected source is unchanged</td>
+<td>Executed</td>
+<td>Git path inventory for this stack; does not approve future
+protected-source work.</td>
+</tr>
+<tr>
+<td><code>TRUST-02</code> is shipped</td>
+<td>Not claimed</td>
+<td>Live external-account, complete packaged real-path,
+protected-source, and release receipts remain outside this
+checkpoint.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="final-local-verification">Final local verification</h2>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 40%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th style="text-align: right;">Exit</th>
+<th>Observed result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>npm run typecheck</code></td>
+<td style="text-align: right;">0</td>
+<td>Runtime TypeScript boundary passed.</td>
+</tr>
+<tr>
+<td><code>npm run desktop:renderer:typecheck</code></td>
+<td style="text-align: right;">0</td>
+<td>Renderer TypeScript boundary passed.</td>
+</tr>
+<tr>
+<td>Focused TRUST-02 Vitest command from the read-only workflow
+specification</td>
+<td style="text-align: right;">0</td>
+<td>20 files, 148 tests passed. The hosted workflow was not run.</td>
+</tr>
+<tr>
+<td><code>npm test -- --reporter=dot --maxWorkers=4</code></td>
+<td style="text-align: right;">0</td>
+<td>1,507 files passed; 13,907 tests passed and 3 skipped.</td>
+</tr>
+<tr>
+<td><code>npm run desktop:local-origin:smoke</code></td>
+<td style="text-align: right;">0</td>
+<td>Untrusted read, navigation, and window actions denied; trusted
+renderer path passed.</td>
+</tr>
+<tr>
+<td><code>npm run desktop:visual:proof</code></td>
+<td style="text-align: right;">0</td>
+<td>Comparator mutation tests 3/3 and captures 36/36 passed.</td>
+</tr>
+<tr>
+<td><code>npm run desktop:dependency-boundary:proof</code></td>
+<td style="text-align: right;">0</td>
+<td>Policy test passed; archive matches 0; unpacked matches 0; local
+code signature verified.</td>
+</tr>
+<tr>
+<td><code>npm run build</code> in <code>vanta-website</code></td>
+<td style="text-align: right;">0</td>
+<td>Optimized production build generated.</td>
+</tr>
+<tr>
+<td><code>cargo test</code></td>
+<td style="text-align: right;">0</td>
+<td>70 passed; one pre-existing unused-import warning.</td>
+</tr>
+<tr>
+<td><code>npm audit --omit=dev --omit=optional --audit-level=high</code></td>
+<td style="text-align: right;">0</td>
+<td>Zero shipped production vulnerabilities.</td>
+</tr>
+<tr>
+<td><code>npm audit --omit=dev --audit-level=high</code></td>
+<td style="text-align: right;">1</td>
+<td>Five high findings limited to the excluded optional ML chain; no fix
+available.</td>
+</tr>
+<tr>
+<td>Website <code>npm audit --omit=dev --audit-level=high</code></td>
+<td style="text-align: right;">0</td>
+<td>Zero vulnerabilities.</td>
+</tr>
+</tbody>
+</table>
+<p>The remaining repository, protected-path, secret, static-analysis,
+whitespace, and remote-reference checks are recorded on the final commit
+and draft pull request.</p>
+<h2 id="remaining-gates">Remaining gates</h2>
+<p>The remaining gaps require authority or environments not supplied to
+this branch:</p>
+<ul>
+<li>live Google/provider/device/payment/telephony/hosted-account
+receipts;</li>
+<li>complete packaged TRUST-02 real-path receipts beyond the dependency
+boundary;</li>
+<li>any required changes to the protected Rust kernel, protected
+factory, or <code>MANIFESTO.md</code>;</li>
+<li>notarization, publication, deployment, release, merge, or roadmap
+promotion.</li>
+</ul>
+<p>Until those gates are deliberately authorized and executed,
+<code>TRUST-02</code> remains <code>building</code> and the stacked pull
+request remains draft and unmerged.</p>
+</body>
+</html>

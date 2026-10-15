@@ -152,7 +152,7 @@ export type PreconnectDeps = {
 /** Outcome of a preconnect attempt — errors-as-values; this never throws. */
 export type PreconnectResult =
   | { ok: true; warmed: true; host: ApiHost }
-  | { ok: true; warmed: false; reason: "disabled" | "no-host" }
+  | { ok: true; warmed: false; reason: "disabled" | "no-host" | "proxy-configured" }
   | { ok: false; warmed: false; reason: "connect-failed"; error: string };
 
 /**
@@ -163,6 +163,10 @@ export type PreconnectResult =
  */
 export async function preconnect(deps: PreconnectDeps): Promise<PreconnectResult> {
   if (!isPreconnectEnabled(deps.env)) return { ok: true, warmed: false, reason: "disabled" };
+  if (["HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "https_proxy", "http_proxy", "all_proxy"]
+    .some((name) => deps.env[name]?.trim())) {
+    return { ok: true, warmed: false, reason: "proxy-configured" };
+  }
   const host = deps.host !== undefined ? deps.host : providerApiHost(deps.env);
   if (!host) return { ok: true, warmed: false, reason: "no-host" };
   try {

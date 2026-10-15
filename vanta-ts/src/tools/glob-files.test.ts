@@ -96,6 +96,8 @@ describe("globFilesTool", () => {
 
     expect(result.ok).toBe(false);
     expect(result.output).toMatch(/outside project scope/i);
+    expect(result.output).toMatch(/do not retry glob_files/i);
+    expect(result.output).toMatch(/foreground shell_cmd/i);
   });
 
   it("describeForSafety names the pattern", () => {

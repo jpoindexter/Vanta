@@ -3,6 +3,7 @@ import { Box, Text, useInput } from "ink";
 import { createStarterWorker, reloadTeams, updateWorkerStatus, type TeamsData } from "./teams-actions.js";
 import { teamSummary, teamsKeyAction, toTeamWorkerRow, type TeamWorkerRow, type TeamsKeyAction } from "./team-rows.js";
 import { tasksForWorker } from "../team/tasks.js";
+import { ACTIVITY, BONE, HEALTH } from "../term/palette.js";
 import type { Worker } from "../team/store.js";
 
 export function TeamsPanel(props: { data: TeamsData; onClose: () => void }): ReactElement {
@@ -62,7 +63,7 @@ function TeamRowView(props: { row: TeamWorkerRow; active: boolean }): ReactEleme
   return (
     <Box>
       <Text>{props.active ? "❯ " : "  "}</Text>
-      <Text color={row.runtime === "running" ? "#ffb86b" : row.runtime === "idle" ? "#83f2b0" : "white"}>◆ </Text>
+      <Text color={row.runtime === "running" ? ACTIVITY : row.runtime === "idle" ? HEALTH : BONE}>◆ </Text>
       <Text>{row.id} </Text>
       <Text dimColor>{row.role} </Text>
       <Text>{row.runtime}</Text>

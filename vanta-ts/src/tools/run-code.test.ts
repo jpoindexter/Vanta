@@ -6,6 +6,7 @@ import type { ToolContext } from "./types.js";
 // short-circuit to true so the test exercises the real run path.
 const approveCtx = {
   requestApproval: async () => true,
+  root: process.cwd(),
 } as unknown as ToolContext;
 
 describe("runCodeTool", () => {
@@ -17,6 +18,25 @@ describe("runCodeTool", () => {
 
     expect(result.ok).toBe(true);
     expect(result.output).toContain("5");
+  });
+
+  it("does not inherit provider or arbitrary VANTA secrets", async () => {
+    process.env.OPENAI_API_KEY = "synthetic-provider-secret";
+    process.env.VANTA_SYNTHETIC_SECRET = "synthetic-vanta-secret";
+    try {
+      const result = await runCodeTool.execute(
+        {
+          language: "node",
+          code: "console.log(String(process.env.OPENAI_API_KEY), String(process.env.VANTA_SYNTHETIC_SECRET))",
+        },
+        approveCtx,
+      );
+      expect(result.ok).toBe(true);
+      expect(result.output).toBe("undefined undefined");
+    } finally {
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.VANTA_SYNTHETIC_SECRET;
+    }
   });
 
   it("rejects an invalid language", async () => {

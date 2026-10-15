@@ -61,13 +61,18 @@ bounded raw sidechains as the `delegation` source.
 `radar` tool · `/radar` — scored opportunities ranked by composite pain × signal. `scan_web` runs live search, extracts and scores candidates; `offer` drafts an offer; `promote` pushes a winner into Money OS.
 
 ## Background teams
-`team` tool · `/team` — a named worker roster with a task-assignment + legal-transition status ledger. `run` actually spawns a worker for a dispatched task (child registry excludes recursive fan-out; every worker tool call is kernel-gated). Managed from the CLI via `vanta agents`.
+`team` tool · `/team` — a named worker roster with a task-assignment + legal-transition status ledger. `run` spawns a worker for a dispatched task and excludes recursive fan-out. Worker effects still require the universal action-gateway and receipt acceptance. Managed from the CLI via `vanta agents`.
 
 ## Life-wide search
 `life_search` tool · `/lifesearch` — source-cited search across the local stores, with a dependency-free relevance ranker and an optional local-embedding `semantic` mode (Ollama, zero new dep, lexical fallback).
 
 ## Self-repair compartments
-`self_repair` tool · `/compartments` — a body map with per-compartment max-autonomy. Detects broken compartments from real capability checks, tracks last-known-good git shas, and proposes rollback — **never auto-executed**; protected compartments refuse rollback (Rule Zero).
+`self_repair` tool · `/compartments` — a body map that can detect failures and
+prepare rollback candidates. Current strategy keeps self-repair in Lab:
+isolated worktree, scrubbed environment, bounded diff, frozen
+tests/evaluators, receipts, rollback, and human-approved promotion. It cannot
+alter policy, credentials, audit state, evaluators, the root of trust, or
+production/default-branch state autonomously.
 
 ## Verification organ
 `regression_lock` tool · `/locks` — `lock {claim, command, expect}` records a regression case; `check` re-runs the locked commands (each approval-gated) and flags a regression if the expectation is gone or a command fails. A debugged failure becomes a re-runnable proof.

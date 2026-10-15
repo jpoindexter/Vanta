@@ -44,7 +44,7 @@ export type DesktopRunReceipt = {
   schemaTrace?: DesktopSchemaTrace;
 };
 
-export type EffectDisposition = "none" | "confirmed" | "unknown";
+export type EffectDisposition = import("./work-items/contract.js").ReceiptDisposition;
 
 export type ImageCaptureReceipt = {
   source: "macos-screencapture";

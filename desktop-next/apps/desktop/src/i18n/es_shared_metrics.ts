@@ -1,0 +1,29 @@
+export const esSharedMetrics = {
+  consentTitle: '¿Compartir estadísticas de uso?',
+  dialogTitle: 'Estadísticas de uso',
+  consentBody:
+    'Vanta puede contar cómo lo usas: duración de las sesiones, qué modelos y herramientas se ejecutan y cuándo algo falla. Nunca registra tus mensajes, archivos, rutas ni textos de error.',
+  whatIsCollected: 'Qué se cuenta',
+  collectedActivity: 'Sesiones: duración, resultado, tipo de error, tiempo activo por día',
+  collectedModels: 'Modelos: cuáles, totales de tokens',
+  collectedNames: 'Funciones: herramientas integradas, comandos, áreas de la app y ajustes usados o desactivados',
+  collectedMilestones:
+    'Configuración: qué pasos se completaron, conexiones con proveedores, cuántos skills, plugins y tareas',
+  collectedReliability:
+    'Estado de la app: fallos, velocidad de inicio y de respuesta, actualizaciones, conexiones de mensajería',
+  collectedUsage:
+    'Calidad del agente: ediciones fallidas, llamadas a herramientas rotas, bucles atascados, coste por tarea',
+  collectedMachine: 'Equipo: sistema operativo, rango de RAM, tipo de GPU, versión de Vanta, uso de modelos locales',
+  readDocs: 'Leer todos los detalles',
+  local: 'Guardar en este equipo',
+  off: 'No, gracias',
+  saveFailed: 'No se pudo guardar tu elección',
+  collectLabel: 'Recopilar estadísticas de uso',
+  collectDesc: 'Solo recuentos, guardados en este equipo. Nunca tus mensajes, archivos, rutas ni textos de error.',
+  unavailable: 'Actualiza el backend de Vanta para cambiar este ajuste.',
+  stripBody: 'Solo recuentos. Nunca tus mensajes ni archivos.',
+  stripReaskBody:
+    'Te lo preguntamos de nuevo: una versión anterior podía guardar «No, gracias» antes de que vieras esta pregunta.',
+  stripChoices: { local: 'Guardar en este equipo', off: 'No, gracias' },
+  stripDetails: 'Detalles'
+}

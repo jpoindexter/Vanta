@@ -1,23 +1,19 @@
 import type { Tool, ToolResult } from "./types.js";
-import { validateAskInput, formatAskPrompt } from "./ask-user-model.js";
+import {
+  ASK_USER_MAX_HEADER_LEN,
+  validateAskInput,
+  formatAskPrompt,
+  formatAskResponse,
+} from "./ask-user-model.js";
 
 // ───────────────────────────────────────────────────────────────────────────
 // VANTA-ASK-USER-TOOL — the STRUCTURED sibling of `clarify`.
 //
 // `clarify` collects free text. `ask_user` collects a user-OWNED decision:
 // one or more questions, each with 2-4 labelled options and optional
-// multi-select. End-of-turn design (mirrors clarify): the tool only FORMATS
-// the question set into `output` for the model to surface; it never runs a
-// live picker and never acts on the answer.
-//
-// The live multi-select picker is the HOST's job, NOT this tool's:
-//   the TUI (`vanta-ts/src/ui/`) would render the formatted question set as an
-//   interactive numbered/checkbox picker (one list per question, single- vs
-//   multi-select per `multiSelect`), collect the operator's raw picks, and feed
-//   them straight into `validateAnswers(questions, rawAnswers)` to resolve the
-//   chosen option label(s). That picker is the documented boundary of this
-//   slice — built next, not here. The pure model in `ask-user-model.ts` is what
-//   it sits on; the public model symbols are re-exported below.
+// multi-select. Interactive hosts pause the SAME agent turn, collect the
+// operator's answer, and return it as the tool result. Non-interactive hosts
+// retain the formatted end-of-turn fallback.
 // ───────────────────────────────────────────────────────────────────────────
 
 export * from "./ask-user-model.js";
@@ -46,7 +42,11 @@ export const askUserTool: Tool = {
             type: "object",
             required: ["header", "question", "options"],
             properties: {
-              header: { type: "string", description: "Short label, ≤12 chars." },
+              header: {
+                type: "string",
+                maxLength: ASK_USER_MAX_HEADER_LEN,
+                description: "Short label, ≤12 chars.",
+              },
               question: { type: "string", description: "The question to ask." },
               options: {
                 type: "array",
@@ -57,12 +57,17 @@ export const askUserTool: Tool = {
                   properties: {
                     label: { type: "string", description: "Short option label." },
                     description: { type: "string", description: "What the option means." },
+                    preview: { type: "string", description: "Optional compact content preview shown for this option." },
                   },
                 },
               },
               multiSelect: {
                 type: "boolean",
                 description: "Allow picking any number of options (default: pick one).",
+              },
+              allowOther: {
+                type: "boolean",
+                description: "Allow an operator-authored answer after the proposed options (default: true).",
               },
             },
           },
@@ -71,9 +76,15 @@ export const askUserTool: Tool = {
     },
   },
   describeForSafety: () => SAFETY_DESC,
-  async execute(raw): Promise<ToolResult> {
+  async execute(raw, ctx): Promise<ToolResult> {
     const parsed = validateAskInput(raw);
     if (!parsed.ok) return { ok: false, output: parsed.error };
+    if (ctx.requestQuestion) {
+      const response = await ctx.requestQuestion(parsed.questions);
+      return response
+        ? { ok: true, output: formatAskResponse(response) }
+        : { ok: true, output: "Operator cancelled the question without selecting an answer." };
+    }
     return { ok: true, output: formatAskPrompt(parsed.questions) };
   },
 };

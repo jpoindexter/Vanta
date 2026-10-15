@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { loadCron } from "../schedule/cron.js";
 import { formatExport, formatHistory, lines } from "./format.js";
 import { formatSessionCost } from "../pricing.js";
@@ -26,14 +26,27 @@ export const compress: SlashHandler = async (arg, ctx) => {
   const { buildSummarizer } = await import("../session.js");
   const before = ctx.convo.messages.length;
   const instructions = arg.trim() || undefined;
-  const compressed = await compressMessages(
-    ctx.convo.messages,
-    ctx.setup.provider.contextWindow(),
-    buildSummarizer(ctx.setup.provider, instructions),
-    { thresholdPct: 0 },
-  );
-  ctx.convo.messages.splice(0, Infinity, ...compressed);
-  return { output: `  · compressed ${before} → ${compressed.length} messages` };
+  ctx.onCompacting?.(true, 0);
+  try {
+    const summarize = buildSummarizer(ctx.setup.provider, instructions);
+    const compressed = await compressMessages(
+      ctx.convo.messages,
+      ctx.setup.provider.contextWindow(),
+      async (messages) => {
+        ctx.onCompacting?.(true, 25);
+        const summary = await summarize(messages);
+        ctx.onCompacting?.(true, 85);
+        return summary;
+      },
+      { thresholdPct: 0 },
+    );
+    ctx.onCompacting?.(true, 95);
+    ctx.convo.messages.splice(0, Infinity, ...compressed);
+    ctx.onCompacting?.(true, 100);
+    return { output: `  · compressed ${before} → ${compressed.length} messages` };
+  } finally {
+    ctx.onCompacting?.(false, 0);
+  }
 };
 
 /** PCLIP-COST-ATTRIBUTION: `/usage breakdown [--since <ISO date>]` — persisted
@@ -76,6 +89,20 @@ export const mcp: SlashHandler = async (_arg, ctx) => {
   const cfg = await readMcpConfig(ctx.env).catch(() => ({ servers: {} as Record<string, unknown> }));
   const names = Object.keys(cfg.servers ?? {});
   return { output: lines(names.map((n) => `  ${n}`), "  (no MCP servers — set VANTA_MCP_SERVERS or ~/.vanta/mcp.json)") };
+};
+
+export const integrations: SlashHandler = async (arg, ctx) => {
+  const [action, id] = arg.trim().split(/\s+/, 2);
+  if (action && id) {
+    const [{ executeIntegrationAction }, { INTEGRATION_IDS }] = await Promise.all([import("../integrations/actions.js"), import("../integrations/catalog.js")]);
+    const valid = ["test", "install", "configure", "manage_mcp"];
+    if (!valid.includes(action) || !INTEGRATION_IDS.includes(id as import("../integrations/types.js").IntegrationId)) return { output: "  usage: /integrations [test|install|configure|manage_mcp] <integration>" };
+    try { return { output: `  ${await executeIntegrationAction(dirname(ctx.dataDir), id as import("../integrations/types.js").IntegrationId, action as import("../integrations/types.js").IntegrationAction, ctx.env)}` }; }
+    catch (error) { return { output: `  ${error instanceof Error ? error.message : String(error)}` }; }
+  }
+  const { readIntegrationCatalog, integrationStateLabel } = await import("../integrations/catalog.js");
+  const items = await readIntegrationCatalog(dirname(ctx.dataDir), ctx.env);
+  return { output: lines(items.map((item) => `  ${item.label} — ${integrationStateLabel(item.state)}\n    ${item.detail}\n    Actions: ${item.actions.join(", ") || "none"}`), "  (no integrations catalogued)") };
 };
 
 export const cron: SlashHandler = async (_arg, ctx) => {

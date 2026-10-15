@@ -6,7 +6,9 @@ sidebar_position: 3
 
 # Extend Vanta with a tool
 
-Add a new capability that's kernel-gated like every built-in. (To add a *whole external toolset* instead, mount an [MCP server](../mcp.md) — no code.)
+Add a new capability through the standard assessed dispatcher. Registration
+alone is not an effect boundary. (To add a *whole external toolset* instead,
+mount an [MCP server](../mcp.md) and review its trust and effect surface.)
 
 ## 1. Create the tool
 

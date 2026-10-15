@@ -1,10 +1,11 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { runSchemaV1ReleaseProof, type SchemaReleaseTaskDriver } from "./release-proof.js";
 
 const roots: string[] = [];
+const canRunSeatbelt = process.platform === "darwin" && existsSync("/usr/bin/sandbox-exec");
 
 afterEach(() => {
   roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true }));
@@ -28,7 +29,7 @@ function memoryDriver(kind: "repo" | "browser"): SchemaReleaseTaskDriver {
 }
 
 describe("Schema v1 release proof", () => {
-  it("composes real-task contracts, restart recovery, mismatch containment, and matched eval evidence", async () => {
+  it.runIf(canRunSeatbelt)("composes real-task contracts, restart recovery, mismatch containment, and matched eval evidence", async () => {
     const root = mkdtempSync(join(tmpdir(), "vanta-schema-release-"));
     roots.push(root);
     const result = await runSchemaV1ReleaseProof({

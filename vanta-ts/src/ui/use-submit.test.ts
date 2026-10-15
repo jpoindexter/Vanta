@@ -121,11 +121,28 @@ describe("useSubmit routing", () => {
     expect(h.send).toHaveBeenCalledWith("just a message");
   });
 
-  it("routes a natural-language Telegram setup question to the setup status command", () => {
+  it("routes direct Telegram setup and repair instructions to the in-app status command", () => {
     const h = harness();
-    h.onSubmit("how do i setup telgram i dont see the / command");
+    h.onSubmit("fix telegram");
     expect(h.runSlash).toHaveBeenCalledWith("/setup telegram");
     expect(h.send).not.toHaveBeenCalled();
+  });
+
+  it("keeps Telegram questions in the model path with shell-wizard guidance", async () => {
+    const h = harness();
+    h.onSubmit("how do i set up telgram i dont see the / command?");
+    await waitUntil(() => h.send.mock.calls.length > 0);
+    expect(h.runSlash).not.toHaveBeenCalled();
+    expect(h.send).toHaveBeenCalledWith("how do i set up telgram i dont see the / command?");
+    expect(h.dispatch).toHaveBeenCalledWith({ t: "note", text: "  Tip: run /setup telegram to inspect Telegram, or use `vanta setup messaging telegram` in a shell to enter a token." });
+  });
+
+  it("does not treat unrelated Telegram questions as setup requests", async () => {
+    const h = harness();
+    h.onSubmit("what Telegram commands are available?");
+    await waitUntil(() => h.send.mock.calls.length > 0);
+    expect(h.runSlash).not.toHaveBeenCalled();
+    expect(h.dispatch).not.toHaveBeenCalledWith(expect.objectContaining({ t: "note", text: expect.stringContaining("vanta setup messaging telegram") }));
   });
 
   it("expands typed context refs and shows an expansion receipt", async () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from "react";
 import { RotateCcw, X } from "lucide-react";
 import type { Session } from "./types.js";
 
@@ -7,7 +7,9 @@ type Notice = { message: string; tone: "success" | "error"; action?: { label: st
 type Callbacks = {
   rename: (id: string, title: string) => void | Promise<void>;
   archive: (id: string, archived: boolean) => void | Promise<void>;
+  archiveMany: (ids: string[], archived: boolean) => void | Promise<void>;
   remove: (id: string, action: SessionDeleteAction) => void | Promise<void>;
+  removeMany: (ids: string[], action: SessionDeleteAction) => void | Promise<void>;
   pin: (id: string, pinned: boolean) => void | Promise<void>;
   reorderPins: (orderedIds: string[]) => void | Promise<void>;
 };
@@ -15,18 +17,23 @@ type Callbacks = {
 export function useSessionSafeOps(callbacks: Callbacks) {
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const [notice, setNotice] = useState<Notice | null>(null);
+  const pendingIdsRef = useRef<Set<string>>(new Set());
 
-  async function run(options: { targets: Session[]; perform: (session: Session) => void | Promise<void>; message: string; undo?: () => Promise<unknown> }): Promise<boolean> {
+  async function run(options: { targets: Session[]; perform: (session: Session) => void | Promise<void>; performAll?: (sessions: Session[]) => void | Promise<void>; message: string; undo?: () => Promise<unknown> }): Promise<boolean> {
     const ids = new Set(options.targets.map((session) => session.id));
+    if ([...ids].some((id) => pendingIdsRef.current.has(id))) return false;
+    pendingIdsRef.current = new Set([...pendingIdsRef.current, ...ids]);
     setPendingIds((current) => new Set([...current, ...ids]));
     try {
-      await Promise.all(options.targets.map(options.perform));
+      if (options.performAll) await options.performAll(options.targets);
+      else await Promise.all(options.targets.map(options.perform));
       setNotice({ message: options.message, tone: "success", ...(options.undo ? { action: { label: "Undo", run: options.undo } } : {}) });
       return true;
     } catch (reason) {
       setNotice({ message: reason instanceof Error ? reason.message : String(reason), tone: "error" });
       return false;
     } finally {
+      pendingIdsRef.current = new Set([...pendingIdsRef.current].filter((id) => !ids.has(id)));
       setPendingIds((current) => new Set([...current].filter((id) => !ids.has(id))));
     }
   }
@@ -37,14 +44,14 @@ export function useSessionSafeOps(callbacks: Callbacks) {
 
   async function archive(targets: Session[], archived: boolean): Promise<boolean> {
     const count = targets.length;
-    return run({ targets, perform: (session) => callbacks.archive(session.id, archived), message: `${archived ? "Archived" : "Restored"} ${count} session${count === 1 ? "" : "s"}.`, undo: () => archive(targets, !archived) });
+    return run({ targets, perform: (session) => callbacks.archive(session.id, archived), ...(targets.length > 1 ? { performAll: (sessions: Session[]) => callbacks.archiveMany(sessions.map((session) => session.id), archived) } : {}), message: `${archived ? "Archived" : "Restored"} ${count} session${count === 1 ? "" : "s"}.`, undo: () => archive(targets, !archived) });
   }
 
   async function remove(targets: Session[], action: SessionDeleteAction): Promise<boolean> {
     const count = targets.length;
     const label = action === "trash" ? "Moved to Trash" : action === "restore" ? "Restored" : "Deleted permanently";
     const undo: (() => Promise<boolean>) | undefined = action === "trash" ? () => remove(targets, "restore") : action === "restore" ? () => remove(targets, "trash") : undefined;
-    return run({ targets, perform: (session) => callbacks.remove(session.id, action), message: `${label} ${count} session${count === 1 ? "" : "s"}.`, ...(undo ? { undo } : {}) });
+    return run({ targets, perform: (session) => callbacks.remove(session.id, action), ...(targets.length > 1 ? { performAll: (sessions: Session[]) => callbacks.removeMany(sessions.map((session) => session.id), action) } : {}), message: `${label} ${count} session${count === 1 ? "" : "s"}.`, ...(undo ? { undo } : {}) });
   }
 
   async function pin(session: Session, pinned: boolean): Promise<boolean> {

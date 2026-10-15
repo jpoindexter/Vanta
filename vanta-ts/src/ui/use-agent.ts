@@ -1,6 +1,6 @@
 import { type Dispatch, type MutableRefObject } from "react";
 import { join } from "node:path";
-import { createConversation, type Conversation } from "../agent.js";
+import { createConversation, type AgentOutcome, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
 import { runPostTurnGates, type GateState } from "../repl/post-turn-gates.js";
 import { toolDisplay } from "../term/tool-display.js";
@@ -16,15 +16,18 @@ import { notify as osNotify } from "../term/notify.js";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
+import type { PendingQuestion } from "./ask-user-prompt.js";
+import { TaskApprovalScope, requestApprovalWithTaskScope, type Pending } from "./task-approval.js";
+export { requestApprovalWithTaskScope, type Pending } from "./task-approval.js";
+import { resolveOperatingMode, permissionModeForOperating, type OperatingMode } from "../modes/operating-mode.js";
+import { PLAN_MARKER } from "../repl/plan-mode.js";
+import { saveSession } from "../sessions/store.js";
+import type { Message } from "../types.js";
 
 /** Reload the agent's plan into the live todo panel (best-effort). */
 async function refreshTodos(dispatch: Dispatch<Action>): Promise<void> {
   try { dispatch({ t: "todos", items: await readTodos(process.env) }); } catch { /* ignore */ }
 }
-
-/** A pending kernel approval the live region renders; resolved by an a/A/d keypress.
- * `toolName` lets "always allow" persist a tool-scoped rule (see ui/grant.ts). */
-export type Pending = { action: string; reason: string; toolName?: string; fresh?: boolean; resolve: (ok: boolean) => void };
 
 type TurnScope = {
   /** Foreground turns started while another response is detached still render live. */
@@ -35,9 +38,25 @@ function liveDispatch(deps: AgentDeps, action: Action, scope?: TurnScope): void 
   if (scope?.forceLive || !isBackgroundResponseRunning(deps.replStateRef.current)) deps.dispatch(action);
 }
 
-/** First non-empty line of a failed result, trimmed — used for the error tail. */
-function firstLine(t: string): string {
-  const l = (t.split("\n")[0] ?? "").trim();
+export function terminalTextForTui(outcome: Pick<AgentOutcome, "finalText" | "stoppedReason">): string {
+  return outcome.stoppedReason !== "done" ? outcome.finalText.trim() : "";
+}
+
+function surfaceTerminalOutcome(deps: AgentDeps, outcome: AgentOutcome): void {
+  const text = terminalTextForTui(outcome);
+  if (text) liveDispatch(deps, { t: "delta", d: text });
+}
+
+const STRONG_FAILURE = /(?:\b(?:[a-z]*error|fatal)\b|operation not permitted|permission denied|\b(?:eperm|eacces|enoent|eaddrinuse)\b)/i;
+const WEAK_FAILURE = /\b(?:failed|failure|blocked|denied|refused|unsupported)\b/i;
+
+/** Prefer the actionable diagnostic in noisy command output, then clip it. */
+export function failureSummary(t: string): string {
+  const lines = t.split("\n").map((line) => line.trim()).filter(Boolean);
+  const l = lines.find((line) => STRONG_FAILURE.test(line))
+    ?? lines.find((line) => WEAK_FAILURE.test(line))
+    ?? lines[0]
+    ?? "Command failed";
   return l.length > 80 ? `${l.slice(0, 77)}...` : l;
 }
 
@@ -46,10 +65,14 @@ type AgentDeps = {
   repoRoot: string;
   dispatch: Dispatch<Action>;
   setPending: (p: Pending | null) => void;
+  setPendingQuestion: (p: PendingQuestion | null) => void;
+  taskApprovals: TaskApprovalScope;
   interruptRef: MutableRefObject<AbortController | null>;
   convoRef: MutableRefObject<Conversation | null>;
   replStateRef: MutableRefObject<ReplState>;
   gatesRef: MutableRefObject<GateState>;
+  operatingMode?: () => OperatingMode;
+  initialHistory?: Message[];
   notifyTurnComplete?: typeof osNotify;
   windowFocused?: () => boolean | Promise<boolean>;
 };
@@ -86,21 +109,30 @@ function convoConfig(deps: AgentDeps, scope?: TurnScope): Parameters<typeof crea
     maxIterations: Number(process.env.VANTA_MAX_ITER) || undefined,
     summarize: buildSummarizer(deps.setup.provider),
     getEffortLevel: () => deps.replStateRef.current.effortLevel ?? deps.setup.effortLevel,
+    getServiceTier: () => deps.replStateRef.current.serviceTier ?? deps.setup.serviceTier,
+    permissionMode: () => permissionModeForOperating(deps.operatingMode?.() ?? resolveOperatingMode(process.env)),
+    planGate: () => {
+      const slashPlan = deps.convoRef.current?.messages[0]?.content.includes(PLAN_MARKER) === true
+        && deps.replStateRef.current.planApproved !== true;
+      return (deps.operatingMode?.() ?? resolveOperatingMode(process.env)) === "plan" || slashPlan;
+    },
     onThinking: (text) => liveDispatch(deps, { t: "thinking", text }, scope),
     onTextDelta: (d) => liveDispatch(deps, { t: "delta", d }, scope),
     onThinkingDelta: (d) => liveDispatch(deps, { t: "thinkingDelta", d }, scope),
-    onCompacting: (active) => liveDispatch(deps, { t: "compacting", active }, scope),
+    onCompacting: (active, progress) => liveDispatch(deps, { t: "compacting", active, progress }, scope),
     onToolCall: (name, args) => {
       const disp = toolDisplay(name, args);
       liveDispatch(deps, { t: "toolCall", name, verb: disp.verb, detail: disp.detail }, scope);
     },
     onToolResult: (name, ok, output, diff) => {
       const tokens = Math.round((output?.length ?? 0) / 4);
-      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : firstLine(output), summary: summarizeResult(output, name), diff, tokens, rawOutput: output }, scope);
+      liveDispatch(deps, { t: "toolResult", name, ok, errorLine: ok ? undefined : failureSummary(output), summary: summarizeResult(output, name), diff, tokens, rawOutput: output }, scope);
       if (name === "todo") void refreshTodos(deps.dispatch); // reflect plan edits live
     },
     requestApproval: (action, reason, toolName, detail) =>
-      new Promise<boolean>((resolve) => deps.setPending({ action, reason, toolName, fresh: detail?.fresh, resolve })),
+      requestApprovalWithTaskScope({ taskApprovals: deps.taskApprovals, setPending: deps.setPending, action, reason, toolName, detail, root: deps.repoRoot }),
+    requestQuestion: (questions) =>
+      new Promise((resolve) => deps.setPendingQuestion({ questions, resolve })),
   };
 }
 
@@ -119,6 +151,7 @@ async function runForegroundAfterTurn(deps: AgentDeps, userText: string, finalTe
 function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise<void> {
   return async (text: string, display?: string): Promise<void> => {
     const foregroundDuringBackground = isBackgroundResponseRunning(deps.replStateRef.current);
+    deps.taskApprovals.beginTurn();
     if (foregroundDuringBackground) {
       deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps, { forceLive: true }), { history: deps.convoRef.current?.messages ?? [] });
     }
@@ -146,7 +179,7 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
       finalText = outcome.finalText;
       if (isThisTurnDetached()) finishBackgroundResponse(deps.replStateRef.current, outcome.finalText, new Date());
       else {
-        await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
+        surfaceTerminalOutcome(deps, outcome); await fireStopHook(join(deps.repoRoot, ".vanta"), { finalResponse: outcome.finalText, turnIndex: deps.replStateRef.current.turnIndex }, { cwd: deps.repoRoot, promptProvider: deps.setup.provider });
         await runTurnGates(deps);
       }
     } catch (err) {
@@ -158,11 +191,23 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
     } finally {
       if (!isThisTurnDetached()) {
         deps.dispatch({ t: "turnEnd" });
+        await saveForegroundSession(deps, conv);
         await runForegroundAfterTurn(deps, userText, finalText, suggestionTurn);
       }
       deps.interruptRef.current = null;
     }
   };
+}
+
+async function saveForegroundSession(deps: AgentDeps, conv: Conversation): Promise<void> {
+  const state = deps.replStateRef.current;
+  await saveSession(state.sessionId, conv.messages, {
+    env: process.env,
+    started: state.started,
+    title: state.title,
+    providerId: state.providerId,
+    modelId: state.modelId,
+  }).catch(() => {});
 }
 
 /**
@@ -172,7 +217,7 @@ function buildSend(deps: AgentDeps): (text: string, display?: string) => Promise
  */
 export function useAgent(deps: AgentDeps): { send: (text: string, display?: string) => Promise<void> } {
   if (deps.convoRef.current === null) {
-    deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps));
+    deps.convoRef.current = createConversation(deps.setup.systemPrompt, convoConfig(deps), { history: deps.initialHistory });
   }
   return { send: buildSend(deps) };
 }

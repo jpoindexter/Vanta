@@ -1,4 +1,5 @@
 import type { TaskStatus, WorkerTask } from "../team/tasks.js";
+import { ACTIVITY, BONE, HEALTH, RISK } from "../term/palette.js";
 
 // Pure data-shaping for the /agents task panel: worker-task records → display
 // rows, type/status badges, and elapsed time. No I/O, no React — unit-tested.
@@ -36,13 +37,16 @@ export function typeBadge(type: TaskType): string {
 
 type Glyph = { glyph: string; color: string };
 
+// Glyph carries the meaning; colour only reinforces it (BRAND-BOOK 3.4). Violet
+// marks the one live row, Bone the settled ones, and the functional red is kept
+// for the states where missing them costs most.
 const STATUS_GLYPHS: Record<TaskStatus, Glyph> = {
-  assigned: { glyph: "○", color: "white" },
-  running: { glyph: "▶", color: "#ffb86b" },
-  done: { glyph: "✓", color: "#83f2b0" },
-  blocked: { glyph: "⚠", color: "#ffb86b" },
-  stopped: { glyph: "■", color: "white" },
-  removed: { glyph: "✗", color: "#ff6b7a" },
+  assigned: { glyph: "○", color: BONE },
+  running: { glyph: "▶", color: ACTIVITY },
+  done: { glyph: "✓", color: HEALTH },
+  blocked: { glyph: "⚠", color: RISK },
+  stopped: { glyph: "■", color: BONE },
+  removed: { glyph: "✗", color: RISK },
 };
 
 export function statusGlyph(status: TaskStatus): Glyph {

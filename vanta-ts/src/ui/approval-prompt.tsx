@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { focusIndicator, type FocusTarget } from "./focus.js";
 import { grantAlways, grantNever } from "./grant.js";
@@ -10,33 +10,68 @@ import { buildPermissionRequest, type PermissionSection } from "../permissions/r
 // confirms, 1-4 jump, Esc denies. "Always" and "Never" persist tool-scoped
 // rules; the kernel block stays immovable.
 
-export type Outcome = "allow" | "always" | "deny" | "never";
-type Choice = { focus: FocusTarget; n: number; label: string; outcome: Outcome };
+export type Outcome = "task" | "allow" | "always" | "deny" | "never";
+type Choice = { focus: FocusTarget; label: string; outcome: Outcome };
 
 const CHOICES: Choice[] = [
-  { focus: "approval-allow", n: 1, label: "Yes", outcome: "allow" },
-  { focus: "approval-always", n: 2, label: "Yes, and don't ask again", outcome: "always" },
-  { focus: "approval-deny", n: 3, label: "No, and tell Vanta what to do", outcome: "deny" },
-  { focus: "approval-never", n: 4, label: "Never allow this tool", outcome: "never" },
+  { focus: "approval-task", label: "Yes — go ahead with this task", outcome: "task" },
+  { focus: "approval-allow", label: "Yes, just once", outcome: "allow" },
+  { focus: "approval-always", label: "Yes, and don't ask again", outcome: "always" },
+  { focus: "approval-deny", label: "No, and tell Vanta what to do", outcome: "deny" },
+  { focus: "approval-never", label: "Never allow this tool", outcome: "never" },
 ];
 
 /** Whether an outcome lets the tool run (allow + always → yes, deny → no). Pure. */
-export const approves = (outcome: Outcome): boolean => outcome === "allow" || outcome === "always";
+export const approves = (outcome: Outcome): boolean => outcome === "task" || outcome === "allow" || outcome === "always";
 
 /** Resolve a pending approval for an outcome; "always" also persists the rule. */
-export function decide(pending: Pending, outcome: Outcome): void {
-  if (pending.fresh && outcome === "always") { pending.resolve(false); return; }
-  if (outcome === "always") void grantAlways(pending.toolName).catch(() => {});
-  if (outcome === "never") void grantNever(pending.toolName).catch(() => {});
+export async function decide(pending: Pending, outcome: Outcome): Promise<void> {
+  if (pending.fresh && ["task", "always", "never"].includes(outcome)) { pending.resolve(false); return; }
+  if (pending.canRemember === false && ["task", "always", "never"].includes(outcome)) {
+    throw new Error("This approval policy requires a one-time decision; a saved rule cannot replace it.");
+  }
+  if (outcome === "task") pending.grantTask?.();
+  if (outcome === "always" || outcome === "never") await saveDecision(pending, outcome);
   pending.resolve(approves(outcome));
+}
+
+async function saveDecision(pending: Pending, outcome: "always" | "never"): Promise<void> {
+  if (!pending.toolName) throw new Error("Cannot save an approval rule without a tool name. Choose a one-time decision.");
+  try {
+    if (outcome === "always") await grantAlways(pending.toolName, process.env, pending.root);
+    else await grantNever(pending.toolName, process.env, pending.root);
+  } catch {
+    throw new Error("Could not save the approval rule. Nothing was approved. Retry or choose a one-time decision.");
+  }
+}
+
+function useApprovalDecision(pending: Pending, onDone: () => void) {
+  const locked = useRef<Pending | null>(null);
+  const [error, setError] = useState("");
+  const pick = async (outcome: Outcome) => {
+    if (locked.current === pending) return;
+    locked.current = pending; setError("");
+    try { await decide(pending, outcome); onDone(); }
+    catch (reason) {
+      locked.current = null;
+      setError(reason instanceof Error ? reason.message : "Approval could not be saved. Please try again.");
+    }
+  };
+  return { error, pick };
 }
 
 export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () => void; onFocusTargetChange?: (target: FocusTarget) => void; pending: Pending }): ReactElement {
   const { pending, onDone } = props;
-  const choices = pending.fresh ? CHOICES.filter((choice) => choice.outcome !== "always") : CHOICES;
+  const request = buildPermissionRequest({ ...pending, detail: { fresh: pending.fresh, canRemember: pending.canRemember } });
+  const canContinue = pending.canContinueTask && !pending.fresh && pending.canRemember !== false;
+  const choices = CHOICES.filter((choice) =>
+    choice.outcome !== "task" || canContinue,
+  ).filter((choice) =>
+    choice.outcome !== "allow" || !canContinue,
+  ).filter((choice) => request.canRemember || !["always", "never"].includes(choice.outcome));
   const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget, choices)));
-  const request = buildPermissionRequest(pending);
-  const pick = (i: number): void => { decide(pending, choices[i]!.outcome); onDone(); };
+  const decision = useApprovalDecision(pending, onDone);
+  const pick = (i: number): void => { void decision.pick(choices[i]!.outcome); };
   useEffect(() => {
     const idx = choiceIndex(props.focusedTarget, choices);
     if (idx >= 0) setSel(idx);
@@ -47,7 +82,7 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
     else if (key.downArrow) moveChoice(sel, 1, { choices, setSel, onFocus: props.onFocusTargetChange });
     else if (key.return) pick(sel);
     else if (key.escape) pick(choices.findIndex((choice) => choice.outcome === "deny"));
-    else if (/^[1-4]$/.test(input)) { const index = choices.findIndex((choice) => choice.n === Number(input)); if (index >= 0) pick(index); }
+    else if (/^[1-4]$/.test(input)) { const index = Number(input) - 1; if (index < choices.length) pick(index); }
   });
 
   return (
@@ -55,10 +90,11 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
       <Text bold>⚠ {request.title}</Text>
       <Text>{request.subject}</Text>
       {request.reason ? <Text>{request.reason}</Text> : null}
+      {decision.error ? <Text color="red">{decision.error}</Text> : null}
       {request.sections.map((section) => <RequestSection key={section.label} section={section} />)}
       <Box marginTop={1} flexDirection="column">
         <Text bold>Do you want to proceed?</Text>
-        {choices.map((c, i) => <ChoiceRow key={c.n} choice={c} selected={i === sel} accent={"white"} primary={"white"} />)}
+        {choices.map((c, i) => <ChoiceRow key={c.outcome} choice={c} number={i + 1} selected={i === sel} accent={"white"} primary={"white"} />)}
       </Box>
     </Box>
   );
@@ -79,11 +115,11 @@ function RequestSection(props: { section: PermissionSection }): ReactElement {
   return <Text><Text bold>{props.section.label}:</Text> {props.section.value}</Text>;
 }
 
-function ChoiceRow(props: { choice: Choice; selected: boolean; accent: string; primary: string }): ReactElement {
-  const { choice, selected, accent, primary } = props;
+function ChoiceRow(props: { choice: Choice; number: number; selected: boolean; accent: string; primary: string }): ReactElement {
+  const { choice, number, selected, accent, primary } = props;
   return (
       <Text>
-      <Text>{focusIndicator(selected)} {choice.n}.</Text> {choice.label}
+      <Text>{focusIndicator(selected)} {number}.</Text> {choice.label}
       {choice.outcome === "deny" ? <Text>  (esc)</Text> : null}
     </Text>
   );

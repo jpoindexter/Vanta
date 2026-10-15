@@ -1,6 +1,5 @@
-import { execFile } from "node:child_process";
+import { gitExecFile } from "../git/process.js";
 import { stat } from "node:fs/promises";
-import { promisify } from "node:util";
 import { join } from "node:path";
 import { listRepoFiles } from "../term/at-context.js";
 
@@ -11,7 +10,6 @@ type FileContextDeps = {
   modifiedAt?: (path: string) => Promise<number>;
 };
 
-const exec = promisify(execFile);
 const PRIVATE_FILE = /(^|\/)(?:\.DS_Store|\.env(?:\.[^/]*)?|credentials?(?:\.[^/]*)?|secrets?(?:\.[^/]*)?|[^/]+\.(?:pem|key|p12|pfx))$/i;
 const PRIVATE_DIR = /(^|\/)(?:\.git|\.vanta|\.ssh|\.aws|\.gnupg)(?:\/|$)/i;
 
@@ -33,7 +31,7 @@ export function parseChangedFiles(output: string): string[] {
 }
 
 async function gitChanged(root: string): Promise<string[]> {
-  const result = await exec("git", ["-C", root, "status", "--porcelain=v1", "-z", "--untracked-files=all"]).catch(() => ({ stdout: "" }));
+  const result = await gitExecFile("git", ["-C", root, "status", "--porcelain=v1", "-z", "--untracked-files=all"]).catch(() => ({ stdout: "" }));
   return parseChangedFiles(result.stdout);
 }
 

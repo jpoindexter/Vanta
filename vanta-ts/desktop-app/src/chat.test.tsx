@@ -2,7 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { ChatThread, Composer } from "./chat.js";
-import type { DesktopRunReceipt } from "./types.js";
+import type { Approval, DesktopRunReceipt } from "./types.js";
 
 describe("ChatThread recovery", () => {
   it("renders failed-run receipts with the recovery actions", () => {
@@ -135,7 +135,7 @@ describe("ChatThread quiet trace", () => {
       />,
     );
     expect(html).toContain("Read and searched 2 times");
-    expect(html.match(/<details/g)).toHaveLength(1);
+    expect(html.match(/<details/g)).toHaveLength(2);
     expect(html).toContain("first full output");
     expect(html).toContain("second full output");
     expect(html).not.toContain("internal policy narration");
@@ -174,19 +174,29 @@ describe("ChatThread approval checkpoint", () => {
     );
 
     expect(html).toContain("Approval required");
-    expect(html).toContain("File edit permission request");
-    expect(html).toContain("desktop-app/src/chat.tsx");
-    expect(html).toContain("modifying existing file content");
+    expect(html).toContain("Edit desktop-app/src/chat.tsx");
+    expect(html).toContain("Modifying existing file content.");
+    expect(html).not.toContain("Target file");
     expect(html).toContain("Preview");
     expect(html).toContain("- old");
     expect(html).toContain("+ new");
     expect(html).toContain("Allow once");
     expect(html).toContain("Reject");
   });
+
+  it("says the run is waiting on the human, not working, while an approval is open", () => {
+    const render = (approval: Approval | null) => renderToStaticMarkup(
+      <ChatThread messages={[]} busy={true} streamText="" events={[]} recovery={null} approval={approval}
+        onApproval={vi.fn()} onRetry={vi.fn()} onPrompt={vi.fn()} />,
+    );
+    expect(render({ id: "a", action: "Edit file x.md", reason: "routine", toolName: "edit_file" })).toContain("Waiting for your approval");
+    expect(render({ id: "a", action: "Edit file x.md", reason: "routine", toolName: "edit_file" })).not.toContain("Working...");
+    expect(render(null)).toContain("Working...");
+  });
 });
 
 describe("Composer context legibility", () => {
-  it("renders model scope, tools, memory, approval state, and removable file chips", () => {
+  it("renders the streamlined model, approval state, and removable file chips", () => {
     const html = renderToStaticMarkup(
       <Composer
         value=""
@@ -195,7 +205,13 @@ describe("Composer context legibility", () => {
         root="/Users/jasonpoindexter/Documents/GitHub/docs/Vanta"
         tools={42}
         accessMode="ask"
-        attachments={["desktop-app/src/App.tsx"]}
+        attachments={[{
+          id: "file:desktop-app/src/App.tsx",
+          kind: "file",
+          path: "desktop-app/src/App.tsx",
+          label: "App.tsx",
+          files: ["desktop-app/src/App.tsx"],
+        }]}
         onChange={vi.fn()}
         onSubmit={vi.fn()}
         onQueue={vi.fn()}
@@ -209,18 +225,47 @@ describe("Composer context legibility", () => {
       />,
     );
 
-    expect(html).toContain("Session model");
-    expect(html).toContain("Tools 42");
-    expect(html).toContain("MCP 0 · 0 tools");
-    expect(html).toContain("Memory local");
     expect(html).toContain('class="approval-mode mode-ask"');
     expect(html).toContain('aria-haspopup="dialog"');
-    expect(html).toContain(">Ask</span>");
+    expect(html).toContain(">Manual</span>");
     expect(html).toContain("gpt-5.5");
     expect(html).toContain("Agent model");
     expect(html).toContain("Agent model: gpt-5.5. Change model");
     expect(html).toContain("desktop-app/src/App.tsx");
     expect(html).toContain("Remove desktop-app/src/App.tsx");
+  });
+
+  it("renders a folder as one icon-only removable chip", () => {
+    const html = renderToStaticMarkup(
+      <Composer
+        value=""
+        busy={false}
+        accessMode="ask"
+        attachments={[{
+          id: "folder:images",
+          kind: "folder",
+          path: "images",
+          label: "images",
+          files: ["images/a.jpg", "images/b.jpg"],
+        }]}
+        onChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onQueue={vi.fn()}
+        onRemoveAttachment={vi.fn()}
+        onStop={vi.fn()}
+        onAttach={vi.fn()}
+        onMcp={vi.fn()}
+        onModel={vi.fn()}
+        onAccessMode={vi.fn(async () => undefined)}
+        onCommand={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('class="folder-context-chip"');
+    expect(html).toContain("Folder images with 2 readable files");
+    expect(html).toContain("Remove folder images");
+    expect(html).not.toContain(">images/a.jpg<");
+    expect(html).not.toContain(">images/b.jpg<");
   });
 });
 

@@ -6,6 +6,7 @@ import { buildLiveDeps, cleanupShots } from "./vision-action-run.js";
 import { connectChicago, type ChicagoRouter } from "../mcp/chicago-client.js";
 import { resolveChicagoConnect } from "../mcp/chicago-connect.js";
 import { chicagoEnabled } from "../mcp/chicago-route.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
 const Args = z.object({
   target: z.string().min(1),
@@ -39,7 +40,7 @@ export async function runVisionActionTool(raw: unknown, ctx: ToolContext, deps?:
       // router stays null → the local path is byte-identical. The click was
       // already kernel-gated above (MCP is the WHERE, the kernel is the WHETHER).
       const router: ChicagoRouter | null = chicagoEnabled(process.env)
-        ? await connectChicago(process.env, resolveChicagoConnect(process.env))
+        ? await connectChicago(process.env, resolveChicagoConnect(process.env, ctx.root, effectGateFromToolContext(ctx)))
         : null;
       live = buildLiveDeps(resolveVisionProvider(process.env), router);
     } catch (err) {

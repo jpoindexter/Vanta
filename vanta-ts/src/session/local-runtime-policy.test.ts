@@ -12,6 +12,7 @@ describe("local runtime session policy", () => {
 
   it("uses a compact coding surface for a local provider by default", () => {
     expect(resolveSessionToolInclude(undefined, localRoute, {})).toEqual(LOCAL_CODING_TOOLS);
+    expect(LOCAL_CODING_TOOLS).toContain("todo");
   });
 
   it("preserves an explicit project allowlist", () => {
@@ -38,6 +39,8 @@ describe("local runtime session policy", () => {
     expect(compact).toContain("read AGENTS.md");
     expect(compact).toContain("exact absolute path");
     expect(compact).toContain("scoped approval");
+    expect(compact).toContain("use ask_user");
+    expect(compact).toContain("keep exactly one item in_progress");
     expect(compact).not.toContain("repository detail");
     expect(compact.length).toBeLessThan(3_000);
   });

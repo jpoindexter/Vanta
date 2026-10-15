@@ -1,7 +1,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, delimiter } from "node:path";
 import { spawn as nodeSpawn } from "node:child_process";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+  type EffectGateContext,
+} from "../effects/execute-effect.js";
 import { resolveVantaHome } from "../store/home.js";
+import { buildSafeChildEnv } from "../exec/child-env.js";
 
 // VANTA-CALL-AGENT — drive ANY AI coding-agent CLI as a subprocess, like a human
 // opening a second terminal. Vanta calls the REAL agent (its own harness, tools,
@@ -106,6 +113,8 @@ export function buildAgentInvocation(
   prompt: string,
   opts: { model?: string; env?: NodeJS.ProcessEnv; coding?: boolean; autonomous?: boolean } = {},
 ): Invocation | null {
+  // Configuration discovery needs VANTA_HOME/PATH. Only the spawned child gets
+  // the minimized environment.
   const env = opts.env ?? process.env;
   const spec = registry(env)[agent];
   return spec ? { cmd: spec.cmd, args: spec.build(prompt, opts.model, opts.coding, opts.autonomous) } : null;
@@ -146,9 +155,50 @@ function timeoutMs(env: NodeJS.ProcessEnv): number {
  */
 export async function runExternalAgent(
   inv: Invocation,
+  opts: {
+    cwd: string;
+    env?: NodeJS.ProcessEnv;
+    spawn?: SpawnFn;
+    onChunk?: (text: string) => void;
+    heartbeatMs?: number;
+    timeoutMs?: number;
+    effectGate?: EffectGateContext;
+  },
+): Promise<RunResult> {
+  if (opts.effectGate) {
+    const hash = payloadSha256(JSON.stringify({ command: inv.cmd, args: inv.args }));
+    const seed = {
+      host: "external-agent-host",
+      kind: "agent.child.launch",
+      targetClass: "external-agent-process",
+      payloadSha256: hash,
+      idempotencyKey: `external-agent:${opts.effectGate.operationId ?? opts.effectGate.sessionId ?? "one-shot"}:${hash}`,
+    };
+    const result = await executeEffect({
+      id: stableEffectId(seed),
+      actor: inv.cmd,
+      action: `launch external agent process ${inv.cmd} with argument payload sha256:${hash}`,
+      ...seed,
+    }, opts.effectGate, async () => {
+      const value = await runExternalAgentOperation(inv, opts);
+      return {
+        value,
+        acknowledgementId: `${inv.cmd}:exit:${value.code ?? "unknown"}`,
+        failed: !value.ok,
+      };
+    });
+    if (result.value) return result.value;
+    return { ok: false, stdout: "", stderr: `external agent effect ${result.outcome}`, code: null };
+  }
+  return runExternalAgentOperation(inv, opts);
+}
+
+function runExternalAgentOperation(
+  inv: Invocation,
   opts: { cwd: string; env?: NodeJS.ProcessEnv; spawn?: SpawnFn; onChunk?: (text: string) => void; heartbeatMs?: number; timeoutMs?: number },
 ): Promise<RunResult> {
-  const env = opts.env ?? process.env;
+  const sourceEnv = opts.env ?? process.env;
+  const env = buildSafeChildEnv(sourceEnv);
   const spawn = opts.spawn ?? defaultSpawn;
   const onChunk = opts.onChunk;
   const startMs = Date.now();
@@ -175,7 +225,7 @@ export async function runExternalAgent(
       resolve(r);
     };
     const child = spawn(inv.cmd, inv.args, { cwd: opts.cwd, env });
-    const killTimer = setTimeout(() => { timedOut = true; child.kill("SIGTERM"); }, opts.timeoutMs ?? timeoutMs(env));
+    const killTimer = setTimeout(() => { timedOut = true; child.kill("SIGTERM"); }, opts.timeoutMs ?? timeoutMs(sourceEnv));
     const hb = setInterval(() => onChunk?.(`… ${inv.cmd} working (${Math.round((Date.now() - startMs) / 1000)}s)`), opts.heartbeatMs ?? DEFAULT_HEARTBEAT_MS);
     child.stdout?.on("data", (d) => { const t = String(d); stdout += t; emitLines(t); });
     child.stderr?.on("data", (d) => { const t = String(d); stderr += t; emitLines(t); });

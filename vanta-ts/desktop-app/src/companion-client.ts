@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { desktopBoundaryToken } from "./api.js";
 import type { EventRow } from "./types.js";
 
 export const TOKEN_KEY = "vanta.companion.token.v1";
@@ -10,11 +11,22 @@ export function normalizeHost(value: string): string {
   return value.trim().replace(/\/+$/, "");
 }
 
+function companionHeaders(url: string, token: string, initial?: HeadersInit): Headers {
+  const headers = new Headers(initial);
+  if (token) headers.set("authorization", `Bearer ${token}`);
+  const location = typeof window === "undefined" ? undefined : window.location;
+  // A paired host must never receive the current Desktop's private boundary credential.
+  if (location && isLocalHost(location.hostname) && new URL(url, location.href).origin === location.origin) {
+    const boundary = desktopBoundaryToken();
+    if (boundary) headers.set("x-vanta-desktop-boundary", boundary);
+  }
+  return headers;
+}
+
 export function companionClient(token: string, host = "") {
   return async function api<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
-    const headers = new Headers(init.headers);
-    if (token) headers.set("authorization", `Bearer ${token}`);
-    const response = await fetch(`${normalizeHost(host)}/api/companion${path}`, { ...init, headers });
+    const url = `${normalizeHost(host)}/api/companion${path}`;
+    const response = await fetch(url, { ...init, headers: companionHeaders(url, token, init.headers) });
     const body = await response.json();
     if (!response.ok) throw new Error(body.error ?? "request failed");
     return body as T;
@@ -24,8 +36,9 @@ export function companionClient(token: string, host = "") {
 export async function streamCompanionEvents(opts: {
   token: string; host: string; signal: AbortSignal; onEvent: (event: EventRow & { delta?: string }) => void;
 }): Promise<void> {
-  const response = await fetch(`${normalizeHost(opts.host)}/api/companion/events`, {
-    headers: { authorization: `Bearer ${opts.token}` }, signal: opts.signal,
+  const url = `${normalizeHost(opts.host)}/api/companion/events`;
+  const response = await fetch(url, {
+    headers: companionHeaders(url, opts.token), signal: opts.signal,
   });
   if (!response.ok || !response.body) throw new Error("event stream unavailable");
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();

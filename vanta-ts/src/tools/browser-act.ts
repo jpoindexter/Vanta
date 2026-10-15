@@ -7,12 +7,22 @@ import {
   previewActions,
   riskyActions,
 } from "../browser/act.js";
+import { loadCookie } from "../reach/cookie.js";
+import { sessionHost, sessionMayAccessUrl } from "../reach/session-host.js";
 import { runActions } from "./browser-act-run.js";
 
 const Args = z.object({
   actions: z.array(BrowserActionSchema).min(1),
   observe: z.boolean().optional(),
+  sessionChannel: z.string().regex(/^[a-z][a-z0-9_-]*$/).optional(),
 });
+
+function firstNavigation(actions: BrowserAction[]): string | null {
+  return actions.find(
+    (action): action is Extract<BrowserAction, { type: "navigate" }> =>
+      action.type === "navigate",
+  )?.url ?? null;
+}
 
 /** Domains a navigate action visits that aren't on the allowlist. */
 function unlistedDomains(actions: BrowserAction[]): string[] {
@@ -32,6 +42,8 @@ export const browserActTool: Tool = {
       "Set observe:true to also return a numbered list of interactable elements (links, buttons, inputs) " +
       "with suggested selectors — use this to ground the next click before issuing it. " +
       "Pass a `secret:true` flag on a type action to mask + gate it. " +
+      "To reuse a session previously saved by cookie_import, set `sessionChannel` to its channel name; " +
+      "Vanta asks before loading it and never accepts or returns raw cookie values here. " +
       "Disabled when VANTA_BROWSER_DISABLED is set.",
     parameters: {
       type: "object",
@@ -60,6 +72,12 @@ export const browserActTool: Tool = {
             "When true, append a numbered list of the page's interactable elements after the body text. " +
             "Use this to identify selectors before clicking. Default false.",
         },
+        sessionChannel: {
+          type: "string",
+          description:
+            "Local cookie_import channel to inject before the first navigation (for example, linkedin). " +
+            "Requires explicit approval. Do not pass raw cookies.",
+        },
       },
       required: ["actions"],
     },
@@ -77,14 +95,31 @@ export const browserActTool: Tool = {
     if (!parsed.success) {
       return { ok: false, output: 'browser_act needs an "actions" array (navigate/click/type/press/scroll/wait)' };
     }
-    const { actions, observe } = parsed.data;
+    const { actions, observe, sessionChannel } = parsed.data;
+    const sessionUrl = sessionChannel ? firstNavigation(actions) : null;
+    if (sessionChannel && !sessionUrl) {
+      return {
+        ok: false,
+        output: "A stored browser session requires a navigate action so Vanta can scope its cookies safely.",
+      };
+    }
+    if (sessionChannel && sessionUrl && !sessionMayAccessUrl(sessionChannel, sessionUrl)) {
+      const boundHost = sessionHost(sessionChannel);
+      return {
+        ok: false,
+        output: boundHost
+          ? `Stored session ${sessionChannel} is restricted to ${boundHost}.`
+          : `Stored session ${sessionChannel} has no trusted host binding. Configure VANTA_BROWSER_SESSION_HOST_${sessionChannel.toUpperCase().replace(/[^A-Z0-9]/g, "_")} first.`,
+      };
+    }
 
     const risky = riskyActions(actions);
     const newDomains = unlistedDomains(actions);
-    if (risky.length > 0 || newDomains.length > 0) {
+    if (risky.length > 0 || newDomains.length > 0 || sessionChannel) {
       const reason = [
         risky.length > 0 ? `${risky.length} irreversible action(s)` : "",
         newDomains.length > 0 ? `new domain(s): ${newDomains.join(", ")}` : "",
+        sessionChannel ? `stored login session: ${sessionChannel}` : "",
       ]
         .filter(Boolean)
         .join("; ");
@@ -95,12 +130,26 @@ export const browserActTool: Tool = {
       if (!approved) return { ok: false, output: "denied by user" };
     }
 
+    const cookie = sessionChannel ? loadCookie(sessionChannel) : null;
+    if (sessionChannel && !cookie) {
+      return {
+        ok: false,
+        output: `No stored session for ${sessionChannel}. Import it with cookie_import first.`,
+      };
+    }
+
     let chromium: typeof import("playwright-core").chromium;
     try {
       ({ chromium } = await import("playwright-core"));
     } catch {
       return { ok: false, output: "playwright-core is not installed. Run `npm i playwright-core`." };
     }
-    return runActions(chromium, process.env, actions, observe);
+    return runActions(
+      chromium,
+      process.env,
+      actions,
+      observe,
+      cookie && sessionUrl ? { cookie, url: sessionUrl } : undefined,
+    );
   },
 };

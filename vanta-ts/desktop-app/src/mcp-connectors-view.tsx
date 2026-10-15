@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, Download, ExternalLink, FileSearch, Plug, RefreshCw, ShieldCheck, ShieldX, Trash2, Upload } from "lucide-react";
 import type { DesktopMcpActionRequest, DesktopMcpCatalogEntry, DesktopMcpConnector, DesktopMcpPayload } from "./mcp-types.js";
+import { IntegrationCatalogView } from "./integration-catalog-view.js";
 
 type McpViewProps = {
   payload: DesktopMcpPayload;
@@ -32,6 +33,7 @@ export function McpConnectorsView(props: McpViewProps) {
       </section>
     </div>
     {selected ? <Catalog entries={props.payload.catalog.filter((item) => !item.installed)} pending={props.pending} onAction={props.onAction} compact /> : null}
+    <IntegrationCatalogView />
     <ReceiptList payload={props.payload} />
   </div>;
 }

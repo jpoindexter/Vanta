@@ -10,7 +10,7 @@ import { loadSettings } from "../settings/store.js";
 import { approvalPreferenceFor, loadOperatorProfile } from "../operator-profile/profile.js";
 
 /** A resolved permission decision over the kernel verdict. */
-export type Decision = { decision: "allow" | "ask" | "block"; reason: string };
+export type Decision = { decision: "allow" | "ask" | "block"; reason: string; canRemember?: boolean };
 
 /**
  * The tightening chain over the kernel verdict: rules → auto-mode → bash-classifier
@@ -23,7 +23,7 @@ export async function resolveLayeredDecision(
   action: string,
   ctx: ToolContext,
 ): Promise<Decision> {
-  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action));
+  const ruleDecision = tighten(verdict.risk, matchRule(await loadRules(process.env), call.name, action, ctx.root));
   const autoDecision = await applyAutoMode(ruleDecision, call.name, action, ctx);
   const bashDecision = await applyBashClassifier(autoDecision, call);
   const profileDecision = await applyOperatorProfile(bashDecision, verdict.risk, call.name, action);
@@ -40,6 +40,12 @@ async function applyOperatorProfile(
   const profile = await loadOperatorProfile(process.env).catch(() => null);
   if (!profile) return current;
   const next = approvalPreferenceFor(profile, { toolName, action, currentDecision: current.decision, kernelRisk });
+  const preference = profile.approvalPreferences[toolName] ?? profile.approvalPreferences["*"];
+  if (preference === "always_ask" && next.decision === "ask") {
+    return { ...next, canRemember: false,
+      reason: "Your saved operator profile requires approval every time for this tool. Allow once or change that preference separately." };
+  }
+  if (next.decision === "ask" && next.canRemember === false) return next;
   return next.decision === current.decision ? current : next;
 }
 
@@ -63,7 +69,7 @@ async function applyBashClassifier(current: Decision, call: ToolCall): Promise<D
 function applyAdvisoryClassifier(current: Decision, toolName: string, action: string): Decision {
   if (current.decision === "block" || !classifierEnabled(process.env)) return current;
   const next = classifyTighten({ decision: current.decision, toolName, action });
-  return next.decision === current.decision ? current : next;
+  return next.decision === current.decision ? current : { ...current, ...next };
 }
 
 async function applyAutoMode(
@@ -74,7 +80,11 @@ async function applyAutoMode(
 ): Promise<Decision> {
   if (decision === "block") return { decision, reason: "denied by a permission rule" };
   const settings = await loadSettings(ctx.root ?? process.cwd(), process.env);
-  if (!isAutoModeEnabled(process.env, settings)) return { decision, reason: "kernel or permission rule" };
+  const hostMode = ctx.permissionMode?.();
+  const autoEnabled = hostMode === undefined
+    ? isAutoModeEnabled(process.env, settings)
+    : hostMode === "auto";
+  if (!autoEnabled) return { decision, reason: "kernel or permission rule" };
   return classifyAutoModeAction({
     kernelRisk: decision,
     toolName,

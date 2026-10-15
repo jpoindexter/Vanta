@@ -59,6 +59,7 @@ export async function searchSessions(
     const lower = query.toLowerCase();
     for (const meta of metas.slice(0, maxSessions)) {
       if (matches.length >= maxResults) break;
+      if (meta.diagnostic) continue;
       const session = await loadSession(meta.id, env);
       if (!session) continue;
       matches.push(...scanSession(session, query, lower, maxResults - matches.length));

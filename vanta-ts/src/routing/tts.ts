@@ -20,6 +20,30 @@ export type ResolvedTts = {
   missingKey?: string;
 };
 
+export type StreamingTtsConfig = {
+  enabled: boolean;
+  tts: ResolvedTts;
+  minClauseChars: number;
+  maxClauseChars: number;
+  maxClauses: number;
+};
+
+function enabled(value: string | undefined): boolean {
+  return ["1", "true", "on", "yes"].includes(value?.trim().toLowerCase() ?? "");
+}
+
+function boundedInt(
+  value: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed)
+    ? Math.max(min, Math.min(max, Math.floor(parsed)))
+    : fallback;
+}
+
 /**
  * Resolve the TTS backend the speak path should use. Pure — reads env, never
  * mutates it, never makes a network/CLI call.
@@ -37,4 +61,32 @@ export function resolveTtsProvider(env: NodeJS.ProcessEnv): ResolvedTts {
   const { configured, missing } = ttsAvailability(provider, env);
   const voice = env.VANTA_TTS_VOICE?.trim() || provider.defaultVoice;
   return { provider, voice, ready: configured, missingKey: missing[0] };
+}
+
+/**
+ * Resolve the opt-in first-clause speech path. A dedicated streaming provider
+ * and voice may override the normal spoken-reply backend without changing it.
+ */
+export function resolveStreamingTtsConfig(env: NodeJS.ProcessEnv): StreamingTtsConfig {
+  const minClauseChars = boundedInt(env.VANTA_TTS_STREAM_MIN_CHARS, 24, 1, 500);
+  const maxClauseChars = boundedInt(
+    env.VANTA_TTS_STREAM_MAX_CHARS,
+    240,
+    minClauseChars,
+    2_000,
+  );
+  const tts = resolveTtsProvider({
+    ...env,
+    VANTA_TTS_PROVIDER:
+      env.VANTA_TTS_STREAMING_PROVIDER?.trim() || env.VANTA_TTS_PROVIDER,
+    VANTA_TTS_VOICE:
+      env.VANTA_TTS_STREAMING_VOICE?.trim() || env.VANTA_TTS_VOICE,
+  });
+  return {
+    enabled: enabled(env.VANTA_TTS_STREAMING),
+    tts,
+    minClauseChars,
+    maxClauseChars,
+    maxClauses: boundedInt(env.VANTA_TTS_STREAM_MAX_CLAUSES, 24, 1, 100),
+  };
 }

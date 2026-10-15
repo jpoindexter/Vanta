@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { saveSession } from "./store.js";
@@ -23,6 +23,13 @@ describe("searchSessions", () => {
   });
 
   const env = (): NodeJS.ProcessEnv => ({ VANTA_HOME: home });
+
+  it("searches healthy history despite another corrupt entry", async () => {
+    await saveSession("healthy", MSGS, { env: env(), now: "2020-01-01T00:00:00Z" });
+    await writeFile(join(home, "sessions", "corrupt.json"), "{broken", "utf8");
+    const matches = await searchSessions("rust", env());
+    expect(matches.some((match) => match.sessionId === "healthy")).toBe(true);
+  });
 
   it("returns [] for an empty sessions dir", async () => {
     const results = await searchSessions("rust", env());

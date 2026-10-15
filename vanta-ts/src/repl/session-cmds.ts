@@ -16,7 +16,8 @@ export const sessions: SlashHandler = async (arg, ctx) => {
 
 export const resume: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /resume <id>  (see /sessions)" };
-  const s = await loadSession(arg, ctx.env);
+  const s = await loadSession(arg, ctx.env).catch((error: unknown) => error instanceof Error ? error : new Error("Session storage is unavailable."));
+  if (s instanceof Error) return { output: `  Could not resume: ${s.message}` };
   if (!s) return { output: `  no session "${arg}"` };
   ctx.convo.messages.splice(1, Infinity, ...s.messages.filter((m) => m.role !== "system"));
   ctx.state.sessionId = s.id;
@@ -35,15 +36,19 @@ export const resume: SlashHandler = async (arg, ctx) => {
 
 export const title: SlashHandler = async (arg, ctx) => {
   if (!arg) return { output: "  usage: /title <name>" };
+  try {
+    await saveSession(ctx.state.sessionId, ctx.convo.messages, { env: ctx.env, started: ctx.state.started, title: arg, providerId: ctx.state.providerId, modelId: ctx.state.modelId });
+  } catch (error) { return { output: `  Could not save title: ${error instanceof Error ? error.message : "storage error"}` }; }
   ctx.state.title = arg;
-  await saveSession(ctx.state.sessionId, ctx.convo.messages, { env: ctx.env, started: ctx.state.started, title: arg, providerId: ctx.state.providerId, modelId: ctx.state.modelId }).catch(() => {});
   return { output: `  · session titled "${arg}"` };
 };
 
 export const fork: SlashHandler = async (_arg, ctx) => {
   const newId = newSessionId(ctx.now());
   const startedAt = ctx.now().toISOString();
-  await saveSession(newId, ctx.convo.messages, { env: ctx.env, started: startedAt, title: ctx.state.title, providerId: ctx.state.providerId, modelId: ctx.state.modelId }).catch(() => {});
+  try {
+    await saveSession(newId, ctx.convo.messages, { env: ctx.env, started: startedAt, title: ctx.state.title, providerId: ctx.state.providerId, modelId: ctx.state.modelId });
+  } catch (error) { return { output: `  Could not save fork: ${error instanceof Error ? error.message : "storage error"}` }; }
   ctx.state.sessionId = newId;
   ctx.state.started = startedAt;
   return { output: `  ⑂ forked into new session ${newId} (history carried over)` };

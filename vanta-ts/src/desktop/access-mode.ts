@@ -1,12 +1,13 @@
 import { readFile } from "node:fs/promises";
 import type { PermissionMode } from "../modes/permission-mode.js";
-import { parsePermissionMode, resolvePermissionMode } from "../modes/permission-mode.js";
+import { resolveOperatingMode, parseOperatingMode } from "../modes/operating-mode.js";
 import { loadSettings, localSettingsPath, SettingsSchema, writeSettings } from "../settings/store.js";
 
-export type DesktopAccessMode = "ask" | "approve" | "full";
+export type DesktopAccessMode = "ask" | "approve" | "plan" | "auto" | "full";
 
 export function permissionModeForAccess(mode: DesktopAccessMode): PermissionMode {
-  if (mode === "ask") return "default";
+  if (mode === "ask" || mode === "plan") return "default";
+  if (mode === "auto") return "auto";
   if (mode === "full") return "fullAccess";
   return "acceptEdits";
 }
@@ -14,14 +15,28 @@ export function permissionModeForAccess(mode: DesktopAccessMode): PermissionMode
 export function accessModeForPermission(mode: PermissionMode): DesktopAccessMode {
   if (mode === "default") return "ask";
   if (mode === "fullAccess") return "full";
+  if (mode === "auto") return "auto";
   return "approve";
 }
 
 export async function loadDesktopAccessMode(root: string, env: NodeJS.ProcessEnv = process.env): Promise<DesktopAccessMode> {
-  const explicit = parsePermissionMode(env.VANTA_DESKTOP_PERMISSION_MODE);
-  if (explicit) return accessModeForPermission(explicit);
+  const explicit = parseOperatingMode(env.VANTA_DESKTOP_PERMISSION_MODE);
+  if (explicit) return explicit === "plan" ? "plan" : accessModeForPermission(explicit);
   const settings = await loadSettings(root, env);
-  return settings.desktop?.accessMode ?? accessModeForPermission(resolvePermissionMode(env));
+  const resolved = resolveOperatingMode(env);
+  return settings.desktop?.accessMode ?? (resolved === "plan" ? "plan" : accessModeForPermission(resolved));
+}
+
+export function isDesktopAccessMode(value: unknown): value is DesktopAccessMode {
+  return value === "ask" || value === "approve" || value === "plan" || value === "auto" || value === "full";
+}
+
+export function desktopAccessModeLabel(mode: DesktopAccessMode): string {
+  if (mode === "ask") return "Manual";
+  if (mode === "approve") return "Accept edits";
+  if (mode === "plan") return "Plan mode";
+  if (mode === "auto") return "Auto mode";
+  return "Full access";
 }
 
 export async function saveDesktopAccessMode(root: string, mode: DesktopAccessMode): Promise<void> {

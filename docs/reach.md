@@ -52,7 +52,19 @@ This is the reach analogue of the self-repair organ: *detect off → heal → re
 
 ### Authenticated browser — a general capability (any site)
 
-`reach/browser-session.ts openWithSession(url, cookie)` opens **any** url in a real headless browser with session cookies injected, returning the rendered text + every request the page made. The **`browser_read`** tool wraps it: `browser_read {url, browser:"brave"}` reads any login-walled / JS-rendered page (x.com, reddit, linkedin, internal apps) by auto-injecting your logged-in cookies for that domain. Not X-specific — the X query-id capture is just one consumer.
+`reach/browser-session.ts openWithSession(url, cookie)` opens a URL in a real headless browser with session cookies injected, returning rendered text + request metadata. The **`browser_read`** tool wraps it. `browser_act` can reuse a cookie previously saved by `cookie_import` via `sessionChannel`; it asks before reading the credential, requires a first navigation, and injects into the acquired Playwright context before that navigation. Known channels are bound to their canonical host, while custom channels require an operator-set `VANTA_BROWSER_SESSION_HOST_<CHANNEL>` binding. Raw cookies are never accepted by `browser_act` or included in its output. Cookie injection is an authenticated transport, not proof that a site accepted the session; channel tools must validate their required auth cookies and detect signed-out responses.
+
+### LinkedIn boundary
+
+LinkedIn is not a general browser-automation target. Its [current User Agreement](https://www.linkedin.com/legal/user-agreement) and [automated-activity guidance](https://www.linkedin.com/help/linkedin/answer/a1340567) prohibit third-party scraping and automated account activity. Vanta therefore keeps profile edits, messages, connections, applications, alerts, likes, and posts manual unless an approved LinkedIn API permission explicitly covers the action.
+
+Supported paths:
+
+1. **Best for profile/job context:** export your own LinkedIn data and ingest the local export with `vanta corpus ingest <folder>`. Vanta can analyze it and prepare copy without touching the account.
+2. **Official live access:** use LinkedIn OAuth only for permissions granted to an approved developer application. [LinkedIn's access guide](https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access) shows that open permissions cover limited authenticated-member identity fields and sharing, not general job search or profile editing.
+3. **Review workflow:** give Vanta a public job URL or pasted job description; Vanta prepares the analysis/application, and you perform the LinkedIn action yourself.
+
+Never paste a LinkedIn password or 2FA code into Vanta. `cookie_import` now refuses to call a LinkedIn cookie set authenticated when it lacks the required `li_at` cookie, and `linkedin_read` reports a sign-in redirect as failure rather than success. A complete cookie is still not permission to automate LinkedIn; the generic `browser_act` session capability does not override this boundary.
 
 ### X/Twitter setup
 
@@ -92,7 +104,7 @@ Channels like Reddit and Twitter need a logged-in session. The shared path (`rea
 | `search` | ✅ | auto: configured managed providers ▸ Brave browser ▸ Bing | DDG/Jina-DDG are explicit legacy selections, never automatic |
 | `rss` | ✅ | `rss_read` (pure-TS RSS/Atom parser) | zero-config; `rss_read` tool — `reach/rss-parse.ts` |
 | `reddit` | ✅ | reddit.json + cookie ▸ rdt-cli | `reddit_read` (search/read) — needs a cookie via `cookie_import`; anonymous is blocked |
-| `linkedin` | ✅ | browser-session | `linkedin_read {url, browser?}` — reads profiles/companies/posts via the headless browser session (login-walled + JS); `browser:"brave"` auto-uses your LinkedIn login |
+| `linkedin` | ⚠️ | manual export ▸ approved OAuth ▸ bounded browser read | No automated profile edits, messages, connections, applications, or scraping. Cookie presence alone is not authentication; sign-in redirects fail closed. |
 | `twitter` | ✅ | x-graphql (native, cookie) | `twitter_read` (search + bookmarks) — **native TS GraphQL, no Python**. Needs an x.com cookie (`cookie_import twitter`) + query ids (`reach heal twitter`). Self-heals (see below) |
 | `bilibili` | ✅ | bili-cli ▸ OpenCLI ▸ search API | `bilibili_read` searches through `bili search`, reads video detail through `bili video`, reads subtitles through `opencli bilibili subtitle`, and falls back to the public Bilibili search API for search-only use. |
 | `xueqiu` | ✅ | Xueqiu API + cookie | `xueqiu_read` reads stock quotes, stock search, hot posts, and hot-stock rankings using a stored logged-in Xueqiu cookie. Anonymous access returns a Xueqiu login/refresh error on this host, so the doctor gives cookie setup guidance. |

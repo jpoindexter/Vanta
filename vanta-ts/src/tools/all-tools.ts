@@ -25,6 +25,7 @@ import { browserNavigateTool } from "./browser-navigate.js";
 import { browserExtractTool } from "./browser-extract.js";
 import { browserActTool } from "./browser-act.js";
 import { visionActionTool } from "./vision-action.js";
+import { nativeAppLaunchTool } from "./native-app-launch.js";
 import { visionWatchTool } from "./vision-watch.js";
 import { browserReadTool } from "./browser-read.js";
 import { describeImageTool } from "./describe-image.js";
@@ -41,7 +42,9 @@ import { radarTool } from "./radar.js";
 import { reachTool } from "./reach-tool.js";
 import { teamTool } from "./team.js";
 import { lifeSearchTool } from "./life-search.js";
+import { jobProfileScanTool } from "./job-profile-scan.js";
 import { linkedinReadTool } from "./linkedin-read.js";
+import { linkedinPostTool } from "./linkedin-post.js";
 import { redditReadTool } from "./reddit-read.js";
 import { regressionLockTool } from "./regression-lock.js";
 import { reviewArtifactTool } from "./review-artifact.js";
@@ -71,30 +74,19 @@ import { xueqiuReadTool } from "./xueqiu-read.js";
 import { xiaohongshuReadTool } from "./xiaohongshu-read.js";
 import { runCodeTool } from "./run-code.js";
 import { maximizerTool } from "./maximizer.js";
-import {
-  lspDiagnosticsTool,
-  lspDefinitionTool,
-  lspReferencesTool,
-  lspSymbolsTool,
-  lspHoverTool,
-} from "./lsp.js";
-import {
-  gitStatusTool,
-  gitDiffTool,
-  gitCommitTool,
-  gitPushTool,
-  gitBranchTool,
-  gitCheckoutTool,
-} from "./git.js";
+import { lspDiagnosticsTool, lspDefinitionTool, lspReferencesTool, lspSymbolsTool, lspHoverTool } from "./lsp.js";
+import { gitStatusTool, gitDiffTool, gitCommitTool, gitPushTool, gitBranchTool, gitCheckoutTool } from "./git.js";
 import { delegateTool } from "./delegate.js";
 import { callAgentTool } from "./call-agent.js";
 import { agentSessionTool } from "./agent-session.js";
+import { sessionSearchTool } from "./session-search.js";
 import { buildWithAgentTool } from "./build-with-agent.js";
 import { workflowTool } from "./workflow.js";
 import { bgListTool, bgStatusTool } from "./bg-tasks.js";
 import { refIngestTool, refSearchTool, refListTool } from "./ref-ingest.js";
 import { editFileTool } from "./edit-file.js";
 import { pdfReadTool } from "./pdf-read.js";
+import { documentReadTool } from "./document-read.js";
 import { grepFilesTool } from "./grep-files.js";
 import { globFilesTool } from "./glob-files.js";
 import { protectTool } from "./protect.js";
@@ -114,12 +106,17 @@ import { playbookTool } from "./playbook.js";
 import { enterWorktreeTool, exitWorktreeTool } from "./worktree.js";
 import { listPeersTool, peerSendTool } from "./peers.js";
 import { openDeepLinkTool } from "./deep-link.js";
+import { trelloReadTool } from "./trello-read.js";
+import { trelloWriteTool } from "./trello-write.js";
+import { dropboxReadTool } from "./dropbox-read.js";
+import { dropboxWriteTool } from "./dropbox-write.js";
 import {
   gmailSearchTool,
   gmailReadTool,
   gmailDraftTool,
   gmailSendTool,
 } from "./gmail.js";
+import { appleMailAuditTool } from "./apple-mail.js";
 import {
   calendarReadTool,
   calendarCreateTool,
@@ -139,6 +136,8 @@ import { mediaStudioTool } from "./media-studio.js";
 import { paymentTransactionTool } from "./payment-transaction.js";
 import { shopifyOperationsTool } from "./shopify-operations.js";
 import { telephonyWorkflowTool } from "./telephony-workflow.js";
+import { spargeAttentionTool } from "./sparge-attention.js";
+import { msaMemoryTool } from "./msa-memory.js";
 import type { Tool } from "./types.js";
 
 /**
@@ -151,6 +150,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   editFileTool,
   writeFileTool,
   pdfReadTool,
+  documentReadTool,
   grepFilesTool,
   globFilesTool,
   shellCmdTool,
@@ -185,6 +185,7 @@ export const ALL_TOOLS: readonly Tool[] = [
   browserExtractTool,
   browserActTool,
   visionActionTool,
+  nativeAppLaunchTool,
   visionWatchTool,
   browserReadTool,
   describeImageTool,
@@ -202,7 +203,9 @@ export const ALL_TOOLS: readonly Tool[] = [
   reachTool,
   teamTool,
   lifeSearchTool,
+  jobProfileScanTool,
   linkedinReadTool,
+  linkedinPostTool,
   regressionLockTool,
   reviewArtifactTool,
   ticketTool,
@@ -249,8 +252,10 @@ export const ALL_TOOLS: readonly Tool[] = [
   delegateTool,
   callAgentTool,
   agentSessionTool,
+  sessionSearchTool,
   buildWithAgentTool,
   gmailSearchTool,
+  appleMailAuditTool,
   gmailReadTool,
   gmailDraftTool,
   gmailSendTool,
@@ -267,6 +272,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   paymentTransactionTool,
   shopifyOperationsTool,
   telephonyWorkflowTool,
+  spargeAttentionTool,
+  msaMemoryTool,
   financeModelTool,
   spreadsheetWorkbookTool,
   bgListTool,
@@ -285,4 +292,8 @@ export const ALL_TOOLS: readonly Tool[] = [
   listPeersTool,
   peerSendTool,
   openDeepLinkTool,
+  trelloReadTool,
+  trelloWriteTool,
+  dropboxReadTool,
+  dropboxWriteTool,
 ];

@@ -29,6 +29,31 @@ export async function installCatalogMcp(
   return { ok: true, name, path, detail: `${built.toolCount} read-mostly tools` };
 }
 
+export type CustomMcpInput = { name: string; command?: string; args?: string[]; url?: string; envKeys: string[] };
+
+const CUSTOM_NAME = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
+
+/** Registers a connector the owner described. It starts untrusted: nothing launches until it is trusted for the project. */
+function customInputError(input: CustomMcpInput): string | null {
+  if (!CUSTOM_NAME.test(input.name)) return "Name must be letters, digits, - or _ (up to 64 characters).";
+  if (Boolean(input.command) === Boolean(input.url)) return "Give either a command or a URL, not both.";
+  if (input.url && !/^https?:\/\//.test(input.url)) return "The URL must start with http:// or https://.";
+  return null;
+}
+
+export async function addCustomMcp(input: CustomMcpInput, root: string, env: NodeJS.ProcessEnv): Promise<McpConfigMutation> {
+  const invalid = customInputError(input);
+  if (invalid) return { ok: false, error: invalid };
+  const { config } = await readMcpConfigWithSources(env, root);
+  if (config.servers[input.name]) return { ok: false, error: `A connector named "${input.name}" already exists.` };
+  const envRefs = input.envKeys.length ? { env: Object.fromEntries(input.envKeys.map((key) => [key, `\${${key}}`])) } : {};
+  const spec = input.url ? { url: input.url, ...envRefs } : { command: input.command, args: input.args ?? [], ...envRefs };
+  const path = join(resolveVantaHome(env), "mcp.json");
+  const raw = await readJsonConfig(path);
+  await writeJsonConfig(path, { ...raw, mcpServers: undefined, servers: { ...(raw.mcpServers ?? {}), ...(raw.servers ?? {}), [input.name]: spec } });
+  return { ok: true, name: input.name, path, detail: "added; trust it before it can run" };
+}
+
 export async function removeStoredMcp(
   root: string,
   name: string,

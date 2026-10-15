@@ -1,10 +1,9 @@
 import type { EffectDisposition, Message, ToolCall } from "../types.js";
-import { isConcurrencySafe } from "./stream-dispatch.js";
-import { isRetryableTool } from "../tool-retry.js";
+import { toolEffectPolicy } from "../effects/tool-effect-gateway.js";
 
 /** Unknown/plugin/MCP tools fail toward effect-capable; only known reads are effect-free. */
 export function toolMayHaveSideEffects(name: string): boolean {
-  return !isConcurrencySafe(name) && !isRetryableTool(name);
+  return toolEffectPolicy(name) !== "read-only";
 }
 
 export function interruptedDisposition(call: ToolCall, executionStarted: boolean): EffectDisposition {

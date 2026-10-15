@@ -59,6 +59,10 @@ export const todoTool: Tool = {
     if (parsed.data.action === "list") {
       return { ok: true, output: formatTodos(await readTodos()) };
     }
+    const inProgress = (parsed.data.items ?? []).filter((item) => item.status === "in_progress").length;
+    if (inProgress > 1) {
+      return { ok: false, output: "todo write allows at most one in_progress item" };
+    }
     const items: TodoItem[] = (parsed.data.items ?? []).map((i) => {
       const activeForm = normalizeActiveForm(i.activeForm);
       return { text: i.text, status: i.status ?? "pending", ...(activeForm ? { activeForm } : {}) };

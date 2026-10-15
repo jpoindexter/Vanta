@@ -10,7 +10,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-async function fixture(): Promise<{ root: string; home: string }> {
+async function fixture(tools?: string[]): Promise<{ root: string; home: string }> {
   const root = await mkdtemp(join(tmpdir(), "vanta-mcp-command-"));
   const home = join(root, "home");
   await mkdir(home, { recursive: true });
@@ -28,7 +28,15 @@ async function fixture(): Promise<{ root: string; home: string }> {
       process.stdout.write(JSON.stringify({ jsonrpc: "2.0", id: msg.id, result }) + "\\n");
     });
   `);
-  await writeFile(join(root, ".mcp.json"), JSON.stringify({ servers: { notes: { command: process.execPath, args: [server] } } }));
+  await writeFile(join(root, ".mcp.json"), JSON.stringify({
+    servers: {
+      notes: {
+        command: process.execPath,
+        args: [server],
+        ...(tools === undefined ? {} : { tools }),
+      },
+    },
+  }));
   return { root, home };
 }
 
@@ -64,6 +72,17 @@ describe("vanta mcp connector commands", () => {
     expect((await readMcpRegistry(root, process.env))[0]).toMatchObject({ enabled: false, trust: "denied", health: "disabled" });
     expect(log.mock.calls.flat().join(" ")).toContain("disabled");
     expect((await readMcpReceipts(root)).map((receipt) => receipt.action)).toEqual(["disable", "trust"]);
+  });
+
+  it("reports zero callable tools for an explicit-empty connector", async () => {
+    const { root, home } = await fixture([]);
+    vi.stubEnv("VANTA_HOME", home);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await runMcpCommand(root, ["test", "notes"]);
+
+    expect(log).toHaveBeenCalledWith("  notes: connected · 0 tools · 1 resources");
+    expect((await readMcpRegistry(root, process.env))[0]?.tools).toEqual([]);
   });
 
   it("records vetted catalog installs without storing credentials in receipts", async () => {

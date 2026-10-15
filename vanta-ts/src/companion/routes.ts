@@ -2,14 +2,12 @@ import type http from "node:http";
 import { networkInterfaces } from "node:os";
 import { authenticateCompanion, exchangeCompanionCode, listCompanionDevices, startCompanionPairing } from "./auth.js";
 import { handleApproval, handleChat, handleNewSession, handleOpenSession, handleSessions, handleStatus, readJson, sendJson, type DesktopState } from "../desktop/handlers.js";
-import { attachSse, type SseClients } from "../desktop/session-state.js";
+import { isLoopbackRequest } from "./loopback.js";
+import { attachSse, legacyFrame, type SseClients } from "../desktop/session-state.js";
 
 export type CompanionRouteOptions = { enabled: boolean; home: string; port: number };
 
-export function isLoopbackRequest(req: http.IncomingMessage): boolean {
-  const address = req.socket.remoteAddress ?? "";
-  return address === "127.0.0.1" || address === "::1" || address.startsWith("::ffff:127.");
-}
+export { isLoopbackRequest };
 
 export function companionUrls(port: number, interfaces = networkInterfaces()): string[] {
   const addresses = Object.values(interfaces).flat().filter((entry) => entry && entry.family === "IPv4" && !entry.internal).map((entry) => entry!.address);
@@ -82,7 +80,7 @@ async function handleAuthorizedRoute(args: AuthorizedArgs): Promise<boolean> {
   const handler = routes[`${req.method}:${args.pathname}`];
   if (handler) { await handler(); return true; }
   if (req.method === "GET" && args.pathname === "/api/companion/events" && args.sseClients) {
-    attachSse(args.sseClients, args.sid ?? "default", res); return true;
+    attachSse(args.sseClients, args.sid ?? "default", res, legacyFrame); return true;
   }
   return false;
 }

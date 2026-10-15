@@ -6,7 +6,10 @@ sidebar_position: 1
 
 # Architecture overview
 
-Vanta is two cooperating processes: a **Rust kernel** (the boundary) and a **TypeScript agent** (the orchestrator). They talk over a local HTTP sidecar on `127.0.0.1:7788`.
+Vanta has a **Rust kernel** intended as the root of trust and a **TypeScript
+agent** that orchestrates standard dispatch. They talk over a local HTTP sidecar
+on `127.0.0.1:7788`. The July 30 audit found secondary effect paths that still
+need the same gateway.
 
 ```mermaid
 flowchart LR
@@ -28,7 +31,10 @@ flowchart LR
 
 ## The kernel (`src/`)
 
-The kernel is the enforced security boundary. It is small, dependency-free Rust, and it owns every decision about whether an action is safe.
+The kernel is the intended security boundary. It is small, dependency-free Rust
+and owns decisions submitted to it. Current roadmap work is to make submission
+unavoidable for every consequential effect; the audited secondary paths are not
+yet complete.
 
 | Module | Purpose |
 |--------|---------|
@@ -75,4 +81,5 @@ Every subsystem follows a ports-and-adapters shape — you swap an implementatio
 - **Add a provider** — implement `LLMProvider` and add a branch in `providers/index.ts`.
 - **Add a search backend** — implement `SearchProvider` in `search/`.
 
-See [the safety model →](./safety-model.md) for how the boundary holds under every one of these.
+See [the safety model →](./safety-model.md) for the verified standard path and
+the remaining universal-mediation boundary.

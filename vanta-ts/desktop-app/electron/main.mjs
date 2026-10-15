@@ -1,18 +1,34 @@
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { homedir } from "node:os";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { randomBytes } from "node:crypto";
-import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain } from "electron";
+import { app, BrowserWindow, Tray, Menu, nativeImage, dialog, clipboard, shell, ipcMain, screen } from "electron";
 import { createTrayController } from "./tray.mjs";
-import { findAvailablePort, projectArg, readProjectSetting, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
+import { createDesktopPresence } from "./desktop-presence.mjs";
+import { resolveDroppedPaths } from "./dropped-paths.mjs";
+import { findAvailablePort, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
+import { serverLaunchArgs } from "./runtime-launch.mjs";
+import { desktopRuntimeEnv } from "./runtime-env.mjs";
+import { showProjectFolderPicker } from "./project-folder-picker.mjs";
+import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";
+import { installMicrophonePermissions } from "./microphone-permissions.mjs";
+import { createLaunchTrace, printRendererMarks } from "./launch-trace.mjs";
+import { checkPackagedKernel } from "./smoke-kernel.mjs";
+import { buildApplicationMenu } from "./app-menu.mjs";
+import { stopProcessTree } from "./process-tree.mjs";
 
+const trace = createLaunchTrace();
+trace("main loaded");
 app.setName("Vanta");
 
 const DEFAULT_DESKTOP_PORT = 7790;
+// If the runtime is not listening this soon after the window exists, show the splash instead of a blank window.
+const SPLASH_AFTER_MS = 600;
+const RENDERER_MARKS_AFTER_MS = 4000;
 const args = process.argv.slice(app.isPackaged ? 1 : 2);
 const smoke = args.includes("--smoke");
 const devtools = args.includes("--devtools");
@@ -21,11 +37,13 @@ const automation = process.env.VANTA_DESKTOP_AUTOMATION === "1";
 let serverProcess;
 let mainWindow;
 let trayController;
+let desktopPresence;
 let projectRoot;
 let port = DEFAULT_DESKTOP_PORT;
 let automationKernelUrl;
 let shuttingDown = false;
 let serverReady;
+const pendingProjectTask = createPendingProjectTaskStore();
 const boundaryToken = randomBytes(32).toString("hex");
 process.env.VANTA_DESKTOP_BOUNDARY_TOKEN = boundaryToken;
 
@@ -36,6 +54,42 @@ ipcMain.handle("vanta:read-clipboard", () => {
     text: clipboard.readText(),
     image: png?.length ? { mime: "image/png", dataBase64: png.toString("base64"), bytes: png.length } : undefined,
   };
+});
+
+ipcMain.handle("vanta:resolve-dropped-paths", (_event, paths) =>
+  resolveDroppedPaths(paths, projectRoot));
+
+ipcMain.handle("vanta:pick-attachments", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Attach files or folders to Vanta",
+    properties: ["openFile", "openDirectory", "multiSelections"],
+  });
+  if (result.canceled) return { files: [], items: [], errors: [] };
+  return resolveDroppedPaths(result.filePaths, projectRoot);
+});
+
+ipcMain.handle("vanta:pick-project-folder", (_event, currentPath) =>
+  showProjectFolderPicker({
+    dialog,
+    parentWindow: mainWindow,
+    currentPath,
+    fallbackPath: projectRoot,
+  }));
+
+ipcMain.handle("vanta:switch-project-for-new-task", async (_event, draft) => {
+  const prepared = await prepareProjectSwitch(draft);
+  await saveProjectSetting(app.getPath("userData"), prepared.targetRoot);
+  pendingProjectTask.set(prepared);
+  projectRoot = prepared.targetRoot;
+  setImmediate(() => { void loadProject().catch((error) => showFatal(error instanceof Error ? error.message : String(error))); });
+  return { switching: true, projectRoot };
+});
+
+ipcMain.handle("vanta:read-pending-project-task", () => pendingProjectTask.read(projectRoot));
+
+ipcMain.handle("vanta:acknowledge-pending-project-task", (_event, id) => {
+  if (typeof id !== "string" || id.length > 128) return false;
+  return pendingProjectTask.acknowledge(id, projectRoot);
 });
 
 function runtimePaths() {
@@ -51,13 +105,16 @@ function desktopIconPath() {
 function startServer() {
   const paths = runtimePaths();
   const executable = app.isPackaged ? process.execPath : (process.env.VANTA_NODE || "node");
-  const childArgs = ["--import", pathToFileURL(paths.loader).href, paths.cli, "desktop", String(port), "--no-open", ...(companion ? ["--companion"] : [])];
+  const launch = serverLaunchArgs({ paths, port, companion });
+  if (launch.runtime === "tsx") console.warn(`desktop runtime: tsx fallback (${launch.reason})`);
+  const childArgs = launch.args;
   const env = {
-    ...process.env,
+    ...desktopRuntimeEnv(process.env),
     VANTA_DESKTOP_DIST: paths.dist,
     VANTA_PROJECT_ROOT: projectRoot,
     VANTA_KERNEL_BIN: paths.kernel,
     VANTA_DESKTOP_BOUNDARY_TOKEN: boundaryToken,
+    VANTA_DESKTOP_PARENT_WATCH: "1",
     ...(automationKernelUrl ? { VANTA_KERNEL_URL: automationKernelUrl, VANTA_KERNEL_EPHEMERAL: "1" } : {}),
   };
   if (app.isPackaged) Object.assign(env, { ELECTRON_RUN_AS_NODE: "1" });
@@ -88,43 +145,52 @@ async function waitForServer() {
   return url;
 }
 
+/** Stops the runtime and everything it started (kernel guard, kernel). Resolves once they are gone. */
 function stopServer() {
   trayController?.dispose();
   trayController = undefined;
-  if (!serverProcess || serverProcess.killed) return;
-  serverProcess.kill("SIGTERM");
+  const child = serverProcess;
   serverProcess = undefined;
+  if (!child || child.killed) return Promise.resolve();
+  return stopProcessTree(child);
 }
 
-async function loadProject() {
-  stopServer();
+/** Stop any running runtime, pick a port and spawn the server; resolves once it is listening. */
+async function launchServer() {
+  await stopServer();
+  desktopPresence?.reset();
   port = await findAvailablePort(Number(process.env.VANTA_DESKTOP_PORT) || DEFAULT_DESKTOP_PORT);
   if (automation && !process.env.VANTA_KERNEL_URL) {
     const preferredKernelPort = Number(process.env.VANTA_DESKTOP_KERNEL_PORT) || 22_000 + process.pid % 20_000;
     automationKernelUrl = `http://127.0.0.1:${await findAvailablePort(preferredKernelPort)}`;
   }
   startServer();
+  trace("runtime spawned");
   const url = await waitForServer();
-  if (smoke) console.log(`desktop smoke: renderer assets ready at ${url}`);
-  mainWindow.setTitle(`Vanta — ${basename(projectRoot)}`);
-  if (!smoke) void mainWindow.loadURL(url).catch((error) => showFatal(`Desktop renderer failed: ${error.message}`));
-  if (smoke) await waitForKernel(url);
-  if (smoke) console.log("desktop smoke: packaged kernel online");
-  if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, BrowserWindow, app, baseUrl: url, boundaryToken, preload: join(dirname(fileURLToPath(import.meta.url)), "preload.cjs") });
+  trace("runtime listening");
+  return url;
 }
 
-async function waitForKernel(url) {
-  const boundaryHeader = ["--header", `x-vanta-desktop-boundary: ${boundaryToken}`];
-  const root = execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", ...boundaryHeader, url], { encoding: "utf8" });
-  if (!root.includes('id="root"')) throw new Error("Packaged renderer asset did not contain the Vanta root.");
-  try {
-    const status = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "60", ...boundaryHeader, `${url}/api/status`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
-    if (status.kernel !== "online") throw new Error(`Packaged kernel reported ${status.kernel ?? "unknown"}.`);
-  } catch {
-    const setup = JSON.parse(execFileSync("/usr/bin/curl", ["--fail", "--silent", "--max-time", "10", ...boundaryHeader, `${url}/api/setup`], { encoding: "utf8" }));
-    if (!Array.isArray(setup) || setup.length === 0) throw new Error("Packaged first-run setup is unavailable.");
-    console.log("desktop smoke: first-run model setup ready");
-  }
+async function attachRenderer(url) {
+  if (smoke) console.log(`desktop smoke: renderer assets ready at ${url}`);
+  mainWindow.setTitle(`Vanta — ${basename(projectRoot)}`);
+  if (!smoke) void loadRenderer(url);
+  if (smoke) checkPackagedKernel(url, boundaryToken);
+  if (smoke) console.log("desktop smoke: packaged kernel online");
+  if (!smoke) trayController = createTrayController({ Tray, Menu, nativeImage, dialog, clipboard, app, baseUrl: url, boundaryToken,
+    openWorkspace: (mode) => desktopPresence.setMode(mode), showAvatar: () => desktopPresence.showAvatar() });
+}
+
+async function loadRenderer(url) {
+  trace("renderer load start");
+  await mainWindow.loadURL(url).catch((error) => showFatal(`Desktop renderer failed: ${error.message}`));
+  trace("renderer loaded");
+  if (process.env.VANTA_LAUNCH_TRACE === "1") setTimeout(() => void printRendererMarks(mainWindow), RENDERER_MARKS_AFTER_MS);
+}
+
+/** Switch projects after the window exists: restart the runtime and reload the renderer. */
+async function loadProject() {
+  await attachRenderer(await launchServer());
 }
 
 async function chooseProject() {
@@ -133,21 +199,6 @@ async function chooseProject() {
   projectRoot = result.filePaths[0];
   await saveProjectSetting(app.getPath("userData"), projectRoot);
   await loadProject();
-}
-
-function buildApplicationMenu() {
-  const template = [
-    { label: "Vanta", submenu: [
-      { label: "About Vanta", role: "about" }, { type: "separator" },
-      { label: "Open Project…", accelerator: "CmdOrCtrl+O", click: () => { void chooseProject(); } },
-      { label: "Show Vanta", accelerator: "CmdOrCtrl+Shift+V", click: () => { mainWindow?.show(); mainWindow?.focus(); } },
-      { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" },
-    ] },
-    { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
-    { label: "View", submenu: [{ role: "reload" }, { label: "Developer Tools", accelerator: process.platform === "darwin" ? "Alt+Command+I" : "Ctrl+Shift+I", visible: !app.isPackaged, click: () => toggleDeveloperTools() }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { role: "togglefullscreen" }] },
-    { label: "Window", submenu: [{ role: "minimize" }, { role: "zoom" }, { role: "front" }] },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 function toggleDeveloperTools() {
@@ -161,7 +212,7 @@ async function createWindow() {
   if (process.platform === "darwin" && icon) app.dock?.setIcon(icon);
   mainWindow = new BrowserWindow({
     width: 1440, height: 960, minWidth: 760, minHeight: 620, show: false,
-    title: "Vanta", backgroundColor: "#151515",
+    title: "Vanta", backgroundColor: "#ffffff", hasShadow: true,
     ...(icon ? { icon } : {}),
     ...(process.platform === "darwin" ? {
       titleBarStyle: "hiddenInset",
@@ -175,14 +226,21 @@ async function createWindow() {
       additionalArguments: [`--vanta-desktop-boundary=${boundaryToken}`],
     },
   });
-  mainWindow.once("ready-to-show", () => { if (!smoke) mainWindow.show(); });
+  mainWindow.once("ready-to-show", () => { trace("window visible"); if (!smoke) mainWindow.show(); });
+  installMicrophonePermissions(mainWindow.webContents.session, { getWindow: () => mainWindow, getOrigin: () => `http://127.0.0.1:${port}` });
+  desktopPresence = createDesktopPresence({ BrowserWindow, screen, ipcMain, getWindow: () => mainWindow });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) void shell.openExternal(url); return { action: "deny" }; });
   mainWindow.webContents.on("will-navigate", (event, target) => {
     if (trustedRendererNavigation(target)) return;
     event.preventDefault();
   });
   mainWindow.on("close", (event) => { if (!shuttingDown && !smoke && !automation) { event.preventDefault(); mainWindow.hide(); } });
-  if (!smoke) await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
+  trace("window created");
+}
+
+async function showSplash() {
+  trace("splash shown");
+  await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml())}`);
 }
 
 function trustedRendererNavigation(target) {
@@ -196,21 +254,18 @@ function trustedRendererNavigation(target) {
 }
 
 function splashHtml() {
-  return `<!doctype html><meta charset="utf-8"><title>Vanta</title><style>body{margin:0;display:grid;place-items:center;height:100vh;background:#151515;color:#f5f5f3;font:14px system-ui}main{text-align:center}.mark{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 16px;border-radius:8px;background:#f5f5f3;color:#151515;font-weight:800;font-size:20px}p{color:#b8b8b4}</style><main><div class="mark">V</div><strong>Opening Vanta</strong><p>Loading the local runtime and kernel…</p></main>`;
+  return `<!doctype html><meta charset="utf-8"><title>Vanta</title><style>body{margin:0;display:grid;place-items:center;height:100vh;background:#fff;color:#202024;font:14px system-ui}main{text-align:center}.mark{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 16px;border-radius:8px;background:#7c3aed;color:#fff;font-weight:800;font-size:20px}p{color:#51515a}</style><main><div class="mark">V</div><strong>Opening Vanta</strong><p>Loading your chats…</p></main>`;
 }
 
 async function initialProject() {
   const userData = app.getPath("userData");
-  const saved = await readProjectSetting(userData);
-  if (app.isPackaged && !projectArg(args) && !process.env.VANTA_PROJECT_ROOT && !saved) {
-    const result = await dialog.showOpenDialog({ title: "Choose where Vanta should work", properties: ["openDirectory", "createDirectory"] });
-    if (!result.canceled && result.filePaths[0]) await saveProjectSetting(userData, result.filePaths[0]);
-  }
+  // Chat can begin in the ordinary default workspace. Project selection is an
+  // explicit action, not a first-message prerequisite; saved choices still win.
   return resolveProjectRoot({ args, env: process.env, userData, cwd: app.isPackaged ? homedir() : process.cwd() });
 }
 
 function showFatal(message) {
-  if (smoke || automation) { console.error(message); shuttingDown = true; app.exit(1); return; }
+  if (smoke || automation) { console.error(message); shuttingDown = true; void stopServer().finally(() => app.exit(1)); return; }
   dialog.showErrorBox("Vanta could not start", `${message}\n\nProject: ${projectRoot ?? "not selected"}`);
   app.quit();
 }
@@ -222,12 +277,31 @@ const ownsInstance = automation || app.requestSingleInstanceLock();
 if (!ownsInstance) app.quit();
 else {
   app.on("second-instance", () => { mainWindow?.show(); mainWindow?.focus(); });
-  app.on("before-quit", () => { shuttingDown = true; stopServer(); });
+  let quitTeardown = "pending";
+  // Hold the quit until the runtime tree is gone: nothing may outlive the app.
+  app.on("before-quit", (event) => {
+    shuttingDown = true; desktopPresence?.dispose();
+    if (quitTeardown === "done") return;
+    event.preventDefault();
+    if (quitTeardown === "running") return;
+    quitTeardown = "running";
+    void stopServer().finally(() => { quitTeardown = "done"; app.quit(); });
+  });
+  process.on("exit", () => { try { serverProcess?.kill("SIGTERM"); } catch { /* already gone */ } });
+  for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, () => app.quit());
   app.on("window-all-closed", () => { if (automation || process.platform !== "darwin") app.quit(); });
   app.on("activate", () => { mainWindow?.show(); });
+  // Spawn the runtime before Electron finishes initialising: the listener is up
+  // by the time the window exists, so the first load is the real renderer.
+  const earlyServer = initialProject().then((root) => { projectRoot = root; return launchServer(); });
+  earlyServer.catch(() => undefined);
   app.whenReady().then(async () => {
-    projectRoot = await initialProject();
-    await createWindow(); buildApplicationMenu(); await loadProject();
+    trace("app ready");
+    await createWindow(); buildApplicationMenu({ app, chooseProject, getPresence: () => desktopPresence, toggleDeveloperTools });
+    let url = smoke ? undefined : await Promise.race([earlyServer, delay(SPLASH_AFTER_MS).then(() => undefined)]);
+    if (!url && !smoke) await showSplash();
+    url ??= await earlyServer;
+    await attachRenderer(url);
     if (devtools) mainWindow.webContents.openDevTools({ mode: "detach", activate: true });
     if (smoke) { console.log(`desktop native smoke ok: http://127.0.0.1:${port} · ${projectRoot}`); shuttingDown = true; app.quit(); }
   }).catch((error) => showFatal(error instanceof Error ? error.message : String(error)));

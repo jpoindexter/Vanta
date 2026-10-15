@@ -1,4 +1,5 @@
 import type { Entry, ToolEntry } from "./types.js";
+import { turnSummaryLines } from "./turn-summary.js";
 
 export type TranscriptSelection = { anchor: number; cursor: number };
 export type TranscriptKey = {
@@ -18,6 +19,7 @@ export type TranscriptSelectionResult =
 
 export function entryPlainText(entry: Entry): string {
   if (entry.kind === "user" || entry.kind === "assistant" || entry.kind === "note" || entry.kind === "thinking") return entry.text;
+  if (entry.kind === "turnSummary") return turnSummaryLines(entry).join("\n");
   if (entry.kind === "toolGroup") return entry.tools.map(toolPlainText).join("\n");
   return toolPlainText(entry);
 }

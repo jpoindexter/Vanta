@@ -6,4 +6,5 @@ MCP client/server/mount layer.
 - `events.ts` maps MCP notifications/elicitation into `.vanta/hooks.json` events.
 - `mount.ts` reads `VANTA_MCP_SERVERS`, `./.mcp.json`, and `~/.vanta/mcp.json`; mounts tools relative to the caller cwd/root.
 - `server.ts` exposes a bounded allowlist of Vanta tools over MCP and still kernel-gates calls.
+- The default read-oriented allowlist includes `msa_memory` so other MCP clients can query a configured MSA runtime. Indexing remains subject to the kernel and a headless Ask is refused.
 - Keep transports injectable and tests offline; no live MCP server should be required for unit tests.

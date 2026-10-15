@@ -30,6 +30,17 @@ export function parseCookieInput(raw: string): string | null {
   return /[^\s=]+=/.test(t) ? t.replace(/\s*\n\s*/g, " ").trim() : null;
 }
 
+/** Whether a normalized browser-cookie input contains one exact cookie name. */
+export function cookieHasName(raw: string, name: string): boolean {
+  const cookie = parseCookieInput(raw);
+  if (!cookie || !name) return false;
+  return cookie.split(";").some((part) => {
+    const pair = part.trim();
+    const separator = pair.indexOf("=");
+    return separator > 0 && pair.slice(0, separator) === name;
+  });
+}
+
 /** Cookie-Editor (and most extensions) export a JSON array of cookie objects. */
 function parseJsonExport(t: string): string | null {
   try {

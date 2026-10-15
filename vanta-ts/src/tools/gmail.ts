@@ -12,6 +12,8 @@ import {
   OutboundArgs,
   IdResponse,
   googleFetch,
+  buildGmailApproval,
+  quarantineGmailContent,
 } from "./gmail-helpers.js";
 
 const BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
@@ -67,7 +69,7 @@ export const gmailSearchTool: Tool = {
       const ids = (list.messages ?? []).map((m) => m.id);
       if (ids.length === 0) return { ok: true, output: "no messages matched" };
       const lines = await Promise.all(ids.map((id) => fetchMetadataLine(id)));
-      return { ok: true, output: lines.join("\n") };
+      return { ok: true, output: quarantineGmailContent(lines.join("\n")) };
     } catch (err) {
       return authError(err);
     }
@@ -109,7 +111,7 @@ export const gmailReadTool: Tool = {
         "",
         text,
       ].join("\n");
-      return { ok: true, output: out };
+      return { ok: true, output: quarantineGmailContent(out) };
     } catch (err) {
       return authError(err);
     }
@@ -134,7 +136,8 @@ export const gmailDraftTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = OutboundArgs.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'gmail_draft needs "to", "subject", and "body"' };
-    const approved = await ctx.requestApproval("create a gmail draft", "creates a draft in your account");
+    const approval = buildGmailApproval("draft", parsed.data);
+    const approved = await ctx.requestApproval(approval.action, approval.reason, "gmail_draft", approval.detail);
     if (!approved) return { ok: false, output: "denied by user" };
     const { to, subject, body } = parsed.data;
     try {
@@ -171,7 +174,8 @@ export const gmailSendTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = OutboundArgs.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'gmail_send needs "to", "subject", and "body"' };
-    const approved = await ctx.requestApproval("send an email", "sends mail from your account — irreversible");
+    const approval = buildGmailApproval("send", parsed.data);
+    const approved = await ctx.requestApproval(approval.action, approval.reason, "gmail_send", approval.detail);
     if (!approved) return { ok: false, output: "denied by user" };
     const { to, subject, body } = parsed.data;
     try {

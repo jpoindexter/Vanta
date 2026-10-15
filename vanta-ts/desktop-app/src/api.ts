@@ -17,7 +17,16 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function desktopBoundaryToken(): string {
   if (typeof window === "undefined") return "";
-  return (window as Window & { vantaDesktop?: { boundaryToken?: string } }).vantaDesktop?.boundaryToken ?? "";
+  const runtime = window as Window & { vantaDesktop?: { boundaryToken?: string } };
+  const preload = runtime.vantaDesktop?.boundaryToken;
+  if (preload) return preload;
+  const stored = runtime.sessionStorage?.getItem("vanta.desktop.boundary");
+  if (stored) return stored;
+  const fragment = new URLSearchParams(runtime.location?.hash?.replace(/^#/, "") ?? "").get("boundary") ?? "";
+  if (!fragment) return "";
+  runtime.sessionStorage?.setItem("vanta.desktop.boundary", fragment);
+  runtime.history?.replaceState(null, "", `${runtime.location.pathname}${runtime.location.search}`);
+  return fragment;
 }
 
 export function desktopEventSourceUrl(path: string): string {

@@ -83,6 +83,50 @@ describe("desktop turn completion", () => {
   });
 });
 
+/** Resolve one captured `setDraft` call against a simulated current value. */
+function resolveDraftCall(setDraft: ReturnType<typeof vi.fn>, index: number, current: string): string {
+  const arg = setDraft.mock.calls[index]?.[0];
+  return typeof arg === "function" ? String(arg(current)) : String(arg);
+}
+
+describe("desktop composer draft", () => {
+  it("clears the composer when the message is sent, not when the turn resolves", async () => {
+    let release: () => void = () => {};
+    const inflight = new Promise<void>((resolve) => { release = resolve; });
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      await inflight;
+      return { ok: true, json: async () => ({ finalText: "Finished", events: [{ label: "done", ok: true }] }) };
+    }));
+    const harness = conversationState([]);
+    const setDraft = harness.state.setDraft as ReturnType<typeof vi.fn>;
+
+    const pending = submitMessage(harness.state, "do the task");
+
+    // Asserted with the request still in flight: the box must empty on send, not
+    // minutes later when the run finishes.
+    expect(setDraft).toHaveBeenCalledTimes(1);
+    expect(resolveDraftCall(setDraft, 0, "previous draft")).toBe("");
+    release();
+    await pending;
+  });
+
+  it("restores a failed message without overwriting a new draft", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    const harness = conversationState([]);
+    const setDraft = harness.state.setDraft as ReturnType<typeof vi.fn>;
+
+    await submitMessage(harness.state, "do the task");
+
+    expect(resolveDraftCall(setDraft, 0, "previous draft")).toBe("");
+    expect(resolveDraftCall(setDraft, 1, "")).toBe("do the task");
+    expect(resolveDraftCall(setDraft, 1, "new thought")).toBe("new thought");
+    expect(harness.snapshot().recovery.at(-1)).toMatchObject({
+      checkpoint: { instruction: "do the task" },
+      actions: ["retry_failed_step", "edit_request", "start_from_checkpoint"],
+    });
+  });
+});
+
 describe("saved run recovery", () => {
   const failed: DesktopRunReceipt = {
     status: "failed",

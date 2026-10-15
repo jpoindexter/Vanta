@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createInterface } from "node:readline/promises";
@@ -26,7 +27,7 @@ const defaultGh: GhRunner = async (args, cwd) => {
 
 const defaultPush: Pusher = async (branch, cwd) => {
   try {
-    await exec("git", ["push", "-u", "origin", branch], { cwd, timeout: RUN_TIMEOUT_MS });
+    await gitExecFile("git", ["push", "-u", "origin", branch], { cwd, timeout: RUN_TIMEOUT_MS });
     return { ok: true, stderr: "" };
   } catch (e) {
     return { ok: false, stderr: (e as Error).message };

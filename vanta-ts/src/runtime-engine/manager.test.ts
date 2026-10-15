@@ -14,15 +14,18 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-async function proofServer(providerText = "VANTA_PROVIDER_OK"): Promise<{ port: number; prompts: string[] }> {
+async function proofServer(providerText = "VANTA_PROVIDER_OK"): Promise<{ port: number; prompts: string[]; models: string[] }> {
   const prompts: string[] = [];
+  const models: string[] = [];
   const server = createServer((req, res) => {
     if (req.url === "/health") { res.writeHead(200, { "content-type": "application/json" }); res.end("{}"); return; }
     let raw = "";
     req.on("data", (chunk) => { raw += chunk; });
     req.on("end", () => {
-      const prompt = JSON.parse(raw).messages[0].content as string;
+      const request = JSON.parse(raw) as { model: string; messages: Array<{ content: string }> };
+      const prompt = request.messages[0]!.content;
       prompts.push(prompt);
+      models.push(request.model);
       const text = prompt.includes("RUNTIME") ? "VANTA_RUNTIME_OK" : providerText;
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify({ choices: [{ message: { content: text } }], usage: { completion_tokens: 3 } }));
@@ -32,7 +35,7 @@ async function proofServer(providerText = "VANTA_PROVIDER_OK"): Promise<{ port: 
   servers.push(server);
   const address = server.address();
   if (!address || typeof address === "string") throw new Error("fixture server unavailable");
-  return { port: address.port, prompts };
+  return { port: address.port, prompts, models };
 }
 
 function processPort(alive = true): RuntimeProcessPort & { start: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn>; setAlive(value: boolean): void } {
@@ -61,6 +64,7 @@ describe("runtime engine lifecycle", () => {
     expect(result.state.status).toBe("running");
     expect(result.providerText).toBe("VANTA_PROVIDER_OK");
     expect(server.prompts).toEqual(["Reply with exactly VANTA_RUNTIME_OK", "Reply with exactly VANTA_PROVIDER_OK"]);
+    expect(server.models).toEqual(["/private/models/qwen.gguf", "/private/models/qwen.gguf"]);
     expect(process.start).toHaveBeenCalledWith("llama-server", expect.arrayContaining(["--model", "/private/models/qwen.gguf"]));
     expect(approval).toHaveBeenCalledWith(expect.stringContaining(result.preview.commandHash), expect.objectContaining({ resource: expect.objectContaining({ fits: true }) }));
     const receipts = await readRuntimeLifecycleReceipts(root);

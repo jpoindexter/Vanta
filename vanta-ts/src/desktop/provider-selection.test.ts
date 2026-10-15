@@ -73,7 +73,7 @@ describe("desktop provider aliases", () => {
   });
 
   it("lists current Codex subscription agent models", () => {
-    const codex = desktopProviderOptions({ VANTA_HOME: home }).find((option) => option.id === "codex");
+    const codex = desktopProviderOptions({ VANTA_HOME: home, CODEX_HOME: home }).find((option) => option.id === "codex");
 
     expect(codex?.models).toEqual(expect.arrayContaining([
       "gpt-5.6",
@@ -90,6 +90,17 @@ describe("desktop provider aliases", () => {
       "gpt-5.1-codex",
       "gpt-5-codex",
     ]));
+    expect(codex?.modelSettings).toEqual({
+      effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max", "ultra"] },
+      speed: { defaultValue: "standard", options: ["standard", "fast"] },
+    });
+  });
+
+  it("advertises effort but not speed for Claude Code", () => {
+    const claude = desktopProviderOptions({ VANTA_HOME: home }).find((option) => option.id === "claude-code");
+    expect(claude?.modelSettings).toEqual({
+      effort: { defaultValue: "medium", options: ["low", "medium", "high", "xhigh", "max"] },
+    });
   });
 
   it("uses a refreshed catalog when the desktop picker opens without dropping bundled models", async () => {

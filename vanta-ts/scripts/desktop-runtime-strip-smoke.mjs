@@ -37,6 +37,10 @@ let modelDownloads = [
 
 try {
   const page = await app.firstWindow();
+  if (process.env.DEBUG_RUNTIME_SMOKE === "1") {
+    page.on("console", (message) => console.error("console", message.type(), message.text()));
+    page.on("response", (response) => { if (response.url().includes("/api/")) console.error("response", response.status(), response.url()); });
+  }
   await page.route("**/api/sessions", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
   });
@@ -84,11 +88,21 @@ try {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.locator(".app-shell.theme-dark").waitFor({ timeout: 15_000 });
   await page.locator("[data-runtime-strip]").waitFor();
-  await page.locator("[data-runtime-strip]").getByText("qwen.gguf").first().waitFor();
-  await page.waitForFunction(() => {
-    const composer = document.querySelector("#vanta-composer");
-    return composer instanceof HTMLTextAreaElement && !composer.disabled;
-  });
+  await page.locator("[data-runtime-strip]").getByText("Task system", { exact: true }).waitFor();
+  try {
+    await page.waitForFunction(() => {
+      const composer = document.querySelector("#vanta-composer");
+      return composer instanceof HTMLTextAreaElement && !composer.disabled;
+    });
+  } catch (error) {
+    const boot = await page.evaluate(async () => ({
+      status: await fetch("/api/status").then((response) => response.text()).catch((reason) => String(reason)),
+      runtime: document.querySelector("[data-runtime-strip]")?.textContent?.trim() ?? "missing",
+      alert: document.querySelector("[role=alert]")?.textContent?.trim() ?? "",
+      composer: document.querySelector("#vanta-composer")?.getAttribute("placeholder") ?? "missing",
+    }));
+    throw new Error(`Runtime smoke composer did not become ready: ${JSON.stringify(boot)}`, { cause: error });
+  }
 
   const composer = page.getByPlaceholder("Ask Vanta to do something...");
   await composer.fill("Draft survives runtime switching");
@@ -165,7 +179,8 @@ try {
   await assertDraft(composer, "after runtime lifecycle actions");
 
   await dialog.getByRole("button", { name: /Remote Fixture/ }).click();
-  await trigger.getByText("Remote Fixture").waitFor();
+  await dialog.getByText("Remote Fixture", { exact: false }).first().waitFor();
+  await dialog.getByText("Not ready", { exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Reconnect" }).click();
   await dialog.getByText("reconnected").waitFor();
   const draftAfterSwitch = await composer.inputValue();

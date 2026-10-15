@@ -1,18 +1,31 @@
-import type { EffectDisposition, ToolCall } from "../types.js";
-import type { ToolContext, Tool } from "../tools/types.js";
-import type { AgentDeps } from "./agent-types.js";
-import { applySafetyGate, executeWithRetry, compressOutput } from "./dispatch-helpers.js";
-import { offloadResult } from "../compress/result-offload.js";
-import { isPlanBlocked } from "./plan-gate.js";
-import { coerceToSchema } from "../providers/tool-call-repair.js";
-import { firePreToolUse, firePostToolUse, fireHooks } from "../hooks/shell-hooks.js";
-import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
-import { acceptsEditsWithoutKernel, resolvePermissionMode } from "../modes/permission-mode.js";
 import { join } from "node:path";
+import { offloadResult } from "../compress/result-offload.js";
+import { effectAuthority } from "../effects/gate-context.js";
+import { toolEffectDescriptorSha256 } from "../effects/tool-effect-gateway.js";
+import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
+import { fireHooks,firePostToolUse,firePreToolUse } from "../hooks/shell-hooks.js";
+import { resolveOperatingMode } from "../modes/operating-mode.js";
+import { coerceToSchema } from "../providers/tool-call-repair.js";
 import { loadSettings } from "../settings/store.js";
 import { repairToolFailure } from "../tools/tool-boundary.js";
+import type { Tool,ToolContext,ToolResult } from "../tools/types.js";
+import type { EffectDisposition,ToolCall } from "../types.js";
+import { settleWorkItem,type WorkItemState } from "../work-items/contract.js";
+import type { AgentDeps } from "./agent-types.js";
+import { applySafetyGate,compressOutput,executeWithRetry,type SafetyGateResult } from "./dispatch-helpers.js";
+import { toolMayHaveSideEffects } from "./effect-disposition.js";
+import { executionContext } from "./execution-context.js";
+import { isPlanBlocked } from "./plan-gate.js";
 
-export type DispatchOutcome = { executed: boolean; empty: boolean; output: string; ok: boolean; effectDisposition: EffectDisposition; tokensSaved?: number };
+export type DispatchOutcome = {
+  executed: boolean;
+  empty: boolean;
+  output: string;
+  ok: boolean;
+  effectDisposition: EffectDisposition;
+  workItemState: WorkItemState;
+  tokensSaved?: number;
+};
 
 // TOOL-CALL-REPAIR: log an auto-repair + coerce args to the tool schema so
 // weak/local models clear zod on the first try.
@@ -35,32 +48,77 @@ export async function dispatchTool(
   normalizeToolCall(call, tool, deps); // TOOL-CALL-REPAIR: log repair + coerce to schema
 
   // Plan mode: enforce read-only restriction when plan mode is active.
-  if (isPlanBlocked(call.name, deps.planGate)) {
-    const output = `blocked: plan mode is active — read-only tools only. Present your plan and run /planmode approve to proceed.`;
+  const planActive = deps.planGate ? deps.planGate() : deps.permissionMode ? false : resolveOperatingMode(process.env) === "plan";
+  if (isPlanBlocked(call.name, () => planActive)) {
+    const output = "blocked: plan mode is active — read-only tools only. Leave plan mode or run /planmode approve to proceed.";
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: false, empty: false, ok: false, output, effectDisposition: "none" };
+    return { executed: false, empty: false, ok: false, output, effectDisposition: "none", workItemState: "stopped" };
   }
 
   const gateResult = await applySafetyGate(call, deps, ctx);
   if (!gateResult.approved) {
-    return { executed: false, empty: false, ok: false, output: gateResult.reason ?? "approval denied", effectDisposition: "none" };
+    return {
+      executed: false,
+      empty: false,
+      ok: false,
+      output: gateResult.reason ?? "approval denied",
+      effectDisposition: "denied",
+      workItemState: "stopped",
+    };
   }
 
-  const dataDir = join(ctx.root, ".vanta");
   const hookDeps = buildAgentHookDeps(deps);
   const preBlocked = await applyPreToolUseHooks(call, deps, ctx, hookDeps);
   if (preBlocked) return preBlocked;
 
+  const execCtx = dispatchExecutionContext(call, deps, ctx, { tool, gateResult });
+  await ctx.onToolExecutionStart?.(call);
+  const res = await executeWithRetry(call, deps, execCtx, tool);
+  return finishToolExecution({ call, deps, ctx, res, hookDeps });
+}
+
+function dispatchExecutionContext(
+  call: ToolCall,
+  deps: AgentDeps,
+  ctx: ToolContext,
+  options: { tool: Tool | undefined; gateResult: SafetyGateResult },
+): ToolContext {
+  const { tool, gateResult } = options;
   // CALL-AGENT-STREAM: give the tool a progress channel wired to the `note`
   // StreamEvent, so a long external call streams output/heartbeats mid-execution.
   const execCtx: ToolContext = {
-    ...executionContext(call.name, ctx),
+    ...executionContext(call, deps, ctx, deps.forceFreshApproval?.() === true),
+    safety: deps.safety,
+    effectCallId: call.id,
+    effectJournalOwnerId: call.id,
+    effectApprovalAction: gateResult.effectApprovalAction,
+    effectApprovalReusable: gateResult.effectApprovalReusable,
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
   };
-  await ctx.onToolExecutionStart?.(call);
-  const res = await executeWithRetry(call, deps, execCtx, tool);
+  const authorizedAction = gateResult.effectApprovalAction
+    ?? tool?.describeForSafety?.(call.arguments)
+    ?? `${call.name} ${JSON.stringify(call.arguments)}`;
+  execCtx.effectAuthority = effectAuthority(
+    execCtx,
+    toolEffectDescriptorSha256(call.name, call.arguments, authorizedAction),
+    authorizedAction,
+    gateResult.effectApprovalReusable,
+  );
+  return execCtx;
+}
+
+async function finishToolExecution(options: {
+  call: ToolCall;
+  deps: AgentDeps;
+  ctx: ToolContext;
+  res: ToolResult;
+  hookDeps: ReturnType<typeof buildAgentHookDeps>;
+}): Promise<DispatchOutcome> {
+  const { call, deps, ctx, res, hookDeps } = options;
+  const dataDir = join(ctx.root, ".vanta");
+  const truth = toolResultTruth(call.name, res);
   if (!res.ok) res.output = await addRepairPath(call.name, res.output, deps, ctx.root);
   const postBlocked = await applyPostToolUseBlock({ call, deps, ctx, res, hookDeps });
   if (postBlocked) return postBlocked;
@@ -73,7 +131,15 @@ export async function dispatchTool(
   // tool (incl. non-allow-listed reads/shell) whose output is still oversized,
   // stashing it whole (CCR store) and replacing it with a preview + retrieval id.
   const offloaded = await offloadResult(compressed.output, { toolName: call.name, dataDir, modelId: deps.provider?.modelId?.() });
-  return { executed: true, empty: offloaded.output.trim().length === 0, ok: res.ok, output: offloaded.output, effectDisposition: "confirmed", tokensSaved: compressed.tokensSaved };
+  return {
+    executed: true,
+    empty: offloaded.output.trim().length === 0,
+    ok: res.ok,
+    output: offloaded.output,
+    effectDisposition: truth.disposition,
+    workItemState: truth.state,
+    tokensSaved: compressed.tokensSaved,
+  };
 }
 
 async function addRepairPath(tool: string, output: string, deps: AgentDeps, root: string): Promise<string> {
@@ -108,7 +174,7 @@ async function applyPreToolUseHooks(
     const output = `blocked by PreToolUse hook: ${pre.reason}`;
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: false, empty: false, ok: false, output, effectDisposition: "none" };
+    return { executed: false, empty: false, ok: false, output, effectDisposition: "denied", workItemState: "stopped" };
   }
   if (pre.userMessage) deps.onText?.(`PreToolUse hook: ${pre.userMessage}`);
   return undefined;
@@ -125,7 +191,7 @@ async function applyPostToolUseBlock(o: {
   call: ToolCall;
   deps: AgentDeps;
   ctx: ToolContext;
-  res: { ok: boolean; output: string; diff?: unknown };
+  res: ToolResult;
   hookDeps: ReturnType<typeof buildAgentHookDeps>;
 }): Promise<DispatchOutcome | undefined> {
   const { call, deps, ctx, res, hookDeps } = o;
@@ -137,10 +203,37 @@ async function applyPostToolUseBlock(o: {
     const output = `blocked by PostToolUse hook: ${post.feedback ?? "rejected"}`;
     deps.onToolResult?.(call.name, false, output);
     deps.onEvent?.({ type: "tool_end", name: call.name, ok: false, output });
-    return { executed: true, empty: false, ok: false, output, effectDisposition: "confirmed" };
+    const truth = toolResultTruth(call.name, res);
+    return {
+      executed: true,
+      empty: false,
+      ok: false,
+      output,
+      effectDisposition: truth.disposition,
+      workItemState: truth.state,
+    };
   }
   if (post.feedback) res.output = `${res.output}\n\n[PostToolUse hook] ${post.feedback}`;
   return undefined;
+}
+
+function toolResultTruth(
+  toolName: string,
+  result: ToolResult,
+): { disposition: EffectDisposition; state: WorkItemState } {
+  const effectCapable = toolMayHaveSideEffects(toolName);
+  const disposition = result.effectDisposition ?? (
+    effectCapable
+      ? (result.ok ? "confirmed" : "unknown")
+      : "none"
+  );
+  const verification = result.verification?.status ?? (
+    !effectCapable && result.ok ? "verified" : undefined
+  );
+  return {
+    disposition,
+    state: settleWorkItem({ ok: result.ok, disposition, verification }),
+  };
 }
 
 /** PostToolUse runs through firePostToolUse (it can block); PostToolUseFailure
@@ -157,10 +250,4 @@ function fireFailureHook(o: {
   const hookContext = { tool: call.name, args: call.arguments, result: { ok: res.ok, output: res.output } };
   const opts = { toolName: call.name, matcherValue: call.name, isError: true, cwd: root, ...hookDeps };
   void fireHooks(dataDir, "PostToolUseFailure", hookContext, opts);
-}
-
-function executionContext(toolName: string, ctx: ToolContext): ToolContext {
-  const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
-  if (mode !== "fullAccess" && !acceptsEditsWithoutKernel(mode, toolName)) return ctx;
-  return { ...ctx, requestApproval: async () => true };
 }

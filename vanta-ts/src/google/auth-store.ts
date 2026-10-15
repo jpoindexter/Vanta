@@ -11,19 +11,15 @@ import {
   type KeychainKey,
 } from "../store/keychain.js";
 import type { ClientCreds } from "./client-json.js";
+import type { GoogleService } from "./capability.js";
 
 // Token storage for Google OAuth. Extracted from auth.ts (size gate).
 // Persistence is keychain-backed when opt-in (macOS + VANTA_KEYCHAIN=1),
 // else the default 0600 JSON file — identical file behavior when off.
 
-const TOKEN_FILE = "google-tokens.json";
 const CLIENT_FILE = "google-client.json";
 
 /** macOS Keychain item the Google token JSON is stored under when opt-in. */
-const KEYCHAIN_KEY: KeychainKey = {
-  service: "vanta-google-tokens",
-  account: "default",
-};
 const CLIENT_KEYCHAIN_KEY: KeychainKey = {
   service: "vanta-google-client",
   account: "default",
@@ -41,8 +37,12 @@ const TokenSchema = z
 export type StoredTokens = z.infer<typeof TokenSchema>;
 const ClientCredsSchema = z.object({ clientId: z.string().min(1), clientSecret: z.string().min(1) });
 
-function tokenPath(env: NodeJS.ProcessEnv): string {
-  return join(resolveVantaHome(env), TOKEN_FILE);
+function tokenPath(env: NodeJS.ProcessEnv, service: GoogleService): string {
+  return join(resolveVantaHome(env), `google-tokens-${service}.json`);
+}
+
+function tokenKey(service: GoogleService): KeychainKey {
+  return { service: `vanta-google-tokens-${service}`, account: "default" };
 }
 
 function clientPath(env: NodeJS.ProcessEnv): string {
@@ -67,25 +67,25 @@ function parseStored(raw: string): StoredTokens | null {
   }
 }
 
-export async function loadTokens(env: NodeJS.ProcessEnv): Promise<StoredTokens | null> {
+export async function loadTokens(env: NodeJS.ProcessEnv, service: GoogleService = "gmail"): Promise<StoredTokens | null> {
   if (keychainAvailable(env, osPlatform)) {
-    const got = await getSecret(KEYCHAIN_KEY);
+    const got = await getSecret(tokenKey(service));
     if (got.ok && got.value) return parseStored(got.value);
     return null;
   }
-  const file = tokenPath(env);
+  const file = tokenPath(env, service);
   if (!existsSync(file)) return null;
   return parseStored(await readFile(file, "utf8").catch(() => "{"));
 }
 
-export async function saveTokens(tokens: StoredTokens, env: NodeJS.ProcessEnv): Promise<void> {
+export async function saveTokens(tokens: StoredTokens, env: NodeJS.ProcessEnv, service: GoogleService = "gmail"): Promise<void> {
   if (keychainAvailable(env, osPlatform)) {
-    await setSecret(KEYCHAIN_KEY, JSON.stringify(tokens));
+    await setSecret(tokenKey(service), JSON.stringify(tokens));
     return;
   }
   await ensureVantaStore(env);
   // 0o600 — the file holds a refresh_token (a long-lived secret).
-  await writeFile(tokenPath(env), JSON.stringify(tokens, null, 2), {
+  await writeFile(tokenPath(env, service), JSON.stringify(tokens, null, 2), {
     encoding: "utf8",
     mode: 0o600,
   });

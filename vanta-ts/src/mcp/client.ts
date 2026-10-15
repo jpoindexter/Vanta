@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { guardLaunch } from "./package-guard.js";
 
 // Minimal MCP (Model Context Protocol) client — stdio transport, JSON-RPC 2.0,
 // newline-delimited. No SDK dependency (keeps Vanta lean). Lets Vanta mount
@@ -196,9 +197,14 @@ export class McpClient {
 export function stdioTransport(
   command: string,
   args: string[],
-  env?: NodeJS.ProcessEnv,
+  env: NodeJS.ProcessEnv,
 ): { transport: Transport; child: ChildProcess } {
-  const child = spawn(command, args, { stdio: ["pipe", "pipe", "pipe"], env: env ?? process.env });
+  // Backstop for every spawn site: a deny-listed package never reaches spawn, even
+  // from a caller that forgot to check first. Callers check earlier with their own
+  // env so the refusal precedes any approval prompt.
+  const guard = guardLaunch(command, args, process.env);
+  if (!guard.ok) throw new Error(guard.error);
+  const child = spawn(command, args, { stdio: ["pipe", "pipe", "pipe"], env });
   const transport: Transport = {
     send: (line) => child.stdin?.write(line),
     onMessage: (cb) => child.stdout?.on("data", (d: Buffer) => cb(d.toString("utf8"))),

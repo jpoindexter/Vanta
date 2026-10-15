@@ -39,11 +39,11 @@ async function handleSlashLine(o: SlashOpts): Promise<SlashResult> {
     await o.runUserTurn(prompt);
     return {};
   }
-  return dispatchSlash(o.line, o.ctx, o.repoRoot, o.rl, o.runUserTurn);
+  return dispatchSlash(o);
 }
 
-async function dispatchSlash(line: string, ctx: SlashCtx, repoRoot: string, rl: ReplReadline, runUserTurn: (t: string) => Promise<void>): Promise<SlashResult> {
-  const result = await executeSlash(line, ctx);
+async function dispatchSlash({ line, ctx, repoRoot, rl, runUserTurn }: Pick<SlashOpts, "line" | "ctx" | "repoRoot" | "rl" | "runUserTurn">): Promise<SlashResult> {
+  const result = await executeWithVoiceControls(line, ctx, rl);
   if (result.output) console.log(result.output);
   if (result.exit) return { exit: true };
   if (result.restart) return { restart: true };
@@ -53,8 +53,23 @@ async function dispatchSlash(line: string, ctx: SlashCtx, repoRoot: string, rl: 
     await fireHooks(ctx.dataDir, "UserPromptExpansion", { command, prompt: result.resend }, { cwd: repoRoot, matcherValue: command, promptProvider: ctx.setup.provider });
     await runUserTurn(result.resend);
   }
-  if (result.loadIntoComposer !== undefined) return { editPrefill: result.loadIntoComposer, editMsgIdx: result.editMessageIndex ?? -1 };
+  if (result.loadIntoComposer !== undefined) return { editPrefill: result.loadIntoComposer, editMsgIdx: result.editMessageIndex };
   return {};
+}
+
+async function executeWithVoiceControls(line: string, ctx: SlashCtx, rl: ReplReadline): ReturnType<typeof executeSlash> {
+  if (!/^\/voice\s+(?:record|test)(?:\s|$)/.test(line)) return executeSlash(line, ctx);
+  const { voice } = await import("./repl/voice-cmd.js");
+  const lifetime = new AbortController();
+  const cancel = (): void => { lifetime.abort(); void voice("cancel", ctx); };
+  rl.on("SIGINT", cancel);
+  rl.on("close", cancel);
+  process.once("SIGINT", cancel);
+  const onVoicePhase: NonNullable<SlashCtx["onVoicePhase"]> = (phase) => {
+    if (phase !== "idle") console.log(`  Local dictation: ${phase} · Ctrl+C cancels · nothing sent`);
+  };
+  try { return await executeSlash(line, { ...ctx, onVoicePhase, voiceSignal: lifetime.signal }); }
+  finally { rl.removeListener("SIGINT", cancel); rl.removeListener("close", cancel); process.removeListener("SIGINT", cancel); }
 }
 
 export type ReplDeps = {
@@ -81,7 +96,7 @@ async function runShortcut(line: string, deps: Pick<ReplDeps, "setup" | "repoRoo
 }
 
 function applyEditMode(line: string, editState: { prefill: string | null; msgIdx: number | null }, convo: ReturnType<typeof createConversation>): boolean {
-  if (editState.msgIdx === null) return false;
+  if (editState.msgIdx === null || editState.msgIdx < 0) { editState.msgIdx = null; return false; }
   const idx = editState.msgIdx; editState.msgIdx = null;
   const msg = convo.messages[idx];
   if (msg && msg.role === "assistant") { convo.messages[idx] = { ...msg, content: line }; console.log("  ✎ response updated"); }
@@ -99,7 +114,7 @@ async function replIteration(
     const r = await handleSlashLine({ line, firstToken, ctx: d.ctx, cp: d.cp, rb: d.rb, rs: d.rs, userCommands: d.userCommands, repoRoot: d.repoRoot, rl: d.rl, runUserTurn: d.runUserTurn });
     if (r.exit) return { stop: true };
     if (r.restart) { process.exitCode = RESTART_EXIT_CODE; return { stop: true }; }
-    if (r.editPrefill !== undefined) { editState.prefill = r.editPrefill; editState.msgIdx = r.editMsgIdx ?? -1; }
+    if (r.editPrefill !== undefined) { editState.prefill = r.editPrefill; editState.msgIdx = r.editMsgIdx ?? null; }
     return {};
   }
   if (parseShortcut(line)) { await runShortcut(line, d); return {}; }

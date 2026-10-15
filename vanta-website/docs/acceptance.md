@@ -5,32 +5,70 @@ title: Product acceptance
 
 # Product acceptance
 
-Vanta's release claims are based on executed operator stories, not feature inventory alone.
+Vanta's claims are bounded by executed operator stories, not feature inventory,
+roadmap volume, model narration, or an adjacent green test.
 
-## Current executed proof
+## What current receipts support
 
-- A real model read the project README, made a scoped file change, and read it back.
-- Corpus ingest recalled the written artifact with source and freshness evidence.
-- A parent delegated one bounded README task to one worker and received its result.
-- The notarized macOS app completed real chat and blocked a destructive terminal command at the kernel boundary; v0.9.5 passes the current source-plus-packaged desktop flow suite.
-- A clean `~/vanta` install ran under launchd, fired a provider-free task, and completed an authenticated Codex agent task unattended.
-- The cold-start scenario distinguished ready workflows from account-dependent setup before acting.
-- The cited-research scenario used bounded parallel decomposition and three primary sources, then reported a skeptic pass and unresolved uncertainty.
-- The CLI/TUI captured a real 3024x1964 Retina screen and a visual model returned the required `SIGHT_OK landscape` marker.
-- Desktop ingested native text, image, and mixed clipboard content, retained image context after a failed send, and cleared it after successful submission.
+The repository acceptance record preserves executed evidence for specific local
+file read/write, corpus recall, bounded delegation, packaged Desktop chat,
+destructive-command rejection, scheduled work, cited research, screen capture,
+attachments, reusable runs, TUI task/approval/restart/compaction paths,
+streaming-TTS dispatch, MSA adapter plumbing, and first-token measurement.
 
-The versioned catalog currently has **6 executed, 6 passed, 0 failed** scenarios across 6 of 15 categories. Uncovered categories remain explicit coverage gaps.
+Each receipt proves only its exact version, environment, path, and marker.
+Provider fixtures do not prove model judgment; source tests do not prove a
+signed package; adapter mocks do not prove an external service.
 
-## Regression proof
+## Current state
 
-- 13,584 TypeScript tests passed across 1,456 files; 3 skipped.
-- 70 Rust kernel tests passed.
-- Typecheck, architecture boundaries, desktop production build, and production dependency audit passed.
-- The 36-capture Ghost visual matrix passed at three viewport widths in light and dark mode.
-- Packaged cold-start regression uses the median of three fresh-profile launches; every launch must also remain below the independent 10-second hard ceiling.
+The bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts
+are shipped in the canonical roadmap with retained receipts for their exact
+local and signed macOS boundaries. Together they cover protected control state,
+hostile local-API requests, child-environment isolation, one checked effect
+gateway, exact authority, crash/replay uncertainty, one typed completion
+contract, accessible interruption/re-entry, and one read-only operator spine.
 
-The public [notarized v0.9.5 desktop build](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.5) adds Sight, native image clipboard context, graph engineering v1, and the current source-plus-packaged flow proof. Its DMG checksum is `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122`; Apple accepted notarization submission `efcb15b4-60f0-4d0f-b5e6-a4d602d796e2`, and the exact public download passed checksum, staple, signature, quarantine, and Gatekeeper verification on a clean hosted Mac in [run 29777875809](https://github.com/jpoindexter/Vanta/actions/runs/29777875809).
+This source stack is still awaiting repository integration and is not the
+public Desktop release. Cross-platform packages, live external accounts,
+external participants, and future effect paths remain separate proof gates.
+As of October 2, the whole ambient Desktop workflow is Building. Four internal
+Next cards cover Git probe isolation, standing-instruction writes, local-state
+recovery and browser action boundaries. The unfamiliar-person proof and
+`GROW-01` remain Parked. No paid participants, recruiting, research platforms,
+GitHub Actions, hosting, outreach, or other new service spend is authorized.
 
-The signed app's capture contracts are automated, but a successful visual-model answer from the packaged bundle remains an external proof until macOS Screen Recording access is granted to `studio.theft.vanta`. The clipboard proof covers the native bridge and renderer paste path, not operating-system Command-V delivery. Third-party credentials, physical devices, provider accounts, and the fresh non-developer desktop study remain separate [external acceptance gates](./roadmap).
+The local ambient-workspace candidate passed 51 packaged fixture interactions
+and 14,445 TypeScript tests, with 3 skipped. It adds white/grey appearance,
+same-workspace mini/full views, and an optional avatar without automatic capture.
+Local signed installation is not a public release or live Desktop computer-control
+proof. Source tests and the preceding package's normal-profile checks have
+distinct boundaries; the whole workflow remains incomplete.
 
-Repository details and reproduction commands live in `docs/product-acceptance.md`.
+Dependency remediation from separate branches is not integrated into this
+candidate. Older zero-advisory claims and the documentation exception that
+expired on October 1 must not be presented as current security clearance.
+The application-source checkpoint now passes the size gate across 123 changed
+production files. Its full TypeScript run has 14,451 passes and 3 unchanged
+optional live-test skips. The implementation and notes are available in
+[draft PR #59](https://github.com/jpoindexter/Vanta/pull/59), not merged into
+the default branch or released. No whole roadmap card is cleared by this checkpoint.
+
+## State and proof
+
+The canonical migration contract uses exactly `draft`, `queued`, `running`,
+`waiting`, `needs human`,
+`stopped`, `failed`, `unverified`, and `verified`. `denied`, `expired`,
+`unknown`, and `compensated` are Action/Receipt dispositions, not WorkItem
+states. Assistant prose cannot create `verified`. The shipped OP-01 facade
+projects legacy and canonical stores without changing legacy writers, and the
+shared host receipt boundary prevents narration from manufacturing verified
+completion.
+
+No unattended high-consequence effect is accepted until exact authority,
+transaction integrity, verification, receipts, reversal or compensation,
+review, revocation, and the real supported host path all pass.
+
+Full evidence, receipt boundaries, reproduction commands, universal-design
+acceptance, and remaining release/external-proof boundaries live in
+[`docs/product-acceptance.md`](https://github.com/jpoindexter/Vanta/blob/main/docs/product-acceptance.md).

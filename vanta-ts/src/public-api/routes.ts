@@ -73,6 +73,8 @@ export function parsePublicApiAllowedOrigins(raw: string | undefined): Set<strin
 
 function applyPublicApiCors(req: http.IncomingMessage, res: http.ServerResponse, allowed: ReadonlySet<string>): boolean {
   const origin = req.headers.origin; if (typeof origin !== "string" || !allowed.has(origin)) return false;
+  // `allowed` contains only operator-configured, exact HTTPS origins validated above.
+  // nosemgrep: javascript.express.security.cors-misconfiguration.cors-misconfiguration
   res.setHeader("access-control-allow-origin", origin); res.setHeader("vary", "origin");
   res.setHeader("access-control-allow-headers", "authorization, content-type, x-session-id"); res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS"); return true;
 }

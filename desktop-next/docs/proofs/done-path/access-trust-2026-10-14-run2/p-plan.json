@@ -1,0 +1,17 @@
+{
+  "manual": {
+    "outcome": "finished",
+    "wrote": true,
+    "toolResults": [
+      "wrote 7 bytes to plan-probe.md (new file) · verified 1 lines, 7 bytes on disk"
+    ]
+  },
+  "plan": {
+    "outcome": "finished",
+    "wrote": false,
+    "toolResults": [
+      "blocked: plan mode is active — read-only tools only. Leave plan mode or run /planmode approve to proceed."
+    ]
+  },
+  "savedAfterPick": "plan"
+}

@@ -5,7 +5,7 @@ import type { SafetyClient } from "./safety-client.js";
 
 const safety = { getGoals: async () => [] } as unknown as SafetyClient;
 const msgs: Message[] = [{ role: "user", content: "hi" }, { role: "assistant", content: "ok" }];
-const GATES = ["inhibit", "nd", "research", "scopeDelta", "setShift", "stall", "wmManip"];
+const GATES = ["nd", "research", "scopeDelta", "setShift", "stall", "wmManip"];
 // runPostTurnGates always returns the heap-warn cooldown slot alongside the gates.
 const BUNDLE = [...GATES, "memWarnLastAt"].sort();
 const ONE_GB = 1024 * 1024 * 1024;
@@ -24,7 +24,6 @@ describe("freshGateState", () => {
     const g = freshGateState();
     expect(Object.keys(g).sort()).toEqual(GATES);
     expect(g.stall).toEqual({ stalledTurns: 0 });
-    expect(g.inhibit).toEqual({ consecutiveCalls: 0 });
     expect(g.nd).toBeDefined();
     expect(g.memWarnLastAt).toBeUndefined();
   });

@@ -13,6 +13,8 @@
 import { GLYPHS } from "./figures.js";
 import { ADAPTIVE_LEVEL, isAdaptiveEffortLevel, type AdaptiveEffortLevel } from "../providers/adaptive-effort.js";
 
+type DisplayEffortLevel = AdaptiveEffortLevel | "ultra";
+
 /** The default (unset) effort level — its chip is hidden unless forced. */
 export const DEFAULT_EFFORT_LEVEL = "medium" as const;
 
@@ -20,12 +22,13 @@ export const DEFAULT_EFFORT_LEVEL = "medium" as const;
 export const EFFORT_INDICATOR_ENV = "VANTA_EFFORT_INDICATOR" as const;
 
 /** One glyph per level. Reuses term/figures glyphs where the shape matches. */
-const EFFORT_GLYPHS: Record<AdaptiveEffortLevel, string> = {
+const EFFORT_GLYPHS: Record<DisplayEffortLevel, string> = {
   low: GLYPHS.ring, // ○ empty — least budget
   medium: GLYPHS.halfRing, // ◐ half — default budget
   high: GLYPHS.bullet, // ● full — high budget
   xhigh: "◈", // filled diamond with center — extra-high budget
   max: "◆", // filled diamond — max budget
+  ultra: "✦", // star — provider-specific ceiling above max
   [ADAPTIVE_LEVEL]: "◇", // hollow diamond — model self-budgets
 };
 
@@ -34,7 +37,7 @@ const EFFORT_GLYPHS: Record<AdaptiveEffortLevel, string> = {
  * the default level's glyph so callers never render an empty mark.
  */
 export function effortGlyph(level: unknown): string {
-  if (isAdaptiveEffortLevel(level)) return EFFORT_GLYPHS[level];
+  if (isDisplayEffortLevel(level)) return EFFORT_GLYPHS[level];
   return EFFORT_GLYPHS[DEFAULT_EFFORT_LEVEL];
 }
 
@@ -51,7 +54,7 @@ export type EffortIndicatorOpts = {
  * - "glyph": `● high`
  */
 export function formatEffortIndicator(level: unknown, opts: EffortIndicatorOpts = {}): string {
-  const resolved: AdaptiveEffortLevel = isAdaptiveEffortLevel(level) ? level : DEFAULT_EFFORT_LEVEL;
+  const resolved: DisplayEffortLevel = isDisplayEffortLevel(level) ? level : DEFAULT_EFFORT_LEVEL;
   if (opts.style === "glyph") return `${EFFORT_GLYPHS[resolved]} ${resolved}`;
   return `effort:${resolved}`;
 }
@@ -64,7 +67,11 @@ export function formatEffortIndicator(level: unknown, opts: EffortIndicatorOpts 
  *   VANTA_EFFORT_INDICATOR is set to a truthy flag ("1" or "true").
  */
 export function effortIndicatorVisible(level: unknown, env: NodeJS.ProcessEnv): boolean {
-  if (isAdaptiveEffortLevel(level) && level !== DEFAULT_EFFORT_LEVEL) return true;
+  if (isDisplayEffortLevel(level) && level !== DEFAULT_EFFORT_LEVEL) return true;
   const flag = env[EFFORT_INDICATOR_ENV];
   return flag === "1" || flag === "true";
+}
+
+function isDisplayEffortLevel(level: unknown): level is DisplayEffortLevel {
+  return level === "ultra" || isAdaptiveEffortLevel(level);
 }

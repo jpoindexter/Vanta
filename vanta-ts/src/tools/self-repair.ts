@@ -5,6 +5,12 @@ import { recordGood, readMarkers, lastKnownGood } from "../self/detect.js";
 import { isCompartment, rollbackPaths } from "../self/rollback.js";
 import type { Compartment } from "../self/compartments.js";
 import { planToolSandboxTest, runToolSandboxTest } from "../self/tool-sandbox.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+} from "../effects/execute-effect.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 
 const Args = z.object({
   action: z.enum(["mark", "rollback", "status", "sandbox_test"]),
@@ -23,8 +29,18 @@ async function doMark(compartment: Compartment, ctx: ToolContext): Promise<ToolR
   if (head.code !== 0) return { ok: false, output: `could not read HEAD: ${head.out}` };
   const sha = head.out.trim().split("\n")[0] ?? "";
   if (!sha) return { ok: false, output: "could not resolve HEAD sha" };
-  await recordGood({ compartment, sha });
-  return { ok: true, output: `Marked ${compartment} last-known-good at ${sha.slice(0, 8)}` };
+  const result = await runSelfRepairEffect(
+    ctx,
+    "self-repair.mark",
+    compartment,
+    sha,
+    `record ${compartment} last-known-good marker at ${sha}`,
+    async () => {
+      await recordGood({ compartment, sha });
+      return { ok: true, output: `Marked ${compartment} last-known-good at ${sha.slice(0, 8)}` };
+    },
+  );
+  return result;
 }
 
 async function doRollback(compartment: Compartment, ctx: ToolContext): Promise<ToolResult> {
@@ -40,15 +56,19 @@ async function doRollback(compartment: Compartment, ctx: ToolContext): Promise<T
     return { ok: false, output: `${compartment} owns no narrow path set (everything else) — a rollback must be scoped; inspect with: git log ${sha.slice(0, 8)} -1` };
   }
   const cmd = `git checkout ${sha.slice(0, 12)} -- ${paths.join(" ")}`;
-  const approved = await ctx.requestApproval(
-    `Roll ${compartment} back to last-known-good:\n    ${cmd}`,
-    `⚠ discards current uncommitted changes under: ${paths.join(", ")}`,
+  return runSelfRepairEffect(
+    ctx,
+    "self-repair.rollback",
+    compartment,
+    `${sha}\0${paths.join("\0")}`,
+    `Roll ${compartment} back to last-known-good with ${cmd}; discards current uncommitted changes under ${paths.join(", ")}`,
+    async () => {
+      const res = await runGit(["checkout", sha, "--", ...paths], ctx.root);
+      return res.code === 0
+        ? { ok: true, output: `Rolled ${compartment} back to ${sha.slice(0, 8)}.\n${res.out || "(clean)"}` }
+        : { ok: false, output: `rollback failed: ${res.out}` };
+    },
   );
-  if (!approved) return { ok: false, output: "denied" };
-  const res = await runGit(["checkout", sha, "--", ...paths], ctx.root);
-  return res.code === 0
-    ? { ok: true, output: `Rolled ${compartment} back to ${sha.slice(0, 8)}.\n${res.out || "(clean)"}` }
-    : { ok: false, output: `rollback failed: ${res.out}` };
 }
 
 async function doStatus(): Promise<ToolResult> {
@@ -62,15 +82,53 @@ async function doStatus(): Promise<ToolResult> {
 async function doSandboxTest(raw: { toolPath?: string; command?: string }, ctx: ToolContext): Promise<ToolResult> {
   const plan = planToolSandboxTest(raw);
   if (!plan.ok) return { ok: false, output: plan.reason };
-  const approved = await ctx.requestApproval(
-    `sandbox-test ${plan.toolPath}\n    ${plan.command}`,
-    "runs the isolated pre-attach test for a new/replaced limb tool before attach",
+  return runSelfRepairEffect(
+    ctx,
+    "self-repair.sandbox-test",
+    plan.toolPath,
+    plan.command,
+    `sandbox-test ${plan.toolPath} with ${plan.command} before attach`,
+    async () => {
+      const result = await runToolSandboxTest(ctx.root, plan.command);
+      return result.ok
+        ? { ok: true, output: `sandbox PASS for ${plan.toolPath}\n${result.output}` }
+        : { ok: false, output: `sandbox FAIL for ${plan.toolPath}\n${result.output}` };
+    },
   );
-  if (!approved) return { ok: false, output: "denied" };
-  const result = await runToolSandboxTest(ctx.root, plan.command);
-  return result.ok
-    ? { ok: true, output: `sandbox PASS for ${plan.toolPath}\n${result.output}` }
-    : { ok: false, output: `sandbox FAIL for ${plan.toolPath}\n${result.output}` };
+}
+
+async function runSelfRepairEffect(
+  ctx: ToolContext,
+  kind: string,
+  target: string,
+  payload: string,
+  action: string,
+  operation: () => Promise<ToolResult>,
+): Promise<ToolResult> {
+  const hash = payloadSha256(payload);
+  const seed = {
+    host: "self-repair-host",
+    kind,
+    targetClass: target,
+    payloadSha256: hash,
+    idempotencyKey: effectOperationKey(kind, ctx),
+  };
+  const result = await executeEffect({
+    id: stableEffectId(seed),
+    actor: "self_repair",
+    action,
+    ...seed,
+  }, effectGateFromToolContext(ctx), async () => {
+    const value = await operation();
+    return {
+      value,
+      acknowledgementId: `${kind}:${target}`,
+      failed: !value.ok,
+    };
+  });
+  if (result.value) return result.value;
+  if (result.outcome === "denied") return { ok: false, output: "denied" };
+  return { ok: false, output: `self_repair effect ${result.outcome}` };
 }
 
 export const selfRepairTool: Tool = {

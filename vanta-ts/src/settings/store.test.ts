@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   loadSettings,
+  settingsCachePath,
   applySettingsEnv,
   isToolAllowed,
   isToolBlocked,
@@ -142,6 +143,22 @@ describe("loadSettings", () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ plugins: { enabled: [123] } }));
     const s = await loadSettings(root, env);
     expect(s).toEqual({});
+  });
+
+  it("persists a metadata-validated cache and invalidates it when a scope changes", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
+    expect((await loadSettings(root, env)).allowedTools).toEqual(["read_file"]);
+    expect(JSON.parse(await import("node:fs/promises").then(({ readFile }) => readFile(settingsCachePath(root, env), "utf8"))).version).toBe(1);
+
+    await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["write_file", "read_file"] }));
+    expect((await loadSettings(root, env)).allowedTools).toEqual(["write_file", "read_file"]);
+  });
+
+  it("recovers from a corrupt persisted settings cache", async () => {
+    await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
+    await loadSettings(root, env);
+    await writeFile(settingsCachePath(root, env), "{broken", "utf8");
+    expect((await loadSettings(root, env)).allowedTools).toEqual(["read_file"]);
   });
 });
 

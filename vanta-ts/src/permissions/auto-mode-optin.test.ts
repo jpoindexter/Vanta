@@ -18,17 +18,17 @@ describe("AUTO_MODE_AFFIRMATIVES", () => {
 describe("buildAutoModeExplanation", () => {
   const text = buildAutoModeExplanation();
 
-  it("names what auto-approves — the safe read-only set", () => {
+  it("names what auto-approves — safe reads and routine file edits", () => {
     const lower = text.toLowerCase();
     expect(lower).toContain("auto-approve");
-    expect(lower).toContain("read-only");
+    expect(lower).toContain("safe reads");
+    expect(lower).toContain("file edits");
   });
 
-  it("names what STILL prompts — writes/destructive/out-of-scope", () => {
+  it("names what STILL prompts — destructive and consequential actions", () => {
     const lower = text.toLowerCase();
-    expect(lower).toContain("write");
     expect(lower).toContain("destructive");
-    expect(lower).toContain("out-of-scope");
+    expect(lower).toContain("consequential");
     expect(lower).toContain("prompt");
   });
 

@@ -21,9 +21,9 @@ describe("profile tool boundaries", () => {
     });
 
     expect(explanation).toMatchObject({ visible: false, typicalRisk: "ask" });
-    expect(explanation.missing).toContain("Google OAuth token");
+    expect(explanation.missing).toContain("Google gmail OAuth token");
     expect(explanation.repairs).toContain("vanta profiles tools research-lead --allow gmail_send");
-    expect(explanation.repairs).toContain("vanta auth google");
+    expect(explanation.repairs).toContain("vanta auth google gmail");
   });
 
   it("warns when a profile has no role allowlist", () => {
@@ -35,11 +35,18 @@ describe("profile tool boundaries", () => {
     expect(explanation.typicalRisk).toBe("allow");
   });
 
+  it("classifies local document conversion as a read-only boundary", () => {
+    const explanation = explainToolBoundary("document_read", {
+      schemas: buildRegistry().schemas(), settings: {}, profileId: "general", env: {}, fileExists: () => false,
+    });
+    expect(explanation).toMatchObject({ known: true, visible: true, typicalRisk: "allow", setup: "none beyond normal Vanta setup" });
+  });
+
   it("turns opaque credential failures into an actionable repair path", () => {
     const repaired = repairToolFailure("gmail_send", "401 unauthorized", {
       schemas: buildRegistry().schemas(), settings: {}, env: {}, fileExists: () => false,
     });
     expect(repaired).toContain("401 unauthorized");
-    expect(repaired).toContain("Repair: vanta auth google");
+    expect(repaired).toContain("Repair: vanta auth google gmail");
   });
 });

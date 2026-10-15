@@ -26,16 +26,16 @@ const remote: RuntimeHostSnapshot = {
 const runtime: DesktopRuntime = { selectedHostId: "local", hosts: [local, remote], usage: { calls: 1, inputTokens: 20, outputTokens: 5, activeDurationMs: 1_000, requestLatencyMs: 500, failures: 0, missingTelemetryCalls: 1 } };
 
 describe("RuntimeStrip", () => {
-  it("keeps the active runtime legible in one compact control", () => {
+  it("keeps task status visible while moving telemetry behind one disclosure", () => {
     const html = renderToStaticMarkup(<RuntimeStrip runtime={runtime} agentModel="gpt-5.6-sol" agentProvider="openai" phase="ready" onSelect={vi.fn(async () => undefined)} onAction={vi.fn(async () => undefined)} />);
-    expect(html).toContain("Agent model");
-    expect(html).toContain("openai · gpt-5.6-sol");
-    expect(html).toContain("Local runtime");
-    expect(html).toContain("qwen.gguf");
-    expect(html).toContain("llama_cpp");
-    expect(html).toContain("Memory pressure 38%");
-    expect(html).toContain("10.0 tok/s");
-    expect(html).toContain("gated");
+    expect(html).toContain("Task system");
+    expect(html).toContain("Ready");
+    expect(html).toContain("Model and safety boundary are available.");
+    expect(html).toContain("Runtime details");
+    expect(html).not.toContain("gpt-5.6-sol");
+    expect(html).not.toContain("qwen.gguf");
+    expect(html).not.toContain("llama_cpp");
+    expect(html).not.toContain("Memory pressure");
     expect(html).toContain('aria-expanded="false"');
   });
 
@@ -74,7 +74,7 @@ describe("RuntimeStrip", () => {
       agentModel: "gpt-5.6-sol",
       agentProvider: "openai",
       runtime: { ...local, status: "idle" as const, engine: { lifecycle: "idle" as const } },
-      expected: ["Agent model", "openai · gpt-5.6-sol", "Local runtime", "Local Mac · Inactive"],
+      expected: ["Task system", "Ready", "Runtime details"],
     },
     {
       state: "local-only",
@@ -82,7 +82,7 @@ describe("RuntimeStrip", () => {
       agentModel: "qwen.gguf",
       agentProvider: "ollama",
       runtime: local,
-      expected: ["Agent model", "ollama · qwen.gguf", "Local runtime", "Local Mac · qwen.gguf"],
+      expected: ["Task system", "Ready", "Runtime details"],
     },
     {
       state: "mixed",
@@ -90,7 +90,7 @@ describe("RuntimeStrip", () => {
       agentModel: "gpt-5.6-sol",
       agentProvider: "openai",
       runtime: local,
-      expected: ["Agent model", "openai · gpt-5.6-sol", "Local runtime", "Local Mac · qwen.gguf"],
+      expected: ["Task system", "Ready", "Runtime details"],
     },
     {
       state: "loading",
@@ -98,7 +98,7 @@ describe("RuntimeStrip", () => {
       agentModel: undefined,
       agentProvider: undefined,
       runtime: undefined,
-      expected: ["Agent model", "Loading", "Local runtime", "Unavailable"],
+      expected: ["Task system", "Checking", "Connecting to the selected model."],
     },
     {
       state: "unavailable",
@@ -106,10 +106,19 @@ describe("RuntimeStrip", () => {
       agentModel: undefined,
       agentProvider: undefined,
       runtime: undefined,
-      expected: ["Agent model", "Unavailable", "Local runtime"],
+      expected: ["Task system", "Model needed", "repair the model connection"],
     },
-  ])("names the answering layers in the $state state", ({ phase, agentModel, agentProvider, runtime: snapshot, expected }) => {
+  ])("summarizes the task-facing $state state", ({ phase, agentModel, agentProvider, runtime: snapshot, expected }) => {
     const html = renderToStaticMarkup(<RuntimeSummary runtime={snapshot} agentModel={agentModel} agentProvider={agentProvider} phase={phase} />);
     for (const value of expected) expect(html).toContain(value);
+  });
+
+  it.each([
+    [{ ...local, stale: true }, "Status may be stale", "refresh runtime evidence"],
+    [remote, "Needs attention", "before starting consequential work"],
+  ] as const)("names recovery for non-ready runtime evidence", (snapshot, label, guidance) => {
+    const html = renderToStaticMarkup(<RuntimeSummary runtime={snapshot} agentModel="gpt-5.6-sol" agentProvider="openai" phase="ready" />);
+    expect(html).toContain(label);
+    expect(html).toContain(guidance);
   });
 });

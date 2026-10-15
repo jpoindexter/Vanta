@@ -1,0 +1,643 @@
+/* Vanta shell chrome: titlebar, sidebar, status glyphs, offline banner.
+ *
+ * Structure follows docs/wireframe/vanta-desktop-wireframe.html. Every colour
+ * reads a --ui-* semantic token; every metric is a --vs-* token defined once
+ * here. Unlayered, imported after styles.css, so it wins over the Tailwind
+ * layers without !important. Text never drops under 12px (--vs-text-meta).
+ */
+
+:root {
+  --vs-titlebar-h: 44px;
+  --vs-nav-h: 36px;
+  --vs-row-h: 32px;
+  --vs-control: 30px;
+  --vs-radius-row: var(--radius-control);
+  --vs-radius-pill: var(--radius-pill);
+  --vs-gap-title: 8px;
+  --vs-gap-bar: 10px;
+  --vs-pad-bar: 12px;
+  --vs-pad-sidebar-y: 10px;
+  --vs-pad-sidebar-x: 8px;
+  --vs-pad-nav-x: 10px;
+  --vs-pad-label: 12px 10px 4px;
+  --vs-glyph: 18px;
+  --vs-text-ui: 14px;
+  --vs-text-small: 13px;
+  --vs-text-meta: 12px;
+  --vs-weight-strong: 600;
+  --vs-sidebar-track: 275px;
+  --vs-sidebar-min: 240px;
+  --vs-sidebar-max: 520px;
+  --vs-rail: 56px;
+  --vs-elevation: 0 8px 28px color-mix(in srgb, var(--ui-base) 25%, transparent);
+  --vs-spin: 1.1s;
+}
+
+/* The sidebar docks at 275px (resizable 240-520) from 1280px up, collapses to a
+   56px icon rail from 1024px to 1279px, and is a drawer under 1024px. The tree
+   reads these tokens as the sessions pane's width and clamps. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  :root {
+    --vs-sidebar-track: var(--vs-rail);
+    --vs-sidebar-min: var(--vs-rail);
+    --vs-sidebar-max: var(--vs-rail);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vs-spin: 0s;
+  }
+}
+
+/* ---------- titlebar ---------- */
+
+.vs-titlebar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--vs-gap-bar);
+  height: var(--vs-titlebar-h);
+  min-width: 0;
+  padding: 0 var(--vs-pad-bar);
+  padding-inline-start: max(var(--vs-pad-bar), var(--vs-lights-inset, 0px));
+  border-bottom: 1px solid var(--ui-stroke-tertiary);
+  background: var(--ui-bg-chrome);
+  color: var(--ui-text-primary);
+  font-size: var(--vs-text-ui);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.vs-titlebar :is(button, a, input, [role='button'], [role='menuitem']) {
+  -webkit-app-region: no-drag;
+}
+
+.vs-tb-left,
+.vs-tb-right {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.vs-tb-title {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--vs-gap-title);
+  min-width: 0;
+}
+
+.vs-tb-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--vs-text-ui);
+  font-weight: var(--vs-weight-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-align: start;
+  cursor: default;
+}
+
+button.vs-tb-name {
+  cursor: pointer;
+}
+
+.vs-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  padding: 1px 9px;
+  border: 1px solid var(--ui-stroke-secondary);
+  border-radius: var(--vs-radius-pill);
+  background: var(--ui-bg-chrome);
+  color: var(--ui-text-secondary);
+  font-size: var(--vs-text-meta);
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+button.vs-chip {
+  cursor: pointer;
+}
+
+/* The chat menu chip is the wireframe's "▾": a 26x21 pill around one caret. */
+.vs-chip:has(> svg:only-child) {
+  justify-content: center;
+  width: 25.7px;
+  height: 21.4px;
+  padding: 0;
+}
+
+button.vs-chip:hover {
+  background: var(--ui-row-hover-background);
+}
+
+.vs-pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 10px;
+  border: 1px solid var(--ui-text-primary);
+  border-radius: var(--vs-radius-pill);
+  font-size: var(--vs-text-meta);
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.vs-icon {
+  display: inline-grid;
+  place-items: center;
+  width: var(--vs-control);
+  height: var(--vs-control);
+  padding: 0;
+  border: 1px solid var(--ui-stroke-secondary);
+  border-radius: var(--vs-radius-row);
+  background: var(--ui-bg-chrome);
+  color: var(--ui-text-primary);
+  cursor: pointer;
+}
+
+.vs-icon:hover {
+  background: var(--ui-row-hover-background);
+}
+
+.vs-icon[aria-pressed='true'] {
+  background: var(--ui-row-active-background);
+}
+
+.vs-chip-avatar {
+  border-radius: var(--vs-radius-pill);
+  font-size: var(--vs-text-meta);
+}
+
+/* Visible keyboard focus on every shell control. */
+:is(.vs-titlebar, .vs-sidebar, .vs-banner) :is(button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+
+/* Restored app controls (settings, layout editor, HUD, swap sides, right sidebar)
+   sit beside the workbench toggles; Hermes' own tool buttons, sized to match. */
+.vs-tb-tools {
+  display: flex;
+  align-items: center;
+}
+
+.vs-tb-tools [data-slot='button'],
+.vs-tb-left [data-slot='button'] {
+  width: var(--vs-control);
+  height: var(--vs-control);
+}
+
+.vs-tb-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--ui-stroke-tertiary);
+}
+
+/* Under 1100px the less-used controls live only in More. */
+@media (max-width: 1099.98px) {
+  .vs-tb-opt,
+  .vs-tb-sep {
+    display: none;
+  }
+}
+
+/* ---------- sidebar ---------- */
+
+.vs-sidebar {
+  container: vs-sidebar / inline-size;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--ui-sidebar-surface-background);
+  color: var(--ui-text-primary);
+  font-size: var(--vs-text-ui);
+}
+
+.vs-sidebar-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--vs-pad-sidebar-y) var(--vs-pad-sidebar-x) 0;
+}
+
+.vs-sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.vs-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--vs-gap-bar);
+  width: 100%;
+  height: var(--vs-nav-h);
+  padding: 0 var(--vs-pad-nav-x);
+  border: 0;
+  border-radius: var(--vs-radius-row);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.vs-nav:hover,
+.vs-row:hover {
+  background: var(--ui-row-hover-background);
+}
+
+.vs-nav[aria-current='page'],
+.vs-row[data-selected='true'] {
+  background: var(--ui-row-active-background);
+  font-weight: var(--vs-weight-strong);
+}
+
+.vs-nav-glyph {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--vs-glyph);
+}
+
+.vs-nav-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vs-nav-key {
+  margin-inline-start: auto;
+  color: var(--ui-text-tertiary);
+  font-size: var(--vs-text-meta);
+  font-weight: 400;
+}
+
+.vs-grouplabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 0;
+  padding: var(--vs-pad-label);
+  color: var(--ui-text-tertiary);
+  font-size: var(--vs-text-meta);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.vs-grouplabel-add {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--vs-radius-row);
+  background: transparent;
+  color: var(--ui-text-tertiary);
+  cursor: pointer;
+}
+
+.vs-grouplabel-add:hover {
+  background: var(--ui-row-hover-background);
+  color: var(--ui-text-primary);
+}
+
+.vs-badge {
+  padding: 0 7px;
+  border: 1px solid var(--ui-text-primary);
+  border-radius: var(--vs-radius-pill);
+  color: var(--ui-text-primary);
+  font-size: var(--vs-text-meta);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.vs-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--vs-row-h);
+  border-radius: var(--vs-radius-row);
+  min-width: 0;
+}
+
+.vs-row-main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  padding: 0 var(--vs-pad-nav-x);
+  border: 0;
+  border-radius: var(--vs-radius-row);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.vs-row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vs-row-time {
+  color: var(--ui-text-tertiary);
+  font-size: var(--vs-text-meta);
+  font-weight: 400;
+}
+
+.vs-row-lead {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 16px;
+  font-size: var(--vs-text-meta);
+}
+
+.vs-row-menu {
+  position: absolute;
+  inset-inline-end: 4px;
+  display: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--vs-radius-row);
+  background: var(--ui-row-active-background);
+  color: var(--ui-text-primary);
+  cursor: pointer;
+}
+
+.vs-row:is(:hover, :focus-within) .vs-row-menu,
+.vs-row-menu[data-state='open'] {
+  display: inline-grid;
+}
+
+.vs-row:is(:hover, :focus-within) .vs-row-time {
+  visibility: hidden;
+}
+
+.vs-row-more {
+  width: 100%;
+  height: var(--vs-row-h);
+  padding: 0 var(--vs-pad-nav-x);
+  border: 0;
+  border-radius: var(--vs-radius-row);
+  background: transparent;
+  color: var(--ui-text-tertiary);
+  font: inherit;
+  font-size: var(--vs-text-meta);
+  text-align: start;
+  cursor: pointer;
+}
+
+.vs-row-more:hover {
+  background: var(--ui-row-hover-background);
+  color: var(--ui-text-primary);
+}
+
+/* Status glyphs: shape carries the meaning, colour only reinforces it. */
+.vs-glyph-running {
+  display: inline-block;
+  animation: vs-spin var(--vs-spin) linear infinite;
+}
+
+.vs-glyph-waiting {
+  color: var(--ui-orange);
+}
+
+.vs-glyph-failed {
+  color: var(--ui-red);
+}
+
+.vs-glyph-draft {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--vs-radius-pill);
+  background: var(--ui-text-quaternary);
+}
+
+@keyframes vs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- sidebar footer ---------- */
+
+.vs-footer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin: var(--vs-pad-sidebar-y) 0 0;
+  padding: 8px 0 var(--vs-pad-sidebar-y);
+  border-top: 1px solid var(--ui-stroke-tertiary);
+}
+
+.vs-footer-id {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--vs-radius-row);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.vs-footer-text {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--vs-text-small);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vs-footer-sub {
+  overflow: hidden;
+  color: var(--ui-text-tertiary);
+  font-size: var(--vs-text-meta);
+  line-height: 18px;
+  text-overflow: ellipsis;
+}
+
+.vs-popover {
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  font-size: var(--vs-text-small);
+}
+
+.vs-popover dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 16px;
+  margin: 0;
+}
+
+.vs-popover dt {
+  color: var(--ui-text-tertiary);
+  font-size: var(--vs-text-meta);
+}
+
+.vs-popover dd {
+  margin: 0;
+  text-align: end;
+}
+
+/* ---------- icon rail (sidebar container narrower than the full sidebar) ---------- */
+
+@container vs-sidebar (max-width: 120px) {
+  .vs-nav-text,
+  .vs-nav-key,
+  .vs-grouplabel,
+  .vs-row,
+  .vs-row-more,
+  .vs-footer-text {
+    display: none;
+  }
+
+  .vs-nav {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .vs-footer {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .vs-footer-id {
+    flex: none;
+  }
+}
+
+/* ---------- offline banner ---------- */
+
+.vs-banner {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--ui-stroke-secondary);
+  background: var(--ui-row-active-background);
+  color: var(--ui-text-primary);
+  font-size: var(--vs-text-small);
+}
+
+.vs-banner button {
+  padding: 5px 10px;
+  border: 1px solid var(--ui-stroke-secondary);
+  border-radius: var(--vs-radius-row);
+  background: var(--ui-bg-chrome);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.vs-banner button:hover {
+  background: var(--ui-row-hover-background);
+}
+
+/* While the offline banner is showing, the toast stack starts below it so the banner's Retry stays clickable. */
+body:has([data-testid='offline-banner']) [data-slot='notification-stack'] {
+  top: calc(var(--titlebar-height, 34px) + 3.5rem);
+}
+
+/* Drawer / workbench overlays float with the wireframe's elevation. */
+[data-narrow-overlay] {
+  box-shadow: var(--vs-elevation);
+}
+
+/* Main never narrower than 480px: the sidebar track and the workbench give way
+   first (the tree clamps them), the workspace keeps its floor. */
+[data-tree-group][data-pane-main] {
+  min-width: 480px;
+}
+
+/* ---------- sidebar states and popover ---------- */
+
+.vs-empty {
+  margin: 0;
+  padding: var(--vs-pad-label);
+  color: var(--ui-text-tertiary);
+  font-size: var(--vs-text-small);
+}
+
+.vs-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.vs-popover-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vs-gap-bar);
+  padding-top: 8px;
+  border-top: 1px solid var(--ui-stroke-tertiary);
+}
+
+.vs-footer-text > span {
+  display: block;
+}
+
+/* The rail keeps the wireframe's hairline on its right edge (the pane shell zeroes sidebar borders). */
+[data-tree-group] .vs-sidebar[data-slot='sidebar'] {
+  border-right: 1px solid var(--ui-stroke-tertiary);
+}
+
+/* The banner is one 43.84px bar: the retry button keeps the wireframe's 30.84px. */
+.vs-banner button {
+  height: 30.84px;
+  padding-block: 0;
+}

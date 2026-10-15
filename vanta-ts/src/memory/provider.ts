@@ -1,4 +1,6 @@
 import { resolveBrain, type Brain, type BrainEntry, type RecallResult } from "../brain/interface.js";
+import { resolveMsaClient } from "./msa-client.js";
+import { makeMsaMemoryProvider } from "./msa-provider.js";
 
 // MEMORY-PROVIDER-FRAMEWORK — a pluggable memory backend behind one typed port,
 // plus a small catalog the setup wizard / doctor read to know what each backend
@@ -48,6 +50,20 @@ export const MEMORY_CATALOG: MemoryCatalogEntry[] = [
       "Markdown regions + structured entries on disk (the built-in Brain). No network, no keys; git-versioned under ~/.vanta.",
   },
   {
+    id: "msa",
+    label: "Memory Sparse Attention (external NVIDIA runtime)",
+    kind: "service",
+    implemented: true,
+    requiredEnv: ["VANTA_MSA_URL"],
+    setupSteps: [
+      "Run a compatible MSA service on an NVIDIA host.",
+      "Set VANTA_MSA_URL to its HTTPS endpoint (loopback HTTP is also allowed).",
+      "Optionally set VANTA_MSA_TOKEN, then select VANTA_MEMORY=msa.",
+    ],
+    whatItDoes:
+      "Indexes and queries long-context memory through an external MSA model while keeping Vanta and its local source of truth TypeScript/Rust.",
+  },
+  {
     id: "sqlite-vec",
     label: "SQLite vector store (local file)",
     kind: "storage",
@@ -78,7 +94,13 @@ export const MEMORY_CATALOG: MemoryCatalogEntry[] = [
 ];
 
 /** Options forwarded to a write. `region` lets callers target a brain region. */
-export type RememberOpts = { region?: string; env?: NodeJS.ProcessEnv };
+export type RememberOpts = {
+  region?: string;
+  env?: NodeJS.ProcessEnv;
+  entryType?: BrainEntry["entryType"];
+  strength?: number;
+  forgetAfter?: string;
+};
 /** Options forwarded to a recall. */
 export type RecallOpts = { topK?: number; region?: string; env?: NodeJS.ProcessEnv };
 
@@ -104,7 +126,14 @@ export function localMemoryProvider(brain: Brain): MemoryProvider {
   return {
     id: "local",
     remember: (text, opts) =>
-      brain.remember({ region: opts?.region ?? DEFAULT_REGION, content: text, env: opts?.env }),
+      brain.remember({
+        region: opts?.region ?? DEFAULT_REGION,
+        content: text,
+        env: opts?.env,
+        entryType: opts?.entryType,
+        strength: opts?.strength,
+        forgetAfter: opts?.forgetAfter,
+      }),
     recall: (query, opts) =>
       brain.recall({ query, topK: opts?.topK, region: opts?.region, env: opts?.env }),
   };
@@ -154,9 +183,12 @@ export function resolveMemoryProvider(env: NodeJS.ProcessEnv = process.env): Mem
   if (id === "local") return local;
   const entry = memoryProviderById(id);
   if (!entry || entry.kind === "local") return local;
-  // No real non-local adapter is built yet, so any selected backend that passes
-  // the availability gate would still have nowhere to go — fall back to local.
-  // When a backend ships, add `if (id === "<id>" && avail.available) return makeX(env);` here.
+  const availability = memoryProviderAvailability(entry, env);
+  if (!availability.available) return local;
+  if (id === "msa") {
+    const client = resolveMsaClient(env);
+    if (client) return makeMsaMemoryProvider(local, client);
+  }
   return local;
 }
 

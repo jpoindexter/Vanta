@@ -69,159 +69,208 @@ export async function readRuntimeLifecycleReceipts(root: string): Promise<Runtim
   } catch { return []; }
 }
 
-export function createRuntimeLifecycleManager(options: ManagerOptions): RuntimeLifecycleManager {
-  const processPort = options.process ?? nodeProcessPort();
-  const fetcher = options.fetch ?? globalThis.fetch;
-  const now = options.now ?? (() => new Date());
-  const wait = options.sleep ?? delay;
-  const healthAttempts = Math.max(1, Math.min(120, options.healthAttempts ?? 20));
-  const healthIntervalMs = Math.max(0, options.healthIntervalMs ?? 250);
+type ManagerContext = {
+  options: ManagerOptions;
+  processPort: RuntimeProcessPort;
+  fetcher: typeof globalThis.fetch;
+  now: () => Date;
+  wait: (ms: number) => Promise<void>;
+  healthAttempts: number;
+  healthIntervalMs: number;
+};
 
-  async function receipt(preview: RuntimeLaunchPreview, transition: RuntimeLifecycleReceipt["transition"], code?: string, metrics?: RuntimeLifecycleReceipt["metrics"]): Promise<void> {
-    const value = RuntimeLifecycleReceiptSchema.parse({ version: 1, runtimeId: preview.runtimeId, backend: preview.backend, at: now().toISOString(), transition, commandHash: preview.commandHash, code, metrics });
-    await mkdir(stateDir(options.root), { recursive: true });
-    await appendFile(receiptPath(options.root), `${JSON.stringify(value)}\n`, { encoding: "utf8", mode: 0o600 });
+type ReceiptInput = {
+  preview: RuntimeLaunchPreview;
+  transition: RuntimeLifecycleReceipt["transition"];
+  code?: string;
+  metrics?: RuntimeLifecycleReceipt["metrics"];
+};
+
+function managerContext(options: ManagerOptions): ManagerContext {
+  return {
+    options,
+    processPort: options.process ?? nodeProcessPort(),
+    fetcher: options.fetch ?? globalThis.fetch,
+    now: options.now ?? (() => new Date()),
+    wait: options.sleep ?? delay,
+    healthAttempts: Math.max(1, Math.min(120, options.healthAttempts ?? 20)),
+    healthIntervalMs: Math.max(0, options.healthIntervalMs ?? 250),
+  };
+}
+
+async function receipt(ctx: ManagerContext, input: ReceiptInput): Promise<void> {
+  const { preview, transition, code, metrics } = input;
+  const value = RuntimeLifecycleReceiptSchema.parse({ version: 1, runtimeId: preview.runtimeId, backend: preview.backend, at: ctx.now().toISOString(), transition, commandHash: preview.commandHash, code, metrics });
+  await mkdir(stateDir(ctx.options.root), { recursive: true });
+  await appendFile(receiptPath(ctx.options.root), `${JSON.stringify(value)}\n`, { encoding: "utf8", mode: 0o600 });
+}
+
+async function healthy(ctx: ManagerContext, endpoint: string): Promise<boolean> {
+  try { return (await ctx.fetcher(`${endpoint}/health`, { method: "GET" })).ok; } catch { return false; }
+}
+
+async function waitHealthy(ctx: ManagerContext, endpoint: string): Promise<void> {
+  for (let attempt = 0; attempt < ctx.healthAttempts; attempt++) {
+    if (await healthy(ctx, endpoint)) return;
+    if (attempt + 1 < ctx.healthAttempts) await ctx.wait(ctx.healthIntervalMs);
   }
+  throw new RuntimeFailure("health_timeout");
+}
 
-  async function healthy(endpoint: string): Promise<boolean> {
-    try { return (await fetcher(`${endpoint}/health`, { method: "GET" })).ok; } catch { return false; }
-  }
+async function complete(ctx: ManagerContext, endpoint: string, model: string, prompt: string): Promise<Completion> {
+  const started = Date.now();
+  let response: Response;
+  try {
+    response = await ctx.fetcher(`${endpoint}/v1/chat/completions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], temperature: 0 }) });
+  } catch { throw new RuntimeFailure("provider_transport_failed"); }
+  if (!response.ok) throw new RuntimeFailure("provider_http_failed");
+  const body = await response.json() as { choices?: Array<{ message?: { content?: string } }>; usage?: { completion_tokens?: number } };
+  const text = body.choices?.[0]?.message?.content;
+  if (typeof text !== "string" || !text.trim()) throw new RuntimeFailure("provider_shape_failed");
+  return { text: text.trim(), latencyMs: Date.now() - started, outputTokens: Math.max(0, body.usage?.completion_tokens ?? 0) };
+}
 
-  async function waitHealthy(endpoint: string): Promise<void> {
-    for (let attempt = 0; attempt < healthAttempts; attempt++) {
-      if (await healthy(endpoint)) return;
-      if (attempt + 1 < healthAttempts) await wait(healthIntervalMs);
-    }
-    throw new RuntimeFailure("health_timeout");
-  }
+function initialState(ctx: ManagerContext, input: { spec: RuntimeLaunchSpec; preview: RuntimeLaunchPreview; status: RuntimeProcessState["status"]; pid?: number }): RuntimeProcessState {
+  const { spec, preview, status, pid } = input;
+  return RuntimeProcessStateSchema.parse({ version: 1, runtimeId: spec.id, backend: spec.backend, model: spec.model, host: spec.host, port: spec.port, contextTokens: spec.contextTokens, modelBytes: spec.modelBytes, availableMemoryBytes: spec.availableMemoryBytes, retainOnFailure: spec.retainOnFailure, extraArgs: spec.extraArgs ?? [], environment: spec.environment ?? {}, commandHash: preview.commandHash, pid, status, updatedAt: ctx.now().toISOString() });
+}
 
-  async function complete(endpoint: string, prompt: string): Promise<Completion> {
-    const started = Date.now();
-    let response: Response;
-    try {
-      response = await fetcher(`${endpoint}/v1/chat/completions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model: "runtime-proof", messages: [{ role: "user", content: prompt }], temperature: 0 }) });
-    } catch { throw new RuntimeFailure("provider_transport_failed"); }
-    if (!response.ok) throw new RuntimeFailure("provider_http_failed");
-    const body = await response.json() as { choices?: Array<{ message?: { content?: string } }>; usage?: { completion_tokens?: number } };
-    const text = body.choices?.[0]?.message?.content;
-    if (typeof text !== "string" || !text.trim()) throw new RuntimeFailure("provider_shape_failed");
-    return { text: text.trim(), latencyMs: Date.now() - started, outputTokens: Math.max(0, body.usage?.completion_tokens ?? 0) };
-  }
+function specFromState(state: RuntimeProcessState): RuntimeLaunchSpec {
+  return RuntimeLaunchSpecSchema.parse({ id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure, extraArgs: state.extraArgs, environment: state.environment });
+}
 
-  function initialState(spec: RuntimeLaunchSpec, preview: RuntimeLaunchPreview, status: RuntimeProcessState["status"], pid?: number): RuntimeProcessState {
-    return RuntimeProcessStateSchema.parse({ version: 1, runtimeId: spec.id, backend: spec.backend, model: spec.model, host: spec.host, port: spec.port, contextTokens: spec.contextTokens, modelBytes: spec.modelBytes, availableMemoryBytes: spec.availableMemoryBytes, retainOnFailure: spec.retainOnFailure, extraArgs: spec.extraArgs ?? [], environment: spec.environment ?? {}, commandHash: preview.commandHash, pid, status, updatedAt: now().toISOString() });
-  }
+async function resolveEnvironment(ctx: ManagerContext, environment: Record<string, string>): Promise<Record<string, string>> {
+  const entries = await Promise.all(Object.entries(environment).map(async ([name, value]) => {
+    if (!value.startsWith("secret://")) return [name, value] as const;
+    if (!ctx.options.resolveSecret) throw new RuntimeFailure("secret_unresolved");
+    return [name, await ctx.options.resolveSecret(value)] as const;
+  }));
+  return Object.fromEntries(entries);
+}
 
-  function specFromState(state: RuntimeProcessState): RuntimeLaunchSpec {
-    return RuntimeLaunchSpecSchema.parse({ id: state.runtimeId, backend: state.backend, model: state.model, host: state.host, port: state.port, contextTokens: state.contextTokens, modelBytes: state.modelBytes, availableMemoryBytes: state.availableMemoryBytes, retainOnFailure: state.retainOnFailure, extraArgs: state.extraArgs, environment: state.environment });
-  }
+async function fail(ctx: ManagerContext, preview: RuntimeLaunchPreview, code: string, transition: RuntimeLifecycleReceipt["transition"] = "failed"): Promise<never> {
+  await receipt(ctx, { preview, transition, code });
+  throw new RuntimeFailure(code);
+}
 
-  async function resolveEnvironment(environment: Record<string, string>): Promise<Record<string, string>> {
-    const entries = await Promise.all(Object.entries(environment).map(async ([name, value]) => {
-      if (!value.startsWith("secret://")) return [name, value] as const;
-      if (!options.resolveSecret) throw new RuntimeFailure("secret_unresolved");
-      return [name, await options.resolveSecret(value)] as const;
-    }));
-    return Object.fromEntries(entries);
-  }
+async function authorizeLaunch(ctx: ManagerContext, preview: RuntimeLaunchPreview): Promise<void> {
+  if (!preview.resource.fits) await fail(ctx, preview, "resource_fit");
+  if (preview.support === "contract_only" && !ctx.options.enableContractOnly) await fail(ctx, preview, "contract_only");
+  const verdict = await ctx.options.assess(preview.approvalAction);
+  if (verdict.risk === "block") await fail(ctx, preview, "kernel_blocked", "kernel_blocked");
+  if (verdict.risk !== "ask") return;
+  await receipt(ctx, { preview, transition: "approval_requested" });
+  if (!await ctx.options.requestApproval(preview.approvalAction, preview)) await fail(ctx, preview, "approval_denied", "approval_denied");
+}
 
-  async function launch(input: RuntimeLaunchSpec) {
-    const spec = RuntimeLaunchSpecSchema.parse(input);
-    const preview = runtimeLaunchPreview(spec);
-    await receipt(preview, "previewed");
-    if (!preview.resource.fits) { await receipt(preview, "failed", "resource_fit"); throw new RuntimeFailure("resource_fit"); }
-    if (preview.support === "contract_only" && !options.enableContractOnly) { await receipt(preview, "failed", "contract_only"); throw new RuntimeFailure("contract_only"); }
-    const verdict = await options.assess(preview.approvalAction);
-    if (verdict.risk === "block") { await receipt(preview, "kernel_blocked", "kernel_blocked"); throw new RuntimeFailure("kernel_blocked"); }
-    if (verdict.risk === "ask") {
-      await receipt(preview, "approval_requested");
-      if (!await options.requestApproval(preview.approvalAction, preview)) { await receipt(preview, "approval_denied", "approval_denied"); throw new RuntimeFailure("approval_denied"); }
-    }
-    await receipt(preview, "approved");
-    await receipt(preview, "starting");
-    let state: RuntimeProcessState;
-    try {
-      const environment = await resolveEnvironment(spec.environment ?? {});
-      const started = Object.keys(environment).length
-        ? await processPort.start(preview.command, preview.args, environment)
-        : await processPort.start(preview.command, preview.args);
-      state = initialState(spec, preview, "starting", started.pid);
-      await atomicState(options.root, state);
-    } catch (error) {
-      const code = error instanceof RuntimeFailure ? error.code : "spawn_failed";
-      await receipt(preview, "failed", code);
-      throw new RuntimeFailure(code);
-    }
-
-    try {
-      await waitHealthy(preview.endpoint);
-      await receipt(preview, "healthy");
-      const benchmark = await complete(preview.endpoint, "Reply with exactly VANTA_RUNTIME_OK");
-      if (benchmark.text !== "VANTA_RUNTIME_OK") throw new RuntimeFailure("benchmark_mismatch");
-      await receipt(preview, "benchmarked", undefined, { latencyMs: benchmark.latencyMs, outputTokens: benchmark.outputTokens });
-      const provider = await complete(preview.endpoint, "Reply with exactly VANTA_PROVIDER_OK");
-      if (provider.text !== "VANTA_PROVIDER_OK") throw new RuntimeFailure("provider_turn_mismatch");
-      await receipt(preview, "provider_turn_verified", undefined, { latencyMs: provider.latencyMs, outputTokens: provider.outputTokens });
-      state = { ...state, status: "running", updatedAt: now().toISOString() };
-      await atomicState(options.root, state);
-      await receipt(preview, "running");
-      return { state, preview, benchmark: { latencyMs: benchmark.latencyMs, outputTokens: benchmark.outputTokens }, providerText: provider.text };
-    } catch (error) {
-      const code = error instanceof RuntimeFailure ? error.code : "downstream_failed";
-      state = { ...state, status: "failed", updatedAt: now().toISOString() };
-      await atomicState(options.root, state);
-      await receipt(preview, "failed", code);
-      if (spec.retainOnFailure) await receipt(preview, "retained_after_failure", code);
-      else {
-        if (state.pid && await processPort.alive(state.pid)) await processPort.stop(state.pid).catch(() => undefined);
-        state = { ...state, status: "stopped", updatedAt: now().toISOString() };
-        await atomicState(options.root, state);
-        await receipt(preview, "stopped_after_failure", code);
-      }
-      throw new RuntimeFailure(code);
-    }
-  }
-
-  async function stop(runtimeId: string): Promise<RuntimeProcessState> {
-    let state = await loadState(options.root, runtimeId);
-    const preview = runtimeLaunchPreview(specFromState(state));
-    await receipt(preview, "stopping");
-    state = { ...state, status: "stopping", updatedAt: now().toISOString() };
-    await atomicState(options.root, state);
-    if (state.pid && await processPort.alive(state.pid)) await processPort.stop(state.pid);
-    state = { ...state, status: "stopped", updatedAt: now().toISOString() };
-    await atomicState(options.root, state);
-    await receipt(preview, "stopped");
+async function startRuntime(ctx: ManagerContext, spec: RuntimeLaunchSpec, preview: RuntimeLaunchPreview): Promise<RuntimeProcessState> {
+  try {
+    const environment = await resolveEnvironment(ctx, spec.environment ?? {});
+    const started = Object.keys(environment).length
+      ? await ctx.processPort.start(preview.command, preview.args, environment)
+      : await ctx.processPort.start(preview.command, preview.args);
+    const state = initialState(ctx, { spec, preview, status: "starting", pid: started.pid });
+    await atomicState(ctx.options.root, state);
     return state;
+  } catch (error) {
+    return fail(ctx, preview, error instanceof RuntimeFailure ? error.code : "spawn_failed");
   }
+}
 
-  async function recover(): Promise<RuntimeProcessState[]> {
-    let names: string[];
-    try { names = (await readdir(stateDir(options.root))).filter((name) => name.endsWith(".json")); } catch { return []; }
-    const recovered: RuntimeProcessState[] = [];
-    for (const name of names) {
-      let state: RuntimeProcessState;
-      try { state = RuntimeProcessStateSchema.parse(JSON.parse(await readFile(join(stateDir(options.root), name), "utf8"))); } catch { continue; }
-      if (!["starting", "running", "failed"].includes(state.status)) continue;
-      const preview = runtimeLaunchPreview(specFromState(state));
-      const alive = Boolean(state.pid && await processPort.alive(state.pid));
-      if (!alive) {
-        state = { ...state, status: "failed", updatedAt: now().toISOString() };
-        await atomicState(options.root, state);
-        await receipt(preview, "stale_process", "process_missing");
-      } else if (await healthy(preview.endpoint)) {
-        state = { ...state, status: "running", updatedAt: now().toISOString() };
-        await atomicState(options.root, state);
-        await receipt(preview, "recovered");
-      } else {
-        state = { ...state, status: "failed", updatedAt: now().toISOString() };
-        await atomicState(options.root, state);
-        await receipt(preview, "stale_process", "health_unavailable");
-      }
-      recovered.push(state);
-    }
-    return recovered;
+async function settleLaunchFailure(ctx: ManagerContext, input: { spec: RuntimeLaunchSpec; preview: RuntimeLaunchPreview; state: RuntimeProcessState; code: string }): Promise<void> {
+  const { spec, preview, code } = input;
+  let state: RuntimeProcessState = { ...input.state, status: "failed", updatedAt: ctx.now().toISOString() };
+  await atomicState(ctx.options.root, state);
+  await receipt(ctx, { preview, transition: "failed", code });
+  if (spec.retainOnFailure) return receipt(ctx, { preview, transition: "retained_after_failure", code });
+  if (state.pid && await ctx.processPort.alive(state.pid)) await ctx.processPort.stop(state.pid).catch(() => undefined);
+  state = { ...state, status: "stopped", updatedAt: ctx.now().toISOString() };
+  await atomicState(ctx.options.root, state);
+  await receipt(ctx, { preview, transition: "stopped_after_failure", code });
+}
+
+async function proveRuntime(ctx: ManagerContext, spec: RuntimeLaunchSpec, preview: RuntimeLaunchPreview, state: RuntimeProcessState) {
+  try {
+    await waitHealthy(ctx, preview.endpoint);
+    await receipt(ctx, { preview, transition: "healthy" });
+    const benchmark = await complete(ctx, preview.endpoint, spec.model, "Reply with exactly VANTA_RUNTIME_OK");
+    if (benchmark.text !== "VANTA_RUNTIME_OK") throw new RuntimeFailure("benchmark_mismatch");
+    await receipt(ctx, { preview, transition: "benchmarked", metrics: { latencyMs: benchmark.latencyMs, outputTokens: benchmark.outputTokens } });
+    const provider = await complete(ctx, preview.endpoint, spec.model, "Reply with exactly VANTA_PROVIDER_OK");
+    if (provider.text !== "VANTA_PROVIDER_OK") throw new RuntimeFailure("provider_turn_mismatch");
+    await receipt(ctx, { preview, transition: "provider_turn_verified", metrics: { latencyMs: provider.latencyMs, outputTokens: provider.outputTokens } });
+    const running = { ...state, status: "running" as const, updatedAt: ctx.now().toISOString() };
+    await atomicState(ctx.options.root, running);
+    await receipt(ctx, { preview, transition: "running" });
+    return { state: running, preview, benchmark: { latencyMs: benchmark.latencyMs, outputTokens: benchmark.outputTokens }, providerText: provider.text };
+  } catch (error) {
+    const code = error instanceof RuntimeFailure ? error.code : "downstream_failed";
+    await settleLaunchFailure(ctx, { spec, preview, state, code });
+    throw new RuntimeFailure(code);
   }
+}
 
-  return { preview: runtimeLaunchPreview, launch, stop, recover };
+async function launch(ctx: ManagerContext, input: RuntimeLaunchSpec) {
+  const spec = RuntimeLaunchSpecSchema.parse(input);
+  const preview = runtimeLaunchPreview(spec);
+  await receipt(ctx, { preview, transition: "previewed" });
+  await authorizeLaunch(ctx, preview);
+  await receipt(ctx, { preview, transition: "approved" });
+  await receipt(ctx, { preview, transition: "starting" });
+  const state = await startRuntime(ctx, spec, preview);
+  return proveRuntime(ctx, spec, preview, state);
+}
+
+async function stop(ctx: ManagerContext, runtimeId: string): Promise<RuntimeProcessState> {
+  let state = await loadState(ctx.options.root, runtimeId);
+  const preview = runtimeLaunchPreview(specFromState(state));
+  await receipt(ctx, { preview, transition: "stopping" });
+  state = { ...state, status: "stopping", updatedAt: ctx.now().toISOString() };
+  await atomicState(ctx.options.root, state);
+  if (state.pid && await ctx.processPort.alive(state.pid)) await ctx.processPort.stop(state.pid);
+  state = { ...state, status: "stopped", updatedAt: ctx.now().toISOString() };
+  await atomicState(ctx.options.root, state);
+  await receipt(ctx, { preview, transition: "stopped" });
+  return state;
+}
+
+async function recoverState(ctx: ManagerContext, state: RuntimeProcessState): Promise<RuntimeProcessState> {
+  const preview = runtimeLaunchPreview(specFromState(state));
+  const alive = Boolean(state.pid && await ctx.processPort.alive(state.pid));
+  if (!alive) {
+    const failed = { ...state, status: "failed" as const, updatedAt: ctx.now().toISOString() };
+    await atomicState(ctx.options.root, failed);
+    await receipt(ctx, { preview, transition: "stale_process", code: "process_missing" });
+    return failed;
+  }
+  const available = await healthy(ctx, preview.endpoint);
+  const recovered = { ...state, status: available ? "running" as const : "failed" as const, updatedAt: ctx.now().toISOString() };
+  await atomicState(ctx.options.root, recovered);
+  await receipt(ctx, { preview, transition: available ? "recovered" : "stale_process", code: available ? undefined : "health_unavailable" });
+  return recovered;
+}
+
+async function readRecoverableState(root: string, name: string): Promise<RuntimeProcessState | undefined> {
+  try {
+    const state = RuntimeProcessStateSchema.parse(JSON.parse(await readFile(join(stateDir(root), name), "utf8")));
+    return ["starting", "running", "failed"].includes(state.status) ? state : undefined;
+  } catch { return undefined; }
+}
+
+async function recover(ctx: ManagerContext): Promise<RuntimeProcessState[]> {
+  let names: string[];
+  try { names = (await readdir(stateDir(ctx.options.root))).filter((name) => name.endsWith(".json")); } catch { return []; }
+  const states = await Promise.all(names.map((name) => readRecoverableState(ctx.options.root, name)));
+  const recoverable = states.filter((state): state is RuntimeProcessState => state !== undefined);
+  return Promise.all(recoverable.map((state) => recoverState(ctx, state)));
+}
+
+export function createRuntimeLifecycleManager(options: ManagerOptions): RuntimeLifecycleManager {
+  const ctx = managerContext(options);
+  return {
+    preview: runtimeLaunchPreview,
+    launch: (input) => launch(ctx, input),
+    stop: (runtimeId) => stop(ctx, runtimeId),
+    recover: () => recover(ctx),
+  };
 }

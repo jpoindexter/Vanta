@@ -1,10 +1,14 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import type { DeliverableFile } from "./deliverables.js";
 import type { OutboundFileDeliveryReceipt, PlatformAdapter } from "./platforms/base.js";
+import type { EffectGateContext } from "../effects/execute-effect.js";
+import { sendGatewayFile } from "./effect-send.js";
 
 export async function sendDeliverables(opts: {
   dataDir: string; platform: PlatformAdapter; target: { chatId: string; threadId?: string };
   files: DeliverableFile[]; log?: (message: string) => void; now?: () => Date;
+  effectGate?: EffectGateContext;
+  idempotencyPrefix: string;
 }): Promise<{ sent: number; skipped: string[] }> {
   const skipped: string[] = [];
   if (!opts.platform.sendFile) {
@@ -14,7 +18,12 @@ export async function sendDeliverables(opts: {
   for (const file of opts.files) {
     try {
       const data = await readFile(file.path);
-      const receipt = await opts.platform.sendFile({ ...opts.target, name: file.name, mime: file.mime, data });
+      const receipt = await sendGatewayFile({
+        platform: opts.platform,
+        gate: opts.effectGate,
+        file: { ...opts.target, name: file.name, mime: file.mime, data },
+        idempotencyKey: `${opts.idempotencyPrefix}:file:${file.name}`,
+      });
       if (!receipt) { skipped.push(`${file.name}: delivery unacknowledged`); continue; }
       await appendReceipt(opts.dataDir, receipt, file.source, opts.now?.() ?? new Date());
       opts.log?.(`  📎 delivered ${file.name} (${receipt.bytes} bytes)`);

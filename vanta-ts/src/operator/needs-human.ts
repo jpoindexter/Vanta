@@ -67,6 +67,8 @@ export function classifyNeedsHuman(
   instruction: string,
   outcome: { finalText: string; stoppedReason: string },
 ): NeedsHumanInput | null {
+  // Completed conversation prose cannot create an unresolved action obligation.
+  if (outcome.stoppedReason === "done") return null;
   const title = `Needs human: ${instruction.trim().replace(/\s+/g, " ").slice(0, 120) || "unresolved run"}`;
   if (outcome.stoppedReason === "repeated_failure" || outcome.stoppedReason === "max_iterations") {
     return {

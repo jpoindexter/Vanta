@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -9,6 +9,27 @@ describe("cross-platform service manager", () => {
     expect(protectedMacServicePath("/Users/operator/Documents/Vanta", "/Users/operator")).toBe(true);
     expect(protectedMacServicePath("/Users/operator/Desktop/Vanta", "/Users/operator")).toBe(true);
     expect(protectedMacServicePath("/Users/operator/vanta", "/Users/operator")).toBe(false);
+  });
+
+  it("detects a friendly symlink that resolves into a protected macOS folder", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-service-"));
+    const target = join(home, "Documents", "Vanta");
+    await mkdir(target, { recursive: true });
+    const link = join(home, "vanta");
+    await symlink(target, link);
+    expect(protectedMacServicePath(link, home)).toBe(true);
+  });
+
+  it("does not report an exited launchd job as running", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-service-"));
+    const artifact = join(home, "Library", "LaunchAgents", "studio.theft.vanta.gateway.plist");
+    await mkdir(join(home, "Library", "LaunchAgents"), { recursive: true });
+    await writeFile(artifact, "<!-- VANTA-MANAGED: studio.theft.vanta.gateway -->");
+    const manager = createServiceManager({
+      platform: "darwin", home, vantaHome: join(home, ".vanta"),
+      exec: async () => ({ stdout: "-\t126\tstudio.theft.vanta.gateway\n", stderr: "" }),
+    });
+    await expect(manager.status()).resolves.toMatchObject({ running: false, stale: true, detail: "launchd loaded; last exit status 126" });
   });
 
   it("installs, starts, restarts, stops, and removes a systemd user service", async () => {

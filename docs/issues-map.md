@@ -35,8 +35,8 @@ hardest thing to get right — and **Vanta's kernel currently fails the same way
 - **#37184 Can't remove a pasted image** — Vanta just shipped `/image`+`/paste`+drag-drop.
   Don't replicate the bug: add `/clear-attachments` (+ make `/undo`/`/clear` drop pending
   images) and show a pending-attachment count. ★ cheap, do now.
-- **#36821 `/plan` to view the todo list** — Vanta has NO in-session todo tool. Add a `todo`
-  tool + `/plan` to view it. Pairs with v1.2 U6. Manifesto: goal-first/verified. ★★
+- **#36821 `/plan` to view the todo list** — shipped as `todo` + `/plan`, with a live
+  Claude-style TUI checklist that remains available under local and per-turn tool scoping.
 - **#36656 Volatile skills (load for one turn only)** — Vanta injects the skill index +
   `recall` loads a body into history (persists → context bloat). Add a `volatile` frontmatter
   flag so a recalled body is dropped after the turn. Manifesto: learns + lean context. ★★

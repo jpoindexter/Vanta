@@ -65,6 +65,22 @@ export async function resolveDroppedMedia(
         text = rest || "Take a look at this image.";
       }
     }
+  } else if (process.platform === "darwin" && looksLikeTempImagePath(text)) {
+    // No path survived the splitter (e.g. trailing text glued on with a plain
+    // space/double-space rather than a newline, so the temp-preview path never
+    // isolated into its own line) — but the text still LOOKS like a macOS temp
+    // screenshot/paste preview path. That preview file is often already deleted
+    // by the time we read it, but its bytes are still on the clipboard, so read
+    // them directly instead of silently treating the whole blob as plain text.
+    const clip = await readClipboardImage();
+    if (clip) {
+      (state.pendingImages ??= []).push(clip);
+      // Nothing to strip out cleanly here (the path is glued into the sentence,
+      // not on its own line) — keep the original text as the question/context.
+    } else {
+      const videoPath = await maybeDroppedVideo(text);
+      if (videoPath) text = `Watch this video and describe what you see: ${videoPath}`;
+    }
   } else {
     const videoPath = await maybeDroppedVideo(text);
     if (videoPath) text = `Watch this video and describe what you see: ${videoPath}`;

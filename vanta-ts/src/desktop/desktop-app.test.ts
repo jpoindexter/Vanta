@@ -25,7 +25,10 @@ describe("desktop-app package surface", () => {
     await expect(access(join(root, "desktop-app", "src", "App.tsx"))).resolves.toBeUndefined();
     await expect(access(join(root, "desktop-app", "src", "main.tsx"))).resolves.toBeUndefined();
 
-    const sourceFiles = ["App.tsx", "chat.tsx", "composer.tsx", "rail.tsx", "canvas.tsx", "overlays.tsx"];
+    const sourceFiles = [
+      "App.tsx", "chat.tsx", "composer.tsx", "rail.tsx", "canvas.tsx", "overlays.tsx",
+      "session-sidebar.tsx", "chat-thread.tsx", "model-picker.tsx",
+    ];
     const app = (await Promise.all(sourceFiles.map((file) => readFile(join(root, "desktop-app", "src", file), "utf8")))).join("\n");
     const main = await readFile(join(root, "desktop-app", "src", "main.tsx"), "utf8");
     const native = await readFile(join(root, "desktop-app", "electron", "main.mjs"), "utf8");
@@ -42,6 +45,10 @@ describe("desktop-app package surface", () => {
     expect(app).toContain("function ModelPicker");
     expect(app).toContain("function ApprovalOverlay");
     expect(app).toContain("function TerminalPanel");
+    const facade = await readFile(join(root, "desktop-app", "src", "chat.tsx"), "utf8");
+    expect(facade).toContain('export { SessionSidebar } from "./session-sidebar.js"');
+    expect(facade).toContain('export { ChatThread } from "./chat-thread.js"');
+    expect(app).toContain('export { ModelPicker } from "./model-picker.js"');
     expect(main).toContain("createRoot");
     expect(main).toContain("CompanionApp");
     expect(native).toContain("createTrayController");

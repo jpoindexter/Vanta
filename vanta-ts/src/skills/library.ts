@@ -1,8 +1,12 @@
 import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { skillsDir, ensureVantaStore, commitInHome } from "../store/home.js";
+import { skillsDir, ensureVantaStore, commitInHome, resolveVantaHome, slugifySkillName } from "../store/home.js";
+import { readMetadataCache, writeMetadataCache } from "../cache/metadata.js";
+import { parseSkill } from "./frontmatter.js";
+import type { Skill } from "./types.js";
 
 const SKILL_FILE = "SKILL.md";
 
@@ -28,15 +32,68 @@ export function libraryDir(): string {
  */
 export function librarySources(): string[] {
   const base = dirname(fileURLToPath(import.meta.url));
+  const repoRoot = process.env.VANTA_ROOT?.trim() || join(base, "..", "..", "..");
   return [
     join(base, "..", "..", "skills-library"),
-    join(base, "..", "..", "..", "design-system-skills"),
-    join(base, "..", "..", "..", "ai-engineering-skills"),
-    join(base, "..", "..", "..", "security-skills"),
+    join(repoRoot, "design-system-skills"),
+    join(repoRoot, "ai-engineering-skills"),
+    join(repoRoot, "security-skills"),
   ];
 }
 
 export type InstallResult = { installed: string[]; skipped: string[] };
+
+export function bundledSkillCachePath(
+  env: NodeJS.ProcessEnv = process.env,
+  sources: readonly string[] = librarySources(),
+): string {
+  const key = createHash("sha256").update(sources.map((source) => resolve(source)).sort().join("\n")).digest("hex").slice(0, 20);
+  return join(resolveVantaHome(env), "cache", "bundled-skills", `${key}.json`);
+}
+
+export async function listBundledSkills(
+  opts: { env?: NodeJS.ProcessEnv; sources?: string[] } = {},
+): Promise<Skill[]> {
+  const env = opts.env ?? process.env;
+  const sources = opts.sources ?? librarySources();
+  const sourcePaths: string[] = [...sources];
+  const candidates: Array<{ slug: string; path: string }> = [];
+  for (const source of sources) {
+    const entries = await readdir(source, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const path = join(source, entry.name, SKILL_FILE);
+      sourcePaths.push(join(source, entry.name), path);
+      if (existsSync(path)) candidates.push({ slug: entry.name, path });
+    }
+  }
+
+  const cachePath = bundledSkillCachePath(env, sources);
+  const cached = await readMetadataCache<Skill[]>(cachePath, 1);
+  if (Array.isArray(cached) && cached.every((skill) =>
+    typeof skill?.meta?.name === "string" && typeof skill.meta.description === "string" && typeof skill.body === "string"
+  )) return cached;
+
+  const bySlug = new Map<string, Skill>();
+  for (const candidate of candidates) {
+    if (bySlug.has(candidate.slug)) continue;
+    const skill = await readFile(candidate.path, "utf8").then(parseSkill).catch(() => null);
+    if (skill) bySlug.set(candidate.slug, skill);
+  }
+  const skills = [...bySlug.values()].sort((a, b) => a.meta.name.localeCompare(b.meta.name));
+  await writeMetadataCache(cachePath, 1, skills, sourcePaths).catch(() => {});
+  return skills;
+}
+
+export async function readBundledSkill(name: string, env: NodeJS.ProcessEnv = process.env): Promise<Skill | null> {
+  const slug = slugifySkillName(name);
+  for (const source of librarySources()) {
+    const skill = await readFile(join(source, slug, SKILL_FILE), "utf8").then(parseSkill).catch(() => null);
+    if (skill) return skill;
+  }
+  const indexed = await listBundledSkills({ env });
+  return indexed.find((skill) => skill.meta.name.toLowerCase() === name.trim().toLowerCase()) ?? null;
+}
 
 /** Install one slug from a source into dest. Returns its disposition. */
 async function installOne(

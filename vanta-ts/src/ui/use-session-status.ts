@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, type Dispatch, type MutableRefObject } from "react";
 import type { Action } from "./reducer.js";
 import type { RunSetup } from "../session.js";
 import type { ReplState } from "../repl/types.js";
@@ -51,7 +51,8 @@ export function useSessionStatus(
   dispatch: Dispatch<Action>,
 ): { mcp: boolean; elapsed: string } {
   const mcp = useMcpPresent();
+  const activeStartedAt = useRef(Date.now());
   useClock();
   useLaunchGoal(setup, replStateRef, dispatch);
-  return { mcp, elapsed: formatElapsed(Date.now() - Date.parse(replStateRef.current.started)) };
+  return { mcp, elapsed: formatElapsed(Date.now() - activeStartedAt.current) };
 }

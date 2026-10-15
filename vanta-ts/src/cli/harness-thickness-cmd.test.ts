@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, readFile, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runHarnessThicknessCommand } from "./harness-thickness-cmd.js";
+import {
+  contextDoctorReport,
+  runHarnessThicknessCommand,
+} from "./harness-thickness-cmd.js";
 
 describe("runHarnessThicknessCommand", () => {
   afterEach(() => {
@@ -36,6 +39,20 @@ describe("runHarnessThicknessCommand", () => {
       await writeFile(join(root, "PROGRAM.md"), "TODO prune this scaffold.\n", "utf8");
       expect(await runHarnessThicknessCommand(root, ["--no-record"])).toBe(0);
       await expect(readFile(join(root, ".vanta", "harness-thickness.jsonl"), "utf8")).rejects.toThrow();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("builds the shared doctor report without recording history", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-thickness-"));
+    try {
+      await writeFile(join(root, "AGENTS.md"), "Never expose credentials.\n", "utf8");
+      const report = await contextDoctorReport(root, 2);
+      expect(report).toContain("Harness Thickness Audit");
+      await expect(
+        readFile(join(root, ".vanta", "harness-thickness.jsonl"), "utf8"),
+      ).rejects.toThrow();
     } finally {
       await rm(root, { recursive: true, force: true });
     }

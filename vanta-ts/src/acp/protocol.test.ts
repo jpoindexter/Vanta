@@ -7,6 +7,7 @@ import {
   serializeRequest,
   serializeResult,
   InitializeParams,
+  NewSessionParams,
   PromptParams,
   RPC,
 } from "./protocol.js";
@@ -80,6 +81,21 @@ describe("zod method schemas", () => {
 
   it("PromptParams rejects a missing sessionId", () => {
     expect(PromptParams.safeParse({ prompt: [] }).success).toBe(false);
+  });
+
+  it("NewSessionParams preserves Buzz system instructions and stdio MCP servers", () => {
+    const parsed = NewSessionParams.parse({
+      cwd: "/repo",
+      systemPrompt: "Use the Buzz CLI to reply.",
+      mcpServers: [{
+        name: "buzz",
+        command: "buzz-mcp",
+        args: [],
+        env: [{ name: "BUZZ_PRIVATE_KEY", value: "secret" }],
+      }],
+    });
+    expect(parsed.systemPrompt).toBe("Use the Buzz CLI to reply.");
+    expect(parsed.mcpServers[0]).toMatchObject({ name: "buzz", command: "buzz-mcp" });
   });
 });
 

@@ -84,13 +84,19 @@ async function finishOneShot(o: {
   const choiceWall = isExplicitChoiceWall(o.outcome.finalText);
   emitOutput(o.format, o.outcome.finalText, o.setup.provider.modelId());
   if (!o.structured) console.log(`\n[${o.outcome.stoppedReason} · ${o.outcome.iterations} iteration(s)]`);
-  await writeRunMemory({ provider: o.setup.provider, goals: o.setup.goals, instruction: o.instruction, finalText: o.outcome.finalText });
+  await writeRunMemory({ provider: o.setup.provider, goals: o.setup.goals, instruction: o.instruction, finalText: o.outcome.finalText, completionState: o.outcome.completionState });
   if (!choiceWall) await suggestSkillFromRun(o.instruction, process.env);
+  const ledger = { dataDir: join(o.root, ".vanta"), sessionId: "one-shot", agent: "one-shot" };
   await reviewAfterTurn({
     provider: o.setup.provider, safety: o.setup.safety, root: o.root, transcript: o.convo.messages,
-    toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall,
+    toolIterations: o.outcome.toolIterations, turnIndex: 1, deferMutation: choiceWall, ledger,
   });
-  memoryExtractAfterTurn({ provider: o.setup.provider, transcript: o.convo.messages });
+  memoryExtractAfterTurn({
+    provider: o.setup.provider,
+    transcript: o.convo.messages,
+    completionState: o.outcome.completionState,
+    ledger,
+  });
 }
 
 export async function runInstruction(
@@ -141,6 +147,11 @@ export async function runVoiceCommand(repoRoot: string, rest: string[] = []): Pr
   if (rest[0] === "mic") {
     const { openPrivacyPane } = await import("../platform/macos-prefs.js");
     console.log(openPrivacyPane("microphone").message);
+    return;
+  }
+  if (rest[0] !== "conversation") {
+    const { runDictationCommand } = await import("./voice-cmd.js");
+    await runDictationCommand(rest);
     return;
   }
   const setup = await prepareRun(repoRoot, "voice session");

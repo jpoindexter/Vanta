@@ -1,0 +1,748 @@
+import { useStore } from '@nanostores/react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { useI18n } from '@/i18n'
+import { isSlashCommandText } from '@/lib/chat-runtime'
+import { triggerHaptic } from '@/lib/haptics'
+import { useSessionSlice } from '@/lib/use-session-slice'
+import { type ComposerAttachment, freezeComposerTransportPayload } from '@/store/composer'
+import { resetBrowseState } from '@/store/composer-input-history'
+import {
+  $parkedQueueSessions,
+  $restoredQueueSessions,
+  $queuedPromptsBySession,
+  clearQueuedPromptDrainFailures,
+  enqueueQueuedPrompt,
+  getQueuedPrompts,
+  isSteerableEntry,
+  MAX_AUTO_DRAIN_ATTEMPTS,
+  migrateQueuedPrompts,
+  promoteQueuedPrompt,
+  type QueuedPromptEntry,
+  removeQueuedPrompt,
+  resolveQueuedPromptTransport,
+  shouldAutoDrain,
+  unparkQueuedPrompts,
+  updateQueuedPrompt,
+  withQueueDrainClaim
+} from '@/store/composer-queue'
+import { notify } from '@/store/notifications'
+import { $sessionsLoading } from '@/store/session'
+
+import { cloneAttachments, type QueueEditState } from '../composer-utils'
+import { useComposerScope } from '../scope'
+import type { ChatBarProps } from '../types'
+
+import { cancelRemote, remoteEntryOf, saveRemoteEdit, sendRemoteNow, steerRemote } from './remote-queue-ops'
+import type { ServerQueue } from './use-server-queue'
+
+/** Freeze terminal chips for queue persistence. Persists the chip/display
+ *  form; fenced selection CONTENTS stay in the runtime map. Returns null when
+ *  a chip has no selection payload (caller should abort without mutating the queue). */
+function freezeQueuedDraftText(
+  text: string,
+  copy: {
+    terminalSelectionMissingTitle: string
+    terminalSelectionMissingBody: string
+  }
+): null | { text: string; displayText?: string; frozenTransport?: string } {
+  const trimmed = text.trim()
+
+  if (!trimmed) {
+    return { text }
+  }
+
+  const frozen = freezeComposerTransportPayload(trimmed)
+
+  if (frozen.missingLabels.length > 0) {
+    notify({
+      kind: 'warning',
+      title: copy.terminalSelectionMissingTitle,
+      message: copy.terminalSelectionMissingBody
+    })
+
+    return null
+  }
+
+  const hasTerminalTransport = frozen.displayText !== frozen.transportText
+
+  return {
+    // Persist chips (or ordinary text). Never persist fenced selection contents.
+    text: frozen.displayText,
+    ...(hasTerminalTransport ? { displayText: frozen.displayText, frozenTransport: frozen.transportText } : {})
+  }
+}
+
+interface UseComposerQueueArgs {
+  activeQueueSessionKey: string | null
+  attachments: ComposerAttachment[]
+  busy: boolean
+  clearDraft: () => void
+  draftRef: RefObject<string>
+  focusInput: () => void
+  loadIntoComposer: (text: string, attachments: ComposerAttachment[]) => void
+  onCancel: ChatBarProps['onCancel']
+  onSteer: ChatBarProps['onSteer']
+  onSubmit: ChatBarProps['onSubmit']
+  /** The backend is down: queue in this window (the server cannot take it) and run it after reconnect. */
+  offline?: boolean
+  queueEditRef: RefObject<QueueEditState | null>
+  queueSessionKey: ChatBarProps['queueSessionKey']
+  /** The server's saved queue. Text-only messages queue there and survive an app restart; messages with
+   *  attachments stay in this window's queue. Absent in tests and hosts without a server queue. */
+  remote?: ServerQueue
+  sessionId: string | null | undefined
+}
+
+/**
+ * The composer's queue engine — everything about queued turns: the per-session
+ * queue store binding, in-place queued-prompt editing (begin/step/exit), the
+ * shared drain lock + send-then-remove sequence, manual send-now, and the
+ * edge-independent auto-drain with bounded retries. It consumes the draft API
+ * (draftRef/clearDraft/loadIntoComposer/focusInput) and writes the
+ * coordinator-owned `queueEditRef` so the draft engine can read the edit state
+ * without a back-reference. Behaviour-identical to the inline original.
+ */
+export function useComposerQueue({
+  activeQueueSessionKey,
+  attachments,
+  busy,
+  clearDraft,
+  draftRef,
+  focusInput,
+  loadIntoComposer,
+  onCancel,
+  onSteer,
+  offline,
+  onSubmit,
+  queueEditRef,
+  queueSessionKey,
+  remote,
+  sessionId
+}: UseComposerQueueArgs) {
+  const { t } = useI18n()
+  const scope = useComposerScope()
+
+  // Per-session slice (edge): re-renders only when THIS session's queue changes,
+  // not on cross-session queue churn (the plain atom's map ref changes on every
+  // write; the keyed array does not).
+  const localPrompts = useSessionSlice($queuedPromptsBySession, activeQueueSessionKey)
+
+  // The server's saved messages run first (they were queued behind the live turn), then this window's own.
+  const remoteEntries = remote?.entries
+
+  const queuedPrompts = useMemo(
+    () => (remoteEntries?.length ? [...remoteEntries, ...localPrompts] : localPrompts),
+    [localPrompts, remoteEntries]
+  )
+
+  const remoteRef = useRef(remote)
+  remoteRef.current = remote
+
+  // Parked = the user explicitly halted this session (Stop/Esc) while prompts
+  // were queued. The map is tiny (only halted sessions) so a plain subscribe
+  // is fine; the auto-drain effect below reads it as a gate.
+  const parkedSessions = useStore($parkedQueueSessions)
+  const queueParked = Boolean(activeQueueSessionKey && parkedSessions[activeQueueSessionKey])
+  const restoredSessions = useStore($restoredQueueSessions)
+  const queueRestored = Boolean(activeQueueSessionKey && restoredSessions[activeQueueSessionKey])
+  const sessionsLoading = useStore($sessionsLoading)
+
+  const [queueEdit, setQueueEdit] = useState<QueueEditState | null>(null)
+  queueEditRef.current = queueEdit
+
+  const setQueueEditSnapshot = useCallback(
+    (next: QueueEditState | null) => {
+      queueEditRef.current = next
+      setQueueEdit(next)
+    },
+    [queueEditRef]
+  )
+
+  const editingQueuedPrompt = queueEdit ? (queuedPrompts.find(entry => entry.id === queueEdit.entryId) ?? null) : null
+
+  const prevQueueKeyRef = useRef(activeQueueSessionKey)
+  const drainingQueueRef = useRef(false)
+  const drainFailuresRef = useRef(new Map<string, number>())
+  const [drainRetryTick, setDrainRetryTick] = useState(0)
+
+  const beginQueuedEdit = (entry: QueuedPromptEntry) => {
+    if (!activeQueueSessionKey || queueEdit) {
+      return
+    }
+
+    setQueueEditSnapshot({
+      attachments: cloneAttachments(attachments),
+      draft: draftRef.current,
+      entryId: entry.id,
+      ...(entry.remote ? { revision: entry.remote.revision } : {}),
+      sessionKey: activeQueueSessionKey
+    })
+    // Edit what the panel SHOWS. A queued `/skill` entry's text is the
+    // expanded skill body — never drop that into the composer.
+    loadIntoComposer(entry.displayText ?? entry.text, entry.attachments)
+    triggerHaptic('selection')
+    focusInput()
+  }
+
+  // Save an edit of a server-saved message. The change quotes the revision the edit started from; when the server
+  // refuses it (changed elsewhere, already started) the user's words go back to where they can be seen: into the
+  // edit, with the fresh revision, or into the composer when the message is gone.
+  const saveRemoteEditFrom = (edit: QueueEditState, text: string, restored?: ComposerAttachment[]): boolean => {
+    const queue = remoteRef.current
+
+    if (!queue || edit.revision === undefined) {
+      return false
+    }
+
+    void saveRemoteEdit(queue, edit.entryId, text, edit.revision).then(applied => {
+      // Stepping on to the next message leaves nowhere to put the words back: the panel shows why.
+      if (applied || !restored) {
+        return
+      }
+
+      const fresh = remoteEntryOf(remoteRef.current, edit.entryId)
+
+      if (fresh?.remote && fresh.remote.status !== 'starting') {
+        setQueueEditSnapshot({ ...edit, revision: fresh.remote.revision })
+      }
+
+      loadIntoComposer(text, restored)
+    })
+
+    return true
+  }
+
+  // Walk queued entries while editing (ArrowUp = older, ArrowDown = newer),
+  // saving the in-progress edit on each step. Stepping newer past the last
+  // entry exits edit mode and restores the pre-edit draft.
+  const stepQueuedEdit = (direction: -1 | 1) => {
+    if (!queueEdit) {
+      return false
+    }
+
+    const index = queuedPrompts.findIndex(e => e.id === queueEdit.entryId)
+    const target = index + direction
+
+    if (index < 0 || target < 0) {
+      return index >= 0 // at the oldest: swallow; missing entry: let it fall through
+    }
+
+    const frozen = draftRef.current.trim()
+      ? freezeQueuedDraftText(draftRef.current, t.composer)
+      : { text: draftRef.current }
+
+    if (!frozen) {
+      return true
+    }
+
+    const saved = remoteEntryOf(remote, queueEdit.entryId)
+      ? saveRemoteEditFrom(queueEdit, frozen.text)
+      : updateQueuedPrompt(queueEdit.sessionKey, queueEdit.entryId, {
+          attachments: cloneAttachments(attachments),
+          text: frozen.text,
+          displayText: frozen.displayText ?? null,
+          frozenTransport: frozen.frozenTransport ?? null
+        })
+
+    const next = queuedPrompts[target]
+
+    if (next) {
+      setQueueEditSnapshot({ ...queueEdit, entryId: next.id, ...(next.remote ? { revision: next.remote.revision } : {}) })
+      loadIntoComposer(next.displayText ?? next.text, next.attachments)
+    } else {
+      setQueueEditSnapshot(null)
+      loadIntoComposer(queueEdit.draft, queueEdit.attachments)
+    }
+
+    triggerHaptic(saved ? 'success' : 'selection')
+    focusInput()
+
+    return true
+  }
+
+  const exitQueuedEdit = (action: 'cancel' | 'save'): boolean => {
+    if (!queueEdit) {
+      return false
+    }
+
+    if (action === 'save') {
+      const text = draftRef.current
+      const next = cloneAttachments(attachments)
+
+      if (!text.trim() && next.length === 0) {
+        return false
+      }
+
+      // Editing a queued entry into a slash-command + attachment combo would
+      // produce an undrainable entry (submitText rejects it on every attempt).
+      // Refuse the save so the queue can never hold an entry that livelocks.
+      if (isSlashCommandText(text) && next.length) {
+        notify({
+          kind: 'warning',
+          title: t.desktop.slashCommandIgnoredTitle,
+          message: t.desktop.slashCommandIgnoredBody
+        })
+
+        return false
+      }
+
+      const frozen = text.trim() ? freezeQueuedDraftText(text, t.composer) : { text }
+
+      if (!frozen) {
+        return false
+      }
+
+      const saved = remoteEntryOf(remote, queueEdit.entryId)
+        ? saveRemoteEditFrom(queueEdit, frozen.text, next)
+        : updateQueuedPrompt(queueEdit.sessionKey, queueEdit.entryId, {
+            attachments: next,
+            text: frozen.text,
+            displayText: frozen.displayText ?? null,
+            frozenTransport: frozen.frozenTransport ?? null
+          })
+
+      triggerHaptic(saved ? 'success' : 'selection')
+    } else {
+      triggerHaptic('cancel')
+    }
+
+    setQueueEditSnapshot(null)
+    loadIntoComposer(queueEdit.draft, queueEdit.attachments)
+    focusInput()
+
+    return true
+  }
+
+  const queueCurrentDraft = useCallback(() => {
+    const text = draftRef.current
+
+    if (!activeQueueSessionKey || (!text.trim() && attachments.length === 0)) {
+      return false
+    }
+
+    // Slash commands cannot ride alongside attachments — the drain path would
+    // reject the entry on every attempt (submitText warns + returns false) and
+    // the queue would livelock. Refuse to enqueue it in the first place.
+    if (isSlashCommandText(text) && attachments.length) {
+      notify({
+        kind: 'warning',
+        title: t.desktop.slashCommandIgnoredTitle,
+        message: t.desktop.slashCommandIgnoredBody
+      })
+
+      return false
+    }
+
+    // Freeze `@terminal:` chips at enqueue. Persist the chip form; keep the
+    // fenced selection in the runtime map so drain never re-resolves the live
+    // label map and localStorage never stores terminal CONTENTS (#77078).
+    const frozen = text.trim() ? freezeQueuedDraftText(text, t.composer) : { text }
+
+    if (!frozen) {
+      return false
+    }
+
+    // Plain text queues on the server, which keeps it across an app restart. Attachments and frozen terminal
+    // selections cannot ride the server queue, so those stay in this window's queue.
+    if (!offline && remote && sessionId && attachments.length === 0 && !frozen.frozenTransport) {
+      const queued = frozen.text
+      clearDraft()
+      triggerHaptic('selection')
+      // Nothing running any more: it is an ordinary message. The server could not take it: the words come back.
+      void remote.enqueue(queued).then(result => {
+        if (result === 'idle') {
+          void Promise.resolve(onSubmit(queued, { attachments: [], sessionId, storedSessionId: activeQueueSessionKey }))
+        } else if (result === 'error') {
+          loadIntoComposer(queued, [])
+        }
+      })
+
+      return true
+    }
+
+    if (
+      !enqueueQueuedPrompt(activeQueueSessionKey, {
+        text: frozen.text,
+        attachments,
+        ...(frozen.displayText ? { displayText: frozen.displayText } : {}),
+        ...(frozen.frozenTransport ? { frozenTransport: frozen.frozenTransport } : {})
+      })
+    ) {
+      return false
+    }
+
+    clearDraft()
+    // Queue entry retains blob: previews; revoke when the entry is discarded
+    // or drained into a submit that takes ownership (see composer-queue).
+    scope.attachments.clear({ retainPreviewUrls: true })
+    triggerHaptic('selection')
+
+    return true
+  }, [activeQueueSessionKey, attachments, clearDraft, draftRef, loadIntoComposer, offline, onSubmit, remote, scope.attachments, sessionId, t.composer])
+
+  // All queue drain paths share one lock + send-then-remove sequence.
+  // `pickEntry` lets each caller choose head, by-id, or skip-edited, from the
+  // queue as it stands inside the cross-window claim. Resolves null when there
+  // is nothing to send: another window already sent the picked entry.
+  const runDrain = useCallback(
+    async (pickEntry: (entries: QueuedPromptEntry[]) => QueuedPromptEntry | undefined): Promise<boolean | null> => {
+      if (drainingQueueRef.current || !activeQueueSessionKey) {
+        return false
+      }
+
+      const drainQueueSessionKey = activeQueueSessionKey
+      const drainRuntimeSessionId = sessionId ?? null
+
+      drainingQueueRef.current = true
+
+      try {
+        return await withQueueDrainClaim(drainQueueSessionKey, async queue => {
+          const entry = pickEntry(queue)
+
+          if (!entry) {
+            return null
+          }
+
+          const resolved = resolveQueuedPromptTransport(entry)
+
+          if (!resolved.ok) {
+            notify({
+              kind: 'warning',
+              title: t.composer.terminalSelectionMissingTitle,
+              message: t.composer.queuedTerminalSelectionExpiredBody
+            })
+            drainFailuresRef.current.set(entry.id, MAX_AUTO_DRAIN_ATTEMPTS)
+
+            return false
+          }
+
+          const accepted = await Promise.resolve(
+            onSubmit(resolved.transportText, {
+              attachments: entry.attachments,
+              ...(resolved.displayText ? { displayText: resolved.displayText } : {}),
+              ...(entry.displayKind ? { displayKind: entry.displayKind } : {}),
+              fromQueue: true,
+              sessionId: drainRuntimeSessionId,
+              storedSessionId: drainQueueSessionKey
+            })
+          )
+
+          if (accepted === false) {
+            return false
+          }
+
+          drainFailuresRef.current.delete(entry.id)
+          // Submit now owns the blob: previews (optimistic bubble); do not revoke.
+          removeQueuedPrompt(drainQueueSessionKey, entry.id, { retainPreviewUrls: true })
+          resetBrowseState(drainRuntimeSessionId)
+          // A successful drain means the queue is flowing again — lift any park
+          // so the remaining entries follow. Manual drains (Enter on an empty
+          // composer, the per-row send arrow) are exactly the resume gestures a
+          // parked queue waits for; the auto path only reaches here unparked.
+          unparkQueuedPrompts(drainQueueSessionKey)
+
+          return true
+        })
+      } finally {
+        drainingQueueRef.current = false
+      }
+    },
+    [activeQueueSessionKey, onSubmit, sessionId, t.composer]
+  )
+
+  const pickDrainHead = useCallback(
+    (entries: QueuedPromptEntry[]) => {
+      const skip = queueEditRef.current?.entryId
+
+      return skip ? entries.find(e => e.id !== skip) : entries[0]
+    },
+    [queueEditRef] // reads the edit id off a ref so the lock-holder always sees the latest
+  )
+
+  // Enter on an empty composer with saved messages waiting: run the saved queue.
+  const drainNextQueued = useCallback(async () => {
+    if (remote?.waiting && !busy) {
+      return remote.run()
+    }
+
+    return (await runDrain(pickDrainHead)) === true
+  }, [busy, pickDrainHead, remote, runDrain])
+
+  // Delete one queued message: the server's copy is cancelled by its revision, a window-local one is dropped.
+  const deleteQueued = useCallback(
+    (id: string): boolean => {
+      const saved = remoteEntryOf(remote, id)
+
+      if (saved && remote) {
+        void cancelRemote(remote, saved)
+
+        return true
+      }
+
+      return Boolean(activeQueueSessionKey) && removeQueuedPrompt(activeQueueSessionKey!, id)
+    },
+    [activeQueueSessionKey, remote]
+  )
+
+  const sendQueuedNow = useCallback(
+    (id: string) => {
+      if (!activeQueueSessionKey || id === queueEdit?.entryId) {
+        return false
+      }
+
+      const saved = remoteEntryOf(remote, id)
+
+      if (saved && remote) {
+        return sendRemoteNow(remote, saved, busy)
+      }
+
+      if (busy) {
+        // Promote to the head, then interrupt. The gateway always emits a
+        // settle (message.complete + session.info running:false) when the
+        // turn unwinds, and the busy→false auto-drain below sends this entry.
+        // Unpark first: this interrupt exists to REACH the queue, so the
+        // settle drain must flow — unlike a Stop/Esc halt, which parks.
+        promoteQueuedPrompt(activeQueueSessionKey, id)
+        unparkQueuedPrompts(activeQueueSessionKey)
+        triggerHaptic('selection')
+        void Promise.resolve(onCancel())
+
+        return true
+      }
+
+      // A manual send clears the auto-drain backoff so a stuck entry the user
+      // taps gets a fresh attempt (and re-enables auto-retry on success).
+      drainFailuresRef.current.delete(id)
+      // Same for the persisted budget the background drain keeps on the
+      // entry (#98015) — a user gesture is fresh intent, not a replay.
+      clearQueuedPromptDrainFailures(activeQueueSessionKey, id)
+
+      return runDrain(entries => entries.find(e => e.id === id))
+    },
+    [activeQueueSessionKey, busy, onCancel, queueEdit, remote, runDrain]
+  )
+
+  // Deliver a queued entry as a mid-turn redirect — the queue-panel sibling of
+  // the composer's steer-on-Enter. No interrupt, no drain lock: a redirect
+  // rides the live turn (the gateway either restarts the active request with
+  // its displayed context or waits for the current tool boundary), so the turn
+  // keeps flowing and the remaining queue is untouched. Only meaningful while
+  // busy — idle has no turn to redirect, and `sendQueuedNow` already covers it.
+  const steerQueuedNow = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!activeQueueSessionKey || id === queueEditRef.current?.entryId) {
+        return false
+      }
+
+      // A saved message takes the next turn once the running instruction finishes; no redirect of the live turn.
+      const saved = remoteEntryOf(remote, id)
+
+      if (saved && remote) {
+        return steerRemote(remote, saved)
+      }
+
+      if (!onSteer || !busy) {
+        return false
+      }
+
+      const entry = getQueuedPrompts(activeQueueSessionKey).find(e => e.id === id)
+
+      if (!entry || !isSteerableEntry(entry)) {
+        return false
+      }
+
+      const resolved = resolveQueuedPromptTransport(entry)
+
+      if (!resolved.ok) {
+        notify({
+          kind: 'warning',
+          title: t.composer.terminalSelectionMissingTitle,
+          message: t.composer.queuedTerminalSelectionExpiredBody
+        })
+
+        return false
+      }
+
+      triggerHaptic('submit')
+
+      const accepted = await Promise.resolve(onSteer(resolved.transportText))
+
+      // Rejected (turn already settling, gateway said no): leave the entry
+      // queued exactly where it was — the settle drain picks it up, so the
+      // words are never lost. Only a delivered redirect consumes the entry.
+      if (!accepted) {
+        return false
+      }
+
+      drainFailuresRef.current.delete(id)
+      removeQueuedPrompt(activeQueueSessionKey, id)
+      // A steer is the same "keep it moving" intent as a manual send — a park
+      // from an earlier Stop must not hold back what's left of the queue.
+      unparkQueuedPrompts(activeQueueSessionKey)
+
+      return true
+    },
+    [activeQueueSessionKey, busy, onSteer, queueEditRef, remote, t.composer]
+  )
+
+  // Double-Enter while busy. The entry usually sits in the queue because the
+  // first Enter's steer didn't land, so retry that: the words join the live
+  // turn as a bubble, with no interrupt and no settle wait. A payload a steer
+  // can't carry (attachments, hidden notes, expanded skills) or a refused
+  // steer falls back to send-now's interrupt.
+  const busyRef = useRef(busy)
+  busyRef.current = busy
+  const steeringIdsRef = useRef(new Set<string>())
+
+  const deliverQueuedNow = useCallback(
+    async (id: string) => {
+      const entry = activeQueueSessionKey ? getQueuedPrompts(activeQueueSessionKey).find(e => e.id === id) : undefined
+
+      if (!busy || !entry || entry.displayKind || entry.displayText || !isSteerableEntry(entry)) {
+        return sendQueuedNow(id)
+      }
+
+      // A repeat Enter mid-steer must not interrupt the turn about to take it.
+      if (steeringIdsRef.current.has(id)) {
+        return true
+      }
+
+      steeringIdsRef.current.add(id)
+      const steered = await steerQueuedNow(id).finally(() => steeringIdsRef.current.delete(id))
+
+      // Settled while we asked: the idle auto-drain already owns the entry.
+      return (
+        steered ||
+        (busyRef.current && getQueuedPrompts(activeQueueSessionKey!).some(e => e.id === id) && sendQueuedNow(id))
+      )
+    },
+    [activeQueueSessionKey, busy, sendQueuedNow, steerQueuedNow]
+  )
+
+  // Edge-independent auto-drain: send the head whenever the session is idle and
+  // the queue is non-empty, bounding retries so a thrown/rejected onSubmit (e.g.
+  // a stale-session 404) can't strand the entry permanently nor spin-loop. The
+  // drain lock serializes sends; a remount/reconnect resets the failure counts.
+  const autoDrainNext = useCallback(() => {
+    if (busy || queueParked || drainingQueueRef.current || !activeQueueSessionKey) {
+      return
+    }
+
+    const entry = pickDrainHead(localPrompts)
+
+    if (!entry || (drainFailuresRef.current.get(entry.id) ?? 0) >= MAX_AUTO_DRAIN_ATTEMPTS) {
+      return
+    }
+
+    let cancelled = false
+    let retryTimer: ReturnType<typeof setTimeout> | undefined
+
+    const onFail = () => {
+      if (cancelled) {
+        return
+      }
+
+      const fails = (drainFailuresRef.current.get(entry.id) ?? 0) + 1
+      drainFailuresRef.current.set(entry.id, fails)
+
+      if (fails >= MAX_AUTO_DRAIN_ATTEMPTS) {
+        notify({
+          id: 'composer-queue-stuck',
+          kind: 'error',
+          title: t.composer.queueStuckTitle,
+          message: t.composer.queueStuckBody
+        })
+      } else {
+        retryTimer = setTimeout(() => setDrainRetryTick(tick => tick + 1), 750 * fails)
+      }
+    }
+
+    // By id: inside the claim the head may already be gone — sent by another
+    // window — which is not a failed send.
+    void runDrain(entries => entries.find(e => e.id === entry.id))
+      .then(sent => {
+        if (sent === false) {
+          onFail()
+        }
+      })
+      .catch(onFail)
+
+    // A pending rejection must not schedule into a different session, a parked
+    // queue, or an unmounted composer.
+    return () => {
+      cancelled = true
+      clearTimeout(retryTimer)
+    }
+  }, [activeQueueSessionKey, busy, localPrompts, pickDrainHead, queueParked, runDrain, t])
+
+  // Re-key on a runtime session-id change. A stable stored id (queueSessionKey)
+  // never churns, so a change there is a real session switch and must NOT
+  // migrate; only the runtime-derived key (queueSessionKey falsy → key is
+  // sessionId) churns on a backend bounce/resume of the same conversation.
+  // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
+  useEffect(() => {
+    const prev = prevQueueKeyRef.current
+    prevQueueKeyRef.current = activeQueueSessionKey
+
+    if (queueSessionKey || !prev || !activeQueueSessionKey || prev === activeQueueSessionKey) {
+      return
+    }
+
+    migrateQueuedPrompts(prev, activeQueueSessionKey)
+  }, [activeQueueSessionKey, queueSessionKey])
+
+  // Queued turns flow whenever the session is idle — on the busy→false settle
+  // edge, on mount/reconnect, and after a re-key — so a swallowed edge can't
+  // strand them. A park (explicit Stop/Esc) is the one gate: those entries wait
+  // for the user. To cancel queued turns, the user deletes them from the panel.
+  useEffect(() => {
+    // Match the background drainer: preserve the retry budget while session
+    // discovery runs at boot, on a gateway/profile switch, or over an empty list.
+    if (sessionsLoading) {
+      return
+    }
+
+    if (shouldAutoDrain({ isBusy: busy, parked: queueParked, queueLength: localPrompts.length })) {
+      return autoDrainNext()
+    }
+  }, [autoDrainNext, busy, drainRetryTick, localPrompts.length, queueParked, sessionsLoading])
+
+  // Queue-edit cleanup: on session swap the scope effect already stashed the
+  // edit snapshot; only restore into the composer when still on the same scope.
+  useEffect(() => {
+    if (!queueEdit) {
+      return
+    }
+
+    if (queueEdit.sessionKey === activeQueueSessionKey) {
+      if (editingQueuedPrompt) {
+        return
+      }
+
+      setQueueEditSnapshot(null)
+      loadIntoComposer(queueEdit.draft, queueEdit.attachments)
+
+      return
+    }
+
+    setQueueEditSnapshot(null)
+  }, [activeQueueSessionKey, editingQueuedPrompt, queueEdit, setQueueEditSnapshot]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return {
+    beginQueuedEdit,
+    deleteQueued,
+    deliverQueuedNow,
+    drainNextQueued,
+    editingQueuedPrompt,
+    exitQueuedEdit,
+    queueCurrentDraft,
+    queueEdit,
+    queueParked,
+    queueRestored,
+    queuedPrompts,
+    sendQueuedNow,
+    steerQueuedNow,
+    stepQueuedEdit
+  }
+}

@@ -1,13 +1,11 @@
 import {
   researchGateAfterTurn,
-  inhibitAfterTurn,
   setShiftAfterTurn,
   stallAfterTurn,
   scopeDeltaAfterTurn,
   wmManipAfterTurn,
   traceAnomalyAfterTurn,
   type ResearchGateState,
-  type InhibitState,
   type SetShiftState,
   type StallState,
   type ScopeDeltaState,
@@ -30,7 +28,6 @@ import type { KernelClient } from "../kernel/client.js";
 
 export type GateState = {
   research: ResearchGateState;
-  inhibit: InhibitState;
   setShift: SetShiftState;
   stall: StallState;
   scopeDelta: ScopeDeltaState;
@@ -81,7 +78,6 @@ function memWarnGate(lastAt: number | undefined, readHeap: () => number, onNote:
 export function freshGateState(): GateState {
   return {
     research: { consecutiveTurns: 0 },
-    inhibit: { consecutiveCalls: 0 },
     setShift: { repeatingTool: null, consecutiveRuns: 0 },
     stall: { stalledTurns: 0 },
     scopeDelta: { totalAnnotations: 0 },
@@ -113,7 +109,6 @@ export async function runPostTurnGates(
   return {
     memWarnLastAt,
     research: await researchGateAfterTurn(g.research, messages, { safety, onNote, env }),
-    inhibit: await inhibitAfterTurn(g.inhibit, messages, { safety, onNote, env }),
     setShift: await setShiftAfterTurn(g.setShift, messages, onNote, env),
     stall: await stallAfterTurn(g.stall, messages, { safety, dataDir, onNote, env }),
     scopeDelta: await scopeDeltaAfterTurn(g.scopeDelta, messages, onNote, env),

@@ -6,7 +6,10 @@ sidebar_position: 5
 
 # HTTP API reference
 
-Vanta runs several local HTTP servers. All bind to `127.0.0.1` and every action stays kernel-gated.
+Vanta runs several local HTTP servers on `127.0.0.1`. Binding to loopback is
+not authentication. The authenticated operator API has a bearer boundary;
+generic local Desktop/API authentication, exact-origin validation, and
+universal effect mediation remain current trust blockers.
 
 ## Kernel API — `127.0.0.1:7788`
 
@@ -83,7 +86,11 @@ OPENAI_BASE_URL=http://127.0.0.1:7791/v1
 
 ## Vanta as an MCP server — `vanta mcp serve`
 
-Exposes a bounded, read-only allowlist of Vanta tools over MCP (stdio). Every call is gated by `assess()`: `block`/`ask` → an `isError` result (headless), only `allow` executes. Bound by `VANTA_MCP_SERVE_TOOLS`. See [MCP integration](../mcp.md#as-a-server--expose-vanta).
+Exposes a bounded, read-only allowlist of Vanta tools over MCP (stdio). Calls on
+this server path invoke `assess()`: `block`/`ask` → an `isError` result
+(headless), only `allow` executes. This narrow result does not establish every
+MCP mounting or extension path. Bound by `VANTA_MCP_SERVE_TOOLS`. See [MCP
+integration](../mcp.md#as-a-server--expose-vanta).
 
 ## Roadmap board — `vanta roadmap serve`
 

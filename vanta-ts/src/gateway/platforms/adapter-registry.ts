@@ -33,6 +33,7 @@ import {
   googleChatEnabled,
 } from "./google-chat.js";
 import { EmailAdapter, imapSmtpTransport, build as emailConfig, parseEmailAllowlist, emailEnabled } from "./email.js";
+import { createTelegramFetch, parseTelegramFallbackIps } from "../../net/ipv4-fetch.js";
 
 // The messaging adapter registration table — one { configured, build } entry per
 // platform. Adding a platform = one entry here + its adapter file; `factory.ts`
@@ -60,6 +61,7 @@ export const ADAPTERS: Record<string, AdapterEntry> = {
         allow: parseAllowlist(env.VANTA_TELEGRAM_ALLOW),
         apiBase: env.VANTA_TELEGRAM_API_BASE?.trim(),
         webhookSecret: env.VANTA_TELEGRAM_WEBHOOK_SECRET,
+        fetch: createTelegramFetch({ fallbackIps: parseTelegramFallbackIps(env.VANTA_TELEGRAM_FALLBACK_IPS) }),
       }),
   },
   mattermost: {

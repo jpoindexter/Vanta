@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { access, mkdtemp, mkdir, readFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { model } from "./model-cmd.js";
@@ -33,6 +33,7 @@ describe("/model handler", () => {
   it("prints the active model when given no arg", async () => {
     const { ctx } = await makeCtx({});
     const r = await model("", ctx);
+    expect(r.output).toContain("openai/old-model");
     expect(r.output).toContain("old-model");
     expect(r.output).toContain("32,768");
   });
@@ -48,6 +49,7 @@ describe("/model handler", () => {
     expect(env.VANTA_MODEL).toBeUndefined();
     await expect(access(join(repoRoot, "vanta-ts", ".env"))).rejects.toThrow();
     expect(r.output).toContain("qwen2.5:14b");
+    expect(r.output).toContain("ollama/qwen2.5:14b");
     expect(r.output).toContain("this session");
     expect(r.provider?.modelId()).toBe("qwen2.5:14b"); // drives the TUI banner refresh
   });
@@ -59,6 +61,23 @@ describe("/model handler", () => {
     expect(ctx.state.providerId).toBe("ollama");
     expect(ctx.state.modelId).toBe("llama3.3");
     expect(env.VANTA_MODEL).toBeUndefined();
+  });
+
+  it("does not leak Codex-only effort or speed into an unsupported provider", async () => {
+    const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "codex" };
+    const { ctx } = await makeCtx(env);
+    ctx.state.effortLevel = "ultra";
+    ctx.state.serviceTier = "fast";
+    ctx.setup.effortLevel = "ultra";
+    ctx.setup.serviceTier = "fast";
+
+    const result = await model("ollama qwen2.5:14b", ctx);
+
+    expect(result.output).not.toMatch(/effort|speed/);
+    expect(ctx.state.effortLevel).toBeUndefined();
+    expect(ctx.state.serviceTier).toBeUndefined();
+    expect(ctx.setup.effortLevel).toBe("medium");
+    expect(ctx.setup.serviceTier).toBeUndefined();
   });
 
   it("persists only when --global is explicit", async () => {
@@ -76,5 +95,28 @@ describe("/model handler", () => {
     const r = await model("anthropic claude-sonnet-4-6", ctx);
     expect(r.output).toMatch(/ANTHROPIC_API_KEY|failed/);
     expect(setProvider).not.toHaveBeenCalled();
+  });
+
+  it("says the prior route remains active when Claude Code auth expired", async () => {
+    const env: NodeJS.ProcessEnv = { VANTA_PROVIDER: "codex" };
+    const { ctx, setProvider, repoRoot } = await makeCtx(env);
+    const claudeHome = join(repoRoot, "claude");
+    await mkdir(claudeHome, { recursive: true });
+    await writeFile(
+      join(claudeHome, ".credentials.json"),
+      JSON.stringify({ claudeAiOauth: { accessToken: "expired-token", expiresAt: 1 } }),
+      "utf8",
+    );
+    ctx.env.CLAUDE_CONFIG_DIR = claudeHome;
+    ctx.env.VANTA_CLAUDE_KEYCHAIN_SERVICE = `vanta-test-missing-${Date.now()}`;
+    ctx.state.providerId = "codex";
+
+    const r = await model("claude-code claude-sonnet-5", ctx);
+
+    expect(r.output).toContain("switch not applied");
+    expect(r.output).toContain("still using codex/old-model");
+    expect(r.output).toContain("Claude Code token expired");
+    expect(setProvider).not.toHaveBeenCalled();
+    expect(ctx.state.providerId).toBe("codex");
   });
 });

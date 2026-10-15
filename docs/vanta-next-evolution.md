@@ -1,5 +1,11 @@
 # Vanta Next Evolution — Claude Briefing
 
+> **Historical completed build brief.** The branch, counts, dirty-tree notes, and build
+> sequence below describe an earlier repository state and must not drive current work.
+> Preserve it as implementation history. Current direction is `STRATEGY.md`; current work
+> is only `roadmap.json`; current product and evidence contracts are `docs/prd.md` and
+> `docs/product-acceptance.md`.
+
 ## Purpose
 
 This document is intended for an AI coding agent, not for human presentation.

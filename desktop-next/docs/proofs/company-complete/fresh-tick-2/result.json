@@ -1,0 +1,172 @@
+{
+  "sandbox": "(removed)",
+  "modelRequests": 2,
+  "steps": [
+    {
+      "id": "a",
+      "title": "Company opens on Workers with the new tabs present and an empty roster",
+      "status": "PASS",
+      "ms": 1776,
+      "detail": {
+        "tabs": [
+          "Sessions",
+          "Bots",
+          "Workers",
+          "Tickets",
+          "OKRs",
+          "Heartbeats",
+          "Work products",
+          "Budgets",
+          "Activity"
+        ]
+      }
+    },
+    {
+      "id": "a2",
+      "title": "fresh app, no worker has run: Run tick still sees a goal on the running kernel (--fresh-tick)",
+      "status": "PASS",
+      "ms": 18,
+      "detail": {
+        "goalId": 1,
+        "warnings": []
+      }
+    },
+    {
+      "id": "b",
+      "title": "hire an Engineer with a $2 budget through the approval card",
+      "status": "PASS",
+      "ms": 566,
+      "detail": {
+        "worker": "engineer",
+        "adapter": {
+          "kind": "vanta-native",
+          "adapter": "custom",
+          "model": "default"
+        }
+      }
+    },
+    {
+      "id": "c",
+      "title": "create a ticket assigned to the Engineer: it runs on the scripted model and finishes in review",
+      "status": "PASS",
+      "ms": 1020,
+      "detail": {
+        "status": "in_review",
+        "products": 1,
+        "runs": [
+          {
+            "runtime": "vanta-native",
+            "status": "awaiting_review"
+          }
+        ]
+      }
+    },
+    {
+      "id": "d",
+      "title": "Work products lists the report with its preview, producer and a link to the ticket",
+      "status": "PASS",
+      "ms": 664,
+      "detail": {
+        "count": 1,
+        "summary": "1 work product · 1 waiting for your approval"
+      }
+    },
+    {
+      "id": "e",
+      "title": "OKRs: empty, create an objective with a key result, update its progress, and it is stored",
+      "status": "PASS",
+      "ms": 1473,
+      "detail": {
+        "stored": {
+          "name": "Paying customers",
+          "current": 40,
+          "target": 100
+        },
+        "progressShown": "40 of 100 · 40%"
+      }
+    },
+    {
+      "id": "f",
+      "title": "setup outside the UI: a kernel goal, the department, and ticket T-2 queued for the Engineer without starting",
+      "status": "PASS",
+      "ms": 636,
+      "detail": {
+        "goalId": 1,
+        "t2": "assigned"
+      }
+    },
+    {
+      "id": "g",
+      "title": "Heartbeats before the tick: the Engineer's next up is T-2, one report exists, no wakeup runs",
+      "status": "PASS",
+      "ms": 654,
+      "detail": {
+        "row": "Engineer Waiting for you just now from its last ticket update T-1 T-2",
+        "api": {
+          "workerId": "engineer",
+          "lastHeartbeat": "2026-10-14T16:28:08.932Z",
+          "source": "task",
+          "currentTicketId": "T-1"
+        },
+        "products": 1
+      }
+    },
+    {
+      "id": "h",
+      "title": "Run tick: busy state, then a result naming the department and T-2; the table and the work product follow without leaving the tab",
+      "status": "PASS",
+      "ms": 542,
+      "detail": {
+        "tick": "Tick at Oct 14, 06:28 PM: 1 of 1 department advanced. product: started a ticket T-2",
+        "t2": "in_review",
+        "t2Runs": 1,
+        "heartbeatBefore": "2026-10-14T16:28:08.932Z",
+        "heartbeatAfter": "2026-10-14T16:28:09.616Z",
+        "rowAfter": "Engineer Waiting for you just now from its last run T-2 Nothing queued"
+      }
+    },
+    {
+      "id": "i",
+      "title": "Work products now lists two: the second came from the tick",
+      "status": "PASS",
+      "ms": 914,
+      "detail": {
+        "newest": "report Waiting for your approval Oct 14, 06:28 PM by Engineer T-2 Produced by engineer, run bff438f1 for T-2, product department Scripted turn finished.",
+        "filterByTicketWorks": true
+      }
+    },
+    {
+      "id": "j",
+      "title": "a second tick with nothing queued says so, and works from the keyboard alone",
+      "status": "PASS",
+      "ms": 909,
+      "detail": {
+        "tick": "Tick at Oct 14, 06:28 PM: 0 of 1 department advanced. product: skipped: no queued ticket"
+      }
+    },
+    {
+      "id": "k",
+      "title": "Activity recorded the OKR writes and both ticks; no page errors",
+      "status": "PASS",
+      "ms": 4,
+      "detail": {
+        "kinds": [
+          "company.tick",
+          "run.finished",
+          "work_product.recorded",
+          "run.started",
+          "ticket.assigned",
+          "ticket.created",
+          "okr.progress",
+          "okr.created",
+          "worker.hired"
+        ]
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ],
+  "pass": true
+}

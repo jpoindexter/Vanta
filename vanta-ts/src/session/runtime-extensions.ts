@@ -7,6 +7,7 @@ import { PluginPanelRegistry } from "../plugins/panels.js";
 import type { PluginWorkerHandle } from "../plugins/worker.js";
 import type { buildRegistry } from "../tools/index.js";
 import { mcpAutoMountEnabled } from "../settings/mcp-access.js";
+import type { EffectGateContext } from "../effects/execute-effect.js";
 
 /** SETTINGS-BLOCKEDTOOLS-ENFORCE: load + apply settings once. prepareRun calls
  *  this BEFORE buildRegistry so it can exclude `settings.blockedTools`. Failure
@@ -23,18 +24,15 @@ export async function loadRuntimeExtensions(
   repoRoot: string,
   registry: ReturnType<typeof buildRegistry>,
   mcpTrust?: McpTrust,
-  /** SETTINGS-BLOCKEDTOOLS-ENFORCE: prepareRun loads + applies settings up front
-   *  (so the registry can exclude `blockedTools`) and passes them in to avoid a
-   *  second load/apply. Omitted → load here as before (back-compat). */
-  preloaded?: Settings,
-): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; pluginPanels: PluginPanelRegistry; pluginWorkers: PluginWorkerHandle[]; mcpSkills: RegisteredMcpSkill[] }> {
-  const settings = preloaded ?? await loadRuntimeSettings(repoRoot);
-  // Configured connectors stay dormant by default. Explicit MCP commands and
-  // the Desktop Connect surface remain available; startup mounting requires
-  // settings.mcp.autoMount=true or VANTA_MCP_AUTO_MOUNT=1.
+  options: { settings?: Settings; effectGate?: EffectGateContext } = {},
+): Promise<{ settings: Settings; pluginCommands: PluginCommandRegistry; pluginPanels: PluginPanelRegistry; pluginWorkers: PluginWorkerHandle[]; mcpSkills: RegisteredMcpSkill[]; dispose: () => void }> {
+  const settings = options.settings ?? await loadRuntimeSettings(repoRoot);
+  const effectGate = options.effectGate;
+  // Startup mounting remains opt-in; context/settings are shared with prepareRun.
   const iso = resolveIsolation(process.env);
+  const disposers: (() => void)[] = [];
   if (!skipMcp(iso) && mcpAutoMountEnabled(settings.mcp ?? {}, process.env))
-    await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust });
+    disposers.push((await mountMcpServers(registry, process.env, (m) => console.log(m), { cwd: repoRoot, trust: mcpTrust, effectGate })).dispose);
   const { SLASH_COMMANDS } = await import("../repl/catalog.js");
   const pluginCommands = new PluginCommandRegistry(new Set(SLASH_COMMANDS.map((c) => c.name)));
   const pluginPanels = new PluginPanelRegistry();
@@ -42,19 +40,32 @@ export async function loadRuntimeExtensions(
   if (!skipPlugins(iso)) {
     const { loadEnabledPlugins } = await import("../plugins/loader.js");
     await registerDeclaredPanels(repoRoot, settings, pluginPanels);
-    const loaded = await loadEnabledPlugins({ repoRoot, registry, commands: pluginCommands, settings, env: process.env, panels: pluginPanels, log: (m) => console.log(m) });
+    const loaded = await loadEnabledPlugins({
+      repoRoot,
+      registry,
+      commands: pluginCommands,
+      settings,
+      env: process.env,
+      panels: pluginPanels,
+      log: (m) => console.log(m),
+      effectGate,
+    });
     pluginWorkers = loaded.workers;
+    disposers.push(...loaded.workers.map((worker) => worker.dispose), ...loaded.monitors.map((monitor) => monitor.disarm));
   }
-  // MCP-SKILLS: register MCP-provided skills into the same command registry
-  // (kernel-gated, opt-in via VANTA_MCP_SKILLS). Best-effort — never fatal.
-  // VANTA-SAFE-MODE: MCP-provided skills are both MCP and a skill surface, so
-  // either isolation skips them — empty list, same shape as none configured.
+  // Skills remain opt-in and isolation-gated.
   const mcpSkills =
     skipMcp(iso) || skipSkills(iso)
       ? []
-      : (await mountMcpSkills(pluginCommands, process.env, { cwd: repoRoot, log: (m) => console.log(m) })
-          .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }))).skills;
-  return { settings, pluginCommands, pluginPanels, pluginWorkers, mcpSkills };
+      : await runtimeMcpSkills(pluginCommands, repoRoot, disposers);
+  return { settings, pluginCommands, pluginPanels, pluginWorkers, mcpSkills, dispose: () => disposers.forEach((dispose) => dispose()) };
+}
+
+async function runtimeMcpSkills(commands: PluginCommandRegistry, root: string, disposers: (() => void)[]): Promise<RegisteredMcpSkill[]> {
+  const mounted = await mountMcpSkills(commands, process.env, { cwd: root, log: (m) => console.log(m) })
+    .catch(() => ({ skills: [] as RegisteredMcpSkill[], dispose: () => {} }));
+  disposers.push(mounted.dispose);
+  return mounted.skills;
 }
 
 async function registerDeclaredPanels(repoRoot: string, settings: Settings, panels: PluginPanelRegistry): Promise<void> {

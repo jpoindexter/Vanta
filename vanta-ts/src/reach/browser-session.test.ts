@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { domainOf, cookieToPlaywright, safeReplayHeaders } from "./browser-session.js";
+import {
+  domainOf,
+  cookieToPlaywright,
+  safeReplayHeaders,
+  sessionBrowserLaunchOptions,
+} from "./browser-session.js";
 
 describe("domainOf", () => {
   it("extracts the host + drops www", () => {
@@ -37,5 +42,26 @@ describe("safeReplayHeaders", () => {
       "x-csrf-token": "secret",
       "user-agent": "ignored",
     })).toEqual({ "x-client-transaction-id": "tx", referer: "https://x.com/search?q=x" });
+  });
+});
+
+describe("sessionBrowserLaunchOptions", () => {
+  it("uses Vanta's resolved system-browser fallback when Playwright's binary is absent", () => {
+    const chromium = { executablePath: () => "/playwright/missing" };
+    const options = sessionBrowserLaunchOptions(
+      chromium,
+      { VANTA_BROWSER_EXECUTABLE: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" },
+    );
+
+    expect(options).toEqual({
+      headless: true,
+      executablePath: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+    });
+  });
+
+  it("keeps Playwright's default launch when its bundled browser exists", () => {
+    const chromium = { executablePath: () => "/playwright/chromium" };
+    expect(sessionBrowserLaunchOptions(chromium, {}, (path) => path === "/playwright/chromium"))
+      .toEqual({ headless: true });
   });
 });

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "roadmapId": "TRUST-01",
+  "status": "shipped",
+  "verdict": "written-done-contract-executed-on-supported-local-and-signed-macos-hosts",
+  "date": "2026-08-02",
+  "branch": "codex/trust-01-universal-effect-gateway-20260802",
+  "baseSha": "c469c9fa4101570a178f6ba52b2404120a709e91",
+  "originMainObservedSha": "4911ae44bbb35beef4511ba298475ba5a82b7e1c",
+  "committed": false,
+  "pushed": false,
+  "tagged": false,
+  "inventory": {
+    "sources": 409,
+    "primitiveCalls": 1074,
+    "explicitDirectAdapters": 8,
+    "unmediatedEffects": 0
+  },
+  "tests": {
+    "full": { "filesPassed": 1520, "testsPassed": 14002, "testsSkipped": 3, "testsFailed": 0 },
+    "focusedTrustMatrix": { "filesPassed": 24, "testsPassed": 269, "testsFailed": 0 },
+    "finalMcpAuthorityRegression": { "filesPassed": 3, "testsPassed": 43, "testsFailed": 0 },
+    "inventoryMutation": { "testsPassed": 4, "testsFailed": 0 },
+    "rust": { "testsPassed": 70, "testsFailed": 0 }
+  },
+  "builds": {
+    "runtimeTypecheck": "passed",
+    "rendererTypecheck": "passed",
+    "desktopProductionBuild": "passed",
+    "websiteProductionBuild": "passed",
+    "signedMacApp": "passed",
+    "signedDmg": "passed"
+  },
+  "realPath": {
+    "desktopFlowMatrix": { "sourceFlowsPassed": 9, "packagedFlowsPassed": 9, "flowsFailed": 0 },
+    "packagedHostileOriginsDenied": 9,
+    "packagedTrustedTerminal": "passed",
+    "packagedContinuityLaunches": 3,
+    "nativeCaptureNoProviderNoPersistence": "passed",
+    "localWhisperTranscription": "passed",
+    "googleAuthority": { "gmail": true, "calendar": true, "drive": true },
+    "liveGoogleMutationProof": {
+      "status": "passed",
+      "gmailHeaderInjectionRejectedBeforeApproval": true,
+      "gmailSent": false,
+      "calendarCreatedUpdatedReadBackCleaned": true,
+      "driveCreatedUpdatedReadBackCleaned": true,
+      "persistedProviderContent": false
+    }
+  },
+  "security": {
+    "semgrepFindings": 0,
+    "gitleaksFindings": 0,
+    "gitleaksHistoryCommits": 2974,
+    "packagedVantaTestSources": 0,
+    "runtimeDependencyVulnerabilities": 0,
+    "protectedPathChanges": 0,
+    "whitespaceErrors": 0,
+    "unrelatedProjectPayloadMatches": 0
+  },
+  "independentReview": {
+    "verdict": "pass",
+    "remainingBlockers": 0
+  },
+  "artifactSha256": {
+    "roadmap.json": "06463001052339fc3623a7e8ded20c332975cbfb00c7d2fe85cf6f1e0c7d5599",
+    "trust-01-effect-ledger-2026-08-02.json": "db70c5f4b5b99fc1616da82e15cc27edbb2d0d4dfaca79fe17cb2283b911ea2b",
+    "trust-01-effect-surface-inventory-2026-08-02.json": "ee02a7b47a704226164f4cc7c38437e5ecbb7ac47cda7be9eab656410568cc4e"
+  },
+  "openProof": []
+}

@@ -314,8 +314,8 @@ describe("persistCompaction — visible compaction state", () => {
         content: `message ${i} ${"x".repeat(120)}`,
       })),
     ];
-    const events: boolean[] = [];
-    const summaryEvents: boolean[][] = [];
+    const events: Array<[boolean, number | undefined]> = [];
+    const summaryEvents: Array<Array<[boolean, number | undefined]>> = [];
 
     await persistCompaction(messages, {
       provider: { ...makeProvider(), contextWindow: () => 100 },
@@ -324,10 +324,22 @@ describe("persistCompaction — visible compaction state", () => {
         summaryEvents.push([...events]);
         return "short summary";
       },
-      onCompacting: (active) => events.push(active),
+      onCompacting: (active, progress) => events.push([active, progress]),
     });
 
-    expect(summaryEvents[0]).toEqual([true]);
-    expect(events).toEqual([true, false]);
+    expect(summaryEvents[0]).toEqual([
+      [true, 0],
+      [true, 20],
+      [true, 25],
+    ]);
+    expect(events).toEqual([
+      [true, 0],
+      [true, 20],
+      [true, 25],
+      [true, 75],
+      [true, 90],
+      [true, 100],
+      [false, 0],
+    ]);
   });
 });
