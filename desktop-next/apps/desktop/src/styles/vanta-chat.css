@@ -615,7 +615,7 @@
   line-height: var(--vp-leading);
 }
 
-.vp-step-row:has(.vp-btn) {
+.vp-step-row:has([data-slot='button']) {
   padding-block: 2px;
 }
 

@@ -15,7 +15,7 @@ export const StopStepButton: FC = () => {
 
   return (
     <Button
-      size="xs"
+      className="ml-auto" size="xs"
       variant="ghost"
       data-vp="running-stop"
       onClick={() => {
@@ -35,7 +35,7 @@ export const RetryStepButton: FC<{ title: string }> = ({ title }) => {
 
   return (
     <Button
-      size="xs"
+      className="ml-auto" size="xs"
       variant="ghost"
       onClick={() => {
         triggerHaptic("submit");
