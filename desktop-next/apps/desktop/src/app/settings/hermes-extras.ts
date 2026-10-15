@@ -13,3 +13,13 @@ export function isHiddenModelSubpage(id: string | undefined): boolean {
 // The Telegram "scan a QR code" setup creates the bot through Hermes' pairing service, which
 // Vanta does not run (the call has no server route). Pasting a BotFather token works today.
 export const SHOW_TELEGRAM_QR_SETUP = false
+
+// Webhook subscriptions need a receiver Vanta's desktop server does not run yet, so the page can only
+// show an error. The status-bar entry stays out until it has a backend.
+export const SHOW_WEBHOOKS = false
+
+// The Kanban board is a bundled Hermes plugin that reads `/api/plugins/kanban/*` from a Hermes backend.
+// Vanta's task board is Company › Tickets, so the plugin is neither listed nor loaded.
+export const SHOW_KANBAN = false
+
+export const isHiddenBundledPlugin = (id: string): boolean => !SHOW_KANBAN && id === 'kanban'
