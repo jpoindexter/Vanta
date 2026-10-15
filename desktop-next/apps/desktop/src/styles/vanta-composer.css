@@ -20,8 +20,12 @@
 }
 
 .vp-composer:focus-within {
-  border-color: var(--vp-focus);
-  box-shadow: 0 0 0 1px var(--vp-focus);
+  border-color: var(--vp-ink2);
+}
+
+/* The composer shows focus; the field inside it must not draw a second ring. */
+.vp-composer textarea:focus-visible {
+  outline: none;
 }
 
 .vp-tools {

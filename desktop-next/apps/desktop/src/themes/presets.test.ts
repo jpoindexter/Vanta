@@ -93,9 +93,9 @@ describe('Vanta theme contract (DESIGN-VANTA.md)', () => {
     }
   })
 
-  it('spends blue only on ring and midground; composer ring stays neutral', () => {
-    expect([light.ring, light.midground]).toEqual(['#2c67c5', '#2c67c5'])
-    expect([dark.ring, dark.midground]).toEqual(['#3a83f7', '#3a83f7'])
+  it('spends blue only on the keyboard ring; selection (midground) and the composer ring stay neutral', () => {
+    expect([light.ring, light.midground]).toEqual(['#2c67c5', '#202024'])
+    expect([dark.ring, dark.midground]).toEqual(['#3a83f7', '#ececee'])
     // composerRing is mixed into resting borders, so a hue here tints every input.
     expect(channelSpread(light.composerRing!)).toBeLessThanOrEqual(6)
     expect(channelSpread(dark.composerRing!)).toBeLessThanOrEqual(6)

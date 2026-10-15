@@ -2,11 +2,10 @@
 @plugin '@tailwindcss/typography';
 @import 'tw-shimmer';
 @import 'katex/dist/katex.min.css';
-@import '@vscode/codicons/dist/codicon.css';
+
 @import './styles/vanta-pages.css';
 
-/* Titlebar clusters: 24×24 hit targets, 13.9px glyphs. codicon.css is
-   unlayered (`font: 16px/1`); Tailwind utilities in @layer lose that fight. */
+/* Titlebar clusters: 24×24 hit targets, 13.9px glyphs. Unlayered, so Tailwind utilities in @layer do not override it. */
 .titlebar-icon-button .codicon[class*='codicon-'] {
   font-size: var(--titlebar-icon-size);
 }
@@ -952,7 +951,7 @@
    text-node label still matches `:only-child` — which is exactly how every
    chip lost its spacer. Icon-only users take the hue via `[data-ref]` instead
    of this class. */
-.ref > :where(svg, i.codicon) {
+.ref > :where(svg) {
   margin-inline-end: 0.25em;
   opacity: 0.8;
 }
@@ -964,7 +963,7 @@
   vertical-align: -0.1em;
 }
 
-.ref > i.codicon {
+.ref > svg.codicon {
   font-size: max(0.75rem, 0.875em);
 }
 
