@@ -62,6 +62,14 @@ describe('settings subpage routing', () => {
     for (const section of SECTIONS.filter(section => section.keys.length)) {
       for (const field of section.keys) {
         const owner = configSubpageForField(section.id, field)
+
+        // Context & compression is hidden in Vanta (hermes-extras.ts SHOW_CONTEXT_SETTINGS): its fields have no page.
+        if (section.id === 'memory' && /^(context|compression|auxiliary\.compression)\./.test(field)) {
+          expect(owner).toBeUndefined()
+
+          continue
+        }
+
         expect(CONFIG_SUBPAGES[section.id].some(page => page.id === owner)).toBe(true)
         const view = `config:${section.id}` as SettingsView
         const params = new URLSearchParams(settingsSearchTargetQuery({ view, field }))

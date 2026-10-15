@@ -212,14 +212,33 @@ export class ServerHost {
     this.current = null
   }
 
+  /**
+   * A crash is healed once, quietly: the runtime starts again and nobody is told. Only a runtime that cannot come back
+   * (it keeps dying, or the restart fails) fails the boot state and tells the shell, which then shows Restart.
+   */
+  private async recoverFromExit(message: string, exit: { code: null | number; signal: null | string }): Promise<void> {
+    await this.respawnIfNeeded()
+
+    if (this.lastError === null && this.current) {
+      this.deps.log('[runtime] restarted after it exited on its own')
+
+      return
+    }
+
+    const restartError = this.lastError && this.lastError !== message ? ` Starting it again failed: ${this.lastError}` : ''
+
+    this.deps.boot.fail(`${message}${restartError}`)
+    this.deps.onUnexpectedExit(exit)
+  }
+
   private handleExit(generation: number, exit: { code: null | number; signal: null | string }): void {
     if (generation === this.generation && !this.intentionalStop) {
       const output = this.current?.output?.() ?? ''
+      const message = `The Vanta runtime exited (${exit.signal ?? exit.code ?? 'unknown'}).${output}`
       this.current = null
       this.needsRespawn = true
-      this.lastError = `The Vanta runtime exited (${exit.signal ?? exit.code ?? 'unknown'}).${output}`
-      this.deps.boot.fail(this.lastError)
-      this.deps.onUnexpectedExit(exit)
+      this.lastError = message
+      void this.recoverFromExit(message, exit)
     }
   }
 }
