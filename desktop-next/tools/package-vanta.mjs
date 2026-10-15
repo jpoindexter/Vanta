@@ -1,8 +1,9 @@
 // One command for a local, unsigned-identity "Vanta Next.app" (arm64):
 //   npm run vanta:package            (from desktop-next)
 // Builds the renderer + Electron main, the precompiled Vanta runtime and (if missing) the release kernel,
-// assembles the app from the Electron already in node_modules, ad-hoc signs it and zips it.
-// Nothing is downloaded, notarized, uploaded or installed.
+// assembles the app from the Electron already in node_modules, signs it (ad hoc, or with Developer ID when
+// VANTA_SIGN_IDENTITY is set) and zips it. Nothing is downloaded, notarized, uploaded or installed here:
+// notarizing is tools/notarize-app.mjs.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
@@ -11,6 +12,7 @@ import path from "node:path";
 import { assembleApp } from "./packaging/assemble-app.mjs";
 import { legacyBrandFacts, sizeFacts, symlinkFacts } from "./packaging/bundle-report.mjs";
 import { signAdHoc } from "./packaging/sign-app.mjs";
+import { signDeveloperId } from "./packaging/sign-developer-id.mjs";
 import { stageRuntime } from "./packaging/stage-runtime.mjs";
 
 const require = createRequire(import.meta.url);
@@ -59,9 +61,15 @@ const noticeFiles = (electronDist) => [
 ];
 
 function sealAndReport({ app, outDir, build, kernel, packages, name }) {
-  console.log("[package] ad-hoc sign");
   const resources = path.join(app, "Contents", "Resources");
-  const signed = signAdHoc({ app, looseDirs: [path.join(resources, "vanta-runtime"), path.join(resources, "kernel")] });
+  const looseDirs = [path.join(resources, "vanta-runtime"), path.join(resources, "kernel")];
+  // VANTA_SIGN_IDENTITY (a Developer ID Application name, or its SHA-1 hash when two share a name) makes a distributable
+  // build: hardened runtime, timestamp, entitlements. Without it the build stays ad hoc and local.
+  const identity = process.env.VANTA_SIGN_IDENTITY?.trim();
+  console.log(identity ? "[package] Developer ID sign" : "[package] ad-hoc sign");
+  const signed = identity
+    ? signDeveloperId({ app, looseDirs, identity, entitlements: path.join(desktop, "build", "entitlements.mac.plist") })
+    : signAdHoc({ app, looseDirs });
   const zip = path.join(outDir, `${name.replace(/ /g, "-")}-${build.version}-arm64.zip`);
   fs.rmSync(zip, { force: true });
   execFileSync("ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", app, zip]);
