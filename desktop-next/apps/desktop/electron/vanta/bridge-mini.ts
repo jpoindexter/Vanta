@@ -73,6 +73,17 @@ function trayApi({ ipc }: MiniEnv) {
   };
 }
 
+function agentDotApi({ ipc }: MiniEnv) {
+  return {
+    agentDot: {
+      feed: (report: { needsInput: boolean; working: boolean }) => ipc.send(CH.dotFeed, report),
+      get: () => ipc.invoke(CH.dotGet),
+      onChanged: (callback: (status: unknown) => void) => subscribe(ipc, CH.dotChanged, callback),
+      set: (on: boolean) => ipc.invoke(CH.dotSet, on)
+    }
+  };
+}
+
 export function miniWindowApi(env: MiniEnv) {
-  return { ...hudApi(env), ...quickEntryApi(env), ...trayApi(env) };
+  return { ...hudApi(env), ...quickEntryApi(env), ...trayApi(env), ...agentDotApi(env) };
 }

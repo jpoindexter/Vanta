@@ -62,6 +62,7 @@ import {
 } from '@/store/profile'
 import { $newProjectSessionRequest, $startWorkSessionRequest, followActiveSessionCwd } from '@/store/projects'
 import { $backendRestartRequest, $routeRequest } from '@/store/recovery-requests'
+import { useAgentDotFeed } from './hooks/use-agent-dot-feed'
 import {
   $activeSessionId,
   $connection,
@@ -305,6 +306,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
 
   useRouteRequestNavigation(navigate)
   useRecoveryRequestToasts()
+  useAgentDotFeed()
 
   const freshDraftReady = useStore($freshDraftReady)
   const resumeFailedSessionId = useStore($resumeFailedSessionId)

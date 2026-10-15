@@ -393,6 +393,13 @@ declare global {
       localSkin?: { profile: string; skin: HermesSkin } | null
       setTranslucency?: (payload: TranslucencyState) => void
       setKeepAwake?: (mode: KeepAwakeMode) => void
+      /** The optional always-on-top dot that shows what Vanta is doing (Vanta shell only). */
+      agentDot?: {
+        feed: (report: { needsInput: boolean; working: boolean }) => void
+        get: () => Promise<{ enabled: boolean }>
+        onChanged: (callback: (status: { enabled: boolean }) => void) => () => void
+        set: (on: boolean) => Promise<{ enabled: boolean }>
+      }
       minimizeToTray?: {
         get: () => Promise<{ enabled: boolean; available: boolean }>
         set: (on: boolean) => Promise<{ enabled: boolean; available: boolean }>
