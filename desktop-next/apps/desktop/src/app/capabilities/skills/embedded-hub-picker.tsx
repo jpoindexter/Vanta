@@ -1,7 +1,6 @@
 import { useStore } from '@nanostores/react'
 import { memo, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react'
 
-import { HubNotConfigured } from '@/components/hub-not-configured'
 import { Button } from '@/components/ui/button'
 import type { ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
@@ -257,7 +256,13 @@ const HubPickerFrame = memo(function HubPickerFrame({
   )
 })
 
-/** The hub browser, or a plain notice while no Vanta hub origin is configured. */
+/** The hub browser: the embedded page when a hub origin is configured, else the native skills.sh/GitHub search. */
+import { SkillsHubBrowser } from './skills-hub-browser'
+
 export const EmbeddedHubPicker = memo(function EmbeddedHubPicker(props: EmbeddedHubPickerProps) {
-  return isHubConfigured() ? <HubPickerFrame {...props} /> : props.hidden ? null : <HubNotConfigured />
+  if (isHubConfigured()) {
+    return <HubPickerFrame {...props} />
+  }
+
+  return props.hidden ? null : <SkillsHubBrowser installedNames={props.installedNames} profile={props.profile} />
 })

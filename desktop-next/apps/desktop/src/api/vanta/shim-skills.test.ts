@@ -1,63 +1,90 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { getSkills, installSkillFromHub, setSkillEnabled } from '@/api/skills'
-import { getToolsets, setToolsetEnabled } from '@/api/toolsets'
+import { getOfficialSkills, getSkillHubSources, installSkillFromHub, previewSkillHub, scanSkillHub, searchSkillsHub } from '@/api/skills'
 import type { HermesApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
-describe('skills and tools controls reach the Vanta routes', () => {
+const PREVIEW = {
+  files: [{ bytes: 120, path: 'SKILL.md' }, { bytes: 40, path: 'scripts/run.sh' }],
+  identifier: 'skills-sh:acme/skills/seo',
+  integrityOk: true,
+  name: 'seo',
+  risks: [] as string[],
+  skillMd: '# SEO\nDo the thing.'
+}
+
+describe('the Skills tab reads and installs from the hub through the Vanta routes', () => {
   let calls: HermesApiRequest[]
+  let preview: typeof PREVIEW
 
   beforeEach(() => {
     calls = []
+    preview = { ...PREVIEW }
+    Object.defineProperty(window, 'vantaDesktop', { configurable: true, value: {} })
 
-    installRestBridge(request => {
+    installRestBridge((request: HermesApiRequest) => {
       calls.push(request)
 
-      if (request.path === '/api/skills') {
-        return [{ category: 'finance', description: 'd', enabled: false, name: 'Invoice triage', provenance: 'external', usage: 2 }]
+      if (request.path === '/api/skills/hub-search') {
+        return {
+          failures: [{ error: 'rate limited', source: 'github' }],
+          results: [
+            { category: 'marketing', description: 'Audit pages', identifier: 'skills-sh:acme/skills/seo', integrity: 'content-hashed', name: 'seo', provenance: 'https://github.com/acme/skills/tree/main/seo', signature: 'unsigned', source: 'skills-sh' }
+          ]
+        }
       }
 
-      if (request.path === '/api/skills/install') {
-        return { name: 'useful', ok: true, status: 'active' }
+      if (request.path === '/api/skills/hub-preview') {
+        return preview
       }
 
-      return { enabled: false, name: 'x', ok: true }
+      return { name: 'seo', ok: true, status: 'active' }
     })
-    ;(window as { vantaDesktop?: unknown }).vantaDesktop = {}
   })
 
   afterEach(() => {
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
-    delete (window as { vantaDesktop?: unknown }).vantaDesktop
+    Reflect.deleteProperty(window, 'vantaDesktop')
   })
 
-  it('reads the skill list with its enabled state, provenance and usage as served', async () => {
-    const [skill] = await getSkills()
+  it('lists skills.sh, curated GitHub and the person\'s taps as sources', async () => {
+    const sources = await getSkillHubSources()
 
-    expect(skill).toMatchObject({ enabled: false, name: 'Invoice triage', provenance: 'external', usage: 2 })
+    expect(sources.sources.map(source => source.id)).toEqual(['skills-sh', 'github', 'tap'])
+    expect(await getOfficialSkills()).toEqual({ skills: [] })
   })
 
-  it('toggles a skill on the same path (the transport sends the PUT as a POST)', async () => {
-    await setSkillEnabled('Invoice triage', true)
+  it('maps search results and reports a failing source as timed out', async () => {
+    const found = await searchSkillsHub('seo', 'all', 5)
 
-    expect(calls[0]).toMatchObject({ body: { enabled: true, name: 'Invoice triage' }, method: 'PUT', path: '/api/skills/toggle' })
-  })
-
-  it('installs a registry skill through the approval-gated install route', async () => {
-    const result = await installSkillFromHub('useful')
-
-    expect(result).toMatchObject({ name: 'useful', ok: true })
-    expect(calls.find(call => call.path === '/api/skills/install')?.body).toEqual({ slug: 'useful' })
-  })
-
-  it('lists tools as toolsets and toggles one by name', async () => {
-    await getToolsets()
-    await setToolsetEnabled('web fetch', false)
-
-    expect(calls.map(call => [call.method ?? 'GET', call.path])).toEqual([
-      ['GET', '/api/tools/toolsets'],
-      ['PUT', '/api/tools/toolsets/web%20fetch']
+    expect(found.results).toEqual([
+      { description: 'Audit pages', identifier: 'skills-sh:acme/skills/seo', name: 'seo', repo: 'acme/skills', source: 'skills-sh', tags: ['marketing'], trust_level: 'community' }
     ])
+    expect(found.timed_out).toEqual(['github'])
+    expect(found.source_counts).toEqual({ 'skills-sh': 1 })
+    expect(calls.at(-1)).toMatchObject({ body: { query: 'seo', source: 'all' }, method: 'POST', path: '/api/skills/hub-search' })
+  })
+
+  it('previews the SKILL.md and file list', async () => {
+    const result = await previewSkillHub('skills-sh:acme/skills/seo')
+
+    expect(result).toMatchObject({ files: ['SKILL.md', 'scripts/run.sh'], name: 'seo', skill_md: '# SEO\nDo the thing.' })
+  })
+
+  it('turns declared risks into a scan that asks before installing, and a failed hash into a block', async () => {
+    expect(await scanSkillHub('skills-sh:acme/skills/seo')).toMatchObject({ policy: 'allow', verdict: 'safe' })
+
+    preview = { ...PREVIEW, risks: ['runs shell commands'] }
+    expect(await scanSkillHub('skills-sh:acme/skills/seo')).toMatchObject({ policy: 'ask', verdict: 'caution', findings: [{ description: 'runs shell commands' }] })
+
+    preview = { ...PREVIEW, integrityOk: false }
+    expect(await scanSkillHub('skills-sh:acme/skills/seo')).toMatchObject({ policy: 'block', verdict: 'dangerous' })
+  })
+
+  it('installs a source-qualified identifier from the hub and a bare slug from the registry', async () => {
+    await installSkillFromHub('skills-sh:acme/skills/seo')
+    expect(calls.at(-1)).toMatchObject({ body: { identifier: 'skills-sh:acme/skills/seo' }, path: '/api/skills/hub-install' })
+
+    await installSkillFromHub('useful')
+    expect(calls.at(-1)).toMatchObject({ body: { slug: 'useful' }, path: '/api/skills/install' })
   })
 })
