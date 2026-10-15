@@ -1,7 +1,8 @@
 import { IconX } from '@tabler/icons-react'
 import { type ComponentProps } from 'react'
 
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
 
 type ButtonVariant = 'default' | 'ghost' | 'icon' | 'primary'
 
@@ -9,29 +10,25 @@ interface VpButtonProps extends ComponentProps<'button'> {
   variant?: ButtonVariant
 }
 
-const VARIANT_CLASS: Record<ButtonVariant, string> = {
-  default: '',
-  ghost: 'vp-btn--ghost',
-  icon: 'vp-btn--icon',
-  primary: 'vp-btn--primary'
+// The Vanta screens keep their four button roles; each is one setting of the shared Button.
+const BUTTON_PROPS = {
+  default: { size: 'default', variant: 'outline' },
+  ghost: { size: 'default', variant: 'ghost' },
+  icon: { size: 'icon-sm', variant: 'outline' },
+  primary: { size: 'default', variant: 'default' }
+} as const
+
+/** The Vanta button: ink-filled primary, outlined default, ghost, and a square icon button. */
+export function VpButton({ type = 'button', variant = 'default', ...rest }: VpButtonProps) {
+  return <Button type={type} {...BUTTON_PROPS[variant]} {...rest} />
 }
 
-/** The one button primitive: ink-filled primary, outlined default, 30px icon. */
-export function VpButton({ className, type = 'button', variant = 'default', ...rest }: VpButtonProps) {
-  return <button className={cn('vp-btn', VARIANT_CLASS[variant], className)} type={type} {...rest} />
-}
+export const VpChip = Chip
 
-export function VpChip({ className, type = 'button', ...rest }: ComponentProps<'button'>) {
-  return <button className={cn('vp-chip', className)} type={type} {...rest} />
-}
-
-/** Width of the wireframe's close glyph, so the button keeps its 32.7px box. */
-const CLOSE_ICON_PX = 10.7
-
-export function VpCloseButton({ className, ...rest }: ComponentProps<'button'>) {
+export function VpCloseButton(props: ComponentProps<'button'>) {
   return (
-    <VpButton className={cn('vp-btn--close', className)} {...rest}>
-      <IconX aria-hidden size={CLOSE_ICON_PX} stroke={2} />
-    </VpButton>
+    <Button size="icon-sm" type="button" variant="outline" {...props}>
+      <IconX aria-hidden size={12} stroke={2} />
+    </Button>
   )
 }

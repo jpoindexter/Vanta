@@ -1,5 +1,6 @@
 import { IconChevronDown } from '@tabler/icons-react'
 
+import { Chip } from '@/components/ui/chip'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,15 +25,10 @@ export function ProjectPicker({ onChange, projectId, projects }: ProjectPickerPr
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          aria-label={`${HOME_COPY.projectLabel}: ${selected.name}`}
-          className="vp-chip vp-chip--menu"
-          data-testid="home-composer-project"
-          type="button"
-        >
+        <Chip aria-label={`${HOME_COPY.projectLabel}: ${selected.name}`} data-testid="home-composer-project">
           {selected.name + HOME_COPY.projectSuffix}
           <IconChevronDown aria-hidden size={12} stroke={2} />
-        </button>
+        </Chip>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuRadioGroup onValueChange={onChange} value={selected.id}>
