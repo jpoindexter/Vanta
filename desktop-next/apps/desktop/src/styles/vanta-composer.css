@@ -28,17 +28,6 @@
   outline: none;
 }
 
-.vp-tools {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.vp-tools .vp-grow {
-  flex: 1;
-}
-
 .vp .vp-chip--menu {
   align-items: center;
   display: inline-flex;

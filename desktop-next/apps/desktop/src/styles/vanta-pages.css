@@ -127,24 +127,6 @@
   padding: 0 7px;
 }
 
-.vp-send {
-  background: var(--vp-ink);
-  border: 1px solid var(--vp-ink);
-  border-radius: 50%;
-  color: var(--vp-bg);
-  cursor: pointer;
-  display: inline-grid;
-  height: 32px;
-  padding: 0;
-  place-items: center;
-  width: 32px;
-}
-
-.vp-send:focus-visible {
-  outline: 2px solid var(--vp-focus);
-  outline-offset: 2px;
-}
-
 .vp .vp-note {
   color: var(--vp-ink3);
   font-size: 12px;
