@@ -8,6 +8,7 @@ import {
   type QueueRowState,
   savedStatus,
 } from "./queue-row-actions";
+import { Button } from "@/components/ui/button";
 
 interface QueuePanelProps extends Omit<QueueRowHandlers, "onSendNow"> {
   editingId: null | string;
@@ -83,9 +84,14 @@ const NoteRow: FC<{
     <span className="vp-queue-text">{text}</span>
     {action && (
       <span className="vp-queue-actions">
-        <button className="vp-btn" onClick={action.onClick} type="button">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={action.onClick}
+          type="button"
+        >
           {action.label}
-        </button>
+        </Button>
       </span>
     )}
   </li>
@@ -139,9 +145,7 @@ export const QueuePanel: FC<QueuePanelProps> = ({
     >
       {error ? (
         <NoteRow
-          action={
-            onClearError && { label: "Dismiss", onClick: onClearError }
-          }
+          action={onClearError && { label: "Dismiss", onClick: onClearError }}
           alert
           name="queue-error"
           text={error}
