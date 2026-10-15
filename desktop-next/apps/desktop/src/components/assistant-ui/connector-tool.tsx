@@ -212,7 +212,7 @@ export function ConnectorDirectoryReceipt({ result }: { result: unknown }) {
       <ScaffoldRow>
         {added.map(name => (
           <ConnectorLogo
-            className="size-4 rounded-[0.25rem]"
+            className="size-4 rounded-sm"
             connector={{ iconUrl: connectorIconUrl(name), name, title: connectorTitle(name) }}
             key={name}
           />

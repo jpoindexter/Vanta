@@ -99,7 +99,7 @@
 .butterbar-dot > span {
   width: 0.3125rem;
   height: 0.3125rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--bb-dot);
   transition:
     width 200ms ease-out,

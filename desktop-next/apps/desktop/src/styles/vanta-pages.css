@@ -38,7 +38,7 @@
 .vp .vp-btn {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -73,7 +73,7 @@
 }
 
 .vp .vp-btn--icon {
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   display: inline-grid;
   font-size: 15px;
   height: 30px;
@@ -95,7 +95,7 @@
 .vp .vp-chip {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--vp-ink2);
   cursor: pointer;
   font: inherit;
@@ -121,7 +121,7 @@
 
 .vp-badge {
   border: 1px solid var(--vp-ink);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--vp-ink);
   font-size: 12px;
   padding: 0 7px;
@@ -228,7 +228,7 @@
 
 .vp-box {
   border: 1px solid var(--vp-line);
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   padding: 0 12px;
 }
 

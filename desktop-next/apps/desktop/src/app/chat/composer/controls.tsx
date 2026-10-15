@@ -123,7 +123,7 @@ export function ComposerControls({
           type="submit"
         >
           {showStop ? (
-            <span className="block size-2.5 rounded-[0.1875rem] bg-current" />
+            <span className="block size-2.5 rounded-sm bg-current" />
           ) : (
             <Codicon name="arrow-up" size="0.875rem" />
           )}

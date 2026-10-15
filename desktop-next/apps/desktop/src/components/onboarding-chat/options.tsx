@@ -130,7 +130,7 @@ export const LAYOUTS: Array<{ description: string; id: string; mode: InterfaceMo
 
 function MiniTree({ node }: { node: MiniNode }) {
   if (node === 1) {
-    return <div className="min-h-0 min-w-0 flex-1 rounded-[3px] bg-foreground/15" />
+    return <div className="min-h-0 min-w-0 flex-1 rounded-sm bg-foreground/15" />
   }
 
   return (
@@ -185,7 +185,7 @@ export function LayoutPreviewCard({
   return (
     <button aria-pressed={active} className="group flex flex-col items-center gap-2" onClick={onSelect} type="button">
       <span
-        className={cn('flex aspect-[10/7] w-full flex-col gap-1.5 rounded-[8px] p-2', selectableClass(active))}
+        className={cn('flex aspect-[10/7] w-full flex-col gap-1.5 rounded-lg p-2', selectableClass(active))}
         style={previewStyle}
       >
         <MiniWindowButtons />

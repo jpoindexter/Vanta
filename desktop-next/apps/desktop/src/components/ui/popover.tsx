@@ -93,7 +93,7 @@ function PopoverContent({
                   'absolute top-0 left-1/2 size-[11px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-(--popover-surface)',
                   variant === 'accent'
                     ? // Borderless and opaque: nothing to seam, nothing to blur.
-                      'rounded-[1px]'
+                      'rounded-xs'
                     : 'border-r border-b border-(--ui-stroke-secondary) backdrop-blur-md'
                 )}
               />

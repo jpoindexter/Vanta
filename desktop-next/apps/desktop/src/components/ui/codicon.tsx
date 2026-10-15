@@ -19,11 +19,13 @@ const SPINNING_NAMES = new Set(['loading'])
  * for the few selectors that size glyphs in clusters (titlebar buttons, reference rows).
  */
 export function Codicon({ className, name, size, spinning, style, ...props }: CodiconProps) {
+  const mapped = name in CODICON_TO_TABLER
   const Glyph: Icon = CODICON_TO_TABLER[name] ?? FALLBACK_ICON
 
   return (
     <Glyph
       aria-hidden="true"
+      data-icon-unmapped={mapped ? undefined : name}
       className={cn('codicon', `codicon-${name}`, 'shrink-0', (spinning || SPINNING_NAMES.has(name)) && 'animate-spin', className)}
       size="1em"
       stroke={1.75}

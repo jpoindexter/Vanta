@@ -11,8 +11,8 @@
   --vs-nav-h: 36px;
   --vs-row-h: 32px;
   --vs-control: 30px;
-  --vs-radius-row: 8px;
-  --vs-radius-pill: 999px;
+  --vs-radius-row: var(--radius-control);
+  --vs-radius-pill: var(--radius-pill);
   --vs-gap-title: 8px;
   --vs-gap-bar: 10px;
   --vs-pad-bar: 12px;

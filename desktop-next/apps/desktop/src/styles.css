@@ -124,6 +124,25 @@
   src: url('./fonts/JetBrainsMono-Italic.woff2') format('woff2');
 }
 
+/* THE radius ramp: one place, 2 / 4 / 6 / 8 / 10 / 12 px, every larger rounded rectangle is 12.
+   Real theme variables (not inline), so `rounded-lg`, `var(--radius-lg)` and the semantic names below
+   all follow the same numbers. Everything in the app picks a step or a semantic name; no literal radii
+   (src/styles/design-guard.test.ts holds that line). */
+@theme {
+  --radius-xs: calc(var(--radius-scalar) * 0.125rem);
+  --radius-sm: calc(var(--radius-scalar) * 0.25rem);
+  --radius-md: calc(var(--radius-scalar) * 0.375rem);
+  --radius-lg: calc(var(--radius-scalar) * 0.5rem);
+  --radius-xl: calc(var(--radius-scalar) * 0.625rem);
+  --radius-2xl: calc(var(--radius-scalar) * 0.75rem);
+  --radius-3xl: calc(var(--radius-scalar) * 0.75rem);
+  --radius-4xl: calc(var(--radius-scalar) * 0.75rem);
+  /* Semantic names: components ask for the role, not the number. */
+  --radius-control: var(--radius-md); /* buttons, inputs, selects, menu rows */
+  --radius-surface: var(--radius-2xl); /* composer, dialogs, popovers, cards, bubbles */
+  --radius-pill: 9999px; /* chips, badges, avatars, switches */
+}
+
 @theme inline {
   --color-background: var(--dt-background);
   --color-foreground: var(--dt-foreground);
@@ -153,16 +172,6 @@
 
   --spacing-mul: var(--dt-spacing-mul, 1);
 
-  /* Vanta radius ramp 4 / 6 / 8 / 12 / 16 / 22 / pill. 3xl and 4xl alias the
-     22px step so there is no larger rounded rectangle than the composer. */
-  --radius-xs: calc(var(--radius-scalar) * 0.25rem);
-  --radius-sm: calc(var(--radius-scalar) * 0.375rem);
-  --radius-md: calc(var(--radius-scalar) * 0.5rem);
-  --radius-lg: calc(var(--radius-scalar) * 0.75rem);
-  --radius-xl: calc(var(--radius-scalar) * 1rem);
-  --radius-2xl: calc(var(--radius-scalar) * 1.375rem);
-  --radius-3xl: calc(var(--radius-scalar) * 1.375rem);
-  --radius-4xl: calc(var(--radius-scalar) * 1.375rem);
 
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -1577,7 +1586,7 @@ body.guest-pointer-lock :is(webview, iframe) {
 
   *::-webkit-scrollbar-thumb {
     background: transparent;
-    border-radius: 9999rem;
+    border-radius: var(--radius-pill);
     background-clip: padding-box;
     transition: none;
   }
@@ -1657,7 +1666,7 @@ body.guest-pointer-lock :is(webview, iframe) {
 
   .dt-portal-scrollbar::-webkit-scrollbar-thumb {
     background: transparent;
-    border-radius: 9999rem;
+    border-radius: var(--radius-pill);
     background-clip: padding-box;
   }
 
@@ -2071,7 +2080,7 @@ body.guest-pointer-lock :is(webview, iframe) {
    composer is draggable. Inherits the root radius so it clips to the corners. */
 [data-slot='composer-drag-region'] {
   /* Hatch frame radius (tuned by hand). */
-  border-radius: 0.4rem;
+  border-radius: var(--radius-lg);
   opacity: 0;
   transition: opacity 150ms ease;
   background-image: repeating-linear-gradient(
@@ -2488,7 +2497,7 @@ button[data-slot='aui_msg-reactions']:not([data-reacted])[data-state='open'] {
   align-items: center;
   gap: 0.3rem;
   border: 1px solid color-mix(in srgb, var(--dt-destructive) 30%, transparent);
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   padding: 0.1rem 0.55rem;
   font-size: 0.75rem;
@@ -3009,7 +3018,7 @@ button[data-slot='aui_msg-reactions'] svg {
   flex: none !important;
   border: 0 !important;
   /* Rounded away from the bar, square where it meets it. */
-  border-radius: 0.75rem 0.75rem 0 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   background: transparent !important;
   /* Three opacity states: gone at rest, half strength when a turn is recent or
      you've just let go of the composer (there to glance at, not to demand
@@ -3070,7 +3079,7 @@ button[data-slot='aui_msg-reactions'] svg {
   left: var(--hud-band-inset);
   z-index: 0;
   pointer-events: none;
-  border-radius: 0.75rem 0.75rem 0 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   background: rgb(12 14 18 / 0.62);
   /* Slides down behind the bar as it fades. A TRANSFORM, not height: it is
      composited, so it stays smooth where animating height re-lays-out the panel
@@ -3142,11 +3151,11 @@ button[data-slot='aui_msg-reactions'] svg {
    radius set here unqualified wins everywhere and rounds the corners that meet
    the bar while squaring the free ones. */
 :root[data-hermes-glass-on] [data-hud-shell] [data-hud-glass] {
-  border-radius: 0.75rem 0.75rem 0 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
 }
 
 :root[data-hermes-glass-on] [data-hud-shell][data-hud-edge='top'] [data-hud-glass] {
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
 }
 
 /* Engaged, the field steps up the same way the docked thread's does — but
@@ -3171,7 +3180,7 @@ button[data-slot='aui_msg-reactions'] svg {
   top: var(--hud-bar-height, var(--composer-fallback-height));
   bottom: auto;
   --hud-exit-shift: -2.5rem;
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
 }
 
 /* WHAT ANSWERS THE CURSOR — and, because `useHudClickThrough` hands the window
@@ -3468,7 +3477,7 @@ button[data-slot='aui_msg-reactions'] svg {
 [data-hud-shell][data-hud-edge='top'] [data-slot='composer-bounds'] {
   top: var(--hud-bar-height, var(--composer-fallback-height)) !important;
   bottom: auto !important;
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
 }
 
 /* …so the edge it falls back from is the bar's, which is now above it. */
@@ -3570,7 +3579,7 @@ button[data-slot='aui_msg-reactions'] svg {
   transform: translateX(-50%);
   width: 40px;
   height: 4px;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--ui-text-tertiary) 55%, transparent);
   pointer-events: none;
 }
@@ -3677,7 +3686,7 @@ button[data-slot='aui_msg-reactions'] svg {
      reads as one object however the band is behaving. Its top corners let a
      sliver of band through, which is the point — the glass wraps the bar's
      shoulders instead of stopping in a straight line above it. */
-  border-radius: 0.75rem !important;
+  border-radius: var(--radius-2xl) !important;
   background: var(--dt-card) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;

@@ -45,7 +45,7 @@
 
 .vp-wb__tabs .vp-btn {
   border-color: transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
 }
 
 .vp-wb__tabs .vp-btn[aria-selected='true'] {
@@ -67,7 +67,7 @@
 .vp .vp-code {
   background: var(--vp-bg2);
   border: 1px solid var(--vp-hair);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font: 12px/1.5 var(--vp-mono);
   margin-bottom: 8px;
   overflow-x: auto;
@@ -89,7 +89,7 @@
 
 .vp-ph {
   border: 1px dashed var(--vp-line);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   color: var(--vp-ink3);
   display: grid;
   font-size: 12px;
@@ -100,7 +100,7 @@
 .vp-urlbar {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   margin-bottom: 8px;
   padding: 4px 8px;
 }
@@ -113,7 +113,7 @@
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: inherit;
   cursor: pointer;
   display: flex;

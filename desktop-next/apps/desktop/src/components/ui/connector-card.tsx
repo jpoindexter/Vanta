@@ -104,7 +104,7 @@ export function ConnectorSummary({
   return (
     <div data-conversation-scaffold="" data-slot="connector-card">
       <ScaffoldRow>
-        <ConnectorLogo className="size-4 rounded-[0.25rem]" connector={connector} />
+        <ConnectorLogo className="size-4 rounded-sm" connector={connector} />
         <span className="truncate text-[length:var(--conversation-tool-font-size)] text-(--ui-text-primary)">
           {connector.title || connector.name}
         </span>

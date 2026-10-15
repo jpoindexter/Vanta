@@ -83,7 +83,7 @@ function ThemePicker({ cursor, onPick, picked, rows }: SetupPickerProps) {
         const palette = palettes[row.id]
 
         return (
-          <PickerItem active={cursor === index} className="rounded-[8px]" key={row.id}>
+          <PickerItem active={cursor === index} className="rounded-lg" key={row.id}>
             <LayoutPreviewCard
               active={active}
               name={row.label}
@@ -124,7 +124,7 @@ function LayoutPicker({ cursor, onPick, picked, rows }: SetupPickerProps) {
   return (
     <div className="grid grid-cols-2 gap-3 p-1" role="group">
       {rows.map((row, index) => (
-        <PickerItem active={cursor === index} className="rounded-[8px]" key={row.id}>
+        <PickerItem active={cursor === index} className="rounded-lg" key={row.id}>
           <LayoutPreviewCard
             active={picked.includes(row.id)}
             description={row.detail ?? undefined}
@@ -164,7 +164,7 @@ function ChipPicker({
         <FadeScroll className="grid grid-cols-3 gap-2 p-1" fade="1.5rem" maxHeight="18rem" pad="1.5rem">
           {rows.map((row, index) =>
             search && !row.label.toLowerCase().includes(search) ? null : (
-              <PickerItem active={cursor === index} className="rounded-[6px]" key={row.id}>
+              <PickerItem active={cursor === index} className="rounded-md" key={row.id}>
                 <Chip
                   className={cn('w-full', dim?.(row) && 'opacity-60')}
                   icon={icon(row)}

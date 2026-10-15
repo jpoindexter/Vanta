@@ -32,7 +32,7 @@ export function ProfileGlyph({
   return (
     <span
       className={cn(
-        'grid size-4 shrink-0 place-items-center rounded-[3px] text-[0.75rem] font-semibold uppercase leading-none',
+        'grid size-4 shrink-0 place-items-center rounded-sm text-[0.75rem] font-semibold uppercase leading-none',
         className
       )}
       style={{ backgroundColor: profileColorSoft(color ?? 'var(--ui-text-quaternary)', 22), color: color ?? undefined }}

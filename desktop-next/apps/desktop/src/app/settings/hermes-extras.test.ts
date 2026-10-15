@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { isHiddenBundledPlugin, isHiddenModelSubpage, SHOW_KANBAN, SHOW_WEBHOOKS } from './hermes-extras'
+import { isHiddenBundledPlugin, isHiddenModelSubpage, SHOW_KANBAN, SHOW_VAULT, SHOW_WEBHOOKS } from './hermes-extras'
+import { OTHER_SUBPAGES } from './other-subpages'
 
 describe('Hermes surfaces Vanta has no backend for stay out of the app', () => {
   it('keeps the flags off', () => {
-    expect([SHOW_KANBAN, SHOW_WEBHOOKS]).toEqual([false, false])
+    expect([SHOW_KANBAN, SHOW_VAULT, SHOW_WEBHOOKS]).toEqual([false, false, false])
+    expect(Object.keys(OTHER_SUBPAGES)).not.toContain('vault')
   })
 
   it('hides the Kanban bundled plugin and nothing else', () => {

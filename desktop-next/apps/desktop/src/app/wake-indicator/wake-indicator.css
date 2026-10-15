@@ -13,7 +13,7 @@
   backdrop-filter: blur(20px) saturate(1.2);
   background: rgba(124, 58, 237, 0.62);
   border: 1px solid rgba(216, 180, 254, 0.82);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   box-shadow:
     0 0 10px rgba(124, 58, 237, 0.7),
     0 0 24px rgba(168, 85, 247, 0.48);

@@ -113,7 +113,7 @@ export function ReviewShipBar() {
           value={message}
         />
         <GenerateButton
-          className="absolute top-px right-px h-6 w-8 rounded-l-none rounded-r-[2px]"
+          className="absolute top-px right-px h-6 w-8 rounded-l-none rounded-r-xs"
           disabled={!canGenerate}
           generating={generating}
           generatingLabel={c.stopGenerating}

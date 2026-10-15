@@ -14,7 +14,12 @@ interface GlyphSpinnerProps {
 /** The inline spinner for rows and buttons: the same Tabler SVG as `Loader`, sized by the 1em box around it. */
 export function GlyphSpinner({ ariaLabel = 'Loading', className, paused = false }: GlyphSpinnerProps) {
   return (
-    <span aria-label={ariaLabel} className={cn('inline-flex items-center justify-center leading-none', className)} role="status">
+    <span
+      aria-label={ariaLabel}
+      className={cn('glyph-spinner inline-flex items-center justify-center leading-none', className)}
+      data-paused={paused ? 'true' : undefined}
+      role="status"
+    >
       <IconLoader2
         aria-hidden
         className={cn('size-[1em]', !paused && 'animate-spin motion-reduce:animate-none')}

@@ -64,6 +64,7 @@ import { SessionsSettings } from './sessions-settings'
 import { SettingsSubpageHeader } from './subpage-navigation'
 import { resolveSettingsSubpage, settingsSubpageIcon, settingsSubpages } from './subpages'
 import type { SettingsPageProps, SettingsView as SettingsViewId } from './types'
+import { SHOW_VAULT } from './hermes-extras'
 import { vaultOwnerKey, VaultSettings } from './vault-settings'
 
 const SETTINGS_VIEWS: readonly SettingsViewId[] = [
@@ -249,7 +250,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
             // Credential Vault lives beside the Browser section: it feeds the
             // browser's model-blind vault fill, so the two are one mental unit.
-            if (s.id === 'browser') {
+            if (s.id === 'browser' && SHOW_VAULT) {
               return [
                 entry,
                 {

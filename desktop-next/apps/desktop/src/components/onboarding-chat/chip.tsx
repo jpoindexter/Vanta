@@ -32,7 +32,7 @@ export function Chip({
         'flex items-center text-left',
         variant === 'pill'
           ? 'max-w-full shrink-0 gap-1.5 rounded-full px-3 py-1.5 text-[12px] whitespace-normal wrap-anywhere'
-          : 'min-w-0 gap-2.5 rounded-[6px] px-3 py-2.5 text-[13px]',
+          : 'min-w-0 gap-2.5 rounded-md px-3 py-2.5 text-[13px]',
         selectableClass(on),
         className
       )}

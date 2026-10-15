@@ -31,7 +31,7 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       className={cn(
-        'inline-grid w-fit auto-cols-fr grid-flow-col gap-0.5 rounded-[5px] bg-(--ui-bg-tertiary) p-0.5',
+        'inline-grid w-fit auto-cols-fr grid-flow-col gap-0.5 rounded-md bg-(--ui-bg-tertiary) p-0.5',
         disabled && 'opacity-50',
         className
       )}
@@ -43,7 +43,7 @@ export function SegmentedControl<T extends string>({
           <button
             aria-pressed={active}
             className={cn(
-              'flex min-w-0 items-center justify-center gap-1 rounded-[3px] px-2.5 py-0.5 text-[0.75rem] font-medium whitespace-nowrap transition-colors disabled:cursor-default',
+              'flex min-w-0 items-center justify-center gap-1 rounded-sm px-2.5 py-0.5 text-[0.75rem] font-medium whitespace-nowrap transition-colors disabled:cursor-default',
               active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             )}
             disabled={disabled}

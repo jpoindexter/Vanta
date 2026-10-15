@@ -154,7 +154,7 @@ export function ResizableMarkdownTable({ children, className, ...props }: Compon
   }, [])
 
   return (
-    <div className="aui-md-table my-2 max-w-full overflow-x-auto rounded-[0.375rem] border border-(--ui-stroke-tertiary)">
+    <div className="aui-md-table my-2 max-w-full overflow-x-auto rounded-md border border-(--ui-stroke-tertiary)">
       <table
         className={cn(
           'm-0 w-full min-w-[18rem] border-collapse text-[length:var(--conversation-text-font-size)] [&_tr]:border-b [&_tr]:border-(--ui-stroke-tertiary) last:[&_tr]:border-0',

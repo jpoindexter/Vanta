@@ -1,6 +1,6 @@
 .tooltip-bubble {
   max-width: min(24rem, calc(100vw - 1.5rem), var(--radix-tooltip-content-available-width, 24rem));
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   text-align: start;
   overflow-wrap: anywhere;
   white-space: normal;
