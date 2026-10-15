@@ -14,6 +14,7 @@ import { startWithPortRetry } from './launch-retry'
 import { registerNativeHandlers } from './native-handlers'
 import { registerProjectHandlers } from './project-handlers'
 import { createRequestBridge } from './request-bridge'
+import { wireReset } from './reset-wiring'
 import { resolveRuntimeRoot } from './runtime-root'
 import { ServerHost } from './server-host'
 import { registerShellHandlers } from './shell-handlers'
@@ -159,6 +160,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
   })
 
   registerMachineProfile()
+  wireReset({ ipc, log: log.line, restartRuntime: () => serverHost.start(launchInput(projectRoot)), serverHost })
 
   registerNativeNotifications({
     focusWindow: window => {

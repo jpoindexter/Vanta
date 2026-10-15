@@ -14,6 +14,7 @@ export type SettingsView =
   | 'notifications'
   | 'plugins'
   | 'providers'
+  | 'reset'
   | 'sessions'
   | 'vault'
   | `config:${string}`

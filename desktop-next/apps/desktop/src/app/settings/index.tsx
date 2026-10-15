@@ -60,6 +60,8 @@ import {
 } from './plugin-settings'
 import { SettingsBreadcrumbContext } from './primitives'
 import { PROVIDER_VIEWS, ProvidersSettings, type ProviderView } from './providers-settings'
+import { ResetSettings } from './reset-settings'
+import { RESET_COPY } from './reset-copy'
 import { SessionsSettings } from './sessions-settings'
 import { SettingsSubpageHeader } from './subpage-navigation'
 import { resolveSettingsSubpage, settingsSubpageIcon, settingsSubpages } from './subpages'
@@ -80,6 +82,7 @@ const SETTINGS_VIEWS: readonly SettingsViewId[] = [
   'notifications',
   'sessions',
   'plugins',
+  'reset',
   'about'
 ]
 
@@ -92,7 +95,8 @@ const SUBPAGE_VIEWS: Partial<Record<SettingsViewId, ComponentType<{ subpage?: st
   connections: GatewaySettings,
   gateway: GatewaySettings,
   keybinds: KeybindSettings,
-  notifications: NotificationsSettings
+  notifications: NotificationsSettings,
+  reset: ResetSettings
 }
 
 export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: SettingsPageProps) {
@@ -365,8 +369,15 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
             onSelect: () => plugins.open(null)
           },
           {
-            active: activeView === 'about',
+            active: activeView === 'reset',
             gapBefore: true,
+            icon: RefreshCw,
+            id: 'reset',
+            label: RESET_COPY.nav,
+            onSelect: () => setActiveView('reset')
+          },
+          {
+            active: activeView === 'about',
             icon: Info,
             id: 'about',
             label: t.settings.nav.about,

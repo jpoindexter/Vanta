@@ -98,6 +98,8 @@ function connectionAndBoot({ ipc }: BridgeEnv) {
     getGatewayWsUrlFor: () => Promise.resolve(LOCAL_GATEWAY_URL),
     onBackendExit: (callback: (payload: unknown) => void) => subscribe(ipc, CH.backendExit, callback),
     recycleBackend: () => ipc.invoke(CH.backendRecycle),
+    resetPlan: (scope: string) => ipc.invoke(CH.resetPlan, scope),
+    resetRun: (scope: string, confirm?: string) => ipc.invoke(CH.resetRun, scope, confirm),
     onBootProgress: (callback: (payload: unknown) => void) => subscribe(ipc, CH.bootProgress, callback),
     probeLocalBackend: () => Promise.resolve({ bootstrapNeeded: false }),
     revalidateConnection: () => Promise.resolve({ ok: true, rebuilt: false })
