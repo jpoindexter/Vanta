@@ -5,6 +5,7 @@ import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
 import { configRoutes } from './shim-config'
 import { cronRoutes } from './shim-cron'
+import { hermesOnlyRoutes } from './shim-hermes-only'
 import { localEndpointRoutes } from './shim-local-endpoint'
 import { mcpRoutes } from './shim-mcp'
 import { messagingRoutes } from './shim-messaging'
@@ -22,6 +23,7 @@ const ROUTES: readonly ShimRoute[] = [
   ...localEndpointRoutes,
   ...messagingRoutes,
   ...mcpRoutes,
+  ...hermesOnlyRoutes,
   ...profileRoutes,
   ...cronRoutes,
   ...sessionRoutes,

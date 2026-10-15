@@ -72,6 +72,7 @@ import {
 } from '@/store/updates'
 import type { StatusResponse, UsageStats } from '@/types/hermes'
 
+import { SHOW_WEBHOOKS } from '../../settings/hermes-extras'
 import { CRON_ROUTE, WEBHOOKS_ROUTE } from '../../routes'
 import type { StatusbarItem } from '../statusbar-controls'
 
@@ -573,14 +574,18 @@ export function useStatusbarItems({
         toggleLabel: copy.cron,
         variant: 'action'
       },
-      {
-        icon: <Globe className="size-3" />,
-        id: 'webhooks',
-        label: copy.webhooks,
-        to: WEBHOOKS_ROUTE,
-        toggleLabel: copy.webhooks,
-        variant: 'action'
-      }
+      ...(SHOW_WEBHOOKS
+        ? [
+            {
+              icon: <Globe className="size-3" />,
+              id: 'webhooks',
+              label: copy.webhooks,
+              to: WEBHOOKS_ROUTE,
+              toggleLabel: copy.webhooks,
+              variant: 'action' as const
+            }
+          ]
+        : [])
     ],
     [
       agentsOpen,

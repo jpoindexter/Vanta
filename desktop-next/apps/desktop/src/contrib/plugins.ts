@@ -13,6 +13,7 @@
  *    — the agent's/user's doors, watched + hot-reloaded by the runtime loader.
  */
 
+import { isHiddenBundledPlugin } from '../app/settings/hermes-extras'
 import { trackGatewayEventDisposers } from './events'
 import { createPluginContext, type HermesPlugin } from './plugin'
 import { pluginActive, publishPlugin } from './plugins-store'
@@ -33,7 +34,7 @@ export function discoverBundledPlugins(): void {
 
   loaded = true
 
-  for (const [path, mod] of Object.entries(modules)) {
+  for (const [path, mod] of Object.entries(modules).filter(([, entry]) => !isHiddenBundledPlugin(entry.default?.id ?? ''))) {
     const plugin = mod.default
 
     if (!plugin?.id || typeof plugin.register !== 'function') {

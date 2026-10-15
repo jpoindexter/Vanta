@@ -1,24 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
-import { CONFIG_SUBPAGES, configSubpageForField } from './config-subpages'
-import { isHiddenModelSubpage, SHOW_HERMES_MODEL_EXTRAS } from './hermes-extras'
+import { isHiddenBundledPlugin, isHiddenModelSubpage, SHOW_KANBAN, SHOW_WEBHOOKS } from './hermes-extras'
 
-describe('Model settings sub-pages Vanta does not serve', () => {
-  it('stay hidden by default', () => {
-    expect(SHOW_HERMES_MODEL_EXTRAS).toBe(false)
-    expect(isHiddenModelSubpage('auxiliary')).toBe(true)
+describe('Hermes surfaces Vanta has no backend for stay out of the app', () => {
+  it('keeps the flags off', () => {
+    expect([SHOW_KANBAN, SHOW_WEBHOOKS]).toEqual([false, false])
+  })
+
+  it('hides the Kanban bundled plugin and nothing else', () => {
+    expect(isHiddenBundledPlugin('kanban')).toBe(true)
+    expect(isHiddenBundledPlugin('hermes-bots')).toBe(false)
+  })
+
+  it('still hides the auxiliary and mixture-of-agents settings pages', () => {
     expect(isHiddenModelSubpage('moa')).toBe(true)
-  })
-
-  it('never hides the pages Vanta does serve', () => {
-    for (const id of ['main', 'fallbacks', undefined]) {
-      expect(isHiddenModelSubpage(id)).toBe(false)
-    }
-  })
-
-  it('are missing from the Model sub-page list', () => {
-    expect(CONFIG_SUBPAGES.model.map(page => page.id)).toEqual(['main', 'fallbacks'])
-    expect(configSubpageForField('model', 'auxiliary.vision.model')).toBeUndefined()
-    expect(configSubpageForField('model', 'fallback_providers')).toBe('fallbacks')
+    expect(isHiddenModelSubpage('model')).toBe(false)
   })
 })
