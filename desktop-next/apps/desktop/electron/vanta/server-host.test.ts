@@ -249,27 +249,57 @@ describe('ServerHost', () => {
     await expect(host.baseUrlWhenReady()).resolves.toBe('http://127.0.0.1:7802')
   })
 
-  it('tells the shell when the server dies on its own, but not when it was stopped on purpose', async () => {
+  it('starts the runtime again after it dies on its own and tells nobody', async () => {
+    const crashing = fakeServer(7801)
+    const { boot, host, launch, onUnexpectedExit } = setup([crashing, fakeServer(7802)])
+    await host.start(input)
+
+    crashing.exit({ code: 1, signal: null })
+    await settle()
+    await settle()
+
+    expect(launch).toHaveBeenCalledTimes(2)
+    expect(onUnexpectedExit).not.toHaveBeenCalled()
+    expect(boot.fail).not.toHaveBeenCalled()
+    await expect(host.baseUrlWhenReady()).resolves.toBe('http://127.0.0.1:7802')
+  })
+
+  it('tells the shell when the server dies and cannot be started again', async () => {
     const crashing = fakeServer(7801)
     const { boot, host, onUnexpectedExit } = setup([crashing])
     await host.start(input)
 
     crashing.exit({ code: 1, signal: null })
-    await Promise.resolve()
-    await Promise.resolve()
+    await settle()
+    await settle()
 
     expect(onUnexpectedExit).toHaveBeenCalledWith({ code: 1, signal: null })
-    expect(boot.fail).toHaveBeenCalledWith('The Vanta runtime exited (1).')
+    expect(boot.fail).toHaveBeenCalled()
+  })
 
+  it('stops restarting a runtime that keeps dying and then tells the shell', async () => {
+    const servers = [fakeServer(7801), fakeServer(7802), fakeServer(7803), fakeServer(7804)]
+    const { host, onUnexpectedExit } = setup([...servers])
+    await host.start(input)
+
+    for (const server of servers.slice(0, 4)) {
+      server.exit({ code: 1, signal: null })
+      await settle()
+      await settle()
+    }
+
+    expect(onUnexpectedExit).toHaveBeenCalledOnce()
+  })
+
+  it('does not report a server that was stopped on purpose', async () => {
     const stopped = fakeServer(7802)
-    const second = setup([stopped])
-    await second.host.start(input)
-    second.host.stop()
+    const { host, onUnexpectedExit } = setup([stopped])
+    await host.start(input)
+    host.stop()
     stopped.exit({ code: null, signal: 'SIGTERM' })
-    await Promise.resolve()
-    await Promise.resolve()
+    await settle()
 
-    expect(second.onUnexpectedExit).not.toHaveBeenCalled()
+    expect(onUnexpectedExit).not.toHaveBeenCalled()
   })
 
   it('stopAndWait waits for the running server tree and does not report it as a crash', async () => {

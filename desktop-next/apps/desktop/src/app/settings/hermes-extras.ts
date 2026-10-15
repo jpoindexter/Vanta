@@ -26,4 +26,10 @@ export const SHOW_KANBAN = false
 // for approval before it uses one, so the page has no backend and can only show a load error.
 export const SHOW_VAULT = false
 
+// Context & compression holds Hermes' prompt-compression knobs (`context.*`, `compression.*`). Vanta's server has none
+// of those keys, so the page renders empty. The Memory page keeps its Persistent sub-page.
+export const SHOW_CONTEXT_SETTINGS = false
+
+export const isHiddenMemorySubpage = (id: string | undefined): boolean => !SHOW_CONTEXT_SETTINGS && id === 'context'
+
 export const isHiddenBundledPlugin = (id: string): boolean => !SHOW_KANBAN && id === 'kanban'
