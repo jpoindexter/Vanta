@@ -38,14 +38,14 @@ export function orderConnectorPicks<T extends { connector: string; enabled?: boo
     })
 }
 
-/** Vanta blue: the default accent. Picking it clears any custom accent. */
-export const DEFAULT_ACCENT = '#2c67c5'
+/** Vanta's own accent is neutral ink, the theme's selection colour. Picking it clears any custom accent. */
+export const DEFAULT_ACCENT = '#202024'
 
 export const accentsFor = (dark: boolean): Array<{ hex: string; name: string }> => [
   { hex: dark ? '#ffffff' : '#000000', name: 'Mono' },
   { hex: '#2ea043', name: 'GitHub green' },
   { hex: '#00d5ff', name: 'Cyber cyan' },
-  { hex: DEFAULT_ACCENT, name: 'Vanta blue' },
+  { hex: DEFAULT_ACCENT, name: 'Vanta ink' },
   { hex: '#e0218a', name: 'Barbie pink' },
   { hex: '#ff073a', name: 'Electric red' },
   { hex: '#ff6a00', name: 'Safety orange' }

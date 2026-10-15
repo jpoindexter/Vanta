@@ -51,7 +51,6 @@
 
 .vp .vp-btn:focus-visible,
 .vp-field:focus-visible,
-.vp-composer textarea:focus-visible,
 .vp-urlbar:focus-visible {
   outline: 2px solid var(--vp-focus);
   outline-offset: 2px;
@@ -129,10 +128,10 @@
 }
 
 .vp-send {
-  background: var(--dt-midground);
-  border: 1px solid var(--dt-midground);
+  background: var(--vp-ink);
+  border: 1px solid var(--vp-ink);
   border-radius: 50%;
-  color: var(--dt-midground-foreground);
+  color: var(--vp-bg);
   cursor: pointer;
   display: inline-grid;
   height: 32px;
