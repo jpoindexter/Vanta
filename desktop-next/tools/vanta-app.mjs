@@ -82,10 +82,11 @@ function freePort() {
 }
 
 /** Start the app. `hidden` (default) keeps the window off-screen and inactive. */
-export async function launchVanta({ hidden = true, width = 1440, height = 900, seed, extraEnv } = {}) {
+export async function launchVanta({ hidden = true, width = 1440, height = 900, seed, extraEnv, reuseRoot } = {}) {
   const { _electron } = require("playwright-core");
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-desktop-"));
-  const project = makeProject(root);
+  // `reuseRoot` relaunches on an earlier run's folders (quit-and-reopen proofs); the caller removes them.
+  const root = reuseRoot ?? fs.mkdtempSync(path.join(os.tmpdir(), "vanta-desktop-"));
+  const project = reuseRoot ? path.join(root, "project", "acme-site") : makeProject(root);
   // Seed before the app starts: files under the sandbox's VANTA_HOME or project that the first screen should already show.
   if (seed) await seed({ project, root, vantaHome: path.join(root, "vanta-home") });
   const mock = await startMockOpenAI({ imagePath: path.join(project, "pixel.png") });
@@ -140,7 +141,7 @@ export async function launchVanta({ hidden = true, width = 1440, height = 900, s
     async close() {
       await app.close().catch(() => undefined);
       await mock.close();
-      fs.rmSync(root, { recursive: true, force: true });
+      if (!reuseRoot && !globalThis.__vantaKeepRoot) fs.rmSync(root, { recursive: true, force: true });
     },
   };
 }
