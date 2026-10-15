@@ -150,6 +150,7 @@ export const SURFACE_MANIFEST: SurfaceManifest = {
   setTranslucency: 'send',
   setKeepAwake: 'send',
   minimizeToTray: { get: 'async', set: 'async', onChanged: 'event' },
+  agentDot: { get: 'async', set: 'async', onChanged: 'event', feed: 'send' },
   setDisableF12: 'send',
   setF12ShortcutActive: 'send',
   onF12Shortcut: 'event',

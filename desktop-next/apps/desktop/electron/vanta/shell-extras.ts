@@ -9,6 +9,8 @@ import { registerMiniWindow } from "./mini-window";
 import type { MiniWindowController } from "./mini-window-controller";
 import type { IpcLike } from "./native-handlers";
 import { type QuickEntryHost, registerQuickEntry } from "./quick-entry-host";
+import { registerAgentDot } from "./agent-dot";
+import { openDotWindow } from "./agent-dot-window";
 import { registerTraySetting } from "./tray-setting";
 import { createTrayHost, readTrayState, type TrayHost } from "./vanta-tray";
 import { lockNavigation, secureWebPreferences } from "./window-host";
@@ -164,8 +166,22 @@ export function registerShellExtras(deps: ExtrasDeps) {
     log: deps.log
   });
 
+  const dot = registerAgentDot({
+    broadcast,
+    defaultPosition: () => {
+      const area = screen.getPrimaryDisplay().workArea;
+      return { x: area.x + area.width - 56 - 24, y: area.y + area.height - 56 - 24 };
+    },
+    file: path.join(userData, "agent-dot.json"),
+    focusMain: deps.showMain,
+    ipc: deps.ipc,
+    log: deps.log,
+    open: openDotWindow
+  });
+
   quick.apply();
   app.on("will-quit", () => {
+    dot.dispose();
     quick.dispose();
     tray?.dispose();
   });

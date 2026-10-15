@@ -122,6 +122,10 @@ export const CH = {
   trayGet: 'vanta:minimize-to-tray:get',
   traySet: 'vanta:minimize-to-tray:set',
   trayChanged: 'vanta:minimize-to-tray:changed',
+  dotGet: 'vanta:agent-dot:get',
+  dotSet: 'vanta:agent-dot:set',
+  dotChanged: 'vanta:agent-dot:changed',
+  dotFeed: 'vanta:agent-dot:feed',
   // Approval-gated terminal (no pty)
   terminalStart: 'vanta:terminal:start',
   terminalWrite: 'vanta:terminal:write',
