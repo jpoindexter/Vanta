@@ -1,4 +1,4 @@
-// Boots the built "Vanta Next.app" in a sandbox and proves the real path: window, real Vanta server, kernel online,
+// Boots the built "Vanta.app" in a sandbox and proves the real path: window, real Vanta server, kernel online,
 // one chat turn answered by the canned local model, screenshots, timings. Everything it starts is killed on exit.
 //   node tools/prove-packaged.mjs [--app <path>] [--runs 2] [--out docs/proofs/packaging]
 import fs from "node:fs";
@@ -14,10 +14,10 @@ const require = createRequire(import.meta.url);
 const next = path.resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
 const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
-const appPath = path.resolve(option("--app", path.join(next, "apps", "desktop", "release", "mac-arm64", "Vanta Next.app")));
+const appPath = path.resolve(option("--app", path.join(next, "apps", "desktop", "release", "mac-arm64", "Vanta.app")));
 const outDir = path.resolve(option("--out", path.join(next, "docs", "proofs", "packaging")));
 const runs = Number(option("--runs", "2"));
-const binary = path.join(appPath, "Contents", "MacOS", "Vanta Next");
+const binary = path.join(appPath, "Contents", "MacOS", "Vanta");
 const hiddenWindow = path.join(import.meta.dirname, "hidden-window.cjs");
 const REPLY = "Hello from the proof model";
 const ms = (start) => Math.round(performance.now() - start);

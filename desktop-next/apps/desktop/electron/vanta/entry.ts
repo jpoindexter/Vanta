@@ -31,7 +31,7 @@ import {
   wireWindowEvents
 } from './window-host'
 
-app.setName('Vanta Next')
+app.setName('Vanta')
 
 const DEV_SERVER = process.env.VANTA_DESKTOP_DEV_SERVER ?? process.env.HERMES_DESKTOP_DEV_SERVER
 const argv = process.argv.slice(app.isPackaged ? 1 : 2)

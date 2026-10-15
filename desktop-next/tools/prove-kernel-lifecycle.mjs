@@ -3,7 +3,7 @@
 // that belongs to the run, ends the app, and counts again. A process "belongs to the run" only if it is a
 // descendant of the pid this script launched, or its command line contains this run's unique sandbox dir or
 // the app path passed with --app. Nothing else is ever inspected, counted or signalled.
-//   node tools/prove-kernel-lifecycle.mjs --app <Vanta Next.app> [--paths quit,sigterm,sigkill] [--out file.json]
+//   node tools/prove-kernel-lifecycle.mjs --app <Vanta.app> [--paths quit,sigterm,sigkill] [--out file.json]
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -16,10 +16,10 @@ const require = createRequire(import.meta.url);
 const next = path.resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
 const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
-const appPath = path.resolve(option("--app", path.join(next, "apps", "desktop", "release", "mac-arm64", "Vanta Next.app")));
+const appPath = path.resolve(option("--app", path.join(next, "apps", "desktop", "release", "mac-arm64", "Vanta.app")));
 const paths = option("--paths", "quit,sigterm,sigkill").split(",");
 const outFile = option("--out", "");
-const binary = path.join(appPath, "Contents", "MacOS", "Vanta Next");
+const binary = path.join(appPath, "Contents", "MacOS", "Vanta");
 const hiddenWindow = path.join(import.meta.dirname, "hidden-window.cjs");
 const SETTLE_MS = 12_000;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

@@ -118,7 +118,7 @@ test('nonstable runtime pins userData before the app name can change', async ():
 })
 
 test.each([
-  [undefined, 'Vanta Next', 'vanta-next', 'latest', 'canary'],
+  [undefined, 'Vanta', 'vanta-next', 'latest', 'canary'],
   ['bundled', 'Vanta Bundled', 'vanta-next', 'latest', 'canary'],
   ['light', 'Vanta Light', 'vanta-light', 'light', 'light-canary']
 ] as const)(
@@ -300,7 +300,7 @@ test('store carries the Partner Center MSIX identity and no other variant does',
   }
 })
 
-test('the default build is displayed as Vanta Next and keeps its own userData beside the current Vanta', async (): Promise<void> => {
+test('the default build is displayed as Vanta and keeps its own userData apart from the earlier Vanta app', async (): Promise<void> => {
   const identity: ProductIdentity = await identityForVariant(undefined)
   const runtime: { applyDesktopIdentity: typeof applyDesktopIdentity } = await import('./product-identity')
   const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'identity-vanta-'))
@@ -321,8 +321,8 @@ test('the default build is displayed as Vanta Next and keeps its own userData be
       identity
     )
 
-    assert.equal(applied, 'Vanta Next')
-    assert.equal(name, 'Vanta Next')
+    assert.equal(applied, 'Vanta')
+    assert.equal(name, 'Vanta')
     assert.equal(paths.userData, path.join(root, 'VantaNext'))
     assert.notEqual(paths.userData, path.join(root, 'Vanta'))
   } finally {
