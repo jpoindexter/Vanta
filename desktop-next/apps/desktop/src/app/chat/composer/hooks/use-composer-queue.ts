@@ -9,6 +9,7 @@ import { type ComposerAttachment, freezeComposerTransportPayload } from '@/store
 import { resetBrowseState } from '@/store/composer-input-history'
 import {
   $parkedQueueSessions,
+  $restoredQueueSessions,
   $queuedPromptsBySession,
   clearQueuedPromptDrainFailures,
   enqueueQueuedPrompt,
@@ -143,6 +144,8 @@ export function useComposerQueue({
   // is fine; the auto-drain effect below reads it as a gate.
   const parkedSessions = useStore($parkedQueueSessions)
   const queueParked = Boolean(activeQueueSessionKey && parkedSessions[activeQueueSessionKey])
+  const restoredSessions = useStore($restoredQueueSessions)
+  const queueRestored = Boolean(activeQueueSessionKey && restoredSessions[activeQueueSessionKey])
   const sessionsLoading = useStore($sessionsLoading)
 
   const [queueEdit, setQueueEdit] = useState<QueueEditState | null>(null)
@@ -736,6 +739,7 @@ export function useComposerQueue({
     queueCurrentDraft,
     queueEdit,
     queueParked,
+    queueRestored,
     queuedPrompts,
     sendQueuedNow,
     steerQueuedNow,

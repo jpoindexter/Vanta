@@ -348,6 +348,7 @@ export function ChatBar({
     queueCurrentDraft,
     queueEdit,
     queueParked,
+    queueRestored,
     queuedPrompts,
     sendQueuedNow,
     steerQueuedNow,
@@ -1391,6 +1392,7 @@ export function ChatBar({
               onSendNow={id => void sendQueuedNow(id)}
               onSteerNow={id => void steerQueuedNow(id)}
               parked={queueParked}
+              restored={queueRestored}
               waiting={serverQueue.waiting && !busy}
             />
           ) : null}

@@ -213,6 +213,8 @@ export const $queuedPromptsBySession = atom<QueueState>(load())
 export const simulateComposerQueueReloadForTests = (): void => {
   frozenQueuedTransportById.clear()
   $queuedPromptsBySession.set(load())
+  $restoredQueueSessions.set(restoredAtLaunch())
+  $parkedQueueSessions.set({ ...$restoredQueueSessions.get() })
 }
 
 /**
@@ -222,7 +224,18 @@ export const simulateComposerQueueReloadForTests = (): void => {
  * queue all unpark. Deliberately in-memory only: a fresh app process starts
  * unparked, so restored-entry semantics stay a separate concern.
  */
-export const $parkedQueueSessions = atom<Record<string, true>>({})
+/** Sessions whose saved messages were already in storage when this window opened. A person decides whether they still
+ *  want them sent: they wait, paused, until Resume (or Send now on one row). */
+const restoredAtLaunch = (): Record<string, true> =>
+  Object.fromEntries(
+    Object.entries(load())
+      .filter(([, queue]) => queue.length > 0)
+      .map(([sid]) => [sid, true as const])
+  )
+
+export const $restoredQueueSessions = atom<Record<string, true>>(restoredAtLaunch())
+
+export const $parkedQueueSessions = atom<Record<string, true>>({ ...$restoredQueueSessions.get() })
 
 const setParked = (sid: string, parked: boolean) => {
   const current = $parkedQueueSessions.get()
@@ -237,9 +250,19 @@ const setParked = (sid: string, parked: boolean) => {
     next[sid] = true
   } else {
     delete next[sid]
+    forgetRestored(sid)
   }
 
   $parkedQueueSessions.set(next)
+}
+
+const forgetRestored = (sid: string) => {
+  const restored = $restoredQueueSessions.get()
+
+  if (restored[sid]) {
+    const { [sid]: _resumed, ...rest } = restored
+    $restoredQueueSessions.set(rest)
+  }
 }
 
 const current = (): QueueState => (storageCurrent ? load() : $queuedPromptsBySession.get())
