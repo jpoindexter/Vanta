@@ -1,4 +1,4 @@
-// Installs the current build as "Vanta Next.app" in ~/Applications and adds a `vanta-next` command.
+// Installs the current build as "Vanta.app" in ~/Applications and adds a `vanta-next` command.
 //
 //   npm run vanta:install            package first, then install
 //   npm run vanta:install -- --no-package   install the app already built under apps/desktop/release

@@ -1,4 +1,4 @@
-// Puts the packaged "Vanta Next.app" where a person can open it, next to the app they already use.
+// Puts the packaged "Vanta.app" where a person can open it.
 // Touches only the destination app folder and one launcher file; never /Applications/Vanta.app,
 // ~/.vanta or the `vanta` command.
 import { execFileSync } from "node:child_process";
@@ -14,7 +14,7 @@ export function launcherScript(appPath) {
     LAUNCHER_MARKER,
     `APP="${appPath}"`,
     'if [ ! -d "$APP" ]; then',
-    `  echo 'Vanta Next is not installed at '"$APP"'. Run: npm run vanta:install (in desktop-next).' >&2`,
+    `  echo 'Vanta is not installed at '"$APP"'. Run: npm run vanta:install (in desktop-next).' >&2`,
     "  exit 1",
     "fi",
     'exec open "$APP" --args "$@"',
