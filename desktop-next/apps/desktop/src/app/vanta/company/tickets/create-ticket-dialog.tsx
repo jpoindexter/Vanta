@@ -7,6 +7,7 @@ import { ActionStatus } from '../ui/action-status'
 import { CompanyDialog } from '../ui/dialog'
 import { Field } from '../ui/field'
 import { FormActions } from '../ui/form-actions'
+import { VcSelect } from '../ui/vc-select'
 import type { ActionState } from '../use-company-action'
 
 interface CreateTicketDialogProps {
@@ -90,19 +91,13 @@ function ReviewAndAssign({ busy, draft, set, workers }: FieldsProps & { workers:
         <span>I review the work before the ticket closes</span>
       </label>
       <Field label="Assign to (optional)">
-        <select
-          className="vc-input"
+        <VcSelect
           disabled={busy}
-          onChange={event => set('workerId', event.target.value)}
+          emptyLabel="Leave unassigned"
+          onChange={value => set('workerId', value)}
+          options={workers.map(worker => ({ label: worker.name, value: worker.id }))}
           value={draft.workerId}
-        >
-          <option value="">Leave unassigned</option>
-          {workers.map(worker => (
-            <option key={worker.id} value={worker.id}>
-              {worker.name}
-            </option>
-          ))}
-        </select>
+        />
       </Field>
     </>
   )

@@ -4,6 +4,7 @@ import type { CompanyWorker, TicketDetail } from '@/api/vanta-company-schemas'
 
 import { VpButton } from '../../ui/button'
 import { useCompany } from '../company-context'
+import { VcSelect } from '../ui/vc-select'
 import type { ActionState } from '../use-company-action'
 
 import { closeGate } from './close-gate'
@@ -30,19 +31,13 @@ function AssignControl({ action, detail, workers }: Props & { workers: CompanyWo
     <div className="vc-assign">
       <label className="vc-field">
         <span className="vc-field__label">Worker</span>
-        <select
-          className="vc-input"
+        <VcSelect
           disabled={action.busy}
-          onChange={event => setWorkerId(event.target.value)}
+          emptyLabel="Choose a worker"
+          onChange={setWorkerId}
+          options={workers.map(worker => ({ label: worker.name, value: worker.id }))}
           value={workerId}
-        >
-          <option value="">Choose a worker</option>
-          {workers.map(worker => (
-            <option key={worker.id} value={worker.id}>
-              {worker.name}
-            </option>
-          ))}
-        </select>
+        />
       </label>
       <VpButton disabled={action.busy || !workerId || workerId === detail.workerId} onClick={() => void assign()}>
         {detail.workerId ? 'Reassign' : 'Assign'}

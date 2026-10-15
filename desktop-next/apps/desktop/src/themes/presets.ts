@@ -122,18 +122,17 @@ export const githubTheme: DesktopTheme = {
 
 /**
  * Vanta — the default identity. Neutral grey ramp (no warm tint), inverted per
- * mode, with violet as the ONLY accent: focus ring, links, selection, send.
+ * mode, with blue (Codex's own ring colour) as the ONLY accent: keyboard focus ring, links, selection.
  * `primary` is the inverted near-black / near-white button fill, so the accent
  * stays in `midground` / `ring` and is never a button fill. `composerRing` is
  * the neutral foreground: styles.css mixes it at 7-18% into resting input and
- * composer borders, which must stay grey (see styles/vanta.css for the violet
- * focus states).
- * Dark violet is the same hue lifted to clear 3:1 on the near-black surface.
+ * composer borders, which must stay grey (see styles/vanta.css for focus states).
+ * Dark blue is the same hue lifted to clear 3:1 on the near-black surface.
  */
 export const vantaTheme: DesktopTheme = {
   name: 'vanta',
   label: 'Vanta',
-  description: 'Neutral greys with a single violet accent',
+  description: 'Neutral greys with a single blue accent',
   colors: {
     background: '#ffffff',
     foreground: '#202024',
@@ -151,8 +150,8 @@ export const vantaTheme: DesktopTheme = {
     accentForeground: '#202024',
     border: '#e2e2e5',
     input: '#ffffff',
-    ring: '#7c3aed',
-    midground: '#7c3aed',
+    ring: '#2c67c5',
+    midground: '#2c67c5',
     midgroundForeground: '#ffffff',
     composerRing: '#202024',
     destructive: '#d92d20',
@@ -179,8 +178,8 @@ export const vantaTheme: DesktopTheme = {
     accentForeground: '#ececee',
     border: '#2e2e32',
     input: '#161616',
-    ring: '#9d6bf5',
-    midground: '#9d6bf5',
+    ring: '#3a83f7',
+    midground: '#3a83f7',
     midgroundForeground: '#161616',
     composerRing: '#ececee',
     destructive: '#f0554a',

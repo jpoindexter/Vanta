@@ -7,7 +7,7 @@ import { installUserTheme } from './user-themes'
 
 /**
  * Save an accent as the live profile's theme: a Vanta copy retinted to `accent`, installed as a user theme.
- * `null` or Vanta violet returns to the built-in Vanta theme. Clears the unsaved `$accentOverride` preview.
+ * `null` or Vanta blue returns to the built-in Vanta theme. Clears the unsaved `$accentOverride` preview.
  * An unparseable colour changes nothing.
  */
 export function persistAccent(accent: null | string): void {

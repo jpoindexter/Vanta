@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { renderCompany } from '../test-utils'
+import { chooseValue, renderCompany } from '../test-utils'
 
 afterEach(cleanup)
 
@@ -99,7 +99,7 @@ describe('Hire worker: provider default', () => {
     const dialog = await screen.findByRole('dialog')
 
     expect(await within(dialog).findByText(/Runs on b-2/)).toBeTruthy()
-    expect((within(dialog).getByLabelText('Provider') as HTMLSelectElement).value).toBe('second')
+    expect(within(dialog).getByLabelText('Provider').textContent).toContain('Second')
   })
 })
 
@@ -108,7 +108,7 @@ describe('Run-starting writes on CLI workers', () => {
     const { server } = await renderCompany({ initial: { tab: 'tickets', ticketId: 'T-5' } })
 
     server.state.company.workers[1].runtime = { adapter: 'cli:codex', kind: 'codex', model: null }
-    fireEvent.change(await screen.findByLabelText('Worker'), { target: { value: 'designer' } })
+    await chooseValue(await screen.findByLabelText('Worker'), 'designer')
     fireEvent.click(screen.getByRole('button', { name: 'Assign' }))
 
     const banner = await screen.findByRole('region', { name: 'Waiting for your decision' })

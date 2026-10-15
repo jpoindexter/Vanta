@@ -3,7 +3,7 @@
  *
  * Every number below is a design-contract value from the approved wireframe
  * (desktop-next/docs/wireframe). Colours are tokens only: the surface is neutral,
- * violet appears on focus rings, links and the send button, and primary buttons
+ * blue appears on keyboard focus rings and links, and primary buttons
  * are ink-filled. Component classes are `vp-*`; measured parts carry a
  * `data-vp` hook that tools/chat-parity reads.
  */
@@ -46,8 +46,9 @@
   --message-text-indent: 0px;
 
   --composer-shell-pad-block-end: 12px;
-  --composer-surface-pad-x: 0px;
-  --composer-surface-pad-y: 0px;
+  /* Inset so the controls row clears the rounded corner instead of being clipped by it. */
+  --composer-surface-pad-x: 6px;
+  --composer-surface-pad-y: 6px;
   /* The wireframe leaves a 5.3px gap under the textarea before the tools row. */
   --composer-row-gap: 5.29px;
   --composer-control-gap: 6px;
@@ -456,6 +457,13 @@
   width: var(--vp-send);
   height: var(--vp-send);
   border-radius: 50%;
+  /* Codex: the send control is the inverted primary (ink on paper), never the accent. */
+  background-color: var(--vp-ink);
+  color: var(--vp-bg);
+}
+
+[data-vp='composer-send']:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--vp-ink) 88%, var(--vp-bg));
 }
 
 .vp-chip {

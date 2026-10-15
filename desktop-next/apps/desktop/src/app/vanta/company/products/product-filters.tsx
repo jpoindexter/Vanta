@@ -1,6 +1,7 @@
 import type { CompanyWorker, TicketSummary } from '@/api/vanta-company-schemas'
 
 import { Field } from '../ui/field'
+import { VcSelect } from '../ui/vc-select'
 
 export interface ProductFilterValues {
   ticket: string
@@ -21,32 +22,20 @@ export function ProductFilters({ onChange, tickets, values, workers }: ProductFi
   return (
     <div className="vc-filters">
       <Field label="Worker">
-        <select
-          className="vc-input"
-          onChange={event => onChange({ ...values, worker: event.target.value })}
+        <VcSelect
+          emptyLabel="All workers"
+          onChange={worker => onChange({ ...values, worker })}
+          options={workers.map(worker => ({ label: worker.name, value: worker.id }))}
           value={values.worker}
-        >
-          <option value="">All workers</option>
-          {workers.map(worker => (
-            <option key={worker.id} value={worker.id}>
-              {worker.name}
-            </option>
-          ))}
-        </select>
+        />
       </Field>
       <Field label="Ticket">
-        <select
-          className="vc-input"
-          onChange={event => onChange({ ...values, ticket: event.target.value })}
+        <VcSelect
+          emptyLabel="All tickets"
+          onChange={ticket => onChange({ ...values, ticket })}
+          options={withProducts.map(ticket => ({ label: `${ticket.id}: ${ticket.title}`, value: ticket.id }))}
           value={values.ticket}
-        >
-          <option value="">All tickets</option>
-          {withProducts.map(ticket => (
-            <option key={ticket.id} value={ticket.id}>
-              {`${ticket.id}: ${ticket.title}`}
-            </option>
-          ))}
-        </select>
+        />
       </Field>
     </div>
   )
