@@ -21,6 +21,8 @@ interface QueuePanelProps extends Omit<QueueRowHandlers, "onSendNow"> {
   /** Lift a park (explicit Stop/Esc halt) and let the queue flow again. */
   onResume: () => void;
   onSendNow: (id: string) => void;
+  /** The paused messages were saved before this window opened, so the note says so. */
+  restored?: boolean;
   /** Saved messages are waiting and nothing is running (for example after an app restart). */
   waiting?: boolean;
 }
@@ -130,6 +132,7 @@ export const QueuePanel: FC<QueuePanelProps> = ({
   onClearError,
   onResume,
   onRunQueue,
+  restored,
   waiting,
   ...rows
 }) => {
@@ -163,7 +166,11 @@ export const QueuePanel: FC<QueuePanelProps> = ({
         <NoteRow
           action={{ label: "Resume", onClick: onResume }}
           name="queue-paused"
-          text="Paused by Stop. Queued messages wait until you resume."
+          text={
+            restored
+              ? "Saved before Vanta closed. Resume to send these, or remove any you no longer want."
+              : "Paused by Stop. Queued messages wait until you resume."
+          }
         />
       )}
     </ul>

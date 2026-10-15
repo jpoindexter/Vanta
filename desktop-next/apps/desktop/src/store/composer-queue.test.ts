@@ -4,6 +4,7 @@ import { $composerAttachments, addComposerAttachment, type ComposerAttachment, m
 import {
   $parkedQueueSessions,
   $queuedPromptsBySession,
+  $restoredQueueSessions,
   clearQueuedPrompts,
   dequeueQueuedPrompt,
   enqueueQueuedPrompt,
@@ -564,5 +565,42 @@ describe('composer queue terminal payload persistence', () => {
       })
     ).toBe(true)
     expect(getFrozenQueuedTransport(entry!.id)).toBeUndefined()
+  })
+})
+
+describe('messages saved before the window opened', () => {
+  beforeEach(() => {
+    window.localStorage.removeItem(QUEUE_STORAGE_KEY)
+    $queuedPromptsBySession.set({})
+    $parkedQueueSessions.set({})
+    $restoredQueueSessions.set({})
+  })
+
+  it('wait paused after a relaunch instead of being sent on their own', () => {
+    enqueueQueuedPrompt(SESSION_KEY, { attachments: [], text: 'queued while offline' })
+    expect(isQueueParked(SESSION_KEY)).toBe(false)
+
+    simulateComposerQueueReloadForTests()
+
+    expect(isQueueParked(SESSION_KEY)).toBe(true)
+    expect($restoredQueueSessions.get()[SESSION_KEY]).toBe(true)
+    expect(shouldAutoDrain({ isBusy: false, parked: isQueueParked(SESSION_KEY), queueLength: 1 })).toBe(false)
+  })
+
+  it('send again once the person resumes, and stop counting as restored', () => {
+    enqueueQueuedPrompt(SESSION_KEY, { attachments: [], text: 'queued while offline' })
+    simulateComposerQueueReloadForTests()
+
+    unparkQueuedPrompts(SESSION_KEY)
+
+    expect(isQueueParked(SESSION_KEY)).toBe(false)
+    expect($restoredQueueSessions.get()[SESSION_KEY]).toBeUndefined()
+    expect(getQueuedPrompts(SESSION_KEY)).toHaveLength(1)
+  })
+
+  it('leave a session with nothing saved unpaused', () => {
+    simulateComposerQueueReloadForTests()
+
+    expect($parkedQueueSessions.get()).toEqual({})
   })
 })
