@@ -1,4 +1,4 @@
-// Installs the current build as "Vanta.app" in ~/Applications and adds a `vanta-next` command.
+// Installs the current build as "Vanta.app" in /Applications and adds a `vanta-next` command.
 //
 //   npm run vanta:install            package first, then install
 //   npm run vanta:install -- --no-package   install the app already built under apps/desktop/release
@@ -22,7 +22,7 @@ if (!process.argv.includes("--no-package")) {
   execFileSync(process.execPath, [path.join(import.meta.dirname, "package-vanta.mjs")], { cwd: next, stdio: "inherit" });
 }
 
-const destDir = process.env.VANTA_INSTALL_APPS_DIR ?? path.join(os.homedir(), "Applications");
+const destDir = process.env.VANTA_INSTALL_APPS_DIR ?? "/Applications";
 const binDir = process.env.VANTA_INSTALL_BIN_DIR ?? path.join(os.homedir(), ".local", "bin");
 const appPath = installApp({ source: built, destDir, name: identity.displayName });
 execFileSync("codesign", ["--verify", "--deep", "--strict", appPath], { stdio: "inherit" });
