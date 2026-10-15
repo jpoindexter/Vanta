@@ -241,6 +241,8 @@ export const SURFACE_MANIFEST: SurfaceManifest = {
   probeLocalBackend: 'async',
   continueBootstrapLocal: 'async',
   recycleBackend: 'async',
+  resetPlan: 'async',
+  resetRun: 'async',
   resetBootstrap: 'async',
   updateHold: { recheck: 'async', quit: 'async', startAnyway: 'async' },
   repairBootstrap: 'async',

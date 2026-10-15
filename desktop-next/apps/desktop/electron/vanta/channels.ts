@@ -16,6 +16,8 @@ export const CH = {
   bootProgress: 'vanta:boot-progress',
   backendExit: 'vanta:backend-exit',
   backendRecycle: 'vanta:backend-recycle',
+  resetPlan: 'vanta:reset-plan',
+  resetRun: 'vanta:reset-run',
   // Window
   windowControl: 'vanta:window-control',
   windowState: 'vanta:window-state-changed',

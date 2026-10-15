@@ -624,6 +624,10 @@ declare global {
       probeLocalBackend?: () => Promise<{ bootstrapNeeded: boolean }>
       continueBootstrapLocal: () => Promise<{ ok: boolean }>
       recycleBackend?: (profile?: null | string) => Promise<{ ok: boolean }>
+      /** What a reset would move to the Trash, with sizes (Vanta shell only). */
+      resetPlan?: (scope: 'app' | 'everything') => Promise<DesktopResetPlan>
+      /** Moves the folders to the Trash and relaunches. `everything` needs the typed word `erase`. */
+      resetRun?: (scope: 'app' | 'everything', confirm?: string) => Promise<DesktopResetResult>
       resetBootstrap: () => Promise<{ ok: boolean }>
       // The blocked boot screen's actions (an earlier update still holds the install).
       updateHold: {
@@ -1406,6 +1410,20 @@ export interface DesktopCloudAgentSignInResult {
   // Whether the agent's gateway session cookie landed (silent cascade done).
   connected: boolean
 }
+
+export interface DesktopResetTarget {
+  bytes: number
+  /** True when the folder was too large to measure exactly. */
+  estimated: boolean
+  label: string
+  path: string
+}
+
+export type DesktopResetPlan =
+  | { error: string; ok: false }
+  | { ok: true; scope: 'app' | 'everything'; targets: DesktopResetTarget[] }
+
+export type DesktopResetResult = { error: string; ok: false } | { ok: true; trashed: string[] }
 
 export interface DesktopBootProgress {
   error: string | null
