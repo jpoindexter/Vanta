@@ -11,7 +11,7 @@ export async function runDesktopCommand(repoRoot: string, rest: string[]): Promi
   const boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN ?? randomBytes(32).toString("hex");
   const launchUrl = authenticatedDesktopUrl(launch.url, boundaryToken);
   if (!launch.openBrowser) {
-    await serveDesktop(repoRoot, { port: launch.port, companion: launch.companion, boundaryToken, launchUrl });
+    await serveDesktop(repoRoot, { port: launch.port, companion: launch.companion, companionLocalOnly: launch.companionLocalOnly, boundaryToken, launchUrl });
     return;
   }
   setTimeout(() => {
@@ -19,7 +19,7 @@ export async function runDesktopCommand(repoRoot: string, rest: string[]): Promi
       try { execSync(`open "${launchUrl}"`); } catch {}
     });
   }, 300);
-  await serveDesktop(repoRoot, { port: launch.port, companion: launch.companion, boundaryToken, launchUrl });
+  await serveDesktop(repoRoot, { port: launch.port, companion: launch.companion, companionLocalOnly: launch.companionLocalOnly, boundaryToken, launchUrl });
 }
 
 export async function runFactoryCommand(repoRoot: string, sub: string): Promise<void> {

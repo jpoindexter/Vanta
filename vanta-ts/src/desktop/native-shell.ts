@@ -5,6 +5,8 @@ export type DesktopLaunchPlan = {
   url: string;
   openBrowser: boolean;
   companion: boolean;
+  /** Companion on, but only reachable from this machine (127.0.0.1) instead of the whole LAN. */
+  companionLocalOnly: boolean;
 };
 
 export type NativeShellPlan = DesktopLaunchPlan & {
@@ -29,11 +31,13 @@ export function authenticatedDesktopUrl(url: string, boundaryToken: string): str
 export function parseDesktopLaunchArgs(args: string[], env: NodeJS.ProcessEnv = process.env): DesktopLaunchPlan {
   const portArg = args.find((arg) => /^\d+$/.test(arg));
   const port = parsePort(portArg ?? env.VANTA_DESKTOP_PORT);
+  const companionLocalOnly = args.includes("--companion-local");
   return {
     port,
     url: desktopUrl(port),
     openBrowser: !args.includes("--no-open"),
-    companion: args.includes("--companion") || env.VANTA_COMPANION === "1",
+    companion: companionLocalOnly || args.includes("--companion") || env.VANTA_COMPANION === "1",
+    companionLocalOnly,
   };
 }
 
@@ -49,5 +53,10 @@ export function parseNativeShellArgs(args: string[], env: NodeJS.ProcessEnv = pr
 }
 
 export function desktopServerArgs(plan: DesktopLaunchPlan): string[] {
-  return ["--import", "tsx", "src/cli.ts", "desktop", String(plan.port), "--no-open", ...(plan.companion ? ["--companion"] : [])];
+  return ["--import", "tsx", "src/cli.ts", "desktop", String(plan.port), "--no-open", ...companionArgs(plan)];
+}
+
+function companionArgs(plan: DesktopLaunchPlan): string[] {
+  if (plan.companionLocalOnly) return ["--companion-local"];
+  return plan.companion ? ["--companion"] : [];
 }

@@ -26,7 +26,21 @@ describe("desktop native shell planning", () => {
       url: "http://127.0.0.1:7799",
       openBrowser: false,
       companion: false,
+      companionLocalOnly: false,
     });
+  });
+
+  it("--companion-local turns the companion on but keeps it to this machine, and passes through to the child server", () => {
+    const plan = parseDesktopLaunchArgs(["7799", "--no-open", "--companion-local"], {});
+    expect(plan.companion).toBe(true);
+    expect(plan.companionLocalOnly).toBe(true);
+    expect(desktopServerArgs(plan)).toEqual(["--import", "tsx", "src/cli.ts", "desktop", "7799", "--no-open", "--companion-local"]);
+  });
+
+  it("plain --companion stays LAN-wide, exactly as before", () => {
+    const plan = parseDesktopLaunchArgs(["--companion"], {});
+    expect(plan.companionLocalOnly).toBe(false);
+    expect(desktopServerArgs(plan)).toContain("--companion");
   });
 
   it("builds the CLI args the Electron app uses to own the server lifecycle", () => {

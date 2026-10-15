@@ -155,18 +155,18 @@ function errorMessage(error: unknown): string {
 
 export async function serveDesktop(
   repoRoot: string,
-  options: { port?: number; companion?: boolean; boundaryToken?: string; launchUrl?: string } = {},
+  options: { port?: number; companion?: boolean; companionLocalOnly?: boolean; boundaryToken?: string; launchUrl?: string } = {},
 ): Promise<void> {
   const { port = 7790, companion = false, boundaryToken = process.env.VANTA_DESKTOP_BOUNDARY_TOKEN } = options;
   const launchUrl = options.launchUrl ?? `http://127.0.0.1:${port}`;
   if (!boundaryToken) throw new Error("desktop boundary token is required");
   markLaunch("server module loaded");
   const server = createDesktopServer(repoRoot, { enabled: companion, port, boundaryToken });
-  const host = companion ? "0.0.0.0" : "127.0.0.1";
+  const host = companion && !options.companionLocalOnly ? "0.0.0.0" : "127.0.0.1";
   await new Promise<void>((resolve) => server.listen(port, host, resolve));
   markLaunch("listening");
   void loadDesktopRoutes().then(() => markLaunch("routes loaded"), () => undefined);
-  console.log(`vanta desktop — ${launchUrl}${companion ? " · companion LAN enabled" : ""}`);
+  console.log(`vanta desktop — ${launchUrl}${companion ? (options.companionLocalOnly ? " · companion enabled (this machine only)" : " · companion LAN enabled") : ""}`);
 }
 
 function denyDesktopRequest(req: http.IncomingMessage, res: http.ServerResponse, url: URL, options: { local: boolean; boundaryToken?: string }): boolean {

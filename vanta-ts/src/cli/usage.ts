@@ -106,6 +106,7 @@ const USAGE_LINES = [
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
       "       vanta desktop [port] [--companion]  start desktop; opt into token-paired LAN companion access",
+      "       vanta desktop [port] [--companion-local]  companion access from this machine only (127.0.0.1)",
       "       vanta audit                        npm + cargo dependency security scan",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta model [list | <provider> [<model>]]  show or switch the active provider/model",
