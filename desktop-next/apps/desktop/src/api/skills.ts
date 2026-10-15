@@ -9,7 +9,7 @@ import type {
 } from '@/types/hermes'
 import type { ActionResponse } from '@/types/hermes'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from './client'
+import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, rawApi } from './client'
 
 export function getSkills(profile?: ProfileScope): Promise<SkillInfo[]> {
   return window.hermesDesktop.api<SkillInfo[]>({
@@ -100,7 +100,7 @@ const HUB_REQUEST_TIMEOUT_MS = 45_000
  *  with per-profile installed flags. Feeds the Capabilities Skills list's
  *  "available to install" rows. */
 export function getOfficialSkills(profile?: ProfileScope): Promise<{ skills: OfficialSkillInfo[] }> {
-  return window.hermesDesktop.api<{ skills: OfficialSkillInfo[] }>({
+  return rawApi<{ skills: OfficialSkillInfo[] }>({
     ...capabilityScoped(profile),
     path: '/api/skills/hub/official'
   })
@@ -130,7 +130,7 @@ export function searchSkillsHub(
 }
 
 export function previewSkillHub(identifier: string, profile?: ProfileScope): Promise<SkillHubPreview> {
-  return window.hermesDesktop.api<SkillHubPreview>({
+  return rawApi<SkillHubPreview>({
     ...capabilityScoped(profile),
     path: `/api/skills/hub/preview?identifier=${encodeURIComponent(identifier)}`,
     timeoutMs: HUB_REQUEST_TIMEOUT_MS
