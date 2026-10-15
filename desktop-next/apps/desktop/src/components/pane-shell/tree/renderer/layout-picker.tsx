@@ -53,7 +53,7 @@ function TreeThumbnail({ node, resting }: { node: LayoutNode; resting: ReadonlyS
       // light — legible everywhere without leaning on the accent. A ghost is
       // an outlined empty slot, not a fainter block.
       <div
-        className="min-h-0 min-w-0 flex-1 rounded-[2px]"
+        className="min-h-0 min-w-0 flex-1 rounded-xs"
         style={
           ghost
             ? { border: '1px dashed color-mix(in srgb, currentColor 30%, transparent)' }

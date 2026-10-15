@@ -3,7 +3,7 @@
 .vcx-frame {
   background: var(--dt-background);
   border: 1px solid color-mix(in srgb, var(--dt-foreground) 22%, var(--dt-background));
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   box-sizing: border-box;
   display: grid;
   font-size: 14px;

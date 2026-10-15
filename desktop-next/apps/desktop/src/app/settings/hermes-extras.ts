@@ -22,4 +22,8 @@ export const SHOW_WEBHOOKS = false
 // Vanta's task board is Company › Tickets, so the plugin is neither listed nor loaded.
 export const SHOW_KANBAN = false
 
+// Passwords & Logins is Hermes' credential vault (`vault.*` RPCs). Vanta keeps secrets in the OS keychain and asks
+// for approval before it uses one, so the page has no backend and can only show a load error.
+export const SHOW_VAULT = false
+
 export const isHiddenBundledPlugin = (id: string): boolean => !SHOW_KANBAN && id === 'kanban'

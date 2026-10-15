@@ -68,7 +68,7 @@
   background: transparent;
   border: 0;
   border-bottom: 2px solid transparent;
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   color: var(--vp-ink2);
   cursor: pointer;
   font: inherit;
@@ -99,7 +99,7 @@
 /* ---- tables ---- */
 .vc-tablewrap {
   border: 1px solid var(--vp-line);
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   overflow-x: auto;
 }
 
@@ -146,7 +146,7 @@
 .vc-link {
   background: transparent;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -177,7 +177,7 @@
 
 .vc-meter {
   background: var(--vp-bg3);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   height: 6px;
   margin-top: 4px;
   overflow: hidden;
@@ -220,7 +220,7 @@
 .vc-card {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   color: inherit;
   cursor: pointer;
   display: flex;
@@ -262,7 +262,7 @@
 .vc-input {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   color: inherit;
   font: inherit;
   min-width: 140px;
@@ -296,7 +296,7 @@ textarea.vc-input {
 .vc-sheet {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 14px;
+  border-radius: var(--radius-2xl);
   box-shadow: 0 8px 28px rgb(0 0 0 / 25%);
   display: flex;
   flex-direction: column;
@@ -310,7 +310,7 @@ textarea.vc-input {
 .vc-banner {
   align-items: center;
   border: 1px solid var(--vp-line);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   display: flex;
   gap: 8px;
   padding: 8px 12px;
@@ -322,7 +322,7 @@ textarea.vc-input {
 
 .vc-approval {
   border: 1px solid var(--vp-ink);
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   padding: 4px;
 }
 
@@ -397,7 +397,7 @@ textarea.vc-input {
 
 .vc-product {
   border: 1px solid var(--vp-line);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -414,7 +414,7 @@ textarea.vc-input {
 /* ---- activity ---- */
 .vc-feed {
   border: 1px solid var(--vp-line);
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   list-style: none;
   margin: 0;
   padding: 0 12px;

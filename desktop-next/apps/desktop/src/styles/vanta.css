@@ -79,33 +79,6 @@
   border-color: var(--dt-composer-ring) !important;
 }
 
-/* Codex radius ramp: 4 / 6 / 8 / 10 / 12 / 16 / 20 / 24. Hermes' own ramp tops out at
-   22px for every large surface, which made fields and the composer read as pills. */
-:root[data-hermes-theme='vanta'] {
-  --radius-lg: 0.625rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-3xl: 1.25rem;
-  --radius-4xl: 1.5rem;
-}
-
-/* Tailwind bakes `calc(var(--radius-scalar) * N)` into each rounded-* class, so the
-   --radius-* variables above cannot reach them. Set the Codex ramp on the classes. */
-:root[data-hermes-theme='vanta'] .rounded-lg {
-  border-radius: 0.625rem;
-}
-
-:root[data-hermes-theme='vanta'] .rounded-xl {
-  border-radius: 0.75rem;
-}
-
-:root[data-hermes-theme='vanta'] .rounded-2xl {
-  border-radius: 1rem;
-}
-
-:root[data-hermes-theme='vanta'] .rounded-3xl {
-  border-radius: 1.25rem;
-}
 
 /* Dropdowns, menus and popovers: one opaque surface with readable rows. Hermes draws them
    at 12px on a 96% fill with backdrop blur, so text behind shows through the list.
@@ -123,7 +96,7 @@
   backdrop-filter: none;
   background: var(--ui-bg-elevated);
   border-color: var(--ui-stroke-secondary);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-2xl);
   box-shadow:
     0 8px 16px -4px rgb(0 0 0 / 16%),
     0 0 0 0.5px var(--ui-stroke-secondary);
@@ -141,7 +114,7 @@
     [data-slot='context-menu-sub-trigger'],
     [data-slot='command-item']
   ) {
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   font-size: 0.875rem;
   line-height: 1.25rem;
   min-height: 2rem;

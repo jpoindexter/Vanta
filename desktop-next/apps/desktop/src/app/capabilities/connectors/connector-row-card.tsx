@@ -91,7 +91,7 @@ export function ConnectorRowCard({
       onPointerEnter={onPrefetch}
     >
       <ConnectorLogo
-        className="size-9 shrink-0 rounded-[9px]"
+        className="size-9 shrink-0 rounded-xl"
         connector={{ iconUrl: local ? undefined : connectorIconUrl(card.slug), name: card.slug, title: card.name }}
       />
 

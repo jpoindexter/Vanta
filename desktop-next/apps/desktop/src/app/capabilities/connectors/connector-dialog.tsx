@@ -132,7 +132,7 @@ function Header({ card, titleRef, ...rest }: PartProps & { titleRef: RefObject<H
   return (
     <header className="flex shrink-0 items-center gap-2.5 border-b border-(--ui-stroke-tertiary) px-5 py-3">
       <ConnectorLogo
-        className="size-9 shrink-0 rounded-[9px]"
+        className="size-9 shrink-0 rounded-xl"
         connector={{ iconUrl: local ? undefined : connectorIconUrl(card.slug), name: card.slug, title: card.name }}
       />
 

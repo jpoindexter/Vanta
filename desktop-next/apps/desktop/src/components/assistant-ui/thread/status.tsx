@@ -261,7 +261,7 @@ export const ResponseLoadingIndicator: FC = () => {
     <StatusRow data-slot="aui_response-loading" label={hint || t.assistant.thread.loadingResponse}>
       <StatusPulse
         aria-hidden="true"
-        className="dither inline-block size-3 rounded-[2px] text-midground/80"
+        className="dither inline-block size-3 rounded-xs text-midground/80"
         kind="opacity"
       />
       {hint ? (
@@ -337,7 +337,7 @@ const TurnActivityRow: FC<TurnActivityRowProps> = ({ active, elapsed, hint, loca
         <>
           <StatusPulse
             aria-hidden="true"
-            className="dither inline-block size-3 rounded-[2px] text-midground/80"
+            className="dither inline-block size-3 rounded-xs text-midground/80"
             kind="opacity"
           />
           {hint ? (

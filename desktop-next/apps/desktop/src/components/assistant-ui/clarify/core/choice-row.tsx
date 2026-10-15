@@ -23,7 +23,7 @@ export function ChoiceLabel({ choice }: { choice: string }) {
 }
 
 export const OPTION_ROW_CLASS =
-  'flex w-full items-start gap-2 rounded-[0.25rem] px-1.5 py-1 text-left disabled:cursor-not-allowed disabled:opacity-50'
+  'flex w-full items-start gap-2 rounded-sm px-1.5 py-1 text-left disabled:cursor-not-allowed disabled:opacity-50'
 
 export function KeyBadge({
   char,

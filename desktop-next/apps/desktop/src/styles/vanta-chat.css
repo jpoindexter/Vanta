@@ -16,11 +16,11 @@
   --vp-leading: 1.45;
   --vp-small: 13px;
   --vp-meta: 12px;
-  --vp-radius-bubble: 16px;
-  --vp-radius-card: 12px;
-  --vp-radius-composer: 22px;
-  --vp-radius-control: 8px;
-  --vp-radius-code: 6px;
+  --vp-radius-bubble: var(--radius-surface);
+  --vp-radius-card: var(--radius-surface);
+  --vp-radius-composer: var(--radius-surface);
+  --vp-radius-control: var(--radius-control);
+  --vp-radius-code: var(--radius-md);
   --vp-hit: 30px;
   --vp-send: 32px;
 
@@ -276,7 +276,7 @@
 .vp-step {
   display: flex;
   align-items: center;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   gap: 8px;
   min-width: 0;
   width: 100%;
@@ -473,7 +473,7 @@
   height: auto;
   padding: 1px 9px;
   border: 1px solid var(--vp-line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--vp-bg);
   color: var(--vp-ink2);
   font: inherit;
@@ -609,7 +609,7 @@
 }
 
 .vp-step-row {
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   gap: 8px;
   font-size: var(--vp-text);
   line-height: var(--vp-leading);
@@ -723,7 +723,7 @@
   z-index: 10;
   max-width: 90%;
   padding: 7px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   background: var(--vp-ink);
   color: var(--vp-bg);
   font-size: var(--vp-small);

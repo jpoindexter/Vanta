@@ -43,7 +43,7 @@ export function FeaturedProviderRow({
 
   return (
     <button
-      className="group relative flex w-full items-center justify-between gap-4 rounded-[8px] bg-primary/[0.06] px-3 py-2.5 text-left transition-colors hover:bg-primary/10"
+      className="group relative flex w-full items-center justify-between gap-4 rounded-lg bg-primary/[0.06] px-3 py-2.5 text-left transition-colors hover:bg-primary/10"
       onClick={() => onSelect(provider)}
       type="button"
     >
@@ -97,7 +97,7 @@ function ConnectedTag() {
 }
 
 const PROVIDER_ROW_CLASS =
-  'group flex w-full items-center justify-between gap-3 rounded-[6px] px-3 py-2.5 text-left transition-colors hover:bg-(--ui-control-hover-background)'
+  'group flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-(--ui-control-hover-background)'
 
 /** Quick-key row for API-key providers (Fireworks leads the expanded list after Nous, OpenRouter further down). */
 export function KeyProviderRow({ onClick, pitch, title }: { onClick: () => void; pitch: string; title: string }) {

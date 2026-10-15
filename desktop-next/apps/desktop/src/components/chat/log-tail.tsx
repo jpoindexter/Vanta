@@ -162,7 +162,7 @@ export function LogTail({ className, emptyLabel, lines, search }: LogTailProps) 
                           ) : (
                             <mark
                               className={cn(
-                                'rounded-[2px] text-inherit',
+                                'rounded-xs text-inherit',
                                 segment.hit === active ? 'bg-(--ui-yellow)/55 text-foreground' : 'bg-(--ui-yellow)/30'
                               )}
                               data-log-hit={segment.hit === active ? 'active' : 'match'}

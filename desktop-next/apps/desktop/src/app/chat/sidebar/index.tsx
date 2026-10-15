@@ -2017,7 +2017,7 @@ function FullSidebar({
                     label={group.label}
                     labelIcon={
                       <PlatformAvatar
-                        className="size-4 rounded-[4px] text-[0.75rem] [&_svg]:size-3"
+                        className="size-4 rounded-sm text-[0.75rem] [&_svg]:size-3"
                         platformId={group.sourceId}
                         platformName={group.label}
                       />

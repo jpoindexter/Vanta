@@ -71,7 +71,7 @@ export function ContextUsagePanel({ breakdown, loading, usage }: ContextUsagePan
         {categories.map(category => (
           <li className="flex items-center justify-between gap-2" key={category.id}>
             <span className="flex min-w-0 items-center gap-2">
-              <span className="size-2 shrink-0 rounded-[2px]" style={{ background: category.color }} />
+              <span className="size-2 shrink-0 rounded-xs" style={{ background: category.color }} />
 
               <span className="truncate text-muted-foreground">{category.label}</span>
             </span>

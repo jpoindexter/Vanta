@@ -44,7 +44,7 @@
 
 .vc-tick {
   border: 1px solid var(--vp-line);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
   gap: 6px;

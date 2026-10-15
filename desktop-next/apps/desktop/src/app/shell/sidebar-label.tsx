@@ -15,7 +15,7 @@ export function SidebarPanelLabel({ children, className, dotClassName, ...props 
       )}
       {...props}
     >
-      <span aria-hidden="true" className={cn('dither inline-block size-2 shrink-0 rounded-[1px]', dotClassName)} />
+      <span aria-hidden="true" className={cn('dither inline-block size-2 shrink-0 rounded-xs', dotClassName)} />
       <span className="min-w-0 truncate leading-none" data-testid="sidebar-group-name">
         {children}
       </span>

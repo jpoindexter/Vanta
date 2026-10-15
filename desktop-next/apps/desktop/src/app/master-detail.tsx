@@ -211,7 +211,7 @@ const DETAIL_PANE_COLLAPSED_PX = 4
 // finding 6), without changing how the button looks or lays out. The 2.5.5
 // enhanced 44px target is deliberately not met here.
 export const ICON_BUTTON =
-  "size-5 relative cursor-pointer rounded-[4px] text-muted-foreground/70 before:absolute before:-inset-0.5 before:content-[''] hover:bg-(--ui-control-active-background) hover:text-foreground"
+  "size-5 relative cursor-pointer rounded-sm text-muted-foreground/70 before:absolute before:-inset-0.5 before:content-[''] hover:bg-(--ui-control-active-background) hover:text-foreground"
 
 export function DetailPane({
   actions,

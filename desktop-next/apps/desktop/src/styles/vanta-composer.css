@@ -3,7 +3,7 @@
 .vp-composer {
   background: var(--vp-bg);
   border: 1px solid var(--vp-line);
-  border-radius: 22px;
+  border-radius: var(--radius-2xl);
   padding: 10px 12px;
 }
 
@@ -61,7 +61,7 @@
 .vp-skel {
   animation: vp-pulse 1.4s ease-in-out infinite;
   background: var(--vp-bg3);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   display: block;
 }
 
