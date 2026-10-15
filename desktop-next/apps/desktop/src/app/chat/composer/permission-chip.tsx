@@ -1,3 +1,4 @@
+import { Chip } from '@/components/ui/chip'
 import { useStore } from '@nanostores/react'
 import { IconChevronDown } from '@tabler/icons-react'
 import type { FC } from 'react'
@@ -30,16 +31,16 @@ export const PermissionChipView: FC<ViewProps> = ({ disabled, request, sessionId
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Chip
             aria-label={`Permission mode: ${choice.label}`}
-            className="vp-chip shrink-0"
+            className="shrink-0"
             data-vp="chip-permission"
             disabled={disabled}
             type="button"
           >
             <span>{choice.label}</span>
             <IconChevronDown aria-hidden className="size-2.5 shrink-0 opacity-50" />
-          </button>
+          </Chip>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-72" side="top" sideOffset={8}>
           <DropdownMenuRadioGroup

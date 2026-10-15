@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { useSessionView } from '@/app/chat/session-view'
 import { ModelMenuCloseContext } from '@/app/shell/model-menu-panel'
-import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { releaseTypingFocus } from '@/components/ui/keyboard-first'
@@ -12,12 +12,11 @@ import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { ChevronDown } from '@/lib/icons'
 import { reasoningEffortClamp, reasoningEffortLabel } from '@/lib/reasoning-effort'
-import { cn } from '@/lib/utils'
 import { $defaultReasoningEffort } from '@/store/session'
 
 import type { ChatBarState } from './types'
 
-const PILL = cn('vp-chip shrink-0')
+const PILL = 'shrink-0'
 
 /**
  * Composer reasoning selector: the active model's effort level as its own
@@ -71,18 +70,17 @@ export function ReasoningPill({ disabled, model }: { disabled: boolean; model: C
     <DropdownMenu onOpenChange={setMenuOpen} open={open}>
       <Tip label={title} side="top">
         <DropdownMenuTrigger asChild>
-          <Button
+          <Chip
             aria-label={title}
             className={PILL}
             data-testid="reasoning-pill"
             data-vp="chip-effort"
             disabled={disabled}
             type="button"
-            variant="ghost"
           >
             {pending ? <GlyphSpinner className="opacity-50" spinner="braille" /> : <span>{label}</span>}
             <ChevronDown className="size-2.5 shrink-0 opacity-50" />
-          </Button>
+          </Chip>
         </DropdownMenuTrigger>
       </Tip>
       <DropdownMenuContent align="end" className="w-52 p-0" side="top" sideOffset={8}>

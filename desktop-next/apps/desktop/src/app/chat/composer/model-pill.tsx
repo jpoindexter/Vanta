@@ -7,6 +7,7 @@ import { useTourMarker } from '@/app/chat/tour-marker'
 import { ModelMenuCloseContext } from '@/app/shell/model-menu-panel'
 import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
 import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { releaseTypingFocus } from '@/components/ui/keyboard-first'
@@ -31,7 +32,7 @@ import type { ChatBarState } from './types'
 // arbitrary 160px.
 const UNKNOWN_TIER = atom('')
 
-const PILL = cn('vp-chip min-w-0 shrink')
+const PILL = 'min-w-0 shrink'
 
 /**
  * Composer model selector — the relocated status-bar pill. Reuses the live
@@ -159,6 +160,7 @@ export function ModelPill({
 
   // Compact (floating composer): a snug square holding just the chevron — no pill
   // padding, sized to match the other composer icon buttons.
+  const Trigger = compact ? Button : Chip
   const pillClass = compact
     ? cn(
         'size-(--composer-control-size) shrink-0 justify-center gap-0 rounded-md p-0',
@@ -175,7 +177,7 @@ export function ModelPill({
   if (!model.modelMenuContent) {
     return (
       <Tip label={pinnedOverride ? `${copy.openModelPicker} — ${copy.modelPinned}` : copy.openModelPicker} side="top">
-        <Button
+        <Trigger
           aria-label={copy.openModelPicker}
           className={pillClass}
           data-tour={tourMarker}
@@ -183,10 +185,10 @@ export function ModelPill({
           disabled={disabled}
           onClick={() => setModelPickerOpen(true)}
           type="button"
-          variant="ghost"
+          variant={compact ? 'ghost' : 'outline'}
         >
           {label}
-        </Button>
+        </Trigger>
       </Tip>
     )
   }
@@ -206,17 +208,17 @@ export function ModelPill({
     <DropdownMenu onOpenChange={setMenuOpen} open={open}>
       <Tip label={title} side="top">
         <DropdownMenuTrigger asChild>
-          <Button
+          <Trigger
             aria-label={title}
             className={pillClass}
             data-tour={tourMarker}
             data-vp="chip-model"
             disabled={disabled}
             type="button"
-            variant="ghost"
+            variant={compact ? 'ghost' : 'outline'}
           >
             {label}
-          </Button>
+          </Trigger>
         </DropdownMenuTrigger>
       </Tip>
       <DropdownMenuContent

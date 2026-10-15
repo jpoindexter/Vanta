@@ -6,6 +6,7 @@ import {
   isSteerableEntry,
   type QueuedPromptEntry,
 } from "@/store/composer-queue";
+import { Button } from "@/components/ui/button";
 
 export interface QueueRowHandlers {
   busy: boolean;
@@ -56,7 +57,12 @@ export const savedStatus = (entry: QueuedPromptEntry): string => {
  */
 export function primaryActions(
   entry: QueuedPromptEntry,
-  { busy, onRetry, onSteerNow, parked }: Pick<QueueRowHandlers, "busy" | "onRetry" | "onSteerNow" | "parked">,
+  {
+    busy,
+    onRetry,
+    onSteerNow,
+    parked,
+  }: Pick<QueueRowHandlers, "busy" | "onRetry" | "onSteerNow" | "parked">,
 ): PrimaryAction[] {
   const saved = entry.remote;
 
@@ -68,9 +74,16 @@ export function primaryActions(
     return onRetry ? ["retry"] : [];
   }
 
-  const canSteer = busy && Boolean(onSteerNow) && isSteerableEntry(entry) && saved?.intent !== "steer";
+  const canSteer =
+    busy &&
+    Boolean(onSteerNow) &&
+    isSteerableEntry(entry) &&
+    saved?.intent !== "steer";
 
-  return [...(canSteer ? ["steer" as const] : []), ...(!busy || parked ? ["send" as const] : [])];
+  return [
+    ...(canSteer ? ["steer" as const] : []),
+    ...(!busy || parked ? ["send" as const] : []),
+  ];
 }
 
 const SteerButton: FC<{ isDisabled: boolean; onClick: () => void }> = ({
@@ -78,14 +91,15 @@ const SteerButton: FC<{ isDisabled: boolean; onClick: () => void }> = ({
   onClick,
 }) => (
   <Tip label="Redirect the live turn with this message now">
-    <button
-      className="vp-btn"
+    <Button
+      size="sm"
+      variant="outline"
       disabled={isDisabled}
       onClick={onClick}
       type="button"
     >
       Steer
-    </button>
+    </Button>
   </Tip>
 );
 
@@ -98,26 +112,28 @@ const MoveButtons: FC<{
 }> = ({ disabled, entry, isFirst, isLast, onMove }) => (
   <>
     <Tip label="Move earlier">
-      <button
+      <Button
+        size="sm"
+        variant="outline"
         aria-label="Move earlier"
-        className="vp-btn"
         disabled={disabled || isFirst}
         onClick={() => onMove(entry.id, "up")}
         type="button"
       >
         <ChevronUp aria-hidden="true" className="size-3" />
-      </button>
+      </Button>
     </Tip>
     <Tip label="Move later">
-      <button
+      <Button
+        size="sm"
+        variant="outline"
         aria-label="Move later"
-        className="vp-btn"
         disabled={disabled || isLast}
         onClick={() => onMove(entry.id, "down")}
         type="button"
       >
         <ChevronDown aria-hidden="true" className="size-3" />
-      </button>
+      </Button>
     </Tip>
   </>
 );
@@ -135,8 +151,9 @@ const PrimaryButtons: FC<QueueRowHandlers & QueueRowState> = (props) => {
             onClick={() => onSteerNow?.(entry.id)}
           />
         ) : (
-          <button
-            className="vp-btn"
+          <Button
+            size="sm"
+            variant="outline"
             data-vp={kind === "retry" ? "queue-retry" : undefined}
             disabled={isEditing}
             key={kind}
@@ -146,7 +163,7 @@ const PrimaryButtons: FC<QueueRowHandlers & QueueRowState> = (props) => {
             type="button"
           >
             {kind === "retry" ? "Retry" : "Send now"}
-          </button>
+          </Button>
         ),
       )}
     </>
@@ -168,24 +185,26 @@ export const QueueActions: FC<QueueRowHandlers & QueueRowState> = (props) => {
           onMove={onMove}
         />
       )}
-      <button
-        className="vp-btn"
+      <Button
+        size="sm"
+        variant="outline"
         disabled={isEditLocked || started}
         onClick={() => onEdit(entry)}
         type="button"
       >
         Edit
-      </button>
+      </Button>
       <PrimaryButtons {...props} />
-      <button
-        className="vp-btn"
+      <Button
+        size="sm"
+        variant="outline"
         data-vp="queue-remove"
         disabled={started}
         onClick={() => onDelete(entry.id)}
         type="button"
       >
         Remove
-      </button>
+      </Button>
     </span>
   );
 };
