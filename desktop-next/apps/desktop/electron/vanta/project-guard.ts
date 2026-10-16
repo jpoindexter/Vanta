@@ -42,7 +42,7 @@ const SECRET_DIRECTORIES = new Set([
   ".azure",
   ".docker",
   ".gnupg",
-  ".hermes",
+  ".vanta",
   ".kube",
   ".ssh",
   ".vanta"

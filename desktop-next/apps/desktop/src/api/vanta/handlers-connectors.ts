@@ -24,7 +24,7 @@ const readConnectors = async (hub: Parameters<Handler>[0]): Promise<Connector[]>
 // A Vanta connector runs only once it is enabled and trusted for the project.
 const isOn = (connector: Connector): boolean => connector.enabled && connector.trust === 'trusted'
 
-// Hosted connector accounts are a Hermes service Vanta does not have: no catalog, no accounts, no policy layers.
+// Hosted connector accounts are a Vanta service Vanta does not have: no catalog, no accounts, no policy layers.
 // An empty answer (not "unsupported") lets the Connectors page render its own MCP side.
 export const connectorsList: Handler = async () => ({ available: false, connectors: [] })
 

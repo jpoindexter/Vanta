@@ -17,7 +17,7 @@
  * and the probe runs once they arrive, so the card never waits on a request
  * that was never sent.
  */
-import type { ConnectorRow } from '@hermes/shared'
+import type { ConnectorRow } from '@vanta/shared'
 import { useQuery } from '@tanstack/react-query'
 
 import { resolveSessionOwner } from '@/app/session/hooks/use-session-actions/utils'

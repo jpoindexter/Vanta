@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import { answerApproval, fetchPendingApproval, requireChoice } from './approvals'
 import type { ChatClient } from './client-registry'

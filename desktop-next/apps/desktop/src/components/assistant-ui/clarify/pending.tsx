@@ -298,7 +298,7 @@ export function ClarifyToolPending({
       )}
       <ClarifyShell className="grid gap-3">
         <div className="flex items-start gap-2">
-          <span className="flex-1 text-[0.75rem] leading-4 text-(--ui-text-tertiary)">
+          <span className="flex-1 text-meta leading-4 text-(--ui-text-tertiary)">
             {questions.length === 1 ? copy.oneQuestion : copy.questionProgress(answeredCount, questions.length)}
           </span>
           <MessageQuestion aria-hidden className={CLARIFY_ICON_CLASS} />

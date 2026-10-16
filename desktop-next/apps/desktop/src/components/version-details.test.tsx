@@ -18,7 +18,7 @@ afterEach((): void => {
 const baseVersion: DesktopVersionInfo = {
   appVersion: '0.19.0',
   electronVersion: '37.0.0',
-  hermesRoot: '/tmp/hermes',
+  vantaRoot: '/tmp/vanta',
   nodeVersion: '22.0.0',
   platform: 'linux'
 }
@@ -36,15 +36,15 @@ describe('VersionDetails', () => {
     { version: { source: 'nix', distribution: 'nix' }, visible: ['Build Origin', 'Nix', 'Distribution'] },
     { version: { source: 'ci', distribution: 'docker' }, visible: ['CI', 'Distribution', 'Docker'] },
     {
-      version: { distribution: 'desktop-app', hermesRuntime: { type: 'embedded' } },
+      version: { distribution: 'desktop-app', vantaRuntime: { type: 'embedded' } },
       visible: ['Runtime', 'Embedded runtime']
     },
     {
-      version: { hermesRuntime: { type: 'external', source: { type: 'git', root: '/home/u/.hermes/hermes-agent' } } },
-      visible: ['Runtime', 'git (/home/u/.hermes/hermes-agent)'],
+      version: { vantaRuntime: { type: 'external', source: { type: 'git', root: '/home/u/.example/agent' } } },
+      visible: ['Runtime', 'git (/home/u/.example/agent)'],
       absent: ['External (uses the machine runtime)']
     },
-    { version: { hermesRuntime: { type: 'external' } }, visible: ['Runtime', 'External (uses the machine runtime)'] },
+    { version: { vantaRuntime: { type: 'external' } }, visible: ['Runtime', 'External (uses the machine runtime)'] },
     {
       version: { distribution: 'desktop-app', updateMechanism: 'microsoft-store' },
       visible: ['Distribution', 'Microsoft Store'],
@@ -67,7 +67,7 @@ describe('VersionDetails', () => {
       visible: ['Desktop app (installer)'],
       absent: ['Desktop app (MSIX)', 'Microsoft Store']
     },
-    // `hermes desktop` packs the same bootstrap payload from a source checkout;
+    // `vanta desktop` packs the same bootstrap payload from a source checkout;
     // a locally built stamp names the source install, never the installer.
     {
       version: {
@@ -113,11 +113,11 @@ describe('VersionDetails', () => {
   })
 
   it('opens the commit URL via the system-browser bridge without opening a preview tab', async () => {
-    const openExternal: Mock<Window['hermesDesktop']['openExternal']> = vi
-      .fn<Window['hermesDesktop']['openExternal']>()
+    const openExternal: Mock<Window['desktopBridge']['openExternal']> = vi
+      .fn<Window['desktopBridge']['openExternal']>()
       .mockResolvedValue(undefined)
 
-    vi.stubGlobal('hermesDesktop', { openExternal } satisfies Pick<Window['hermesDesktop'], 'openExternal'>)
+    vi.stubGlobal('desktopBridge', { openExternal } satisfies Pick<Window['desktopBridge'], 'openExternal'>)
 
     render(
       <I18nProvider configClient={null} initialLocale="en">
@@ -129,7 +129,7 @@ describe('VersionDetails', () => {
 
     await waitFor(() => {
       expect(openExternal).toHaveBeenCalledWith(
-        'https://github.com/NousResearch/hermes-agent/commit/d233b6d7a9c5b79288e48dfb3b29e2ead106ac73'
+        'https://github.com/jpoindexter/Vanta/commit/d233b6d7a9c5b79288e48dfb3b29e2ead106ac73'
       )
     })
     expect($previewTabs.get()).toHaveLength(0)

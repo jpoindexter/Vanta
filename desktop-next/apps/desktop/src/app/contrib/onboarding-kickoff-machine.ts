@@ -1,4 +1,4 @@
-import { GatewayReauthRequiredError, JsonRpcGatewayError } from '@hermes/shared'
+import { GatewayReauthRequiredError, JsonRpcGatewayError } from '@vanta/shared'
 
 import { isTimeoutError } from '@/lib/with-timeout'
 import { $gatewaySwitching } from '@/store/gateway-switch'
@@ -50,7 +50,7 @@ function log(line: string): void {
   const text = `[setup] kickoff ${line}`
   console.info(text)
   // Only error-level console lines reach desktop.log; testers read the transitions there.
-  window.hermesDesktop?.logLine?.(text)
+  window.desktopBridge?.logLine?.(text)
 }
 
 interface KickoffMachine {
@@ -86,7 +86,7 @@ export function createKickoffMachine(): KickoffMachine {
     state = next
   }
 
-  const offExit = window.hermesDesktop?.onBackendExit(({ code, signal }) => {
+  const offExit = window.desktopBridge?.onBackendExit(({ code, signal }) => {
     // A gateway switch stops the old backend on purpose.
     if ($gatewaySwitching.get()) {
       return

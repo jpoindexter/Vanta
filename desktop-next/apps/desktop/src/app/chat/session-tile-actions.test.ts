@@ -384,7 +384,7 @@ describe('useSessionTileActions reloadFromMessage failed-submit rollback (#95745
   })
 
   it('a deep-cut 4033 the tile did not predict asks once and resubmits confirmed', async () => {
-    const { JsonRpcGatewayError } = await import('@hermes/shared')
+    const { JsonRpcGatewayError } = await import('@vanta/shared')
     let submits = 0
 
     requestGatewayMock.mockImplementation(async (method: string, params?: Record<string, unknown>) => {
@@ -420,7 +420,7 @@ describe('useSessionTileActions reloadFromMessage failed-submit rollback (#95745
   })
 
   it('a turn that lands during the 4033 confirm is kept: accept re-plans, decline leaves it in place', async () => {
-    const { JsonRpcGatewayError } = await import('@hermes/shared')
+    const { JsonRpcGatewayError } = await import('@vanta/shared')
     const submits: Record<string, unknown>[] = []
 
     requestGatewayMock.mockImplementation(async (method: string, params?: Record<string, unknown>) => {

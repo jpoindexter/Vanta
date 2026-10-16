@@ -197,7 +197,7 @@ const AssistantActionBar: FC<MessageActionProps & { durationS?: number }> = ({
             tooltip={copy.react}
           >
             {shownReactions.length > 0 ? (
-              <span className="flex items-center gap-0.5 text-[0.8125rem] leading-none">
+              <span className="flex items-center gap-0.5 text-ui leading-none">
                 {shownReactions.map(reaction => (
                   <span className="reaction-pop" key={`${reaction.author}-${reaction.emoji}`}>
                     {reaction.emoji}

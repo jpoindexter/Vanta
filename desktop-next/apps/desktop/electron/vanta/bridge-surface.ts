@@ -227,8 +227,8 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
   }
 }
 
-/** `window.hermesDesktop`: the Hermes member names the renderer already calls, real where slice 1 needs them, typed-unsupported elsewhere. */
-export function buildHermesDesktop(env: BridgeEnv): Record<string, unknown> {
+/** `window.desktopBridge`: the Vanta member names the renderer already calls, real where slice 1 needs them, typed-unsupported elsewhere. */
+export function buildDesktopBridge(env: BridgeEnv): Record<string, unknown> {
   return mergeSurface(stubsFrom(SURFACE_MANIFEST), buildImplemented(env))
 }
 

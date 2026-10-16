@@ -449,18 +449,6 @@ textarea.vc-input {
   gap: 4px;
 }
 
-.vc-segment .vp-btn {
-  align-items: center;
-  display: inline-flex;
-  gap: 2px;
-}
-
-.vc-segment .vp-btn[aria-pressed='true'] {
-  background: var(--vp-bg3);
-  border-color: var(--vp-ink);
-  font-weight: 600;
-}
-
 @media (max-width: 900px) {
   .vc-two {
     grid-template-columns: 1fr;

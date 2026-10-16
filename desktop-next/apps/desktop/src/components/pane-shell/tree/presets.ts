@@ -70,9 +70,9 @@ export const layoutPresetResting = (id: string): ReadonlySet<string> => {
 }
 
 // v2: v1 presets predate semantic placement (see store.ts) — retire them.
-const USER_KEY = 'hermes.desktop.layoutPresets.v2'
+const USER_KEY = 'vanta.desktop.layoutPresets.v2'
 
-writeKey('hermes.desktop.layoutPresets.v1', null)
+writeKey('vanta.desktop.layoutPresets.v1', null)
 
 interface StoredPreset {
   name: string
@@ -154,7 +154,7 @@ export function saveLayoutPresetTree(name: string, tree: LayoutNode, resting: re
   }
 
   // Presets are GEOMETRY. Strip the live tiles before the tree is ever written
-  // to `hermes.desktop.layoutPresets.v2`; `applyTree` adopts the tiles that are
+  // to `vanta.desktop.layoutPresets.v2`; `applyTree` adopts the tiles that are
   // actually open into this geometry, so no open tab is lost.
   const geometry = stripPresetLivePanes(tree)
 

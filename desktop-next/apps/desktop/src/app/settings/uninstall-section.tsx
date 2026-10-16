@@ -58,7 +58,7 @@ export function UninstallSection(): ReactElement | null {
 
   useEffect((): (() => void) | undefined => {
     let alive: boolean = true
-    const bridge: Window['hermesDesktop']['uninstall'] | undefined = window.hermesDesktop?.uninstall
+    const bridge: Window['desktopBridge']['uninstall'] | undefined = window.desktopBridge?.uninstall
 
     if (!bridge) {
       return
@@ -83,7 +83,7 @@ export function UninstallSection(): ReactElement | null {
     }
   }, [])
 
-  const bridge: Window['hermesDesktop']['uninstall'] | undefined = window.hermesDesktop?.uninstall
+  const bridge: Window['desktopBridge']['uninstall'] | undefined = window.desktopBridge?.uninstall
 
   if (!bridge || !summary) {
     return null
@@ -97,11 +97,11 @@ export function UninstallSection(): ReactElement | null {
 
     return (
       <div className={cn('mx-auto w-full max-w-2xl', !hasBreadcrumb && 'mt-8')}>
-        <SectionHeading icon={AlertTriangle} page title={u.uninstallHermes} />
+        <SectionHeading icon={AlertTriangle} page title={u.uninstallVanta} />
         <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-background/40 px-4 py-3">
           <p className="text-xs text-muted-foreground">{u.managedBody}</p>
           <p className="text-sm font-medium">{summary.native_removal_instructions}</p>
-          <p className="text-xs text-muted-foreground">{u.dataKept(summary.hermes_home)}</p>
+          <p className="text-xs text-muted-foreground">{u.dataKept(summary.vanta_home)}</p>
           {summary.platform === 'win32' && (
             <div className="mt-1">
               <Button onClick={(): void => void bridge.openAppsSettings()} size="sm" variant="outline">
@@ -154,7 +154,7 @@ export function UninstallSection(): ReactElement | null {
             <p className="text-sm font-medium text-destructive">{t.settings.uninstallSection.confirmUninstall}</p>
             <p className="mt-1 text-xs text-muted-foreground">{u.confirmBody(pendingOption.consequence)}</p>
             {summary?.running_app_path && (
-              <p className="mt-1 font-mono text-[0.75rem] text-muted-foreground/60">
+              <p className="mt-1 font-mono text-meta text-muted-foreground/60">
                 {u.appLabel} {summary.running_app_path}
               </p>
             )}
@@ -171,7 +171,7 @@ export function UninstallSection(): ReactElement | null {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium">{t.settings.uninstallSection.uninstallHermes}</p>
+            <p className="text-sm font-medium">{t.settings.uninstallSection.uninstallVanta}</p>
             <p className="text-xs text-muted-foreground">{u.chooseHowMuch}</p>
             <div className="mt-1 flex flex-col gap-2">
               {visibleOptions.map((opt: ModeOption): ReactElement => (

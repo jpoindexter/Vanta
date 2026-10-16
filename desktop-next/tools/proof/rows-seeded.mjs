@@ -162,10 +162,10 @@ export async function projectRows(ctx) {
     await page.waitForTimeout(600);
     await dialog.getByRole("button", { name: "Create", exact: true }).click();
     await page.waitForTimeout(2500);
-    const listed = await page.evaluate(async () => JSON.stringify(await window.hermesDesktop.api({ method: "GET", path: "/api/projects" })));
+    const listed = await page.evaluate(async () => JSON.stringify(await window.desktopBridge.api({ method: "GET", path: "/api/projects" })));
     verdict("F-050", AREA, "New project dialog creates a project", /Beta notes/.test(listed), { pass: `the dialog took a name and a folder (${path.basename(second)}) and created Beta notes (route /api/projects lists it)`, why: "no Beta notes project after Create" });
   });
-  const tree = await page.evaluate(async () => JSON.stringify(await window.hermesDesktop.api({ method: "GET", path: "/api/projects" })));
+  const tree = await page.evaluate(async () => JSON.stringify(await window.desktopBridge.api({ method: "GET", path: "/api/projects" })));
   record("F-048", AREA, "Project lanes in Project grouping", "FAIL", `Project grouping is selectable and /api/projects lists the projects (${JSON.parse(tree).projects?.length ?? 0} listed), but the list shows no lanes: GET /api/sessions rows carry no cwd, so no chat can be placed in a project. Fix lives in the server session list (R3)`);
   notRun("F-049", AREA, "Project menu", "needs a project lane, and none renders until sessions carry a cwd (see F-048)");
   await filters(page);

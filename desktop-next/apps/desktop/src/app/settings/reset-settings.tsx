@@ -42,7 +42,7 @@ function useResetPlans(): Plans {
     let alive = true
 
     for (const scope of ['app', 'everything'] as const) {
-      void window.hermesDesktop?.resetPlan?.(scope).then(plan => alive && setPlans(current => ({ ...current, [scope]: plan })))
+      void window.desktopBridge?.resetPlan?.(scope).then(plan => alive && setPlans(current => ({ ...current, [scope]: plan })))
     }
 
     return () => {
@@ -97,7 +97,7 @@ function ResetDialog({ onClose, plans, scope }: ResetDialogProps): ReactElement 
     if (!scope) return
     if (everything && typed !== ERASE_WORD) throw new Error(`Type "${ERASE_WORD}" to confirm.`)
 
-    const result = await window.hermesDesktop?.resetRun?.(scope, everything ? typed : undefined)
+    const result = await window.desktopBridge?.resetRun?.(scope, everything ? typed : undefined)
 
     if (result && !result.ok) throw new Error(result.error)
   }
@@ -139,7 +139,7 @@ export function ResetSettings(): ReactElement {
   const plans = useResetPlans()
   const [asking, setAsking] = useState<null | Scope>(null)
 
-  if (!window.hermesDesktop?.resetRun) {
+  if (!window.desktopBridge?.resetRun) {
     return (
       <SettingsContent>
         <p className="mx-auto mt-6 w-full max-w-2xl text-sm text-muted-foreground">{RESET_COPY.unavailable}</p>

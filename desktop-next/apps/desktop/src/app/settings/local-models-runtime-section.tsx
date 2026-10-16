@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle2, Download, Loader2, Pause, StopFilled, Zap } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { localModelsKey, runningRuntimeInstall, startLocalRuntimeInstall } from '@/store/local-runtime-jobs'
-import type { LocalModelsStatus, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalModelsStatus, LocalRuntimeJob } from '@/types/desktop'
 
 import { LocalModelDownloadActions, LocalModelDownloadProgress } from './local-model-download-progress'
 import { type LocalModelsActionScope, setServerRunning, useLocalModelsActionScope } from './local-models-actions'
@@ -157,7 +157,7 @@ export function LocalModelsRuntimeSection({ status, jobs, lastError }: LocalMode
         />
       )}
 
-      {lastError?.kind === 'runtime-install' && <p className="text-[0.75rem] text-destructive">{lastError.error}</p>}
+      {lastError?.kind === 'runtime-install' && <p className="text-meta text-destructive">{lastError.error}</p>}
     </SettingsSection>
   )
 }

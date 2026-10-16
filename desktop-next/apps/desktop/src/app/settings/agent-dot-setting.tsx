@@ -12,7 +12,7 @@ export const AGENT_DOT_COPY = {
 
 /** Turns the always-on-top agent dot on or off. Absent outside the Vanta shell. */
 export function AgentDotSetting(): ReactElement | null {
-  const bridge = window.hermesDesktop?.agentDot
+  const bridge = window.desktopBridge?.agentDot
   const [enabled, setEnabled] = useState<boolean | null>(null)
 
   useEffect(() => {

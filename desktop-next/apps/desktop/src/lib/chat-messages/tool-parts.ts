@@ -1,10 +1,10 @@
-import type { ToolLabel } from '@hermes/shared'
+import type { ToolLabel } from '@vanta/shared'
 
 import { TOOL_LABELS_ARG } from '@/lib/connector-tools'
 import { firstStringField, normalize } from '@/lib/text'
 import { isTodoToolName, parseTodos } from '@/lib/todos'
 import type { ToolResultMetadata } from '@/lib/tool-result-metadata'
-import type { SessionMessage, StoredToolCallLabels } from '@/types/hermes'
+import type { SessionMessage, StoredToolCallLabels } from '@/types/desktop'
 
 import type { ChatMessage, ChatMessagePart, GatewayEventPayload } from './types'
 

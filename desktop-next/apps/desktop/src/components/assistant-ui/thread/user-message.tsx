@@ -149,8 +149,8 @@ export async function resolveAgentAvatar(handle: string): Promise<null | string>
       const profiles = res?.profiles ?? []
       let profile = profiles.find(p => p.name.toLowerCase() === key)
 
-      // 'hermes' is the conventional alias for the primary profile.
-      if (!profile && key === 'hermes') {
+      // 'vanta' is the conventional alias for the primary profile.
+      if (!profile && key === 'vanta') {
         profile = profiles.find(p => p.name === 'default')
       }
 
@@ -208,14 +208,14 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
   // message, so the exchange still reads in order.
   return (
     <div
-      className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60"
+      className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-meta leading-5 text-muted-foreground/60"
       data-slot="aui_agent-message-note"
     >
       <span className="flex items-center justify-center gap-1.5">
         {avatar ? (
           <img alt="" aria-hidden className="size-4 shrink-0 rounded-full object-cover" src={avatar} />
         ) : (
-          <span aria-hidden className="text-[0.8125rem] leading-none">
+          <span aria-hidden className="text-ui leading-none">
             🤖
           </span>
         )}
@@ -226,7 +226,7 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
           <summary className="cursor-pointer select-none text-center text-muted-foreground/45 hover:text-muted-foreground/70">
             show message
           </summary>
-          <div className="mt-1 max-w-[36rem] rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-[0.75rem] leading-5 text-foreground/85">
+          <div className="mt-1 max-w-[36rem] rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-meta leading-5 text-foreground/85">
             <UserMessageText text={body} />
           </div>
         </details>
@@ -590,7 +590,7 @@ export const UserMessage: FC<{
           <MessageTimelineTimestamp className="self-end pr-1.5" />
           <BranchPickerPrimitive.Root
             className={cn(
-              'checkpoint-container flex items-center gap-1 pb-0 pt-1 pl-1.5 text-[0.75rem] leading-none text-(--ui-text-tertiary)',
+              'checkpoint-container flex items-center gap-1 pb-0 pt-1 pl-1.5 text-meta leading-none text-(--ui-text-tertiary)',
               readOnly && 'hidden'
             )}
             hideWhenSingleBranch

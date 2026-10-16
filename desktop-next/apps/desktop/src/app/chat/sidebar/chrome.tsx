@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import type * as React from 'react'
 
@@ -26,7 +26,7 @@ import {
 
 /** The muted slot beside a section label (loading glyph, status hint). */
 export function SidebarSectionMeta({ children }: { children: React.ReactNode }) {
-  return <span className="shrink-0 text-[0.75rem] font-medium text-(--ui-text-quaternary)">{children}</span>
+  return <span className="shrink-0 text-meta font-medium text-(--ui-text-quaternary)">{children}</span>
 }
 
 // Row geometry lives in `row-geometry.ts` — see that file for why each class
@@ -132,7 +132,7 @@ export function SidebarDateDivider({
   toggle?: { ariaLabel: string; onToggle: () => void; open: boolean }
 }) {
   const caption = (
-    <span className="shrink-0 text-[0.75rem] font-medium text-(--ui-text-tertiary)">
+    <span className="shrink-0 text-meta font-medium text-(--ui-text-tertiary)">
       {label}
     </span>
   )
@@ -282,7 +282,7 @@ export function SidebarGroupRow({
         // group, never both at once.
         facts.length ? (
           <div className="relative flex items-center">
-            <span className="min-w-9 whitespace-nowrap text-right text-[0.75rem] leading-none text-(--ui-text-tertiary) transition-opacity group-hover/workspace:opacity-0">
+            <span className="min-w-9 whitespace-nowrap text-right text-meta leading-none text-(--ui-text-tertiary) transition-opacity group-hover/workspace:opacity-0">
               {facts.join(' · ')}
             </span>
             {actions ? <div className="absolute right-0 flex items-center">{actions}</div> : null}

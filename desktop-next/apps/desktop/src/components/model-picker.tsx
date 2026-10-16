@@ -1,5 +1,5 @@
-import type { ModelOptionProvider, ModelPricing } from '@hermes/shared'
-import { fuzzyRank, modelSearchText } from '@hermes/shared'
+import type { ModelOptionProvider, ModelPricing } from '@vanta/shared'
+import { fuzzyRank, modelSearchText } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import { type ReactElement, useMemo, useRef, useState } from 'react'
@@ -19,9 +19,9 @@ import {
   useLocalModelsStatus,
   useLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
-import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/desktop'
 
-import type { HermesGateway } from '../hermes'
+import type { VantaGateway } from '../desktop-api'
 import { startManualOnboarding } from '../store/onboarding'
 
 import { InlineNotice } from './notifications'
@@ -36,7 +36,7 @@ import { Skeleton } from './ui/skeleton'
 interface ModelPickerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  gw?: HermesGateway
+  gw?: VantaGateway
   sessionId?: string | null
   currentModel: string
   currentProvider: string
@@ -74,7 +74,7 @@ export function ModelPickerDialog({
   // Own the search term so we can filter manually. cmdk's built-in
   // shouldFilter reorders items by its fuzzy-match score (≈alphabetical with
   // an empty query), which destroys the backend's curated order. We disable
-  // it: an empty query shows the curated list verbatim (like the `hermes
+  // it: an empty query shows the curated list verbatim (like the `vanta
   // model` CLI picker) and a query ranks with the shared fuzzyRank.
   const [search, setSearch] = useState<string>('')
   // "Add custom model…" flips the search into slug entry: the typed id is
@@ -394,11 +394,11 @@ function ModelResults({
                           style={{ width: `${Math.max(2, loadProgress.percent)}%` }}
                         />
                       </span>
-                      <span className="text-[0.75rem] tabular-nums text-muted-foreground">{loadProgress.percent}%</span>
+                      <span className="text-meta tabular-nums text-muted-foreground">{loadProgress.percent}%</span>
                     </span>
                   )}
                   {locked && (
-                    <span className="shrink-0 text-[0.75rem] uppercase tracking-wide opacity-80">{copy.pro}</span>
+                    <span className="shrink-0 text-meta uppercase tracking-wide opacity-80">{copy.pro}</span>
                   )}
                   {resetLabel && (
                     <Badge
@@ -418,7 +418,7 @@ function ModelResults({
               <DownloadingModelRow jobId={job.jobId} key={job.jobId} owner={owner} target={job.target} />
             ))}
             {unavailable.size > 0 && (
-              <div className="px-6 pb-2 pt-1 text-[0.75rem] leading-relaxed text-muted-foreground">
+              <div className="px-6 pb-2 pt-1 text-meta leading-relaxed text-muted-foreground">
                 {copy.proNeedsSubscription}
               </div>
             )}
@@ -442,7 +442,7 @@ function ModelResults({
               value={`custom:${provider.slug}:${customSlug}`}
             >
               <span className="min-w-0 flex-1 truncate">{customSlug}</span>
-              <span className="shrink-0 text-[0.75rem] text-muted-foreground">{provider.name}</span>
+              <span className="shrink-0 text-meta text-muted-foreground">{provider.name}</span>
             </CommandItem>
           ))}
         </CommandGroup>
@@ -502,7 +502,7 @@ function DownloadingModelRow({
             style={{ width: `${Math.max(2, percent ?? 0)}%` }}
           />
         </span>
-        <span className="text-[0.75rem] tabular-nums text-muted-foreground">
+        <span className="text-meta tabular-nums text-muted-foreground">
           {paused ? copyLocal.downloadPausedLabel : typeof percent === 'number' ? `${percent}%` : copy.downloading}
         </span>
       </span>
@@ -526,7 +526,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
         {typeof price.discount_percent === 'number' ? (
           <span
             className={cn(
-              'rounded-sm px-1 py-0.5 text-[0.75rem] font-semibold',
+              'rounded-sm px-1 py-0.5 text-meta font-semibold',
               isCurrent ? 'bg-primary-foreground/20' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
             )}
           >
@@ -535,7 +535,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
         ) : null}
         <span
           className={cn(
-            'shrink-0 rounded-sm px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide',
+            'shrink-0 rounded-sm px-1 py-0.5 text-meta font-semibold uppercase tracking-wide',
             isCurrent ? 'bg-primary-foreground/20' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
           )}
         >
@@ -550,7 +550,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
   return (
     <span
       className={cn(
-        'shrink-0 inline-flex items-center gap-1.5 text-[0.75rem] tabular-nums',
+        'shrink-0 inline-flex items-center gap-1.5 text-meta tabular-nums',
         isCurrent ? 'text-primary-foreground/80' : 'text-muted-foreground'
       )}
       title={copy.priceTitle}
@@ -558,7 +558,7 @@ function ModelPrice({ price, isCurrent }: { price?: ModelPricing; isCurrent: boo
       {onSale ? (
         <span
           className={cn(
-            'rounded-sm px-1 py-0.5 text-[0.75rem] font-semibold',
+            'rounded-sm px-1 py-0.5 text-meta font-semibold',
             isCurrent ? 'bg-primary-foreground/20' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
           )}
         >
@@ -598,17 +598,17 @@ function ProviderHeading({ provider }: { provider: ModelOptionProvider }) {
   const { t } = useI18n()
   const copy = t.modelPicker
 
-  // Two different facts wear the same badge: `free_tier` is a signed-in Nous
+  // Two different facts wear the same badge: `free_tier` is a signed-in Vanta
   // account on the free plan; `free_tier_row` is the no-account route's own
   // row. Either way the user is on free inference, so say so. Never match the
   // route by name — the label is copy.
   const tierBadge =
     provider.free_tier === true || provider.free_tier_row === true ? (
-      <span className="rounded-sm bg-emerald-500/15 px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+      <span className="rounded-sm bg-emerald-500/15 px-1 py-0.5 text-meta font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
         {copy.freeTier}
       </span>
     ) : provider.free_tier === false ? (
-      <span className="rounded-sm bg-primary/15 px-1 py-0.5 text-[0.75rem] font-semibold uppercase tracking-wide text-primary">
+      <span className="rounded-sm bg-primary/15 px-1 py-0.5 text-meta font-semibold uppercase tracking-wide text-primary">
         {copy.pro}
       </span>
     ) : null

@@ -72,12 +72,12 @@ describe('summarizeToolRun', () => {
   // bucket they read as "Explored 2 files" while their own rows say Searched
   // (#123085).
   it('counts web searches as queries, not explored files', () => {
-    expect(settled([webSearched('hermes agent'), webSearched('kv cache')])).toBe('Searched 2 sources')
-    expect(running([webSearched('hermes agent'), webSearched('kv cache')])).toBe('Searching 2 sources')
+    expect(settled([webSearched('vanta agent'), webSearched('kv cache')])).toBe('Searched 2 sources')
+    expect(running([webSearched('vanta agent'), webSearched('kv cache')])).toBe('Searching 2 sources')
   })
 
   it('names a lone web search the way its row does', () => {
-    expect(settled([webSearched('hermes agent')])).toBe('Searched “hermes agent”')
+    expect(settled([webSearched('vanta agent')])).toBe('Searched “vanta agent”')
   })
 
   it('names a lone web extract by hostname the way its row does', () => {

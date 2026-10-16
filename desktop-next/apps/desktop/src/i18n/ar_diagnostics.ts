@@ -34,7 +34,7 @@ export const arDiagnostics = {
     desktopOutOfDateTitle: 'التطبيق قديم',
     desktopOutOfDateMessage: 'تطبيق Vanta أقدم من الخلفية المتصل بها وقد لا يعمل كما يجب. حدّث التطبيق ليتوافقا.',
     updateDesktopApp: 'تحديث التطبيق',
-    updateHermes: 'تحديث Vanta',
+    updateVanta: 'تحديث Vanta',
     updateReadyTitle: 'التحديث جاهز',
     updateReadyMessage: count => `${count} تغيير جديد متاح.`,
     updateReadyMessageUnknown: 'يتوفر تحديث جديد.',

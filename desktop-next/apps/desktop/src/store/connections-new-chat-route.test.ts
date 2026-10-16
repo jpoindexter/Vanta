@@ -1,19 +1,19 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import type { DesktopConnectionsRegistry, HermesConnection } from '@/global'
-import type * as Vanta from '@/hermes'
+import type { DesktopConnectionsRegistry, VantaConnection } from '@/global'
+import type * as Vanta from '@/desktop-api'
 
 import { deferred } from '../test/deferred'
 
 vi.mock('@/app/contrib/hooks/use-background-sync', () => ({ resetLiveRuntimeTracking: vi.fn() }))
-vi.mock('@/hermes', async importOriginal => {
+vi.mock('@/desktop-api', async importOriginal => {
   const actual = await importOriginal<typeof Vanta>()
 
   return {
     ...actual,
     getProfiles: vi.fn(async () => ({ profiles: [{ name: 'default' }] })),
-    hermesApi: vi.fn(async () => ({ current: 'default', profiles: [{ name: 'default' }] })),
-    HermesGateway: class {
+    vantaApi: vi.fn(async () => ({ current: 'default', profiles: [{ name: 'default' }] })),
+    VantaGateway: class {
       connectionState = 'closed'
       wsUrl = ''
       connect = async (url: string) => {
@@ -58,7 +58,7 @@ const registry: DesktopConnectionsRegistry = {
   ]
 }
 
-function descriptor(connectionId: string, profile = 'default'): HermesConnection {
+function descriptor(connectionId: string, profile = 'default'): VantaConnection {
   return {
     connectionId,
     profile,
@@ -83,7 +83,7 @@ beforeEach(async () => {
   _resetConnectionsForTests()
   getConnectionFor.mockReset()
   getConnectionFor.mockImplementation(async ({ connectionId, profile }) => descriptor(connectionId, profile))
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'desktopBridge', {
     configurable: true,
     value: {
       getConnectionFor,
@@ -143,13 +143,13 @@ it('preserves the explicit draft when the target dial fails', async () => {
 
 it('does not overwrite a newer draft when remembering a committed switch settles late', async () => {
   const remembered = deferred<{ ok: boolean; registry: DesktopConnectionsRegistry }>()
-  Object.assign(window.hermesDesktop!, {
+  Object.assign(window.desktopBridge!, {
     connections: {
       setLastUsed: vi.fn().mockReturnValueOnce(remembered.promise).mockResolvedValue({ ok: true, registry })
     }
   })
   const first = selectConnection('local')
-  await vi.waitFor(() => expect(window.hermesDesktop!.connections!.setLastUsed).toHaveBeenCalled())
+  await vi.waitFor(() => expect(window.desktopBridge!.connections!.setLastUsed).toHaveBeenCalled())
   await selectConnection('homelab')
   const route = { connectionId: 'homelab', profile: 'default' }
   $newChatRoute.set(route)
@@ -170,15 +170,15 @@ it('keeps a newer agent draft started while an ordinary switch is still bookkeep
 
   setConnectionsRegistry(withOther)
   const remembered = deferred<{ ok: boolean; registry: DesktopConnectionsRegistry }>()
-  Object.assign(window.hermesDesktop!, {
+  Object.assign(window.desktopBridge!, {
     connections: {
       setLastUsed: vi.fn().mockReturnValueOnce(remembered.promise).mockResolvedValue({ ok: true, registry: withOther })
     }
   })
   const first = selectConnection('local')
-  await vi.waitFor(() => expect(window.hermesDesktop!.connections!.setLastUsed).toHaveBeenCalled())
+  await vi.waitFor(() => expect(window.desktopBridge!.connections!.setLastUsed).toHaveBeenCalled())
   // The newer draft's source is still dialing, so local stays in the foreground.
-  const dial = deferred<HermesConnection>()
+  const dial = deferred<VantaConnection>()
   getConnectionFor.mockImplementation(async ({ connectionId, profile }) =>
     connectionId === 'other' ? dial.promise : descriptor(connectionId, profile)
   )
@@ -196,7 +196,7 @@ it('keeps a newer agent draft started while an ordinary switch is still bookkeep
 })
 
 it('does not let a superseded dial clear a newer explicit draft', async () => {
-  const dial = deferred<HermesConnection>()
+  const dial = deferred<VantaConnection>()
   getConnectionFor.mockImplementationOnce(() => dial.promise)
   const first = selectConnection('local')
   await vi.waitFor(() => expect(getConnectionFor).toHaveBeenCalled())

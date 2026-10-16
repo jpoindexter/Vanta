@@ -34,7 +34,7 @@ function HeldTabKeyHint({ groupId, slot }: { groupId: string; slot: number }) {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 flex items-center justify-center text-[0.75rem] font-semibold leading-none tabular-nums text-(--ui-text-secondary)"
+      className="pointer-events-none absolute inset-0 flex items-center justify-center text-meta font-semibold leading-none tabular-nums text-(--ui-text-secondary)"
       data-tab-key-hint={slot}
     >
       {slot}

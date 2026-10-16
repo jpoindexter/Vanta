@@ -1,4 +1,4 @@
-import type { VantaTransport } from '@hermes/shared/vanta'
+import type { VantaTransport } from '@vanta/shared/vanta'
 
 import {
   type ApprovalEvent,

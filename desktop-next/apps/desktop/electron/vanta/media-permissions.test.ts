@@ -66,7 +66,7 @@ describe.each([
     }
   })
 
-  it('denies everything the Hermes handler allowed besides audio: video capture and fullscreen', () => {
+  it('denies everything the Vanta handler allowed besides audio: video capture and fullscreen', () => {
     const f = fixture(devServer)
 
     for (const permission of ['videoCapture', 'audioCapture', 'fullscreen', 'automatic-fullscreen']) {

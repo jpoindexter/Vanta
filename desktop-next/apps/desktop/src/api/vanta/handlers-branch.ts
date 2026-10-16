@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import { type Handler, type Params, sessionResume, storedIdFor } from './handlers-session'
 import { expectOk, parseBody } from './rpc'

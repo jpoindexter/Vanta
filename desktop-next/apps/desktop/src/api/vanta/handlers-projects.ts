@@ -1,7 +1,7 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 import { z } from 'zod'
 
-import type { ProjectInfo, ProjectsPayload } from '@/types/hermes'
+import type { ProjectInfo, ProjectsPayload } from '@/types/desktop'
 
 import type { Handler, Params } from './handlers-session'
 import type { GatewayHub } from './hub'

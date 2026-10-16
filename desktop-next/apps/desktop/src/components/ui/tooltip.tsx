@@ -212,7 +212,7 @@ function PaneClippedContent({
       align={align ?? preferred.align}
       arrowPadding={arrowPadding}
       className={cn(
-        'tooltip-bubble pointer-events-none z-(--z-over-modal) w-fit select-none bg-foreground px-2 py-1 text-[0.75rem] font-medium leading-[1.4] text-background',
+        'tooltip-bubble pointer-events-none z-(--z-over-modal) w-fit select-none bg-foreground px-2 py-1 text-meta font-medium leading-[1.4] text-background',
         className
       )}
       collisionBoundary={collisionBoundary ?? pane ?? undefined}

@@ -88,7 +88,7 @@ export async function settingsRows(page) {
   await attempt(page, "F-176", AREA, "About: version and updates", async () => {
     const result = await openPage(page, "About", "Version & updates");
     verdict("F-176", AREA, "About: version and updates", result.state === "loaded" && /Vanta/.test(result.body), { pass: `About lists Vanta, version and updates (${result.body.includes("Version unavailable") ? "version reads 'Version unavailable': no version is wired into this page yet" : "version shown"}); no update feed is configured`, why: result.body.slice(0, 160) });
-    verdict("F-169", AREA, "No Billing section", !/\bBilling\b/.test(result.body), { pass: "removed with the Nous branding", why: "Billing present" });
+    verdict("F-169", AREA, "No Billing section", !/\bBilling\b/.test(result.body), { pass: "removed with the Vanta branding", why: "Billing present" });
     verdict("F-171", AREA, "No Gateways section", !(await nav(page, "Gateways").count()), { pass: "removed (owner decision); the backend is one local Vanta server", why: "Gateways present" });
   }, { keepOpen: true });
   await attempt(page, "F-177", AREA, "Language switcher", async () => {

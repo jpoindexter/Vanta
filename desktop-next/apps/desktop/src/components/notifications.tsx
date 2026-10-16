@@ -40,7 +40,7 @@ const tone: Record<NotificationKind, { icon: IconComponent; iconClass: string; v
   success: { icon: CheckCircle2, iconClass: 'text-primary', variant: 'success' }
 }
 
-const STACK_SURFACE = 'pointer-events-auto border border-(--stroke-nous) bg-popover/95 shadow-nous backdrop-blur-md'
+const STACK_SURFACE = 'pointer-events-auto border border-(--stroke-vanta) bg-popover/95 shadow-vanta backdrop-blur-md'
 
 function partitionNotifications(notifications: AppNotification[]) {
   const defaultStack: AppNotification[] = []
@@ -361,14 +361,14 @@ function NotificationDetail({ detail }: { detail: string }) {
       <summary className="select-none font-medium text-muted-foreground hover:text-foreground">{copy.details}</summary>
       <div className="mt-1 rounded-md bg-background/65 p-2">
         <pre
-          className="max-h-32 whitespace-pre-wrap wrap-break-word font-mono text-[0.75rem] leading-relaxed"
+          className="max-h-32 whitespace-pre-wrap wrap-break-word font-mono text-meta leading-relaxed"
           data-selectable-text="true"
         >
           {detail}
         </pre>
         <CopyButton
           appearance="inline"
-          className="mt-1 rounded px-1.5 py-0.5 text-[0.75rem]"
+          className="mt-1 rounded px-1.5 py-0.5 text-meta"
           errorMessage={copy.copyDetailFailed}
           iconClassName="size-3"
           label={copy.copyDetail}

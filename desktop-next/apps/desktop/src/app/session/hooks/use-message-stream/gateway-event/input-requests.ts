@@ -1,4 +1,4 @@
-import type { ConnectionRequestPayload, ConnectionUpdatePayload, GatewayEvent } from '@hermes/shared'
+import type { ConnectionRequestPayload, ConnectionUpdatePayload, GatewayEvent } from '@vanta/shared'
 
 import { applyAccountConnectionUpdate } from '@/app/capabilities/connectors/data/account-operations'
 import { abortPreviewTyping } from '@/app/chat/right-rail/preview-typing-abort'

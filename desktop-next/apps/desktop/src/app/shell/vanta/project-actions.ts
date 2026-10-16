@@ -11,7 +11,7 @@ interface ProjectCopy {
 /** Pick a folder in the native dialog, then move the Vanta runtime there. Main confirms nothing further: the picked folder is the consent. */
 export async function switchProjectFolder(currentPath: string, copy: ProjectCopy): Promise<boolean> {
   const desktop = window.vantaDesktop as { pickProjectFolder?: (path?: string) => Promise<null | string> } | undefined
-  const settings = window.hermesDesktop?.settings
+  const settings = window.desktopBridge?.settings
 
   if (!desktop?.pickProjectFolder || !settings) {
     return false
@@ -37,10 +37,10 @@ export async function switchProjectFolder(currentPath: string, copy: ProjectCopy
 }
 
 export async function revealProjectFolder(path: string): Promise<void> {
-  await window.hermesDesktop?.revealPath?.(path)
+  await window.desktopBridge?.revealPath?.(path)
 }
 
 export async function copyProjectPath(path: string, copy: ProjectCopy): Promise<void> {
-  await window.hermesDesktop?.writeClipboard?.(path)
+  await window.desktopBridge?.writeClipboard?.(path)
   notify({ durationMs: SUCCESS_TOAST_MS, kind: 'success', message: copy.projectPathCopied })
 }

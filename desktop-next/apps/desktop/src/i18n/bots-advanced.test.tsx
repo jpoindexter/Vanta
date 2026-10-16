@@ -1,4 +1,4 @@
-import type * as HermesSdk from '@hermes/plugin-sdk'
+import type * as VantaSdk from '@vanta/plugin-sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
@@ -7,10 +7,10 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { I18nProvider, useI18n } from '@/i18n'
 import type { I18nContextValue } from '@/i18n'
 import { registerPluginLocales } from '@/i18n/plugin-i18n'
-import { BOTS_LOCALES } from '@/plugins/hermes-bots/i18n'
-import { translateBotsIn } from '@/plugins/hermes-bots/i18n-test-helper'
-import { McpSetupButton } from '@/plugins/hermes-bots/mcp-setup'
-import { AdvancedProfileConfig, applyAdvancedConfig, emptyAdvancedState } from '@/plugins/hermes-bots/profile-config'
+import { BOTS_LOCALES } from '@/plugins/bots/i18n'
+import { translateBotsIn } from '@/plugins/bots/i18n-test-helper'
+import { McpSetupButton } from '@/plugins/bots/mcp-setup'
+import { AdvancedProfileConfig, applyAdvancedConfig, emptyAdvancedState } from '@/plugins/bots/profile-config'
 
 const mocks = vi.hoisted(() => ({
   request: vi.fn(async (method: string, _params?: Record<string, unknown>): Promise<unknown> => {
@@ -37,8 +37,8 @@ const mocks = vi.hoisted(() => ({
   notify: vi.fn()
 }))
 
-vi.mock('@hermes/plugin-sdk', async importOriginal => {
-  const sdk = await importOriginal<typeof HermesSdk>()
+vi.mock('@vanta/plugin-sdk', async importOriginal => {
+  const sdk = await importOriginal<typeof VantaSdk>()
 
   return {
     ...sdk,
@@ -58,7 +58,7 @@ function Controls() {
 }
 
 function mount(children: React.ReactNode) {
-  dispose = registerPluginLocales('hermes-bots', BOTS_LOCALES)
+  dispose = registerPluginLocales('vanta-bots', BOTS_LOCALES)
 
   return render(
     <I18nProvider configClient={null} initialLocale="zh">

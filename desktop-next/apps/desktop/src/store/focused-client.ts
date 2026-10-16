@@ -14,7 +14,7 @@ interface FocusBridge {
 
 /** Send the focus to main; returns whether a bridge was there to hear it. */
 export function reportFocusedClient(clientId: null | string): boolean {
-  const bridge = (typeof window === 'undefined' ? undefined : window.hermesDesktop?.vanta) as FocusBridge | undefined
+  const bridge = (typeof window === 'undefined' ? undefined : window.desktopBridge?.vanta) as FocusBridge | undefined
 
   if (!bridge?.focusClient) {
     return false

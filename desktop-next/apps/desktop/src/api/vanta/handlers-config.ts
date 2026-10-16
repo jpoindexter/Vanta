@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import { commandsCatalog } from './commands-catalog'
 import { getAccessMode, setAccessMode } from './handlers-access-mode'
@@ -65,7 +65,7 @@ export const configGet: Handler = async (hub, params) => {
     : unsupportedKey('config.get', key)
 }
 
-/** `"<model> --provider <id> [--session]"` is the Hermes switch syntax. */
+/** `"<model> --provider <id> [--session]"` is the Vanta switch syntax. */
 export function parseModelSwitch(value: unknown): { global: boolean; model: string; provider: string } {
   const tokens = str(value).trim().split(/\s+/).filter(Boolean)
   const provider = tokens.indexOf('--provider')

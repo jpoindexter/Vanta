@@ -48,7 +48,7 @@ export function QuestionBlock({
         </span>
         {choices.length > 0 ? (
           <span
-            className="mt-px shrink-0 rounded-sm bg-(--chrome-action-hover) px-1 py-px text-[0.75rem] text-(--ui-text-tertiary)"
+            className="mt-px shrink-0 rounded-sm bg-(--chrome-action-hover) px-1 py-px text-meta text-(--ui-text-tertiary)"
             data-clarify-select-mode={question.multiSelect ? 'multi' : 'single'}
           >
             {question.multiSelect ? copy.multiSelectHint : copy.singleSelectHint}

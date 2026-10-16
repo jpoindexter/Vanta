@@ -19,10 +19,10 @@ vi.mock('@/lib/desktop-fs', () => ({
 
 import { normalizeOrLocalPreviewTarget } from './local-preview'
 
-const previousDesktop = window.hermesDesktop
+const previousDesktop = window.desktopBridge
 
 function stubNormalization(result: unknown) {
-  window.hermesDesktop = {
+  window.desktopBridge = {
     normalizePreviewTarget: vi.fn(async () => result)
   } as never
 }
@@ -34,7 +34,7 @@ describe('normalizeOrLocalPreviewTarget non-previewable results', () => {
   })
 
   afterEach(() => {
-    window.hermesDesktop = previousDesktop
+    window.desktopBridge = previousDesktop
   })
 
   it('returns null for a directory in local mode instead of fabricating a text tab', async () => {

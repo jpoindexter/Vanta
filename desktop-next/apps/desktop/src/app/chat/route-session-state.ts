@@ -1,5 +1,5 @@
 import { sessionMatchesStoredId } from '@/store/session'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 interface ActiveTranscriptState {
   activeRuntimeId: null | string

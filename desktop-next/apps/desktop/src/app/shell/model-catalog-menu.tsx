@@ -1,5 +1,5 @@
-import type { ModelOptionProvider, ModelOptionsResult, ModelPricing } from '@hermes/shared'
-import { DEFAULT_REASONING_EFFORT } from '@hermes/shared'
+import type { ModelOptionProvider, ModelOptionsResult, ModelPricing } from '@vanta/shared'
+import { DEFAULT_REASONING_EFFORT } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -32,7 +32,7 @@ import {
 import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tip, TipHintLabel } from '@/components/ui/tooltip'
-import type { HermesGateway } from '@/hermes'
+import type { VantaGateway } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { isSubmitEnter } from '@/lib/ime'
@@ -65,7 +65,7 @@ import {
 } from '@/store/model-visibility'
 import { $collapsedProviders, toggleCollapsedProvider } from '@/store/provider-collapse'
 import { $defaultReasoningEffort } from '@/store/session'
-import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalModelLoadProgress, LocalRuntimeJob } from '@/types/desktop'
 
 import { type FastControl, ModelEditSubmenu, resolveFastControl } from './model-edit-submenu'
 import { ModelMenuRowIcon, useModelMenuRowDecoration } from './model-menu-row-decorations'
@@ -79,7 +79,7 @@ export const ModelMenuCloseContext = createContext<() => void>(() => {})
 /** Compact per-row price: `$in/$out` per Mtok (cached read appended when the
  *  provider ships it), "free", and a sale tag when the portal reports a
  *  discounted list price. Rendered only when the provider's payload carries
- *  pricing (Nous Portal and others that ship it). */
+ *  pricing (Vanta Portal and others that ship it). */
 function ModelPrice({ pricing }: { pricing: ModelPricing }) {
   const { t } = useI18n()
   const copy = t.shell.modelMenu
@@ -93,7 +93,7 @@ function ModelPrice({ pricing }: { pricing: ModelPricing }) {
   const cache = pricing.cache || null
 
   if (pricing.free) {
-    return <span className="shrink-0 pl-2 text-[0.75rem] text-(--ui-green)">{copy.free}</span>
+    return <span className="shrink-0 pl-2 text-meta text-(--ui-green)">{copy.free}</span>
   }
 
   if (!input && !output) {
@@ -105,7 +105,7 @@ function ModelPrice({ pricing }: { pricing: ModelPricing }) {
 
   return (
     <span
-      className="flex shrink-0 items-center gap-1.5 pl-2 text-[0.75rem] tabular-nums text-(--ui-text-tertiary)"
+      className="flex shrink-0 items-center gap-1.5 pl-2 text-meta tabular-nums text-(--ui-text-tertiary)"
       title={copy.priceTitle(input ?? '—', output ?? '—', cache ?? '')}
     >
       <span>
@@ -173,7 +173,7 @@ interface ModelCatalogMenuProps {
   footer?: ReactNode
   /** Rows above the search, outside the keyboard list (the local-setup offer). */
   header?: ReactNode
-  gateway?: HermesGateway
+  gateway?: VantaGateway
   /** Owner-routed RPC for catalog reads. Preferred over `gateway.request` so
    *  a tile's menu queries the session owner's backend, not chrome's. */
   request?: <T>(method: string, params?: Record<string, unknown>) => Promise<T>
@@ -1021,7 +1021,7 @@ function ModelFamilyRow({
   const caps = provider.capabilities?.[family.id]
   const limit = familyLimit(provider, family, isCurrent)
 
-  // Live per-model $/Mtok pricing (Nous Portal and other providers that ship
+  // Live per-model $/Mtok pricing (Vanta Portal and other providers that ship
   // it). A `-fast` sibling shares the base id's price: the collapsed row
   // fronts the base, so fall back to it when only the fast variant is unpriced.
   const pricing = provider.pricing?.[family.id] ?? (family.fastId ? provider.pricing?.[family.fastId] : undefined)
@@ -1151,7 +1151,7 @@ function ModelFamilyRow({
                 style={{ width: `${Math.max(2, loadProgress.percent)}%` }}
               />
             </span>
-            <span className="text-[0.75rem] tabular-nums text-(--ui-text-tertiary)">{loadProgress.percent}%</span>
+            <span className="text-meta tabular-nums text-(--ui-text-tertiary)">{loadProgress.percent}%</span>
           </span>
         ) : null}
         {showPricing && pricing ? <ModelPrice pricing={pricing} /> : null}
@@ -1198,12 +1198,12 @@ const LOCAL_PROVIDER_SLUG = 'llamacpp'
 
 // Heading for every row group in the list (Favorites, providers, downloads).
 const catalogGroupLabel =
-  'px-2 pb-0.5 pt-0.5 text-[0.75rem] font-semibold uppercase tracking-wider text-(--ui-text-secondary)'
+  'px-2 pb-0.5 pt-0.5 text-meta font-semibold uppercase tracking-wider text-(--ui-text-secondary)'
 
 // A provider inside a mixed Favorites section: the group heading's ink, set
 // in normal case and indented to the model names it labels, so it reads as
 // a sub-group rather than a sibling section.
-const favoriteProviderLabel = 'pt-1.5 pb-0 pr-2 pl-7.75 text-[0.75rem] text-(--ui-text-tertiary)'
+const favoriteProviderLabel = 'pt-1.5 pb-0 pr-2 pl-7.75 text-meta text-(--ui-text-tertiary)'
 
 /** The picker's chips: a filled tag for what the model IS (its variant), an
  *  outlined one for how this row is SET (fast, effort), so the two read as
@@ -1301,7 +1301,7 @@ function DownloadingModelRow({
             style={{ width: `${Math.max(2, percent ?? 0)}%` }}
           />
         </span>
-        <span className="text-[0.75rem] tabular-nums text-(--ui-text-tertiary)">
+        <span className="text-meta tabular-nums text-(--ui-text-tertiary)">
           {paused
             ? copyLocal.downloadPausedLabel
             : typeof percent === 'number'

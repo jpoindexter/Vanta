@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useStore } from '@nanostores/react'
 
-import type { SessionInfo } from '@/hermes'
+import type { SessionInfo } from '@/desktop-api'
 import { resolveProfileColor } from '@/lib/profile-color'
 import { $profileColors, normalizeProfileKey } from '@/store/profile'
 

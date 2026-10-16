@@ -28,7 +28,7 @@ import {
   $sessionsLoading
 } from '@/store/session'
 import { $sessionStates } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 export type ShellFixtureName = 'blocked' | 'done' | 'empty' | 'failed' | 'offline' | 'running' | 'waiting'
 

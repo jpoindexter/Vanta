@@ -8,6 +8,7 @@ import { skillRows } from "./skills-api.js";
 
 // The Memory Graph view reads what the agent has learned: skills as graph nodes, memories as cards.
 // Read-only: editing or archiving a node is not served yet, so the view says so instead of failing silently.
+// Skill nodes carry the time of their last change so the "core = oldest" layout can place them.
 
 const env = (ctx: ControlCtx): NodeJS.ProcessEnv => ctx.state._env ?? process.env;
 const MEMORY_FILE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,120}\.md$/;
@@ -27,15 +28,26 @@ async function memoryCards(e: NodeJS.ProcessEnv): Promise<MemoryCard[]> {
   return cards.filter((card) => card.body.trim());
 }
 
+/** When each skill was last changed, in seconds: its own `updated` stamp, else `created`. The view places older skills nearer the core. */
+async function skillTimes(e: NodeJS.ProcessEnv): Promise<Map<string, number>> {
+  const times = new Map<string, number>();
+  for (const skill of await listSkills(e).catch(() => [])) {
+    const ms = Date.parse(skill.meta.updated) || Date.parse(skill.meta.created);
+    if (Number.isFinite(ms)) times.set(skill.meta.name, Math.round(ms / 1000));
+  }
+  return times;
+}
+
 async function graph(ctx: ControlCtx): Promise<void> {
   const skills = await skillRows(ctx);
+  const times = await skillTimes(env(ctx));
   const cards = await memoryCards(env(ctx));
   const clusters = new Map<string, number>();
   for (const skill of skills) clusters.set(skill.category, (clusters.get(skill.category) ?? 0) + 1);
   sendJson(ctx.res, 200, {
     nodes: skills.map((skill) => ({
       id: `skill:${skill.name}`, label: skill.name, kind: "skill", category: skill.category, useCount: skill.usage,
-      state: skill.enabled ? "active" : "disabled", createdBy: skill.provenance === "agent" ? "agent" : null, pinned: false, timestamp: null,
+      state: skill.enabled ? "active" : "disabled", createdBy: skill.provenance === "agent" ? "agent" : null, pinned: false, timestamp: times.get(skill.name) ?? null,
     })),
     edges: [],
     clusters: [...clusters].map(([category, count]) => ({ category, count })),
@@ -45,7 +57,9 @@ async function graph(ctx: ControlCtx): Promise<void> {
 }
 
 async function node(ctx: ControlCtx): Promise<void> {
-  const id = new URL(ctx.req.url ?? "", "http://127.0.0.1").searchParams.get("id") ?? "";
+  const raw = new URL(ctx.req.url ?? "", "http://127.0.0.1").searchParams.get("id") ?? "";
+  // The Skills tab asks for a bare skill name; the graph asks for skill:<name>. Memories are always memory:<file>.md.
+  const id = raw.startsWith("memory:") || raw.startsWith("skill:") || !raw.trim() ? raw : `skill:${raw.trim()}`;
   if (id.startsWith("skill:")) {
     const skill = (await listSkills(env(ctx))).find((entry) => entry.meta.name === id.slice("skill:".length));
     if (!skill) return sendFail(ctx.res, 404, `skill not found: ${id.slice(6)}`);

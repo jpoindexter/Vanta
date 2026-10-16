@@ -22,7 +22,7 @@ describe('inline image preview envelope (#74564)', () => {
   const stylesheet = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../styles.css'), 'utf8')
 
   beforeEach(() => {
-    vi.stubGlobal('window', { hermesDesktop: {} })
+    vi.stubGlobal('window', { desktopBridge: {} })
   })
 
   afterEach(() => {

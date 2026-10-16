@@ -29,7 +29,7 @@ export function ClarifyConfirmBar({
         ) : (
           <>
             {copy.confirmAndContinueLabel}
-            <span aria-hidden className="ml-0.5 text-[0.75rem] opacity-70">
+            <span aria-hidden className="ml-0.5 text-meta opacity-70">
               ⏎
             </span>
           </>

@@ -118,7 +118,7 @@ export const SystemMessage: FC = () => {
   if (steerNote?.groups) {
     return (
       <MessagePrimitive.Root
-        className="flex max-w-[min(86%,44rem)] items-center gap-1.5 self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60"
+        className="flex max-w-[min(86%,44rem)] items-center gap-1.5 self-center px-2 py-0.5 text-meta leading-5 text-muted-foreground/60"
         data-role="system"
         data-slot="aui_system-message-root"
       >
@@ -142,7 +142,7 @@ export const SystemMessage: FC = () => {
     return (
       <MessagePrimitive.Root
         className={cn(
-          'w-[60%] max-w-[44rem] self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60',
+          'w-[60%] max-w-[44rem] self-center px-2 py-0.5 text-meta leading-5 text-muted-foreground/60',
           multiline ? 'text-left' : 'text-center'
         )}
         data-role="system"
@@ -167,7 +167,7 @@ export const SystemMessage: FC = () => {
   return (
     <MessagePrimitive.Root
       className={cn(
-        'w-[60%] max-w-[44rem] self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/55',
+        'w-[60%] max-w-[44rem] self-center px-2 py-0.5 text-meta leading-5 text-muted-foreground/55',
         multiline ? 'text-left' : 'text-center'
       )}
       data-role="system"

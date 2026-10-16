@@ -5,7 +5,7 @@
 // how the two halves drift.
 //
 // A .cjs module (not JSON) so the variant is decided at require time:
-// HERMES_DESKTOP_VARIANT=light builds "Vanta Light". The whole config
+// VANTA_DESKTOP_VARIANT=light builds "Vanta Light". The whole config
 // derives from that one flag.
 // @ts-check
 'use strict'
@@ -35,7 +35,7 @@ const {
 // invariant lives in product-identity.cjs:33-34/58-68.
 /** @type {NonNullable<typeof storeMsix> | undefined} */
 const storeMsixWhenStore = storeMsix
-const releaseBuild = Boolean(process.env.HERMES_PAYLOAD_TAG)
+const releaseBuild = Boolean(process.env.VANTA_PAYLOAD_TAG)
 
 /**
  * The store MSIX packaging identity. Callers must only invoke this when
@@ -68,7 +68,7 @@ module.exports = {
   appId,
   productName: displayName,
   executableName: displayName,
-  copyright: 'Copyright © 2026 Theft Studio. Portions © 2025 Nous Research (MIT), see LICENSE-HERMES-MIT.',
+  copyright: 'Copyright © 2026 Theft Studio. Portions © 2025 Theft Studio (MIT), see LICENSE-VANTA-MIT.',
   protocols: [
     {
       name: `${displayName} Protocol`,
@@ -112,7 +112,7 @@ module.exports = {
       from: 'build/install-stamp.json',
       to: 'install-stamp.json'
     },
-    ...(['bundled', 'store'].includes(process.env.HERMES_DESKTOP_VARIANT || '')
+    ...(['bundled', 'store'].includes(process.env.VANTA_DESKTOP_VARIANT || '')
       ? [{ from: 'build/agent-payload', to: 'agent-payload' }]
       : []),
     {
@@ -246,7 +246,7 @@ module.exports = {
     customManifestPath: store ? 'build/store-msix-manifest.xml'
       : releaseBuild || channelRequest || appNamePascal !== artifactNamePascal
         ? 'build/msix-manifest.xml' : 'assets/msix-manifest.xml',
-    // Hermes state is deliberately shared with unpackaged CLI/gateway
+    // Vanta state is deliberately shared with unpackaged CLI/gateway
     // processes. Pair the manifest's disabled virtualization properties with
     // the restricted capability that permits unvirtualized AppData/HKCU writes.
     capabilities: ['unvirtualizedResources'],

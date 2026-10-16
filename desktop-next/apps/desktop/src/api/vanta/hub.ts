@@ -1,9 +1,9 @@
-import type { GatewayEventName } from '@hermes/shared'
+import type { GatewayEventName } from '@vanta/shared'
 
 import type { ChatClient, ClientRegistry } from './client-registry'
 import type { VantaCaller } from './rpc'
 import type { ApprovalPayload } from './schemas'
-import type { VantaTransport } from '@hermes/shared/vanta'
+import type { VantaTransport } from '@vanta/shared/vanta'
 
 /** What the RPC handlers and the stream/turn machinery need from the gateway, and nothing else. */
 export interface GatewayHub {

@@ -2,7 +2,7 @@
 export interface UninstallSectionTranslations {
   dangerZone: string
   checkingInstalled: string
-  uninstallHermes: string
+  uninstallVanta: string
   managedBody: string
   dataKept: (path: string) => string
   openAppsSettings: string

@@ -1,4 +1,4 @@
-import type { GatewayEventName } from '@hermes/shared'
+import type { GatewayEventName } from '@vanta/shared'
 
 import {
   type ApprovalPayload,
@@ -8,6 +8,7 @@ import {
   type TypedEvent,
   type UsagePayload
 } from './schemas'
+import { PlanTracker, type PlanItem, planFromTodoArgs } from './todo-payload'
 
 export type MappedEvent =
   | { approval: ApprovalPayload; kind: 'approval.request' }
@@ -74,23 +75,38 @@ class UsageTotals {
   }
 }
 
-function mapTyped(event: TypedEvent, totals: UsageTotals): MappedEvent {
+/** The plan, when this call is a `todo` write, so the plan panel above the composer lights up. */
+function planFields(name: string, args: unknown): { todos?: PlanItem[] } {
+  const todos = planFromTodoArgs(name, args)
+
+  return todos ? { todos } : {}
+}
+
+function mapTyped(event: TypedEvent, totals: UsageTotals, plans: PlanTracker): MappedEvent {
   switch (event.type) {
     case 'usage':
       return totals.tick(event)
     case 'tool.start':
+      plans.start(event.id, event.name, event.args)
+
       return gateway('tool.start', {
         args: event.args,
         name: event.name,
         preview: previewOf(event.args),
-        tool_id: event.id
+        tool_id: event.id,
+        ...planFields(event.name, event.args)
       })
     case 'tool.complete':
       return gateway('tool.complete', {
         name: event.name,
+        // `result` is what the transcript stores on the tool part; `result_text` stays for older consumers.
+        result: event.output,
         result_text: event.output,
         summary: firstLine(event.output, SUMMARY_MAX),
-        tool_id: event.id
+        tool_id: event.id,
+        // A failed tool must reach the row as a failure, not as a completed step.
+        ...(event.ok ? {} : { error: firstLine(event.output, SUMMARY_MAX) || 'Tool failed' }),
+        ...(plans.complete(event.id) ?? {})
       })
     case 'thinking':
       return gateway('thinking.delta', { text: event.text })
@@ -168,6 +184,7 @@ function legacyEvents(frame: SseFrame, ids: LegacyToolIds): MappedEvent[] {
 export function createFrameMapper(): FrameMapper {
   const ids = new LegacyToolIds()
   const totals = new UsageTotals()
+  const plans = new PlanTracker()
 
   const map = (raw: unknown): MappedEvent[] => {
     const parsed = sseFrameSchema.safeParse(raw)
@@ -189,10 +206,16 @@ export function createFrameMapper(): FrameMapper {
 
     // A frame the server typed is authoritative; an absent or unrecognised `typed` falls back to the label.
     const typed = frame.typed === undefined ? null : typedEventSchema.safeParse(frame.typed)
-    out.push(...(typed?.success ? [mapTyped(typed.data, totals)] : legacyEvents(frame, ids)))
+    out.push(...(typed?.success ? [mapTyped(typed.data, totals, plans)] : legacyEvents(frame, ids)))
 
     return out
   }
 
-  return { map, reset: () => ids.reset() }
+  return {
+    map,
+    reset: () => {
+      ids.reset()
+      plans.reset()
+    }
+  }
 }

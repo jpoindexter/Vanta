@@ -96,7 +96,7 @@ export const jaOverrides = {
       loadingSessions: '最近のセッションを読み込み中',
       retryingRemoteBackend: 'リモート Vanta バックエンドに再接続中…',
       startingDesktopConnection: 'デスクトップ接続を開始中',
-      startingHermesDesktop: 'Vanta Desktop を起動中…'
+      startingDesktopBridge: 'Vanta Desktop を起動中…'
     },
     errors: {
       backgroundExited: 'Vanta バックグラウンドプロセスが終了しました。',
@@ -163,7 +163,7 @@ export const jaOverrides = {
       'この Vanta アプリは接続先のバックエンドより古く、正常に動作しない場合があります。アプリを更新して揃えてください。',
     updateDesktopApp: 'アプリを更新',
     installMethodUnsupportedTitle: 'サポート対象外のインストール方法',
-    updateHermes: 'Vanta を更新',
+    updateVanta: 'Vanta を更新',
     updateReadyTitle: '更新の準備ができました',
     updateReadyMessage: count => `${count} 件の新しい変更が利用可能です。`,
     updateReadyMessageUnknown: '新しい更新が利用可能です。',
@@ -232,7 +232,7 @@ export const jaOverrides = {
   ...jaNotices,
 
   billingBlock: {
-    titleNous: 'クレジットが不足しています',
+    titleVanta: 'クレジットが不足しています',
     titleProvider: provider => `クレジット不足 — ${provider}`,
     fallbackMessage: 'アカウントのクレジットが不足しています。続行するにはクレジットを追加してください。',
     openBilling: '請求を開く',
@@ -288,7 +288,7 @@ export const jaOverrides = {
     uninstallSection: {
       dangerZone: '危険ゾーン',
       checkingInstalled: 'インストール内容を確認中…',
-      uninstallHermes: 'Vanta をアンインストール',
+      uninstallVanta: 'Vanta をアンインストール',
       chooseHowMuch:
         '削除する範囲を選択してください。完了するためにアプリが閉じます。インストーラーを開き直せばいつでも戻れます。',
       confirmUninstall: 'アンインストールの確認',
@@ -1139,9 +1139,9 @@ export const jaOverrides = {
       sshPortDesc: '空欄 = 22 または ~/.ssh/config のポート。',
       sshKeyTitle: '鍵ファイル',
       sshKeyDesc: '秘密鍵のパス。空欄 = ssh-agent または ~/.ssh/config。',
-      sshHermesPathTitle: 'Vanta パス（任意）',
-      sshHermesPathDesc: 'リモートの Vanta バイナリへのフルパス。空欄 = 自動検出。',
-      sshHermesPathPlaceholder: '自動検出',
+      sshVantaPathTitle: 'Vanta パス（任意）',
+      sshVantaPathDesc: 'リモートの Vanta バイナリへのフルパス。空欄 = 自動検出。',
+      sshVantaPathPlaceholder: '自動検出',
       sshTestConnection: 'SSH をテスト',
       sshConnect: '接続',
       sshButtonsHint: '「保存」は次回起動時に適用され、「接続」は今すぐ再接続します。',
@@ -1347,8 +1347,8 @@ export const jaOverrides = {
       activeBackend: '使用中',
       activeBackendHint: 'これが現在アクティブなバックエンドです',
       useBackend: 'このバックエンドを使う',
-      nousAuthSignIn: 'サインイン',
-      nousAuthDoneMessage: 'サブスクリプションのバックエンドが有効になりました。',
+      vantaAuthSignIn: 'サインイン',
+      vantaAuthDoneMessage: 'サブスクリプションのバックエンドが有効になりました。',
       noApiKeyRequired: 'API キーは不要です。',
       postSetupHint: step =>
         `このバックエンドは一度だけインストールが必要です (${step})。このマシン上で実行され、数分かかる場合があります。`,
@@ -1655,7 +1655,7 @@ export const jaOverrides = {
     noSessions: 'セッションはまだありません。',
     gatewayRunning: 'メッセージングゲートウェイが実行中',
     gatewayStopped: 'メッセージングゲートウェイが停止中',
-    hermesActiveSessions: (version, count) => `Vanta ${version} · アクティブセッション ${count}`,
+    vantaActiveSessions: (version, count) => `Vanta ${version} · アクティブセッション ${count}`,
     restartGateway: 'ゲートウェイを再起動',
     openBrowser: 'ブラウザを開く',
     gatewayRestartFailed: 'ゲートウェイの再起動に失敗しました。',
@@ -1663,7 +1663,7 @@ export const jaOverrides = {
     sharedGatewayRestartDescription: bots => `このデバイス上のすべてのボットが再接続します: ${bots}`,
     sharedGatewayRestartConfirm: 'すべて再起動',
     sharedGatewayRestarted: count => `共有ゲートウェイを再起動しました（${count} ボット）`,
-    updateHermes: 'Vanta を更新',
+    updateVanta: 'Vanta を更新',
     reloadWindow: 'ウィンドウを再読み込み',
     actionRunning: '実行中',
     actionDone: '完了',

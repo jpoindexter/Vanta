@@ -1,5 +1,5 @@
-import type { ConnectorAccountRow, ConnectorAccountsRenameParams, ConnectorAccountsResult } from '@hermes/shared'
-import { JsonRpcGatewayError } from '@hermes/shared'
+import type { ConnectorAccountRow, ConnectorAccountsRenameParams, ConnectorAccountsResult } from '@vanta/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 import { QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'

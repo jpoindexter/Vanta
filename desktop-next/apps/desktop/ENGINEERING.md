@@ -69,7 +69,7 @@ There are three distinct switch shapes, and conflating them is the classic bug:
 - A **connection/mode apply** (local ↔ remote ↔ cloud) is the soft re-home:
   shell mounted, gateway-bound stores explicitly wiped, then reconnect. Query
   invalidation alone cannot evict live session stores — wipe them.
-- A **runtime home change** (switching the underlying `HERMES_HOME` profile) is
+- A **runtime home change** (switching the underlying `VANTA_HOME` profile) is
   a hard re-home: the window legitimately reloads and state resets by remount.
 - A **live profile swap** in the same window activates another profile's socket
   while background profiles keep streaming; lists merge rather than wipe, and
@@ -122,7 +122,7 @@ Two auth-flavored corollaries worth naming because they are easy to get wrong:
 ## Guest content never opens anything by itself
 
 Untrusted HTML runs in two places: sandboxed `allow-scripts` iframes (artifact
-previews) and the preview pane's `<webview>` (`persist:hermes-preview`). Neither
+previews) and the preview pane's `<webview>` (`persist:vanta-preview`). Neither
 may drive the OS browser without the user's hand on it (GHSA-9f4c-93c8-jc8g):
 `setWindowOpenHandler` denies everything and never opens a URL as a side
 effect (`electron/window-open-policy.ts`), and the webview has no
@@ -132,7 +132,7 @@ A guest page's `target="_blank"` links (Streamlit's "Ask Google" traceback
 button) reach the OS browser through one explicit bridge instead:
 
 - `main.ts` installs `electron/preview-guest-preload-entry.ts` via
-  `will-attach-webview`, keyed on the `persist:hermes-preview` partition only.
+  `will-attach-webview`, keyed on the `persist:vanta-preview` partition only.
   It is the app's only guest preload; a new webview does not inherit it unless
   it opts into that partition.
 - The preload runs in the isolated world, exposes nothing to the page, and
@@ -141,23 +141,23 @@ button) reach the OS browser through one explicit bridge instead:
   `dispatchEvent(click)` from page script is dropped there; page `window.open`
   stays blocked.
 - `PreviewPane` admits `http:`/`https:` only (`src/lib/preview-external.ts`)
-  and hands the URL to the existing `hermes:openExternal` IPC, which applies
+  and hands the URL to the existing `vanta:openExternal` IPC, which applies
   main's URL policy. `file:` is excluded on purpose: a guest must never reach
   `shell.openPath`.
 
 Widening any of those three (partition key, trusted-click gate, scheme set)
 reopens the gesture-less forced-navigation class the advisory closed.
 
-## Nous free tier: state is pulled, never latched in the renderer
+## Vanta free tier: state is pulled, never latched in the renderer
 
-The free tier (a Nous identity with no account, `hermes_cli/anon_auth.py`) reaches the renderer
+The free tier (a Vanta identity with no account, `vanta_cli/anon_auth.py`) reaches the renderer
 through one JSON-RPC pair: `free_tier.status` (has_guest, enabled, available,
 notice_pending, model, label) read from local auth state with zero network, and
 `free_tier.ack_notice`, which persists the one-time notice flag on the identity itself. The
 first-launch ready screen and the own-key strip are the SAME state rendered for two situations,
 keyed on `notice_pending`; there is no localStorage latch, so the CLI and the desktop cannot
 disagree about whether the notice was shown. Sign-in goes through the existing
-`POST /api/providers/oauth/nous/start` + poll route, which over a free-tier identity registers the
+`POST /api/providers/oauth/vanta/start` + poll route, which over a free-tier identity registers the
 connector transfer and reports `reason`, `account_email` and `model` on completion; every entry
 point (Billing, status chip, ready screen) opens the one free-tier sign-in dialog. Never branch on
 provider display names: the picker row carries `free_tier_row`, status cards carry `free_tier`.

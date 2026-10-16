@@ -2,13 +2,13 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useStatusSnapshot } from '@/app/shell/hooks/use-status-snapshot'
-import { getStatus } from '@/hermes'
+import { getStatus } from '@/desktop-api'
 import { $setupReadyTick } from '@/store/live-sync'
 
 import { handleLifecycleEvent } from './lifecycle'
 import type { GatewayEventContext } from './types'
 
-vi.mock(import('@/hermes'), async importOriginal => ({
+vi.mock(import('@/desktop-api'), async importOriginal => ({
   ...(await importOriginal()),
   getStatus: vi.fn()
 }))
@@ -22,7 +22,7 @@ function setupReadyContext(fromActiveSource: boolean): GatewayEventContext {
     free_tier_account: true,
     free_tier_route: true,
     has_identity: true,
-    inference_provider: 'nous',
+    inference_provider: 'vanta',
     other_providers: false,
     provider_configured: true
   }

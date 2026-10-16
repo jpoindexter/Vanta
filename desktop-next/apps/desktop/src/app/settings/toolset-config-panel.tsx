@@ -17,7 +17,7 @@ import {
   selectToolsetProvider,
   setEnvVar,
   startOAuthLogin
-} from '@/hermes'
+} from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Check, Loader2, Save, Terminal } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -31,7 +31,7 @@ import type {
   ToolProviderStatus,
   ToolsetConfig,
   ToolsetModelsResponse
-} from '@/types/hermes'
+} from '@/types/desktop'
 
 import { EnvVarActionsMenu, EnvVarActionsTrigger, EnvVarContextMenu } from './env-var-actions-menu'
 import { prettyName } from './helpers'
@@ -79,7 +79,7 @@ function providerConfigured(provider: ToolProvider, envState: Record<string, boo
 
 /**
  * Resolve the readiness pill state for a provider row. Prefers the honest
- * server-computed `status` (keys ∧ Nous entitlement ∧ post-setup install
+ * server-computed `status` (keys ∧ Vanta entitlement ∧ post-setup install
  * state). Older backends don't send `status` — fall back to the legacy
  * env-var heuristic, mapped onto the same state space (`ready` /
  * `needs_keys`), so the pill still renders against an outdated runtime.
@@ -101,17 +101,17 @@ function providerStatus(provider: ToolProvider, envState: Record<string, boolean
 
 /**
  * Whether a web provider row serves a capability right now. The managed
- * "Nous Subscription" row and the BYOK Firecrawl rows resolve to the same
- * backend name, so the server's `*_via_nous` flag decides which one is lit.
+ * "Vanta Subscription" row and the BYOK Firecrawl rows resolve to the same
+ * backend name, so the server's `*_via_vanta` flag decides which one is lit.
  */
-function capabilityServedBy(provider: ToolProvider, backend: null | string | undefined, viaNous?: boolean): boolean {
-  if (provider.managed_nous_feature) {
-    return Boolean(viaNous)
+function capabilityServedBy(provider: ToolProvider, backend: null | string | undefined, viaVanta?: boolean): boolean {
+  if (provider.managed_vanta_feature) {
+    return Boolean(viaVanta)
   }
 
   // Rows sharing a backend name (cloud vs self-hosted Firecrawl) are told apart by the server's
   // is_active, which knows which one's credential is set.
-  return Boolean(provider.web_backend && backend === provider.web_backend && !viaNous && provider.is_active)
+  return Boolean(provider.web_backend && backend === provider.web_backend && !viaVanta && provider.is_active)
 }
 
 interface EnvVarFieldProps {
@@ -216,7 +216,7 @@ function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarField
               </Pill>
             </div>
             {envVar.prompt && envVar.prompt !== envVar.key && (
-              <p className="mt-0.5 text-[0.75rem] text-muted-foreground">{envVar.prompt}</p>
+              <p className="mt-0.5 text-meta text-muted-foreground">{envVar.prompt}</p>
             )}
           </div>
           {!editing && (
@@ -273,7 +273,7 @@ interface PostSetupRunnerProps {
 /**
  * Runs a provider's post-setup install hook (npm / pip / binary) via the
  * `/api/tools/toolsets/{name}/post-setup` spawn-action and tails the resulting
- * log inline — the GUI equivalent of the install step `hermes tools` runs
+ * log inline — the GUI equivalent of the install step `vanta tools` runs
  * after you pick a backend that needs extra dependencies.
  *
  * Idempotent UX: when the backend's readiness status says the install is
@@ -351,7 +351,7 @@ function PostSetupRunner({ toolset, postSetupKey, installed = false, onComplete,
                 message: copy.postSetupErrorMessage(prettyName(postSetupKey)),
                 action: {
                   label: copy.postSetupOpenLogs,
-                  onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+                  onClick: () => void window.desktopBridge?.revealLogs?.().catch(() => undefined)
                 },
                 secondaryAction: { label: copy.postSetupRunAgain, onClick: () => void run() }
               }
@@ -373,7 +373,7 @@ function PostSetupRunner({ toolset, postSetupKey, installed = false, onComplete,
     <div className="grid gap-2 rounded-lg bg-background/55 p-2.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[0.75rem] text-muted-foreground">
+          <p className="text-meta text-muted-foreground">
             {installed ? copy.postSetupInstalledHint : copy.postSetupHint(postSetupKey)}
           </p>
         </div>
@@ -398,7 +398,7 @@ function PostSetupRunner({ toolset, postSetupKey, installed = false, onComplete,
 
       {status && (status.lines.length > 0 || status.running) && (
         <pre
-          className="max-h-48 overflow-y-auto rounded-md bg-background px-2.5 py-1.5 font-mono text-[0.75rem] leading-relaxed text-muted-foreground whitespace-pre-wrap"
+          className="max-h-48 overflow-y-auto rounded-md bg-background px-2.5 py-1.5 font-mono text-meta leading-relaxed text-muted-foreground whitespace-pre-wrap"
           data-selectable-text="true"
         >
           {status.lines.length > 0 ? status.lines.join('\n') : copy.postSetupStarting}
@@ -419,7 +419,7 @@ interface ModelCatalogPickerProps {
 }
 
 /**
- * Backend model catalog — the GUI counterpart of the model picker `hermes
+ * Backend model catalog — the GUI counterpart of the model picker `vanta
  * tools` runs after you choose an image/video generation backend (e.g. FAL's
  * multi-model catalog). Renders speed / strengths / price per model as a
  * radio-card list and persists the choice to `image_gen.model` /
@@ -474,7 +474,7 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-1 py-2 text-[0.75rem] text-muted-foreground">
+      <div className="flex items-center gap-2 px-1 py-2 text-meta text-muted-foreground">
         <Loader2 className="size-3 animate-spin" />
         {copy.loadingModels}
       </div>
@@ -490,10 +490,10 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
   return (
     <div className="grid gap-1.5">
       <div className="flex items-baseline justify-between gap-2 px-0.5">
-        <span className="text-[0.75rem] font-medium">{copy.modelSectionTitle}</span>
-        <span className="text-[0.75rem] text-muted-foreground">{copy.modelCount(catalog.models.length)}</span>
+        <span className="text-meta font-medium">{copy.modelSectionTitle}</span>
+        <span className="text-meta text-muted-foreground">{copy.modelCount(catalog.models.length)}</span>
       </div>
-      {!isActiveBackend && <p className="px-0.5 text-[0.75rem] text-muted-foreground">{copy.modelInactiveHint}</p>}
+      {!isActiveBackend && <p className="px-0.5 text-meta text-muted-foreground">{copy.modelInactiveHint}</p>}
       <div className="grid gap-1">
         {catalog.models.map(model => {
           const isSelected = selected === model.id
@@ -525,7 +525,7 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
                 {!isSelected && isDefault && <Pill>{copy.modelDefault}</Pill>}
                 {saving === model.id && <Loader2 className="size-3 animate-spin" />}
               </span>
-              <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.75rem] text-muted-foreground">
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-meta text-muted-foreground">
                 {model.speed && <span>{model.speed}</span>}
                 {model.strengths && <span>{model.strengths}</span>}
                 {model.price && <span className="font-mono">{model.price}</span>}
@@ -552,7 +552,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
   // Default-provider selection and a user click race just after config arrives:
   // a stale initialization effect must never replace an explicit choice.
   const providerChoiceClaimedRef = useRef(false)
-  // Guard the Nous Portal sign-in poll loop against unmount/state updates.
+  // Guard the Vanta Portal sign-in poll loop against unmount/state updates.
   const mountedRef = useRef(true)
 
   // eslint-disable-next-line no-restricted-syntax -- mount flag guarding an async poll loop, not an atom mirror
@@ -595,7 +595,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
   // Default the expanded provider to the one actually active in config
   // (`is_active` / `cfg.active_provider`, mirroring the CLI picker), then the
   // first fully-configured provider, else the first provider. Without this the
-  // panel highlighted the first keyless provider (e.g. Nous Portal) even when
+  // panel highlighted the first keyless provider (e.g. Vanta Portal) even when
   // the user had already selected another (e.g. DuckDuckGo).
   // eslint-disable-next-line no-restricted-syntax -- one-shot provider-choice claim flag, not an atom mirror
   useEffect(() => {
@@ -639,16 +639,16 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
           : current
       )
 
-      if (result.needs_nous_auth) {
-        // Managed Nous row selected without Portal entitlement: the config
+      if (result.needs_vanta_auth) {
+        // Managed Vanta row selected without Portal entitlement: the config
         // keys are written but the backend won't activate until the user
         // signs in (the CLI runs this gate inline; the GUI surfaces it as a
-        // sign-in action). Reuses the existing Nous Portal device-code flow.
+        // sign-in action). Reuses the existing Vanta Portal device-code flow.
         notify({
           kind: 'warning',
-          title: copy.nousAuthNeededTitle,
-          message: copy.nousAuthNeededMessage(provider.name),
-          action: { label: copy.nousAuthSignIn, onClick: () => void signInToNousPortal() }
+          title: copy.vantaAuthNeededTitle,
+          message: copy.vantaAuthNeededMessage(provider.name),
+          action: { label: copy.vantaAuthSignIn, onClick: () => void signInToVantaPortal() }
         })
 
         return
@@ -663,24 +663,24 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
     }
   }
 
-  // Drive the existing Nous Portal OAuth device-code flow (the same session
+  // Drive the existing Vanta Portal OAuth device-code flow (the same session
   // machinery onboarding uses: start → open verification URL → poll), then
   // refetch the toolset config so is_active / status flip once entitled.
-  async function signInToNousPortal() {
+  async function signInToVantaPortal() {
     try {
-      const start = await startOAuthLogin('nous', profile)
+      const start = await startOAuthLogin('vanta', profile)
 
       if (start.flow !== 'device_code') {
-        notifyNousAuthFailed(`unexpected flow: ${start.flow}`)
+        notifyVantaAuthFailed(`unexpected flow: ${start.flow}`)
 
         return
       }
 
       const url = start.verification_url
 
-      if (window.hermesDesktop?.openExternal) {
+      if (window.desktopBridge?.openExternal) {
         try {
-          await window.hermesDesktop.openExternal(url)
+          await window.desktopBridge.openExternal(url)
         } catch {
           window.open(url, '_blank', 'noopener,noreferrer')
         }
@@ -696,10 +696,10 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
           return
         }
 
-        const polled = await pollOAuthSession('nous', start.session_id, profile)
+        const polled = await pollOAuthSession('vanta', start.session_id, profile)
 
         if (polled.status === 'approved') {
-          notify({ kind: 'success', title: copy.nousAuthDoneTitle, message: copy.nousAuthDoneMessage })
+          notify({ kind: 'success', title: copy.vantaAuthDoneTitle, message: copy.vantaAuthDoneMessage })
           await refresh()
           onConfiguredChange?.()
 
@@ -707,27 +707,27 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
         }
 
         if (polled.status !== 'pending') {
-          notifyNousAuthFailed(polled.error_message || `Sign-in ${polled.status}`)
+          notifyVantaAuthFailed(polled.error_message || `Sign-in ${polled.status}`)
 
           return
         }
       }
     } catch (err) {
       if (mountedRef.current) {
-        notifyNousAuthFailed(err instanceof Error ? err.message : String(err))
+        notifyVantaAuthFailed(err instanceof Error ? err.message : String(err))
       }
     }
   }
 
   // Plain failure copy with the raw poll status under Details and a one-click
   // retry of the same sign-in flow (desktop-26).
-  function notifyNousAuthFailed(detail: string) {
+  function notifyVantaAuthFailed(detail: string) {
     notify({
       kind: 'error',
-      title: copy.nousAuthFailed,
-      message: copy.nousAuthFailedMessage,
+      title: copy.vantaAuthFailed,
+      message: copy.vantaAuthFailedMessage,
       detail,
-      action: { label: copy.nousAuthTryAgain, onClick: () => void signInToNousPortal() }
+      action: { label: copy.vantaAuthTryAgain, onClick: () => void signInToVantaPortal() }
     })
   }
 
@@ -742,19 +742,19 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
     try {
       const result = await selectToolsetProvider(toolset, provider.name, capability, profile)
 
-      if (result.needs_nous_auth) {
+      if (result.needs_vanta_auth) {
         notify({
           kind: 'warning',
-          title: copy.nousAuthNeededTitle,
-          message: copy.nousAuthNeededMessage(provider.name),
-          action: { label: copy.nousAuthSignIn, onClick: () => void signInToNousPortal() }
+          title: copy.vantaAuthNeededTitle,
+          message: copy.vantaAuthNeededMessage(provider.name),
+          action: { label: copy.vantaAuthSignIn, onClick: () => void signInToVantaPortal() }
         })
         await refresh()
 
         return
       }
 
-      // Refetch rather than mirror: whether the capability now rides the Nous
+      // Refetch rather than mirror: whether the capability now rides the Vanta
       // Tool Gateway or the user's own key is resolved server-side (the
       // managed and BYOK Firecrawl rows share one web_backend).
       await refresh()
@@ -795,7 +795,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
   }
 
   // The gateway route is labelled with the managed row's own (server-provided) name.
-  const managedRowName = providers.find(p => p.managed_nous_feature)?.name
+  const managedRowName = providers.find(p => p.managed_vanta_feature)?.name
 
   return (
     <div className="grid gap-2">
@@ -806,12 +806,12 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
         <div className="flex flex-wrap items-center gap-2 px-1">
           <Pill>
             {copy.webSearchActive(
-              (cfg.search_via_nous && managedRowName) || cfg.active_search_backend || copy.webCapabilityUnset
+              (cfg.search_via_vanta && managedRowName) || cfg.active_search_backend || copy.webCapabilityUnset
             )}
           </Pill>
           <Pill>
             {copy.webExtractActive(
-              (cfg.extract_via_nous && managedRowName) || cfg.active_extract_backend || copy.webCapabilityUnset
+              (cfg.extract_via_vanta && managedRowName) || cfg.active_extract_backend || copy.webCapabilityUnset
             )}
           </Pill>
         </div>
@@ -821,8 +821,8 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
         const isBackendActive = provider.is_active || cfg?.active_provider === provider.name
         const status = providerStatus(provider, envState)
         const webCaps = toolset === 'web' ? (provider.capabilities ?? []) : []
-        const isSearchBackend = capabilityServedBy(provider, cfg.active_search_backend, cfg.search_via_nous)
-        const isExtractBackend = capabilityServedBy(provider, cfg.active_extract_backend, cfg.extract_via_nous)
+        const isSearchBackend = capabilityServedBy(provider, cfg.active_search_backend, cfg.search_via_vanta)
+        const isExtractBackend = capabilityServedBy(provider, cfg.active_extract_backend, cfg.extract_via_vanta)
 
         return (
           <div className="overflow-hidden rounded-xl bg-background/60" key={provider.name}>
@@ -866,7 +866,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
 
             {isExpanded && (
               <div className="grid gap-2 bg-muted/20 p-3">
-                {provider.tag && <p className="text-[0.75rem] text-muted-foreground">{provider.tag}</p>}
+                {provider.tag && <p className="text-meta text-muted-foreground">{provider.tag}</p>}
                 {(toolset !== 'web' || webCaps.length === 0) && (
                   // Explicit activation — the old row-click-selects UX gave no
                   // signal about which backend was actually in use and made
@@ -913,11 +913,11 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
                     )}
                   </div>
                 )}
-                {provider.requires_nous_auth && status === 'needs_auth' && (
-                  <p className="text-[0.75rem] text-muted-foreground">{copy.nousIncluded}</p>
+                {provider.requires_vanta_auth && status === 'needs_auth' && (
+                  <p className="text-meta text-muted-foreground">{copy.vantaIncluded}</p>
                 )}
                 {provider.env_vars.length === 0 ? (
-                  <p className="text-[0.75rem] text-muted-foreground">{copy.noApiKeyRequired}</p>
+                  <p className="text-meta text-muted-foreground">{copy.noApiKeyRequired}</p>
                 ) : (
                   provider.env_vars.map(ev => (
                     <EnvVarField

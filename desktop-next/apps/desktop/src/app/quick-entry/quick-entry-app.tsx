@@ -44,7 +44,7 @@ export function QuickEntryApp() {
   // the decision stays pure and testable while the effects stay in one place.
   const [state, dispatch] = useReducer((current: QuickComposerState, event: QuickComposerEvent) => {
     const { send, state: next } = quickComposerReducer(current, event)
-    const api = window.hermesDesktop?.quickEntry
+    const api = window.desktopBridge?.quickEntry
 
     if (send) {
       const submitId = submitIdRef.current
@@ -66,7 +66,7 @@ export function QuickEntryApp() {
   // and take the keyboard back for a fresh capture. Also adopt gateway-state
   // pushes (connection + recent sessions) relayed from the primary renderer.
   useEffect(() => {
-    const api = window.hermesDesktop?.quickEntry
+    const api = window.desktopBridge?.quickEntry
 
     const offShown = api?.onShown(() => {
       dispatch({ type: 'shown' })
@@ -131,7 +131,7 @@ export function QuickEntryApp() {
           <span
             aria-hidden
             style={{
-              color: 'var(--muted-foreground, #8a8a8a)',
+              color: 'var(--muted-foreground, graytext)',
               flexShrink: 0,
               fontSize: 15,
               lineHeight: 1,
@@ -168,7 +168,7 @@ export function QuickEntryApp() {
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--foreground, #eee)',
+              color: 'var(--foreground, canvastext)',
               flex: 1,
               fontFamily: 'inherit',
               fontSize: 15,
@@ -183,7 +183,7 @@ export function QuickEntryApp() {
           <label
             htmlFor="quick-entry-target"
             style={{
-              color: 'var(--muted-foreground, #8a8a8a)',
+              color: 'var(--muted-foreground, graytext)',
               flexShrink: 0,
               fontSize: 12,
               userSelect: 'none'
@@ -206,7 +206,7 @@ export function QuickEntryApp() {
               background: 'transparent',
               border: '1px solid var(--ui-stroke-secondary, rgba(127,127,127,0.35))',
               borderRadius: 6,
-              color: 'var(--foreground, #eee)',
+              color: 'var(--foreground, canvastext)',
               fontSize: 12,
               maxWidth: 320,
               padding: '2px 6px'
@@ -227,7 +227,7 @@ export function QuickEntryApp() {
           </select>
         </div>
         {state.error ? (
-          <div role="alert" style={{ color: 'var(--destructive, #ef4444)', fontSize: 12 }}>
+          <div role="alert" style={{ color: 'var(--destructive, var(--dt-destructive, red))', fontSize: 12 }}>
             {state.error}
           </div>
         ) : null}

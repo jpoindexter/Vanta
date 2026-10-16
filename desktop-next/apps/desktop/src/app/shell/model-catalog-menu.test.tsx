@@ -29,7 +29,7 @@ import {
   setVisibleModels
 } from '@/store/model-visibility'
 import { $defaultReasoningEffort } from '@/store/session'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/desktop'
 
 import { ModelCatalogMenu, ModelMenuCloseContext, type ModelMenuController } from './model-catalog-menu'
 import { MODEL_MENU_ROW_AREA, type ModelMenuRowContribution } from './model-menu-row-decorations'
@@ -44,7 +44,7 @@ beforeAll(() => {
 const getGlobalModelOptions = vi.fn()
 const closeMenu = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   getGlobalModelOptions: (...args: unknown[]) => getGlobalModelOptions(...args),
   // The menu kicks the app-level job poller on mount; echo the store so a
   // poll can't wipe the jobs a test staged (the real backend is authority,
@@ -418,7 +418,7 @@ describe('the current model the catalog omits (#57534)', () => {
       providers: [{ models: ['openai/gpt-4o-mini'], name: 'OpenRouter', slug: 'openrouter' }]
     })
 
-    renderMenu({ model: 'qwen/qwen-2.5-72b-instruct', provider: 'nous' })
+    renderMenu({ model: 'qwen/qwen-2.5-72b-instruct', provider: 'vanta' })
 
     await screen.findByText('GPT-4o-mini')
     expect(screen.queryByText('Qwen 2.5 72B Instruct')).toBeNull()
@@ -596,12 +596,12 @@ describe('the catalog renders per-model pricing', () => {
     getGlobalModelOptions.mockResolvedValue({
       providers: [
         {
-          models: ['anthropic/claude-sonnet-5', 'nous/hermes-4'],
-          name: 'Nous Portal',
-          slug: 'nous',
+          models: ['anthropic/claude-sonnet-5', 'vanta/vanta-4'],
+          name: 'Vanta Portal',
+          slug: 'vanta',
           pricing: {
             'anthropic/claude-sonnet-5': { input: '$1.60', output: '$8.00', cache: '$0.16', free: false },
-            'nous/hermes-4': { input: 'free', output: 'free', cache: null, free: true }
+            'vanta/vanta-4': { input: 'free', output: 'free', cache: null, free: true }
           }
         }
       ]
@@ -623,8 +623,8 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5'],
-          name: 'Nous Portal',
-          slug: 'nous',
+          name: 'Vanta Portal',
+          slug: 'vanta',
           pricing: {
             'anthropic/claude-sonnet-5': {
               input: '$1.60',
@@ -648,11 +648,11 @@ describe('the catalog renders per-model pricing', () => {
     getGlobalModelOptions.mockResolvedValue({
       providers: [
         {
-          models: ['nous/hermes-4'],
-          name: 'Nous Portal',
-          slug: 'nous',
+          models: ['vanta/vanta-4'],
+          name: 'Vanta Portal',
+          slug: 'vanta',
           pricing: {
-            'nous/hermes-4': { input: 'free', output: 'free', cache: null, free: true }
+            'vanta/vanta-4': { input: 'free', output: 'free', cache: null, free: true }
           }
         }
       ]
@@ -668,8 +668,8 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5'],
-          name: 'Nous Portal',
-          slug: 'nous',
+          name: 'Vanta Portal',
+          slug: 'vanta',
           pricing: {
             'anthropic/claude-sonnet-5': {
               input: '$1.60',
@@ -695,8 +695,8 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5', 'anthropic/claude-sonnet-5-fast'],
-          name: 'Nous Portal',
-          slug: 'nous',
+          name: 'Vanta Portal',
+          slug: 'vanta',
           pricing: {
             'anthropic/claude-sonnet-5-fast': {
               input: '$0.80',
@@ -719,8 +719,8 @@ describe('the catalog renders per-model pricing', () => {
       providers: [
         {
           models: ['anthropic/claude-sonnet-5'],
-          name: 'Nous Portal',
-          slug: 'nous'
+          name: 'Vanta Portal',
+          slug: 'vanta'
         }
       ]
     })

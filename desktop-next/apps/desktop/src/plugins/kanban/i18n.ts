@@ -5,7 +5,7 @@
  * SHAPE so components keep typed `k.newTask` / `k.moveTo(label)` access.
  */
 
-import { type PluginLocaleBundles, type PluginTranslate, usePluginI18n } from '@hermes/plugin-sdk'
+import { type PluginLocaleBundles, type PluginTranslate, usePluginI18n } from '@vanta/plugin-sdk'
 import { useMemo } from 'react'
 
 type KanbanMessages = {

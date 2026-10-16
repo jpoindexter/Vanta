@@ -1,7 +1,7 @@
 /**
  * Live skin sync from the Vanta backend.
  *
- * The backend resolves the active skin (built-in or `$HERMES_HOME/skins/*.yaml`)
+ * The backend resolves the active skin (built-in or `$VANTA_HOME/skins/*.yaml`)
  * and announces it on `gateway.ready` / `skin.changed`, and answers `config.get
  * skin` with the same payload. `ingestBackendSkin` folds that into the desktop:
  *
@@ -16,7 +16,7 @@
  * authoring/activating a skin from a prompt, or `/skin` elsewhere) repaints.
  */
 
-import type { HermesSkin } from '@hermes/shared/skin'
+import type { VantaSkin } from '@vanta/shared/skin'
 import { atom } from 'nanostores'
 
 import { readJson, writeJson } from '@/lib/storage'
@@ -29,12 +29,12 @@ import { type DesktopTheme, isValidTheme } from './types'
 // resolve a persisted skin pick synchronously, like a built-in or a user
 // install. Without it the stored name failed `resolveTheme` on every launch
 // and the app silently painted the default until the next `skin.changed`.
-const BACKEND_THEMES_KEY = 'hermes-desktop-backend-themes-v1'
+const BACKEND_THEMES_KEY = 'vanta-desktop-backend-themes-v1'
 
 // Electron reads the active local `display.skin` before it creates the
 // renderer. Seed it alongside the existing cache so an unreachable primary
 // gateway cannot leave a first-time custom skin unknown to the theme registry.
-const localSkinPayload = typeof window === 'undefined' ? null : (window.hermesDesktop?.localSkin ?? null)
+const localSkinPayload = typeof window === 'undefined' ? null : (window.desktopBridge?.localSkin ?? null)
 const localSkin = localSkinPayload?.skin ?? null
 export const localDisplaySkinName = (localSkin?.name ?? '').trim() || null
 export const localDisplaySkinProfile = localDisplaySkinName
@@ -71,7 +71,7 @@ $backendThemes.listen(themes => writeJson(BACKEND_THEMES_KEY, themes))
  *  built-in. The palette policy keeps built-in palettes (a user `mono.yaml`
  *  must not shadow the desktop's hand-tuned mono), but the user's CSS is still
  *  the skin file's truth — keyed by the name the desktop resolves the skin
- *  under (`default` → `nous`). Merged into the active theme in context.tsx. */
+ *  under (`default` → `vanta`). Merged into the active theme in context.tsx. */
 export const $backendCustomCSS = atom<Record<string, string>>({})
 
 /** One-shot skin name the ThemeProvider should switch to (it clears this). */
@@ -98,7 +98,7 @@ export function __resetBackendSkinSync(): void {
  * records the baseline; `apply: true` (runtime change / poll) repaints on a name
  * change. Built-in names keep the desktop's own palette but can still be applied.
  */
-export function ingestBackendSkin(skin: HermesSkin | undefined | null, { apply }: { apply: boolean }): void {
+export function ingestBackendSkin(skin: VantaSkin | undefined | null, { apply }: { apply: boolean }): void {
   const name = (skin && typeof skin === 'object' ? (skin.name ?? '') : '').trim()
 
   if (!name) {
@@ -106,15 +106,15 @@ export function ingestBackendSkin(skin: HermesSkin | undefined | null, { apply }
   }
 
   // `default` (like every retired name) is "no opinion" on the PALETTE — the
-  // desktop keeps its own default (nous), so we never register a converted theme
+  // desktop keeps its own default (vanta), so we never register a converted theme
   // under `default`. It is still a
   // valid apply TARGET though: a runtime switch back to `default` must repaint the
-  // desktop to its own default (setTheme normalizes `default` → nous). So we only
+  // desktop to its own default (setTheme normalizes `default` → vanta). So we only
   // skip the registry step here and let it flow through the apply logic below.
   // Built-in names (mono/slate/…) already have a hand-tuned desktop palette — we
   // never shadow it, but the name is still a valid apply target.
   if (cacheable(name)) {
-    const theme = skinToDesktopTheme(skin as HermesSkin)
+    const theme = skinToDesktopTheme(skin as VantaSkin)
 
     if (!theme) {
       return

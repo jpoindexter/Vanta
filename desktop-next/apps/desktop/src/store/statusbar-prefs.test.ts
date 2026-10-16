@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const LEGACY_VISIBLE_KEY = 'hermes.desktop.statusbarVisible'
+const LEGACY_VISIBLE_KEY = 'vanta.desktop.statusbarVisible'
 
 const loadStore = () => import('./statusbar-prefs')
 
@@ -12,7 +12,7 @@ describe('statusbar whole-bar visibility', () => {
 
   it('is visible on a fresh install and ignores every earlier key, whatever it held', async () => {
     window.localStorage.setItem(LEGACY_VISIBLE_KEY, 'false')
-    window.localStorage.setItem('hermes.desktop.statusbarVisible.v3', 'false')
+    window.localStorage.setItem('vanta.desktop.statusbarVisible.v3', 'false')
 
     const { $statusbarVisible } = await loadStore()
 
@@ -40,7 +40,7 @@ describe('statusbar hidden items', () => {
 
   it('hides only the two throughput diagnostics on a fresh install, whatever older keys held', async () => {
     window.localStorage.setItem(
-      'hermes.desktop.statusbarHidden',
+      'vanta.desktop.statusbarHidden',
       JSON.stringify(['approval-mode', 'cron', 'gateway-health'])
     )
 

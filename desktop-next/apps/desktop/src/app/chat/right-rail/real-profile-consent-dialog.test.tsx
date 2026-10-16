@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
+import type { VantaConnection } from '@/global'
 import {
   $realProfilePromptClaim,
   $realProfilePromptDismissed,
@@ -20,8 +20,8 @@ const mocks = vi.hoisted(() => ({
   save: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
-  saveHermesConfigRecord: (config: Record<string, unknown>, profile?: unknown) => mocks.save(config, profile)
+vi.mock('@/desktop-api', () => ({
+  saveVantaConfigRecord: (config: Record<string, unknown>, profile?: unknown) => mocks.save(config, profile)
 }))
 
 const promptCopy = {
@@ -59,12 +59,12 @@ vi.mock('@/store/notifications', () => ({
 }))
 
 vi.mock('../../hooks/use-config-record', () => ({
-  hermesConfigCacheWriter: () => (config: Record<string, unknown>) => mocks.cache(config),
-  useHermesConfigRecord: () => ({ data: mocks.loadedConfig })
+  vantaConfigCacheWriter: () => (config: Record<string, unknown>) => mocks.cache(config),
+  useVantaConfigRecord: () => ({ data: mocks.loadedConfig })
 }))
 
-const localConnection = { mode: 'local' } as HermesConnection
-const remoteConnection = { mode: 'remote', remoteKind: 'ssh' } as HermesConnection
+const localConnection = { mode: 'local' } as VantaConnection
+const remoteConnection = { mode: 'remote', remoteKind: 'ssh' } as VantaConnection
 
 const openGate = {
   claim: 'tab-1',
@@ -84,14 +84,14 @@ describe('shouldOfferRealProfilePrompt', () => {
   it('never offers it for a remote backend (#119398)', () => {
     for (const remoteKind of ['ssh', 'url', 'cloud'] as const) {
       expect(
-        shouldOfferRealProfilePrompt({ ...openGate, connection: { mode: 'remote', remoteKind } as HermesConnection })
+        shouldOfferRealProfilePrompt({ ...openGate, connection: { mode: 'remote', remoteKind } as VantaConnection })
       ).toBe(false)
     }
   })
 
   it('fails closed while the connection is unresolved', () => {
     expect(shouldOfferRealProfilePrompt({ ...openGate, connection: null })).toBe(false)
-    expect(shouldOfferRealProfilePrompt({ ...openGate, connection: {} as HermesConnection })).toBe(false)
+    expect(shouldOfferRealProfilePrompt({ ...openGate, connection: {} as VantaConnection })).toBe(false)
   })
 
   it('keeps the existing gates', () => {
@@ -105,7 +105,7 @@ describe('shouldOfferRealProfilePrompt', () => {
 
 describe('RealProfileConsentDialog', () => {
   beforeEach(() => {
-    mocks.loadedConfig = { browser: { allow_private_urls: false }, model: { provider: 'nous' } }
+    mocks.loadedConfig = { browser: { allow_private_urls: false }, model: { provider: 'vanta' } }
     mocks.save.mockResolvedValue({ ok: true })
     $realProfilePromptDismissed.set(false)
     $realProfilePromptMuted.set(false)
@@ -133,7 +133,7 @@ describe('RealProfileConsentDialog', () => {
     expect(mocks.save).toHaveBeenCalledWith({ browser: { use_real_profile: true } }, undefined)
     expect(mocks.cache).toHaveBeenCalledWith({
       browser: { allow_private_urls: false, use_real_profile: true },
-      model: { provider: 'nous' }
+      model: { provider: 'vanta' }
     })
     expect(mocks.notify).toHaveBeenCalled()
   })

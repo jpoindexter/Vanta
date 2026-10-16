@@ -10,7 +10,7 @@ export const arBoot = {
       loadingSessions: 'جار تحميل الجلسات الأخيرة',
       retryingRemoteBackend: 'جارٍ إعادة الاتصال بخادم Vanta البعيد…',
       startingDesktopConnection: 'جار بدء اتصال سطح المكتب',
-      startingHermesDesktop: 'جار تشغيل Vanta Desktop...'
+      startingDesktopBridge: 'جار تشغيل Vanta Desktop...'
     },
     errors: {
       backgroundExited: 'خرجت عملية Vanta الخلفية.',

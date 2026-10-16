@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { McpCatalogEntry, McpCatalogResponse, McpServerSummary, McpServerTestResponse } from '@/types/hermes'
+import type { McpCatalogEntry, McpCatalogResponse, McpServerSummary, McpServerTestResponse } from '@/types/desktop'
 
 import { get, post, segment, type Send, type ShimRoute } from './shim-core'
 
@@ -44,7 +44,7 @@ const readPayload = async (send: Send) => payloadSchema.parse(await get(send, MC
 
 const act = (send: Send, action: string, name: string, timeoutMs?: number) => post(send, MCP_PATH, { action, name }, timeoutMs)
 
-// A Vanta connector only runs once it is both enabled and trusted for the project; the Hermes toggle is one switch.
+// A Vanta connector only runs once it is both enabled and trusted for the project; the Vanta toggle is one switch.
 const toServer = (connector: Connector): McpServerSummary => ({
   args: [],
   command: null,
@@ -96,7 +96,7 @@ async function runTest(send: Send, name: string): Promise<McpServerTestResponse>
   }
 }
 
-/** The Hermes MCP server calls, answered from the Vanta connector registry and its trust model. */
+/** The Vanta MCP server calls, answered from the Vanta connector registry and its trust model. */
 export const mcpRoutes: readonly ShimRoute[] = [
   {
     handle: async ({ send }) => ({ servers: (await readPayload(send)).connectors.map(toServer) }),

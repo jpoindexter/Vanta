@@ -3,7 +3,7 @@
 //   node tools/theme-proof.mjs --out <dir>
 //
 // Needs the same prerequisites as launch-mock.mjs (built apps/desktop/dist, the
-// Electron binary, a read-only Hermes checkout for the mock inference server).
+// Electron binary, a read-only Vanta checkout for the mock inference server).
 //
 // For light/dark x 1440/900 it launches the real renderer in Electron with an
 // isolated sandbox, then:
@@ -22,7 +22,7 @@ import { createRequire } from "node:module";
 
 const here = import.meta.dirname;
 const desktopRoot = path.resolve(here, "..", "apps", "desktop");
-const hermesRepo = process.env.HERMES_REPO ?? path.join(os.homedir(), ".hermes", "hermes-agent");
+const vantaRepo = process.env.VANTA_REPO ?? path.join(os.homedir(), ".vanta", "vanta-agent");
 const args = process.argv.slice(2);
 const outDir = path.resolve(args.includes("--out") ? args[args.indexOf("--out") + 1] : "proofs");
 const WIDTHS = [1440, 900];
@@ -37,9 +37,9 @@ const EXPECTED = {
 const require = createRequire(import.meta.url);
 const { _electron } = require("playwright-core");
 const { PNG } = require("pngjs");
-const importHermes = (rel) => import(pathToFileURL(path.join(hermesRepo, "tests-js", "scripts", rel)).href);
-const { startMockServer } = await importHermes("mock-server.ts");
-const { writeMockProviderConfig, writeEnvFile } = await importHermes("mock-provider-config.ts");
+const importVanta = (rel) => import(pathToFileURL(path.join(vantaRepo, "tests-js", "scripts", rel)).href);
+const { startMockServer } = await importVanta("mock-server.ts");
+const { writeMockProviderConfig, writeEnvFile } = await importVanta("mock-provider-config.ts");
 
 const electronBin = path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
 for (const f of [electronBin, path.join(desktopRoot, "dist", "electron-main.mjs"), path.join(desktopRoot, "dist", "index.html")]) {
@@ -47,26 +47,26 @@ for (const f of [electronBin, path.join(desktopRoot, "dist", "electron-main.mjs"
 }
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-theme-proof-"));
-const hermesHome = path.join(root, "hermes-home");
+const vantaHome = path.join(root, "vanta-home");
 const userData = path.join(root, "electron-user-data");
-fs.mkdirSync(hermesHome, { recursive: true });
+fs.mkdirSync(vantaHome, { recursive: true });
 fs.mkdirSync(userData, { recursive: true });
 fs.writeFileSync(path.join(userData, "window-state.json"), JSON.stringify({ x: 0, y: 0, width: WIDTHS[0], height: HEIGHT, isMaximized: false }));
 fs.writeFileSync(path.join(userData, "zoom-state.json"), JSON.stringify({ zoomLevel: 0 }));
 const mock = await startMockServer();
-writeMockProviderConfig(hermesHome, mock.url);
-writeEnvFile(hermesHome);
+writeMockProviderConfig(vantaHome, mock.url);
+writeEnvFile(vantaHome);
 
 const SECRET = /(_API_KEY|_TOKEN|_SECRET|_PASSWORD|_CREDENTIALS|_ACCESS_KEY|_PRIVATE_KEY)$/;
 const env = {};
 for (const [k, v] of Object.entries(process.env)) {
-  if (!v || SECRET.test(k) || (k.startsWith("HERMES_") && !k.startsWith("HERMES_DESKTOP_"))) continue;
+  if (!v || SECRET.test(k) || (k.startsWith("VANTA_") && !k.startsWith("VANTA_DESKTOP_"))) continue;
   env[k] = v;
 }
 Object.assign(env, {
-  HERMES_HOME: hermesHome, HERMES_DESKTOP_USER_DATA_DIR: userData, HERMES_DESKTOP_IGNORE_EXISTING: "1",
-  HERMES_DESKTOP_ISOLATED_BACKEND: "1", HOME: root, HERMES_DESKTOP_HERMES_ROOT: hermesRepo,
-  HERMES_DESKTOP_APP_NAME: `VantaThemeProof-${Date.now()}`, HERMES_DESKTOP_SKIP_QUIT_CONFIRM: "1",
+  VANTA_HOME: vantaHome, VANTA_DESKTOP_USER_DATA_DIR: userData, VANTA_DESKTOP_IGNORE_EXISTING: "1",
+  VANTA_DESKTOP_ISOLATED_BACKEND: "1", HOME: root, VANTA_DESKTOP_VANTA_ROOT: vantaRepo,
+  VANTA_DESKTOP_APP_NAME: `VantaThemeProof-${Date.now()}`, VANTA_DESKTOP_SKIP_QUIT_CONFIRM: "1",
 });
 
 const app = await _electron.launch({ executablePath: electronBin, args: [desktopRoot, "--disable-gpu", "--no-sandbox", "--force-color-profile=srgb"], env, cwd: desktopRoot });
@@ -74,14 +74,14 @@ const page = await app.firstWindow();
 const composerSel = '[data-slot="composer-root"] [contenteditable="true"]:visible';
 const waitReady = async () => {
   await page.locator(composerSel).first().waitFor({ state: "visible", timeout: 120_000 });
-  for (const text of ["Waiting for Hermes backend", "Starting Hermes", "Waiting for Vanta backend", "Starting Vanta"]) {
+  for (const text of ["Waiting for Vanta backend", "Starting Vanta", "Waiting for Vanta backend", "Starting Vanta"]) {
     await page.getByText(text).first().waitFor({ state: "detached", timeout: 120_000 }).catch(() => {});
   }
   await page.waitForTimeout(500);
 };
 const resize = (w) => app.evaluate(({ BrowserWindow }, [ww, hh]) => BrowserWindow.getAllWindows()[0].setContentSize(ww, hh), [w, HEIGHT]);
 const setMode = async (m) => {
-  await page.evaluate((mode) => { localStorage.setItem("hermes-desktop-mode-v1", mode); localStorage.removeItem("hermes-desktop-profile-modes-v1"); }, m);
+  await page.evaluate((mode) => { localStorage.setItem("vanta-desktop-mode-v1", mode); localStorage.removeItem("vanta-desktop-profile-modes-v1"); }, m);
   await page.reload();
   await waitReady();
 };
@@ -124,8 +124,8 @@ const inPage = () => {
   const root = getComputedStyle(document.documentElement);
   return {
     small,
-    theme: document.documentElement.dataset.hermesTheme,
-    mode: document.documentElement.dataset.hermesMode,
+    theme: document.documentElement.dataset.vantaTheme,
+    mode: document.documentElement.dataset.vantaMode,
     bodyFont: getComputedStyle(document.body).fontFamily.slice(0, 80),
     ring: root.getPropertyValue("--dt-ring").trim(),
     primarySolid: [root.getPropertyValue("--dt-primary-solid").trim(), root.getPropertyValue("--dt-primary-solid-foreground").trim()],

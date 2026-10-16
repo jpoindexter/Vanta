@@ -3,10 +3,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
-import { getMemoryProviderConfig, saveMemoryProviderConfig } from '@/hermes'
+import { getMemoryProviderConfig, saveMemoryProviderConfig } from '@/desktop-api'
 import { SlidersHorizontal } from '@/lib/icons'
 import { notifyError } from '@/store/notifications'
-import type { MemoryProviderConfig, MemoryProviderField } from '@/types/hermes'
+import type { MemoryProviderConfig, MemoryProviderField } from '@/types/desktop'
 
 import { ListRow, Pill } from '../primitives'
 
@@ -129,7 +129,7 @@ export function ProviderConfigPanel({ profile, provider }: { profile?: string; p
       </div>
 
       {expanded && (
-        <div className="ml-1.5 border-l-2 border-(--ui-accent-secondary)/25 pb-4 pl-4 pr-4">
+        <div className="pb-4 pl-6 pr-4">
           {inlineFields.map(field => (
             <div className="border-b border-border/40 last:border-b-0" key={field.key}>
               <ListRow

@@ -41,8 +41,8 @@ describe('ingestBackendSkin', () => {
     expect($pendingSkinApply.get()).toBeNull()
 
     // The activation event was missed (skin set while disconnected / backend
-    // restarted). Vanta re-affirms it — `hermes config set display.skin neon`
-    // or a `hermes skin set` recolor. That explicit event must repaint even
+    // restarted). Vanta re-affirms it — `vanta config set display.skin neon`
+    // or a `vanta skin set` recolor. That explicit event must repaint even
     // though the name matches the seed.
     ingestBackendSkin(skin('neon'), { apply: true })
     expect($pendingSkinApply.get()).toBe('neon')
@@ -148,7 +148,7 @@ describe('ingestBackendSkin', () => {
 
   it('hydrates the registry from storage on load, so a persisted pick resolves before the gateway connects', async () => {
     ingestBackendSkin(skin('neon'), { apply: false })
-    expect(JSON.parse(window.localStorage.getItem('hermes-desktop-backend-themes-v1') ?? '{}').neon?.name).toBe('neon')
+    expect(JSON.parse(window.localStorage.getItem('vanta-desktop-backend-themes-v1') ?? '{}').neon?.name).toBe('neon')
 
     // Relaunch: a fresh module instance with the same storage.
     vi.resetModules()
@@ -159,7 +159,7 @@ describe('ingestBackendSkin', () => {
 
   it('drops junk and built-in names from the cached registry', async () => {
     const mono = { name: 'mono', label: 'x', colors: { background: '#000', foreground: '#fff', primary: '#f0f' } }
-    window.localStorage.setItem('hermes-desktop-backend-themes-v1', JSON.stringify({ mono, bad: { name: 'bad' } }))
+    window.localStorage.setItem('vanta-desktop-backend-themes-v1', JSON.stringify({ mono, bad: { name: 'bad' } }))
 
     vi.resetModules()
     const fresh = await import('./backend-sync')

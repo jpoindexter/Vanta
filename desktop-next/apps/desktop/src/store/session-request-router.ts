@@ -1,4 +1,4 @@
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/desktop-api'
 import { requestGatewayForAgent, requestGatewayForProfile, retainGatewayForSessionTurn } from '@/store/gateway'
 
 import { resetBackgroundPollingGuardAfterRebind } from './session-gone-latch'

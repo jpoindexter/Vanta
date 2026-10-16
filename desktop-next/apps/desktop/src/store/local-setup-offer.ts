@@ -9,8 +9,8 @@
 
 import { atom, computed } from 'nanostores'
 
-import { getLocalCatalog, getLocalModelsStatus } from '@/hermes'
-import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
+import { getLocalCatalog, getLocalModelsStatus } from '@/desktop-api'
+import type { LocalCatalogModel, LocalModelsStatus } from '@/types/desktop'
 
 import { $localModelsEnabled } from './local-models-flag'
 import { $connection } from './session'
@@ -156,10 +156,10 @@ interface LocalSetupDebug {
 
 declare global {
   interface Window {
-    __hermesTips?: LocalSetupDebug
+    __vantaTips?: LocalSetupDebug
   }
 }
 
-window.__hermesTips = {
+window.__vantaTips = {
   state: () => ({ eligibility: $localSetupEligibility.get(), localModelsEnabled: $localModelsEnabled.get() })
 }

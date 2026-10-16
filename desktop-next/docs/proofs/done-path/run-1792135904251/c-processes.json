@@ -1,0 +1,36 @@
+{
+  "before": [
+    {
+      "pid": 16025,
+      "command": "/Applications/Vanta.app/Contents/Frameworks/Vanta Helper.app/Contents/MacOS/Vanta Helper --type=gpu-process --no-sandbox --user-data-dir=/pr"
+    },
+    {
+      "pid": 16026,
+      "command": "/Applications/Vanta.app/Contents/Frameworks/Vanta Helper.app/Contents/MacOS/Vanta Helper --type=utility --utility-sub-type=network.mojom.Net"
+    },
+    {
+      "pid": 16027,
+      "command": "/Applications/Vanta.app/Contents/Frameworks/Vanta Helper (Renderer).app/Contents/MacOS/Vanta Helper (Renderer) --type=renderer --user-data-d"
+    },
+    {
+      "pid": 16028,
+      "command": "/Applications/Vanta.app/Contents/MacOS/Vanta /Applications/Vanta.app/Contents/Resources/vanta-runtime/dist-runtime/cli.mjs desktop 7790 --no"
+    },
+    {
+      "pid": 16482,
+      "command": "/Applications/Vanta.app/Contents/Frameworks/Vanta Helper.app/Contents/MacOS/Vanta Helper --type=utility --utility-sub-type=audio.mojom.Audio"
+    },
+    {
+      "pid": 16158,
+      "command": "/Applications/Vanta.app/Contents/MacOS/Vanta -e \\012\"use strict\";\\012const { spawn } = require(\"node:child_process\");\\012const fs = require("
+    },
+    {
+      "pid": 16159,
+      "command": "/Applications/Vanta.app/Contents/Resources/kernel/vanta-kernel serve 53737"
+    }
+  ],
+  "survivors": [],
+  "appSurvivors": [],
+  "kernelStayed": false,
+  "leftovers": []
+}

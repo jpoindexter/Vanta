@@ -25,7 +25,7 @@ import { $focusedTreePaneId as $focusedTreePaneIdMock } from '@/store/session-fo
 import { $sessionStates, $sessionTiles } from '@/store/session-states'
 import { $statusbarVisible } from '@/store/statusbar-prefs'
 import { $desktopVersion, $updateStatus } from '@/store/updates'
-import type { FreeTierStatus } from '@/types/hermes'
+import type { FreeTierStatus } from '@/types/desktop'
 
 import { useStatusbarItems } from './use-statusbar-items'
 
@@ -137,7 +137,7 @@ describe('statusbar update channel vocabulary', () => {
       $desktopVersion.set({
         appVersion: '0.21.6',
         electronVersion: '37',
-        hermesRoot: '/h',
+        vantaRoot: '/h',
         nodeVersion: '22',
         platform: 'linux'
       })
@@ -161,7 +161,7 @@ describe('statusbar update channel vocabulary', () => {
       $desktopVersion.set({
         appVersion: '0.21.7',
         electronVersion: '37',
-        hermesRoot: '/h',
+        vantaRoot: '/h',
         nodeVersion: '22',
         platform: 'linux'
       })
@@ -386,7 +386,7 @@ describe('useStatusbarItems session timer — runtime cache anchor', () => {
   })
 })
 
-// The free-tier Sign in chip was a Nous account entry point and is gone. The
+// The free-tier Sign in chip was a Vanta account entry point and is gone. The
 // interface mode still reads the free-tier status to decide whether Simple
 // rests the bar, which this block keeps pinned until that rule is removed too.
 describe('free-tier status and the statusbar', () => {

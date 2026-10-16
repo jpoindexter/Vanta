@@ -23,7 +23,7 @@ export function toggleStatusbarVisible() {
 }
 
 // Items the bar hides until the user turns them on from its context menu: only the
-// two throughput diagnostics. Everything else the Hermes bar carried is on.
+// two throughput diagnostics. Everything else the Vanta bar carried is on.
 export const STATUSBAR_HIDDEN_BY_DEFAULT: readonly string[] = ['cache-hit-rate', 'tokens-per-second']
 
 // Stored as the explicit hidden set (not the visible one) so an item added to

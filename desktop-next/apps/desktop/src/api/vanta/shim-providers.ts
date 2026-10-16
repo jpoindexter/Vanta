@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
 import { notifySetupReady } from '@/store/live-sync'
-import type { EnvVarInfo } from '@/types/hermes'
+import type { EnvVarInfo } from '@/types/desktop'
 
 import { statusSchema } from './schemas'
 import { get, type Send, type ShimRoute, text } from './shim-core'
 
-// The Hermes Providers, Keys and first-run pages save a provider credential with `PUT /api/env` and
+// The Vanta Providers, Keys and first-run pages save a provider credential with `PUT /api/env` and
 // list providers over `/api/env`, `/api/providers/*`. Vanta has one route for all of it: `/api/setup`
 // (lists providers, then checks the credential, writes the project's private .env and makes the
 // provider the default). The key goes to the server in that one POST and is never read back: the

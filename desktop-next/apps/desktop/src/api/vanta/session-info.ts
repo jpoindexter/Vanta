@@ -10,7 +10,7 @@ const APPROVAL_MODE_FOR_ACCESS: Record<string, string> = {
   plan: 'manual'
 }
 
-/** The Hermes `session.info` body for a client. Fields Vanta has no equivalent for are left out, not invented. */
+/** The Vanta `session.info` body for a client. Fields Vanta has no equivalent for are left out, not invented. */
 export function sessionInfo(client: ChatClient, running = false): Record<string, unknown> {
   return {
     ...(client.cwd ? { cwd: client.cwd } : {}),

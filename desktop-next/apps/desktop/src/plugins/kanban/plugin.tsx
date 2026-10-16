@@ -14,7 +14,7 @@ import './kanban.css'
 import {
   cn,
   Codicon,
-  type HermesPlugin,
+  type VantaPlugin,
   host,
   type KeybindContribution,
   KEYBINDS_AREA,
@@ -28,7 +28,7 @@ import {
   Tip,
   useQuery,
   useValue
-} from '@hermes/plugin-sdk'
+} from '@vanta/plugin-sdk'
 
 import { $boardSlug, bindApi, boardKey, fetchBoard, useKanbanScope } from './api'
 import { KanbanBoardPage } from './board'
@@ -65,7 +65,7 @@ function KanbanCount() {
     <Tip label={k.countTip(count('running'), count('ready'))}>
       <button
         className={cn(
-          'inline-flex h-full items-center gap-1 rounded-none px-1.5 text-[0.75rem] tabular-nums transition-colors',
+          'inline-flex h-full items-center gap-1 rounded-none px-1.5 text-meta tabular-nums transition-colors',
           'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
         )}
         onClick={() => host.navigate('/kanban')}
@@ -78,7 +78,7 @@ function KanbanCount() {
   )
 }
 
-const plugin: HermesPlugin = {
+const plugin: VantaPlugin = {
   id: 'kanban',
   name: 'Kanban',
   description: 'Multi-agent task board — board page, sidebar entry, and a live in-flight count in the status bar.',

@@ -45,7 +45,7 @@ export const zhHantCommon = {
   },
 
   billingBlock: {
-    titleNous: '額度已用盡',
+    titleVanta: '額度已用盡',
     titleProvider: provider => `額度已用盡 — ${provider}`,
     fallbackMessage: '您的帳戶額度已用盡。請儲值以繼續使用。',
     openBilling: '開啟帳單',

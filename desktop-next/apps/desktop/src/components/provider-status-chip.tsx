@@ -1,4 +1,4 @@
-import type { ModelOptionProvider } from '@hermes/shared'
+import type { ModelOptionProvider } from '@vanta/shared'
 import type { ReactElement, ReactNode } from 'react'
 
 import { useI18n } from '@/i18n'

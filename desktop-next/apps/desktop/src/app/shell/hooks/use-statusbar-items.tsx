@@ -35,6 +35,7 @@ import { resolveSessionTimerSince } from '@/lib/session-timer-since'
 import { cacheHitLabel, contextBarLabel, LiveDuration, tokensPerSecondLabel, usageContextLabel } from '@/lib/statusbar'
 import { rollbackSentence } from '@/lib/update-copy'
 import { useStoreSelector } from '@/lib/use-session-slice'
+import { $backendStopped } from '@/store/recovery-requests'
 import { cn } from '@/lib/utils'
 import { resolveVersionStatus } from '@/lib/version-status'
 import type { ApprovalModeRequester } from '@/store/approval-mode'
@@ -70,9 +71,9 @@ import {
   $updateStatus,
   openUpdateOverlayFor
 } from '@/store/updates'
-import type { StatusResponse, UsageStats } from '@/types/hermes'
+import type { StatusResponse, UsageStats } from '@/types/desktop'
 
-import { SHOW_WEBHOOKS } from '../../settings/hermes-extras'
+import { SHOW_WEBHOOKS } from '../../settings/settings-extras'
 import { CRON_ROUTE, WEBHOOKS_ROUTE } from '../../routes'
 import type { StatusbarItem } from '../statusbar-controls'
 
@@ -125,7 +126,7 @@ export function useStatusbarItems({
   commandCenterOpen,
   extraLeftItems,
   extraRightItems,
-  gatewayState,
+  gatewayState: reportedGatewayState,
   inferenceStatus,
   openAgents,
   openCommandCenterSection,
@@ -133,6 +134,9 @@ export function useStatusbarItems({
   statusSnapshot,
   toggleCommandCenter
 }: StatusbarItemsOptions) {
+  // The gateway link is HTTP and reads "open" after the server dies; the main process said it stopped.
+  const backendStopped = useStore($backendStopped)
+  const gatewayState = backendStopped ? 'closed' : reportedGatewayState
   const { t } = useI18n()
   const copy = t.shell.statusbar
   const fileMenu = t.fileMenu
@@ -144,7 +148,7 @@ export function useStatusbarItems({
   const terminalShowing = useStore($paneVisible('terminal'))
   const sessionsShowing = useStore($paneVisible('sessions'))
   const profileRailVisible = useStore($profileRailVisible)
-  const botsShowing = useStore($paneVisible('hermes-bots:pane'))
+  const botsShowing = useStore($paneVisible('vanta-bots:pane'))
   const primaryBusy = useStore($busy)
   // Draft / primary composer atom — used only while the focused surface is the
   // primary (or a draft with no runtime slice yet). A focused TILE keeps its

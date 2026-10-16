@@ -400,7 +400,7 @@ export interface HostedPhaseInput {
 }
 
 export function hostedPhase({ available, errored, pending, reason }: HostedPhaseInput): HostedPhase {
-  if (reason === 'NEEDS_NOUS_AUTH') {
+  if (reason === 'NEEDS_VANTA_AUTH') {
     return 'signedOut'
   }
 

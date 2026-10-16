@@ -1,4 +1,4 @@
-import type { ModelOptionProvider, ModelOptionsResult } from '@hermes/shared'
+import type { ModelOptionProvider, ModelOptionsResult } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
@@ -11,7 +11,7 @@ import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { RowButton } from '@/components/ui/row-button'
 import { Switch } from '@/components/ui/switch'
-import type { HermesGateway } from '@/hermes'
+import type { VantaGateway } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Plus, Search, X } from '@/lib/icons'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
@@ -40,7 +40,7 @@ import {
 import { $collapsedProviders, toggleCollapsedProvider } from '@/store/provider-collapse'
 
 interface ModelVisibilityDialogProps {
-  gw?: HermesGateway
+  gw?: VantaGateway
   onOpenChange: (open: boolean) => void
   onOpenProviders: () => void
   open: boolean
@@ -123,7 +123,7 @@ export function ModelVisibilityDialog({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent bodyClassName="gap-0 overflow-hidden p-0" className="max-w-xs">
         <DialogHeader className="px-3 pb-1 pt-3">
-          <DialogTitle className="text-[0.8125rem]">{copy.title}</DialogTitle>
+          <DialogTitle className="text-ui">{copy.title}</DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center gap-1.5 px-3 py-1.5">
@@ -165,7 +165,7 @@ export function ModelVisibilityDialog({
                 <div className="py-0.5" key={provider.slug}>
                   <div className="flex items-center gap-2 px-3 pb-0.5 pt-1">
                     <button
-                      className="group/label flex w-full items-center gap-1 pb-0.5 pt-0.5 text-left text-[0.75rem] font-semibold uppercase tracking-wider text-(--ui-text-secondary) hover:bg-transparent"
+                      className="group/label flex w-full items-center gap-1 pb-0.5 pt-0.5 text-left text-meta font-semibold uppercase tracking-wider text-(--ui-text-secondary) hover:bg-transparent"
                       onClick={() => toggleCollapsedProvider(provider.slug)}
                       type="button"
                     >
@@ -226,7 +226,7 @@ export function ModelVisibilityDialog({
           )}
           {customSlug && providers.length > 0 && (
             <div className="py-0.5">
-              <div className="px-3 pb-0.5 pt-1 text-[0.75rem] font-semibold uppercase tracking-wider text-(--ui-text-tertiary)">
+              <div className="px-3 pb-0.5 pt-1 text-meta font-semibold uppercase tracking-wider text-(--ui-text-tertiary)">
                 {copy.addCustomModel}
               </div>
               {providers.map(provider => (

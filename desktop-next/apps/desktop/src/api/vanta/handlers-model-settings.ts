@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import type { z } from 'zod'
 
@@ -48,7 +48,7 @@ export async function setReasoningEffort(hub: GatewayHub, client: ChatClient | u
 
 const FAST_VALUES = new Set(['fast', 'priority', 'ultrafast'])
 
-/** Fast mode on or off. Hermes names the on state `fast`, `priority` or `ultrafast`; Vanta has `fast` and `standard`. */
+/** Fast mode on or off. Vanta names the on state `fast`, `priority` or `ultrafast`; Vanta has `fast` and `standard`. */
 export async function setFastMode(hub: GatewayHub, client: ChatClient | undefined, value: string) {
   const { speed } = await currentModelSettings(hub, client)
 

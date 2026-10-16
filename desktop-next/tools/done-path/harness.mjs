@@ -64,7 +64,7 @@ export const readPermissions = (box) => (fs.existsSync(box.permissionsFile) ? fs
 function sandboxEnv({ box, project, modelUrl, extraEnv = {} }) {
   const env = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("HERMES_")) env[key] = value;
+    if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("VANTA_")) env[key] = value;
   }
   // No `modelUrl`: a first run with no model provider configured at all.
   const provider = modelUrl
@@ -92,13 +92,22 @@ function sandboxEnv({ box, project, modelUrl, extraEnv = {} }) {
 /** Launch the built Electron shell on `project`, hidden and unfocused. */
 export async function launchApp({ box, project, modelUrl, extraEnv, width = 1440, height = 900 }) {
   const { _electron } = require("playwright-core");
-  const bin = path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
-  const app = await _electron.launch({
-    executablePath: bin,
-    args: [desktopRoot, `--user-data-dir=${box.userData}`, "--disable-gpu", "--no-sandbox", "--disable-backgrounding-occluded-windows", "--disable-renderer-backgrounding"],
-    env: sandboxEnv({ box, project, modelUrl, extraEnv }),
-    cwd: desktopRoot,
-  });
+  const flags = ["--disable-gpu", "--no-sandbox", "--disable-backgrounding-occluded-windows", "--disable-renderer-backgrounding"];
+  // VANTA_PACKAGED_APP=/Applications/Vanta.app runs the same steps against the installed, packaged app instead of source
+  // Electron. It brings its own runtime and kernel, so the source runtime root is left out of its environment.
+  const packaged = process.env.VANTA_PACKAGED_APP?.trim();
+  const env = sandboxEnv({ box, project, modelUrl, extraEnv });
+  if (packaged) delete env.VANTA_RUNTIME_ROOT;
+  const app = await _electron.launch(
+    packaged
+      ? { executablePath: path.join(packaged, "Contents", "MacOS", "Vanta"), args: [`--user-data-dir=${box.userData}`, ...flags], env, cwd: box.root }
+      : {
+          executablePath: path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron"),
+          args: [desktopRoot, `--user-data-dir=${box.userData}`, ...flags],
+          env,
+          cwd: desktopRoot,
+        }
+  );
   const page = await app.firstWindow();
   const errors = [];
   page.on("console", (m) => m.type() === "error" && errors.push(m.text().slice(0, 300)));

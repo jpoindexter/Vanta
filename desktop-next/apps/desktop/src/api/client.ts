@@ -1,7 +1,7 @@
-import { JsonRpcGatewayClient } from '@hermes/shared'
+import { JsonRpcGatewayClient } from '@vanta/shared'
 import { map, type MapStore } from 'nanostores'
 
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 
 import { vantaRestShim } from './vanta/rest-shim'
 
@@ -18,7 +18,7 @@ declare global {
 // /api/profiles runs list_profiles(), which does a recursive skill-tree walk
 // per profile — so the 15s default (DEFAULT_FETCH_TIMEOUT_MS in hardening.ts)
 // times out a backend that is alive-but-busy, surfacing as a spurious
-// "Timed out connecting to Hermes backend" that hangs the UI (#48504).
+// "Timed out connecting to Vanta backend" that hangs the UI (#48504).
 //
 // Give the boot burst a generous per-call timeout instead of raising the
 // global default: interactive/runtime calls and the liveness poll (/api/status)
@@ -37,7 +37,7 @@ export const PROMPT_SUBMIT_REQUEST_TIMEOUT_MS = 1_800_000
 
 export const GATEWAY_NOT_CONNECTED_MESSAGE = 'Vanta gateway is not connected'
 
-export class HermesGateway extends JsonRpcGatewayClient {
+export class VantaGateway extends JsonRpcGatewayClient {
   constructor() {
     super({
       closedErrorMessage: 'Vanta gateway connection closed',
@@ -94,7 +94,7 @@ export function profileScoped(profile?: null | string): { priority?: 'foreground
  *  a Bot on another connection is (its connection, its profile) — never the
  *  active connection with the Bot's profile name. Missing halves fall back to
  *  the ambient scope; an explicit connection — `'local'` included — overrides
- *  the ambient tag `hermesApi` spreads underneath (as capabilityScoped does). */
+ *  the ambient tag `vantaApi` spreads underneath (as capabilityScoped does). */
 export interface OwnerScope {
   connectionId?: null | string
   profile?: null | string
@@ -127,12 +127,12 @@ export function resolveOwnerNow(owner?: OwnerScope): ResolvedOwner {
   }
 }
 
-/** `hermesApi` for a resolved owner: its tags are sent verbatim, with no
+/** `vantaApi` for a resolved owner: its tags are sent verbatim, with no
  *  ambient connection spread underneath. An untagged half stays untagged. A
  *  named profile is always explicit here, so it carries the foreground
  *  priority `profileScoped` gives explicit profiles (voice is user-driven). */
-export function hermesApiAs<T>(owner: ResolvedOwner, request: HermesApiRequest): Promise<T> {
-  return window.hermesDesktop.api<T>({
+export function vantaApiAs<T>(owner: ResolvedOwner, request: VantaApiRequest): Promise<T> {
+  return window.desktopBridge.api<T>({
     ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
     ...(owner.profile ? { priority: 'foreground' as const, profile: owner.profile } : {}),
     ...request
@@ -161,7 +161,7 @@ export function setApiRequestConnection(connectionId: null | string): void {
 // Registry connection scope for a REST request. A registered remote gateway
 // owns its own state.db — cron jobs and their run sessions live THERE — so
 // requests for gateway-owned data must carry the connection id for the main
-// process to route them to that host (hermes:api's registry branch). Null
+// process to route them to that host (vanta:api's registry branch). Null
 // resolves to no tag, keeping single-source users byte-identical; explicit
 // 'local' must remain tagged when the legacy primary points elsewhere.
 export function connectionScoped(): { connectionId?: string } {
@@ -174,7 +174,7 @@ export function connectionScoped(): { connectionId?: string } {
 // store/session's setConnection (same no-store-import contract as profile scope)
 // so api/ helpers can name the backend an UNTAGGED request lands on without
 // importing the heavy session store — which would close a module cycle
-// through @/hermes.
+// through @/vanta.
 let _apiLocalMode = false
 
 export function setApiRequestLocalMode(local: boolean): void {
@@ -198,22 +198,22 @@ export function ambientOwnerConnectionId(): string | undefined {
  *  pin — `'local'` included — so a pin always overrides the ambient tag spread
  *  underneath it. (It used to omit the key for 'local', which made the pin
  *  unable to beat the ambient tag; helpers then had to bypass this wrapper.) */
-export function hermesApi<T>(request: HermesApiRequest): Promise<T> {
-  return viaShim<T>(request, (call: HermesApiRequest) => window.hermesDesktop.api<unknown>({ ...connectionScoped(), ...call }))
+export function vantaApi<T>(request: VantaApiRequest): Promise<T> {
+  return viaShim<T>(request, (call: VantaApiRequest) => window.desktopBridge.api<unknown>({ ...connectionScoped(), ...call }))
 }
 
 /**
- * `hermesApi` without the ambient connection tag, for the helpers that always pinned their own scope and
+ * `vantaApi` without the ambient connection tag, for the helpers that always pinned their own scope and
  * called the bridge directly. They get the same Vanta shim, so a path Vanta serves differently is mapped
  * wherever it is called from.
  */
-export function rawApi<T>(request: HermesApiRequest): Promise<T> {
-  return viaShim<T>(request, (call: HermesApiRequest) => window.hermesDesktop.api<unknown>(call))
+export function rawApi<T>(request: VantaApiRequest): Promise<T> {
+  return viaShim<T>(request, (call: VantaApiRequest) => window.desktopBridge.api<unknown>(call))
 }
 
 // Only the Vanta shell (preload exposes `vantaDesktop`) serves sessions, profiles, config and model settings
 // from what the Vanta server has; every other path passes through.
-function viaShim<T>(request: HermesApiRequest, send: (call: HermesApiRequest) => Promise<unknown>): Promise<T> {
+function viaShim<T>(request: VantaApiRequest, send: (call: VantaApiRequest) => Promise<unknown>): Promise<T> {
   const shimmed = typeof window.vantaDesktop === 'undefined' ? null : vantaRestShim(request, send)
 
   return (shimmed ?? send(request)) as Promise<T>

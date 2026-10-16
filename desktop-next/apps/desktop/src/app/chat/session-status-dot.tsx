@@ -6,7 +6,7 @@ import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { $sessionColorById, sessionColorFor } from '@/store/session-color'
 import { $sessionDotStateById, type SessionDotState } from '@/store/session-dot-state'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 // A pure lookup table: each state maps to its className, aria-label, and title.
 // No priority resolution here — $sessionDotStateById already picked one.
@@ -145,7 +145,7 @@ export function SessionStatusDot({ storedSessionId, session, branchStem, classNa
   return (
     <span className={cn('flex items-center gap-0.5', className)}>
       {branchStem ? (
-        <span aria-hidden className="shrink-0 font-mono text-[0.75rem] leading-none text-(--ui-text-quaternary)">
+        <span aria-hidden className="shrink-0 font-mono text-meta leading-none text-(--ui-text-quaternary)">
           {branchStem}
         </span>
       ) : null}

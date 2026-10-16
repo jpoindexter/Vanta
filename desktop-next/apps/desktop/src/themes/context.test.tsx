@@ -16,7 +16,7 @@ const bloomberg = (foreground: string) => ({
 
 const cssVar = (name: string) => window.document.documentElement.style.getPropertyValue(name)
 
-const customStyleEl = () => window.document.getElementById('hermes-desktop-custom-css') as HTMLStyleElement | null
+const customStyleEl = () => window.document.getElementById('vanta-desktop-custom-css') as HTMLStyleElement | null
 
 describe('ThemeProvider ← backend skin sync', () => {
   beforeEach(() => {
@@ -78,7 +78,7 @@ describe('ThemeProvider ← backend skin sync', () => {
   // name, flattened it to the default, and the connect-time seed (apply: false,
   // by design) never repainted — so the theme "didn't stick" until `/skin`.
   it('paints a persisted backend skin once the connect-time seed makes it resolvable', () => {
-    window.localStorage.setItem('hermes-desktop-theme-v2', 'bloomberg')
+    window.localStorage.setItem('vanta-desktop-theme-v2', 'bloomberg')
 
     render(
       <ThemeProvider>
@@ -105,10 +105,10 @@ describe('ThemeProvider ← local bridge fallback', () => {
   })
 
   it('uses the local bridge skin when a remote gateway has not connected yet', async () => {
-    const previous = Object.getOwnPropertyDescriptor(window, 'hermesDesktop')
+    const previous = Object.getOwnPropertyDescriptor(window, 'desktopBridge')
 
     try {
-      Object.defineProperty(window, 'hermesDesktop', {
+      Object.defineProperty(window, 'desktopBridge', {
         configurable: true,
         value: { localSkin: { profile: 'research', skin: bloomberg('#ff9f0a') } }
       })
@@ -133,9 +133,9 @@ describe('ThemeProvider ← local bridge fallback', () => {
       window.localStorage.clear()
 
       if (previous) {
-        Object.defineProperty(window, 'hermesDesktop', previous)
+        Object.defineProperty(window, 'desktopBridge', previous)
       } else {
-        Reflect.deleteProperty(window, 'hermesDesktop')
+        Reflect.deleteProperty(window, 'desktopBridge')
       }
 
       vi.resetModules()
@@ -143,11 +143,11 @@ describe('ThemeProvider ← local bridge fallback', () => {
   })
 
   it('keeps a saved desktop appearance ahead of the local bridge fallback', async () => {
-    const previous = Object.getOwnPropertyDescriptor(window, 'hermesDesktop')
+    const previous = Object.getOwnPropertyDescriptor(window, 'desktopBridge')
 
     try {
-      window.localStorage.setItem('hermes-desktop-theme-v2', 'everforest')
-      Object.defineProperty(window, 'hermesDesktop', {
+      window.localStorage.setItem('vanta-desktop-theme-v2', 'everforest')
+      Object.defineProperty(window, 'desktopBridge', {
         configurable: true,
         value: { localSkin: { profile: 'research', skin: bloomberg('#ff9f0a') } }
       })
@@ -161,15 +161,15 @@ describe('ThemeProvider ← local bridge fallback', () => {
         </FreshThemeProvider>
       )
 
-      expect(window.document.documentElement.dataset.hermesTheme).toBe('everforest')
+      expect(window.document.documentElement.dataset.vantaTheme).toBe('everforest')
     } finally {
       cleanup()
       window.localStorage.clear()
 
       if (previous) {
-        Object.defineProperty(window, 'hermesDesktop', previous)
+        Object.defineProperty(window, 'desktopBridge', previous)
       } else {
-        Reflect.deleteProperty(window, 'hermesDesktop')
+        Reflect.deleteProperty(window, 'desktopBridge')
       }
 
       vi.resetModules()
@@ -358,7 +358,7 @@ describe('ThemeProvider theme typography (#41766)', () => {
     cleanup()
   })
 
-  // The merged typography is DEFAULT ← nous ← theme, so a user theme that sets
+  // The merged typography is DEFAULT ← vanta ← theme, so a user theme that sets
   // only the new knobs still inherits the font stacks.
   const bigTypeTheme: DesktopTheme = {
     ...midnightTheme,

@@ -217,7 +217,7 @@ function RetiredFold({
 }) {
   return (
     <details className="group py-1.5" data-slot="connector-accounts-retired">
-      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[0.75rem] text-(--ui-text-tertiary)">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-meta text-(--ui-text-tertiary)">
         <Codicon
           className="shrink-0 transition-transform duration-100 group-open:rotate-90"
           name="chevron-right"
@@ -330,11 +330,11 @@ function AliasEditor({
         </Button>
       </div>
       {error ? (
-        <p className="text-[0.75rem] text-destructive" role="alert">
+        <p className="text-meta text-destructive" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-[0.75rem] text-(--ui-text-tertiary)">{hint}</p>
+        <p className="text-meta text-(--ui-text-tertiary)">{hint}</p>
       ) : null}
     </form>
   )

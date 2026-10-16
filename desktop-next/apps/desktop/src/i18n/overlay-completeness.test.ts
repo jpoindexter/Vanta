@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { flattenMessageKeys } from '@hermes/shared/i18n'
+import { flattenMessageKeys } from '@vanta/shared/i18n'
 import { expect, it } from 'vitest'
 
 import { arOverrides } from './ar'

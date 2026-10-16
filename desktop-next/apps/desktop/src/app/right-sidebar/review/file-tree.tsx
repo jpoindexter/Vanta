@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/context-menu'
 import { DiffCount } from '@/components/ui/diff-count'
 import { Tip } from '@/components/ui/tooltip'
-import type { HermesReviewFile } from '@/global'
+import type { VantaReviewFile } from '@/global'
 import { useI18n } from '@/i18n'
 import { isDesktopFsRemoteMode } from '@/lib/desktop-fs'
 import { displayPath } from '@/lib/display-path'
@@ -302,7 +302,7 @@ function ReviewDirRow({
         <span className="min-w-0 flex-1 truncate" title={node.name}>
           {node.name}
         </span>
-        {!open && <DiffCount added={node.added} className="text-[0.75rem] leading-4" removed={node.removed} />}
+        {!open && <DiffCount added={node.added} className="text-meta leading-4" removed={node.removed} />}
       </div>
       {!leaf && open && node.children && <ReviewNodeList animate={animate} depth={depth + 1} nodes={node.children} />}
     </>
@@ -398,7 +398,7 @@ function ReviewFileRow({ node, depth }: { node: ReviewTreeNode; depth: number })
         onDragStart={event => {
           event.dataTransfer.effectAllowed = 'copy'
           event.dataTransfer.setData(
-            'application/x-hermes-paths',
+            'application/x-vanta-paths',
             JSON.stringify([{ isDirectory: false, path: dragPath }])
           )
           event.dataTransfer.setData('text/plain', dragPath)
@@ -414,7 +414,7 @@ function ReviewFileRow({ node, depth }: { node: ReviewTreeNode; depth: number })
             {node.name}
           </span>
           {node.dir && (
-            <span className="min-w-0 shrink-[9999] truncate text-[0.75rem] text-(--ui-text-tertiary)" title={node.dir}>
+            <span className="min-w-0 shrink-[9999] truncate text-meta text-(--ui-text-tertiary)" title={node.dir}>
               {node.dir}
             </span>
           )}
@@ -453,7 +453,7 @@ function ReviewFileRow({ node, depth }: { node: ReviewTreeNode; depth: number })
 
         <DiffCount
           added={node.added}
-          className="text-[0.75rem] leading-4 group-hover/review-row:hidden"
+          className="text-meta leading-4 group-hover/review-row:hidden"
           removed={node.removed}
         />
         {file.staged && (
@@ -479,7 +479,7 @@ function ReviewFileContextMenu({
   children: ReactNode
   cwd: null | string
   dragPath: string
-  file: HermesReviewFile
+  file: VantaReviewFile
   onOpenChanges: () => void
   onOpenFile: () => void
 }) {

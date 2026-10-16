@@ -54,7 +54,7 @@ export function ToolsFilterBar({
     <div className="grid shrink-0 gap-2 border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-chrome) px-3.5 py-2">
       <div className="flex items-center gap-3">
         <span className="shrink-0 text-xs font-medium text-(--ui-text-primary)">{copy.title}</span>
-        <span className="shrink-0 tabular-nums text-[0.75rem] text-(--ui-text-tertiary)">{total}</span>
+        <span className="shrink-0 tabular-nums text-meta text-(--ui-text-tertiary)">{total}</span>
 
         <Button className="shrink-0" onClick={onShowSummary} size="xs" variant="text">
           {copy.showSummary}

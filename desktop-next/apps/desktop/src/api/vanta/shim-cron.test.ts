@@ -12,7 +12,7 @@ import {
   triggerCronJob,
   updateCronJob
 } from '@/api/cron'
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
 const entry = (patch: Record<string, unknown> = {}) => ({
@@ -25,10 +25,10 @@ const entry = (patch: Record<string, unknown> = {}) => ({
 
 /** A stand-in Vanta server: answers the schedule routes the way the real ones do. */
 function fakeServer() {
-  const calls: HermesApiRequest[] = []
+  const calls: VantaApiRequest[] = []
   let current = entry()
 
-  const answer = (request: HermesApiRequest): object => {
+  const answer = (request: VantaApiRequest): object => {
     calls.push(request)
     const body = (request.body ?? {}) as Record<string, unknown>
 
@@ -71,7 +71,7 @@ describe('schedule controls reach the Vanta routes', () => {
   })
 
   afterEach(() => {
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { desktopBridge?: unknown }).desktopBridge
     delete (window as { vantaDesktop?: unknown }).vantaDesktop
   })
 

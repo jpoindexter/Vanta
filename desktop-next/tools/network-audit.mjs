@@ -16,7 +16,7 @@ import { createRequire } from "node:module";
 
 const here = import.meta.dirname;
 const desktopRoot = path.resolve(here, "..", "apps", "desktop");
-const hermesRepo = process.env.HERMES_REPO ?? path.join(os.homedir(), ".hermes", "hermes-agent");
+const vantaRepo = process.env.VANTA_REPO ?? path.join(os.homedir(), ".vanta", "vanta-agent");
 const args = process.argv.slice(2);
 const flag = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
 const outFile = path.resolve(flag("--out", "network-audit.json"));
@@ -24,9 +24,9 @@ const idleSeconds = Number(flag("--idle", "20"));
 
 const require = createRequire(import.meta.url);
 const { _electron } = require("playwright-core");
-const importHermes = (rel) => import(pathToFileURL(path.join(hermesRepo, "tests-js", "scripts", rel)).href);
-const { startMockServer } = await importHermes("mock-server.ts");
-const { writeMockProviderConfig, writeEnvFile } = await importHermes("mock-provider-config.ts");
+const importVanta = (rel) => import(pathToFileURL(path.join(vantaRepo, "tests-js", "scripts", rel)).href);
+const { startMockServer } = await importVanta("mock-server.ts");
+const { writeMockProviderConfig, writeEnvFile } = await importVanta("mock-provider-config.ts");
 
 const electronBin = path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
 for (const f of [electronBin, path.join(desktopRoot, "dist", "electron-main.mjs"), path.join(desktopRoot, "dist", "index.html")]) {
@@ -34,26 +34,26 @@ for (const f of [electronBin, path.join(desktopRoot, "dist", "electron-main.mjs"
 }
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-net-audit-"));
-const hermesHome = path.join(root, "hermes-home");
+const vantaHome = path.join(root, "vanta-home");
 const userData = path.join(root, "electron-user-data");
 const netLog = path.join(root, "netlog.json");
-fs.mkdirSync(hermesHome, { recursive: true });
+fs.mkdirSync(vantaHome, { recursive: true });
 fs.mkdirSync(userData, { recursive: true });
 fs.writeFileSync(path.join(userData, "window-state.json"), JSON.stringify({ x: 0, y: 0, width: 1440, height: 900, isMaximized: false }));
 const mock = await startMockServer();
-writeMockProviderConfig(hermesHome, mock.url);
-writeEnvFile(hermesHome);
+writeMockProviderConfig(vantaHome, mock.url);
+writeEnvFile(vantaHome);
 
 const SECRET = /(_API_KEY|_TOKEN|_SECRET|_PASSWORD|_CREDENTIALS|_ACCESS_KEY|_PRIVATE_KEY)$/;
 const env = {};
 for (const [k, v] of Object.entries(process.env)) {
-  if (!v || SECRET.test(k) || (k.startsWith("HERMES_") && !k.startsWith("HERMES_DESKTOP_"))) continue;
+  if (!v || SECRET.test(k) || (k.startsWith("VANTA_") && !k.startsWith("VANTA_DESKTOP_"))) continue;
   env[k] = v;
 }
 Object.assign(env, {
-  HERMES_HOME: hermesHome, HERMES_DESKTOP_USER_DATA_DIR: userData, HERMES_DESKTOP_IGNORE_EXISTING: "1",
-  HERMES_DESKTOP_ISOLATED_BACKEND: "1", HOME: root, HERMES_DESKTOP_HERMES_ROOT: hermesRepo,
-  HERMES_DESKTOP_APP_NAME: `VantaNetAudit-${Date.now()}`, HERMES_DESKTOP_SKIP_QUIT_CONFIRM: "1",
+  VANTA_HOME: vantaHome, VANTA_DESKTOP_USER_DATA_DIR: userData, VANTA_DESKTOP_IGNORE_EXISTING: "1",
+  VANTA_DESKTOP_ISOLATED_BACKEND: "1", HOME: root, VANTA_DESKTOP_VANTA_ROOT: vantaRepo,
+  VANTA_DESKTOP_APP_NAME: `VantaNetAudit-${Date.now()}`, VANTA_DESKTOP_SKIP_QUIT_CONFIRM: "1",
 });
 
 const app = await _electron.launch({

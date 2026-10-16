@@ -24,14 +24,14 @@ describe('resolveSiblingWsUrl', () => {
     }))
     getGatewayWsUrl = vi.fn(async () => ({ ok: true, wsUrl: localWsUrl }))
     getGatewayWsUrlFor = vi.fn(async () => ({ ok: true, wsUrl: remoteWsUrl }))
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'desktopBridge', {
       configurable: true,
       value: { getConnection, getConnectionFor, getGatewayWsUrl, getGatewayWsUrlFor }
     })
   })
 
   afterEach(() => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'desktopBridge')
   })
 
   it('routes a registry-scoped profile through the *For bridges and swaps only the path', async () => {

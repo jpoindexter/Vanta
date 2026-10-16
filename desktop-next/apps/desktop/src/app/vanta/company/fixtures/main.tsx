@@ -25,7 +25,7 @@ const width = params.get('w') === '1100' ? 1100 : 1440
 
 // The ThemeProvider reads the persisted mode; seed it before first render.
 try {
-  localStorage.setItem('hermes-desktop-mode-v1', theme)
+  localStorage.setItem('vanta-desktop-mode-v1', theme)
 } catch {
   // Storage can be unavailable in locked-down contexts; the system mode applies.
 }

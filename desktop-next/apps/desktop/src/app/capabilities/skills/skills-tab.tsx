@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
@@ -14,7 +14,7 @@ import {
   type ProfileScope,
   profileScopeKey,
   setSkillEnabled
-} from '@/hermes'
+} from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Loader2 } from '@/lib/icons'
 import { Codecs, persistentAtom } from '@/lib/persisted'
@@ -23,7 +23,7 @@ import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { $hubActions, installHubSkill, notifyHubActionFailed, OFFICIAL_SKILLS_KEY } from '@/store/hub-actions'
 import { notify, notifyError } from '@/store/notifications'
-import type { OfficialSkillInfo, SkillInfo } from '@/types/hermes'
+import type { OfficialSkillInfo, SkillInfo } from '@/types/desktop'
 
 import {
   CapRow,
@@ -44,7 +44,7 @@ import { categoryFor, filteredOfficial, filteredSkills, skillsQueryKey, usageOf 
 
 // Sort direction for the Skills list — persisted so the tab remembers
 // most/least-used across navigations and restarts.
-const $skillsSortDesc = persistentAtom('hermes.desktop.capabilities.skillsSortDesc', true, Codecs.bool)
+const $skillsSortDesc = persistentAtom('vanta.desktop.capabilities.skillsSortDesc', true, Codecs.bool)
 
 // Row subtitle: category, with non-default origins badged.
 function skillSubtitle(skill: SkillInfo): ReactNode {
@@ -96,7 +96,7 @@ export function SkillsTab({ onRefresh, profile, query, skills }: SkillsTabProps)
 
   // Learned/local skills are editable + archivable, mirroring the memory
   // graph (same /api/learning/node endpoints — delete archives, restorable
-  // via `hermes curator restore`).
+  // via `vanta curator restore`).
   const [skillEditor, setSkillEditor] = useState<null | { content: string; name: string }>(null)
   const [skillDraft, setSkillDraft] = useState('')
   const [skillSaving, setSkillSaving] = useState(false)
@@ -262,7 +262,7 @@ export function SkillsTab({ onRefresh, profile, query, skills }: SkillsTabProps)
       }
       id="skill-editor"
       onClose={() => setSkillEditor(null)}
-      title={<span className="text-[0.75rem] font-normal text-muted-foreground/60">{skillEditor.name}/SKILL.md</span>}
+      title={<span className="text-meta font-normal text-muted-foreground/60">{skillEditor.name}/SKILL.md</span>}
     >
       <CodeEditor
         filePath="SKILL.md"
@@ -319,7 +319,7 @@ export function SkillsTab({ onRefresh, profile, query, skills }: SkillsTabProps)
               />
             ))}
             {visibleOfficial.length > 0 && (
-              <div className="flex h-7 shrink-0 items-end px-2 pb-1 text-[0.75rem] font-medium uppercase tracking-wide text-(--ui-text-quaternary)">
+              <div className="flex h-7 shrink-0 items-end px-2 pb-1 text-meta font-medium uppercase tracking-wide text-(--ui-text-quaternary)">
                 {t.skills.officialCatalog}
               </div>
             )}

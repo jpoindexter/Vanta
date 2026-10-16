@@ -1,14 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
 import { SkillsHubBrowser } from './skills-hub-browser'
 
 const RESULT = { category: 'marketing', description: 'Audit pages', identifier: 'skills-sh:acme/skills/seo', integrity: 'content-hashed', name: 'seo', provenance: 'https://github.com/acme/skills/tree/main/seo', signature: 'unsigned', source: 'skills-sh' }
 
-let calls: HermesApiRequest[]
+let calls: VantaApiRequest[]
 
 beforeEach(() => {
   calls = []
@@ -25,7 +25,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   Reflect.deleteProperty(window, 'vantaDesktop')
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
 })
 
 async function searchFor(query: string): Promise<void> {

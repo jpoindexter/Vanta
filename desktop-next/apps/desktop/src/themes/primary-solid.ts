@@ -1,4 +1,4 @@
-import { contrastRatio, ensureContrast, parseColor } from '@hermes/shared/color'
+import { contrastRatio, ensureContrast, parseColor } from '@vanta/shared/color'
 
 import type { DesktopThemeColors } from './types'
 

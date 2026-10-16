@@ -12,7 +12,7 @@ import { hasOpenServerRequest, resetServerRequestsForTests } from '@/store/serve
 import { setActiveSessionId, setSelectedStoredSessionId, setSessions } from '@/store/session'
 import { $sessionStates, $sessionTiles, dropSessionState, publishSessionState } from '@/store/session-states'
 import { $toursEnabled } from '@/store/tours'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { handleServerRequest, previewSessionRoute, requestNamesActiveSession } from './server-requests'
 import type { ServerRequestContext } from './server-requests'
@@ -79,17 +79,17 @@ describe('connection request routing', () => {
 
 describe('approval request routing', () => {
   const notify = vi.fn().mockResolvedValue(true)
-  const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+  const desktopWindow = window as unknown as { desktopBridge?: Window['desktopBridge'] }
 
   beforeEach(() => {
     notify.mockClear()
-    desktopWindow.hermesDesktop = { notify } as unknown as Window['hermesDesktop']
+    desktopWindow.desktopBridge = { notify } as unknown as Window['desktopBridge']
     setSessions([{ id: 'session-a', title: 'Fix the flaky test' } as SessionInfo])
     setActiveSessionId('session-b')
   })
 
   afterEach(() => {
-    delete desktopWindow.hermesDesktop
+    delete desktopWindow.desktopBridge
     setSessions([])
     setActiveSessionId(null)
   })

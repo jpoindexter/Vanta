@@ -1,4 +1,4 @@
-import type { SharedMetricsConsentResult } from '@hermes/shared'
+import type { SharedMetricsConsentResult } from '@vanta/shared'
 import { atom } from 'nanostores'
 
 /**

@@ -1,5 +1,5 @@
-import type { GatewayEvent } from '@hermes/shared'
-import type { VantaResult } from '@hermes/shared/vanta'
+import type { GatewayEvent } from '@vanta/shared'
+import type { VantaResult } from '@vanta/shared/vanta'
 import { describe, expect, it } from 'vitest'
 
 import { connectedHarness, flush, healthyTransport, newChat } from './vanta/gateway-fixture'

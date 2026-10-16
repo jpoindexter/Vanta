@@ -22,7 +22,7 @@ import {
   ModelMenuCloseContext,
   type ModelMenuController,
   reasoningEffortLabel
-} from '@hermes/plugin-sdk'
+} from '@vanta/plugin-sdk'
 import { useState } from 'react'
 
 import { useKanban } from './ui'
@@ -106,7 +106,7 @@ export function ModelOverrideField({
       <DropdownMenuTrigger asChild>
         <Button
           className={cn(
-            'h-8 w-full justify-between gap-2 px-2.5 text-[0.75rem] font-normal',
+            'h-8 w-full justify-between gap-2 px-2.5 text-meta font-normal',
             isInherited(value) && 'text-(--ui-text-tertiary)'
           )}
           type="button"

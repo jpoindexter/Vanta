@@ -16,7 +16,7 @@ import { mirrorDisplayToggle } from '@/store/display-toggles'
 
 import { recordFeatureToggle } from './desktop-metrics'
 
-const KEY = 'hermes.desktop.tours.v1'
+const KEY = 'vanta.desktop.tours.v1'
 
 export const $toursEnabled = persistentAtom(KEY, true, Codecs.bool)
 

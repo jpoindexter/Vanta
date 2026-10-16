@@ -2,7 +2,7 @@ import { cleanup, renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import { getLatestSessionMessages } from '@/hermes'
+import { getLatestSessionMessages } from '@/desktop-api'
 import { ensureGatewayProfile } from '@/store/profile'
 import {
   $activeSessionId,
@@ -19,7 +19,7 @@ import { sessionRoute } from '../../routes'
 import { useSessionActions } from './use-session-actions'
 import { useSessionStateCache } from './use-session-state-cache'
 
-vi.mock('@/hermes', async original => ({
+vi.mock('@/desktop-api', async original => ({
   ...(await original<Record<string, unknown>>()),
   getLatestSessionMessages: vi.fn()
 }))

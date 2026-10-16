@@ -2,7 +2,7 @@ import { jobState } from '@/app/cron/job-state'
 import { isNeedsYouStatus, type SessionFact, shellStatusFor } from '@/app/shell/vanta/session-status'
 import { sessionTitle } from '@/lib/chat-runtime'
 import type { SessionDotState } from '@/store/session-dot-state'
-import type { CronJob, ProjectInfo, SessionInfo } from '@/types/hermes'
+import type { CronJob, ProjectInfo, SessionInfo } from '@/types/desktop'
 
 import { cronJobToRow } from '../adapters/cron-rows'
 import type { NeedsYouItem, NextUpItem, ProjectChip, RecentOutputItem, RunningItem } from '../types'

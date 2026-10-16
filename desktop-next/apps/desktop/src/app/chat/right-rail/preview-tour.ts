@@ -28,23 +28,23 @@ import { activePreviewScriptRunner } from './preview-script-runner'
 function buildTourScript(action: TourAction): string {
   return `(function () {
   var w = window;
-  if (!w.__hermesTourEngine) {
+  if (!w.__vantaTourEngine) {
     ${driverIife}
-    w.__hermesTourHolder = {};
-    w.__hermesTourCollect = (${collectTourTargets.toString()});
-    w.__hermesTourEngine = (${runTourEngine.toString()});
+    w.__vantaTourHolder = {};
+    w.__vantaTourCollect = (${collectTourTargets.toString()});
+    w.__vantaTourEngine = (${runTourEngine.toString()});
   }
-  if (!document.getElementById('__hermes-tour-style')) {
+  if (!document.getElementById('__vanta-tour-style')) {
     var style = document.createElement('style');
-    style.id = '__hermes-tour-style';
+    style.id = '__vanta-tour-style';
     style.textContent = ${JSON.stringify(driverCss)};
     (document.head || document.documentElement).appendChild(style);
   }
-  return JSON.stringify(w.__hermesTourEngine(
+  return JSON.stringify(w.__vantaTourEngine(
     w.driver.js.driver,
-    w.__hermesTourHolder,
+    w.__vantaTourHolder,
     ${JSON.stringify(action)},
-    w.__hermesTourCollect,
+    w.__vantaTourCollect,
     document
   ));
 })()`

@@ -8,7 +8,7 @@
  * mode without that nav row, a collapsed pane) is dropped, never guessed at.
  */
 
-import type { TourPreset } from '@hermes/shared'
+import type { TourPreset } from '@vanta/shared'
 
 import { runtimeTranslations } from '@/i18n'
 import { startTour, type TourResult } from '@/lib/tour'

@@ -1,6 +1,6 @@
 import { $gateway } from '@/store/gateway'
 import { receiveApprovalRequest, replayPendingApproval, serverActionFields } from '@/store/prompts'
-import type { SessionResumeResult } from '@/types/hermes'
+import type { SessionResumeResult } from '@/types/desktop'
 
 /** Re-park a resume snapshot's pending approval; true when one was restored. */
 export function restorePendingApproval(response: SessionResumeResult, sessionId: string): boolean {

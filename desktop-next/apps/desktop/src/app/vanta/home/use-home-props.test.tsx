@@ -9,7 +9,7 @@ const companyRows = vi.hoisted(() => ({ value: { items: [], status: 'ready' } as
 
 vi.mock('@/api/client', async importOriginal => ({
   ...(await importOriginal<typeof import('@/api/client')>()),
-  hermesApi: vi.fn(() => Promise.resolve([]))
+  vantaApi: vi.fn(() => Promise.resolve([]))
 }))
 vi.mock('../company/adapters/company-needs-you', async importOriginal => ({
   ...(await importOriginal<typeof import('../company/adapters/company-needs-you')>()),

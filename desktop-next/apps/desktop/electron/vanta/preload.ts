@@ -4,14 +4,14 @@ import { customWindowControlsEnabled } from '../window-controls'
 
 import type { IpcRendererLike } from './bridge-core'
 import { DEFAULT_HUD_WINDOWING, type HudWindowingView } from './bridge-mini'
-import { type BridgeEnv, buildHermesDesktop, buildVantaDesktop } from './bridge-surface'
+import { type BridgeEnv, buildDesktopBridge, buildVantaDesktop } from './bridge-surface'
 
 // Nothing here may import node:fs/os/child_process: a sandboxed preload may only require
 // electron, events, timers and url, and a throw at load takes the whole bridge down.
 /** The OS-specific way the mini window can be moved, asked of the main process once, before the page loads. */
 function hudWindowing(): HudWindowingView {
   try {
-    const view = ipcRenderer.sendSync('hermes:hud:windowing') as Partial<HudWindowingView> | undefined
+    const view = ipcRenderer.sendSync('desktop:hud:windowing') as Partial<HudWindowingView> | undefined
 
     return { ...DEFAULT_HUD_WINDOWING, ...(view ?? {}) }
   } catch {
@@ -32,5 +32,5 @@ const env: BridgeEnv = {
   }
 }
 
-contextBridge.exposeInMainWorld('hermesDesktop', buildHermesDesktop(env))
+contextBridge.exposeInMainWorld('desktopBridge', buildDesktopBridge(env))
 contextBridge.exposeInMainWorld('vantaDesktop', buildVantaDesktop(env))

@@ -18,14 +18,14 @@ import {
   runDoctor,
   runSecurityAudit,
   setCuratorPaused
-} from '@/hermes'
+} from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { AlertCircle } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { upsertDesktopActionTask } from '@/store/activity'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
-import type { ActionStatusResponse } from '@/types/hermes'
+import type { ActionStatusResponse } from '@/types/desktop'
 
 const ACTION_POLL_MS = 1200
 const ACTION_POLL_LIMIT = 240 // ~5 minutes of polling before giving up.
@@ -46,7 +46,7 @@ function formatBytes(size: number): string {
   return `${size} B`
 }
 
-/** Maintenance panel — desktop parity for `hermes doctor` / `security audit` /
+/** Maintenance panel — desktop parity for `vanta doctor` / `security audit` /
  *  `backup` / `debug share` / `curator` / `memory` (the dashboard System page's
  *  ops section). Spawn-based actions tail their logs inline via the shared
  *  /api/actions status endpoint. */
@@ -230,17 +230,17 @@ export function MaintenancePanel() {
 
         {share && Object.keys(share.urls).length > 0 && (
           <div className="mt-2 rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-3">
-            <div className="mb-1.5 text-[0.75rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="mb-1.5 text-meta font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               {mm.debugShareLinks}
             </div>
             {Object.entries(share.urls).map(([key, url]) => (
               <div className="flex items-center justify-between gap-2 py-1" key={key}>
-                <span className="min-w-0 truncate font-mono text-[0.75rem]">
+                <span className="min-w-0 truncate font-mono text-meta">
                   {key}: {url}
                 </span>
                 <Button
                   onClick={() => {
-                    void window.hermesDesktop.writeClipboard(url)
+                    void window.desktopBridge.writeClipboard(url)
                     notify({ durationMs: 1500, kind: 'success', message: mm.linkCopied })
                   }}
                   size="xs"
@@ -255,12 +255,12 @@ export function MaintenancePanel() {
 
         {actionStatus && (
           <div className="mt-2">
-            <div className="mb-1.5 flex items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="mb-1.5 flex items-center gap-2 text-meta font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               {mm.viewLog}
               {actionStatus.running && <span className="normal-case tracking-normal">{mm.running}</span>}
             </div>
             <pre
-              className="max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-3 font-mono text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)"
+              className="max-h-48 overflow-auto whitespace-pre-wrap wrap-break-word rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) p-3 font-mono text-meta leading-relaxed text-(--ui-text-tertiary)"
               data-selectable-text="true"
             >
               {actionStatus.lines.join('\n')}
@@ -351,7 +351,7 @@ export function MaintenancePanel() {
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <div className="mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+    <div className="mb-1.5 text-meta font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
       {children}
     </div>
   )

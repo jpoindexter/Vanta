@@ -142,7 +142,7 @@ describe('ctx.runAction — plugins run built-in app actions', () => {
     }
   })
 
-  it('exports the typed API from @hermes/plugin-sdk', () => {
+  it('exports the typed API from @vanta/plugin-sdk', () => {
     expectTypeOf<PluginAppActionId>().toEqualTypeOf<(typeof PLUGIN_APP_ACTIONS)[number]>()
     expectTypeOf<'view.showBrowser'>().toMatchTypeOf<PluginAppActionId>()
     expectTypeOf<'session.archive'>().not.toMatchTypeOf<PluginAppActionId>()

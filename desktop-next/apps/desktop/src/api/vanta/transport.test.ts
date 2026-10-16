@@ -2,7 +2,7 @@
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 
-import { createHttpTransport, createSseParser, isValidClientId, remapMethod, safeApiPath } from '@hermes/shared/vanta'
+import { createHttpTransport, createSseParser, isValidClientId, remapMethod, safeApiPath } from '@vanta/shared/vanta'
 import { afterEach, describe, expect, it } from 'vitest'
 
 describe('remapMethod', () => {

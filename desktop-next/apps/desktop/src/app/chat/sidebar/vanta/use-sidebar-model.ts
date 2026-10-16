@@ -9,7 +9,7 @@ import { $cronSessions, $messagingSessions, $sessions, $sessionsLoadError, $sess
 import { $sessionDotStateById } from '@/store/session-dot-state'
 import { $focusedStoredSessionId } from '@/store/session-focus'
 import { $unconfirmedPinWrites } from '@/store/session-pin-sync'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { liveSessionProjectId } from '../projects/workspace-groups'
 import { filterSessionsByProfileScope } from '../profile-scope'

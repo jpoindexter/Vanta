@@ -6,6 +6,7 @@ import { VpChip } from '../ui/button'
 
 import { HomeComposer } from './home-composer'
 import { HomeSections } from './home-sections'
+import { TodaySection } from './today-section'
 
 function isEmptyReady(state: BlockState<unknown>): boolean {
   return state.status === 'ready' && state.items.length === 0
@@ -45,6 +46,7 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
             </VpChip>
           ))}
         </div>
+        <TodaySection />
         <HomeSections actions={actions} needsYou={needsYou} nextUp={nextUp} recent={recent} running={running} />
         {allEmpty && starterPrompt && (
           <div className="vp-chips">

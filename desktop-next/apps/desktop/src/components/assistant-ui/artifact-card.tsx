@@ -107,7 +107,7 @@ export function ArtifactCard({ code, detection, streaming = false }: ArtifactCar
       type="button"
     >
       <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted/55 text-muted-foreground">
-        <CodeCardIcon className="text-[1rem]" name={detectionIcon(detection)} />
+        <CodeCardIcon className="text-lead" name={detectionIcon(detection)} />
       </span>
       <span className="min-w-0 flex-1">
         <span

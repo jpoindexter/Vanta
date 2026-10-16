@@ -195,11 +195,11 @@ function isModuleMimeError(message: string): boolean {
  * segfaults inside PrintCore — the whole app dies before any dialog
  * appears. Stub `print` in the guest so the native panel is never built;
  * the warn surfaces in the preview console via the existing pipe. The
- * `__hermesPrintGuard` flag keeps re-arms idempotent. Full print-to-PDF
+ * `__vantaPrintGuard` flag keeps re-arms idempotent. Full print-to-PDF
  * routing is the follow-up; this stops the crash.
  */
 const PREVIEW_PRINT_GUARD_SCRIPT =
-  '(function(){if(window.__hermesPrintGuard)return;window.__hermesPrintGuard=true;' +
+  '(function(){if(window.__vantaPrintGuard)return;window.__vantaPrintGuard=true;' +
   'window.print=function(){console.warn("[Vanta] Printing is disabled in the in-app preview. ' +
   'Open the page in your browser to print.");};})()'
 
@@ -228,15 +228,15 @@ function PreviewLoadError({
             href={error.url}
             onClick={event => {
               event.preventDefault()
-              void window.hermesDesktop?.openExternal(error.url)
+              void window.desktopBridge?.openExternal(error.url)
             }}
           >
             {compactUrl(error.url)}
             {error.code ? ` (${error.code})` : ''}
           </a>
-          <div className="mt-1 text-[0.75rem] text-muted-foreground/70">{error.description}</div>
+          <div className="mt-1 text-meta text-muted-foreground/70">{error.description}</div>
           {isRemoteLoopbackUrl(error.url) && (
-            <div className="mt-2 text-[0.75rem] leading-relaxed text-muted-foreground/70">{copy.remoteLoopback}</div>
+            <div className="mt-2 text-meta leading-relaxed text-muted-foreground/70">{copy.remoteLoopback}</div>
           )}
         </>
       }
@@ -461,7 +461,7 @@ export function PreviewPane({
           '({ width: window.innerWidth, height: window.innerHeight })'
         )) as { height: number; width: number }
 
-        const dataUrl = await window.hermesDesktop.capturePreview?.({ rect, viewport, webContentsId })
+        const dataUrl = await window.desktopBridge.capturePreview?.({ rect, viewport, webContentsId })
 
         if (!dataUrl) {
           throw new Error('preview capture is unavailable')
@@ -1013,8 +1013,8 @@ export function PreviewPane({
     if (
       target.kind !== 'file' ||
       isDesktopFsRemoteMode() ||
-      !window.hermesDesktop?.watchPreviewFile ||
-      !window.hermesDesktop?.onPreviewFileChanged
+      !window.desktopBridge?.watchPreviewFile ||
+      !window.desktopBridge?.onPreviewFileChanged
     ) {
       return
     }
@@ -1047,7 +1047,7 @@ export function PreviewPane({
       reloadPreview()
     }
 
-    const unsubscribe = window.hermesDesktop.onPreviewFileChanged(payload => {
+    const unsubscribe = window.desktopBridge.onPreviewFileChanged(payload => {
       if (!active || payload.id !== watchId) {
         return
       }
@@ -1065,7 +1065,7 @@ export function PreviewPane({
       }, FILE_RELOAD_DEBOUNCE_MS)
     })
 
-    void window.hermesDesktop
+    void window.desktopBridge
       .watchPreviewFile(target.url)
       .then(watch => {
         // The file was already gone when the watch was requested (a restored
@@ -1076,7 +1076,7 @@ export function PreviewPane({
         }
 
         if (!active) {
-          void window.hermesDesktop?.stopPreviewFileWatch?.(watch.id)
+          void window.desktopBridge?.stopPreviewFileWatch?.(watch.id)
 
           return
         }
@@ -1099,7 +1099,7 @@ export function PreviewPane({
       }
 
       if (watchId) {
-        void window.hermesDesktop?.stopPreviewFileWatch?.(watchId)
+        void window.desktopBridge?.stopPreviewFileWatch?.(watchId)
       }
     }
   }, [appendConsoleEntry, copy, reloadPreview, target.kind, target.url])
@@ -1135,7 +1135,7 @@ export function PreviewPane({
 
     const webview = document.createElement('webview') as PreviewWebview
     webview.className = 'flex h-full w-full flex-1 bg-transparent'
-    webview.setAttribute('partition', 'persist:hermes-preview')
+    webview.setAttribute('partition', 'persist:vanta-preview')
     webview.setAttribute('src', initialUrl)
     webview.setAttribute('webpreferences', 'contextIsolation=yes,nodeIntegration=no,sandbox=yes')
 
@@ -1143,7 +1143,7 @@ export function PreviewPane({
     // clicked `_blank` anchor here. Admission is our side of the contract —
     // http/https only, so a guest page can never reach the local-file
     // opener — and the open itself goes through the audited
-    // `hermes:openExternal` channel, never a popup side effect.
+    // `desktop:openExternal` channel, never a popup side effect.
     const onGuestExternal = (event: Event) => {
       const detail = event as Event & { args?: unknown[]; channel?: string }
 
@@ -1154,7 +1154,7 @@ export function PreviewPane({
       const url = String(detail.args?.[0] ?? '')
 
       if (admitPreviewExternalUrl(url)) {
-        void window.hermesDesktop?.openExternal?.(url)
+        void window.desktopBridge?.openExternal?.(url)
       }
     }
 
@@ -1295,7 +1295,7 @@ export function PreviewPane({
         return
       }
 
-      const zoom = window.hermesDesktop?.zoom?.factor?.() || 1
+      const zoom = window.desktopBridge?.zoom?.factor?.() || 1
       // Window CSS point of the click (the menu anchors here).
       const windowX = params.x / zoom
       const windowY = params.y / zoom
@@ -1331,10 +1331,10 @@ export function PreviewPane({
             const webContentsId = webview.getWebContentsId?.()
 
             if (typeof webContentsId === 'number') {
-              void window.hermesDesktop?.contextMenuGuestAddWord?.({ webContentsId, word })
+              void window.desktopBridge?.contextMenuGuestAddWord?.({ webContentsId, word })
             }
           },
-          copyImage: () => void window.hermesDesktop?.contextMenuCopyImage?.(),
+          copyImage: () => void window.desktopBridge?.contextMenuCopyImage?.(),
           // The tag's edit commands act on the focused webContents, and the
           // menu click just parked focus on the HOST body — measured live:
           // selectAll() with host focus selected the address bar + chat
@@ -1506,7 +1506,7 @@ export function PreviewPane({
             onNavigate={navigateTo}
             onOpenExternal={
               !isBrowserWindow() && !canOpenBrowserWindow()
-                ? () => void window.hermesDesktop?.openExternal(currentUrl)
+                ? () => void window.desktopBridge?.openExternal(currentUrl)
                 : undefined
             }
             onPopIn={isBrowserWindow() ? () => window.close() : undefined}

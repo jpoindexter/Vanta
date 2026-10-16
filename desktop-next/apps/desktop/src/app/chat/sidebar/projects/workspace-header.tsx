@@ -212,7 +212,7 @@ export function WorkspaceContextMenu({
 
 // "New worktree": prompt for a branch name, then git spins up a fresh worktree
 // for that branch under the repo (the lightest way) and we open a new session
-// inside it. Naming is explicit — no auto-generated `hermes/work-<ts>` trees.
+// inside it. Naming is explicit — no auto-generated `vanta/work-<ts>` trees.
 // The base branch defaults to the remote default (origin/HEAD); the user can
 // pick any local or remote-tracking branch via a filterable combobox.
 export function StartWorkButton({ repoPath }: { repoPath: string }) {
@@ -260,7 +260,7 @@ export function WorkspaceHeader({
   return (
     <div
       className={cn(
-        'group/workspace flex min-h-6 items-center gap-1 px-2 pt-1 text-[0.75rem]',
+        'group/workspace flex min-h-6 items-center gap-1 px-2 pt-1 text-meta',
         emphasis ? 'font-semibold text-(--ui-text-secondary)' : 'font-medium text-(--ui-text-tertiary)'
       )}
       ref={ref}

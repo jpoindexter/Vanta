@@ -197,7 +197,7 @@ export function ApprovalQueue({
             notifyError(error, t.assistant.approval.sendFailed)
           })
       }}
-      surfaceClassName={cn('rounded-xl', floating && 'shadow-nous')}
+      surfaceClassName={cn('rounded-xl', floating && 'shadow-vanta')}
       swipeDirections={['left']}
     >
       {(request, action) => (

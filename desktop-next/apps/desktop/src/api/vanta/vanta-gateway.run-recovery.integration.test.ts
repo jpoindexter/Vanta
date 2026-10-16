@@ -1,6 +1,6 @@
 // @vitest-environment node
-import type { GatewayEvent } from '@hermes/shared'
-import { createHttpTransport } from '@hermes/shared/vanta'
+import type { GatewayEvent } from '@vanta/shared'
+import { createHttpTransport } from '@vanta/shared/vanta'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { VantaGateway } from '../vanta-gateway'

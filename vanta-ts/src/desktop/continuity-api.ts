@@ -6,7 +6,7 @@ import type { DesktopState } from "./handlers.js";
 import { readJson, sendJson } from "./handlers.js";
 
 const RequestSchema = z.object({
-  action: z.enum(["capture", "show_me", "do_it", "snooze", "skip", "off"]),
+  action: z.enum(["capture", "show_me", "do_it", "snooze", "skip", "off", "on"]),
   id: z.string().min(1).optional(),
   text: z.string().optional(),
   sourcePath: z.string().optional(),
@@ -35,9 +35,22 @@ async function turnOff(state: DesktopState, scope: "session" | "pattern" | "glob
   return loadContinuitySnapshot(state.root, { ...stateOptions(state), refusalScope: scope });
 }
 
+/** Lifts every refusal (this session, the "today" pattern and the global switch), so a person is never stuck with support off. */
+async function turnOn(state: DesktopState) {
+  state._continuitySessionOff = false;
+  const env = state._env ?? process.env;
+  const profile = await loadNdProfile(env);
+  await saveNdSupport({
+    ...profile.support,
+    refusals: { global: false, patterns: profile.support.refusals.patterns.filter((pattern) => pattern !== "today-recommendation") },
+  }, env);
+  return loadContinuitySnapshot(state.root, stateOptions(state));
+}
+
 async function mutate(state: DesktopState, body: z.infer<typeof RequestSchema>) {
   const options = stateOptions(state);
   if (body.action === "off") return { status: 200, body: await turnOff(state, body.scope ?? "session") };
+  if (body.action === "on") return { status: 200, body: await turnOn(state) };
   const current = await loadContinuitySnapshot(state.root, options);
   if (body.action === "capture") {
     if (current.support.refusal.active) throw new RefusalError(`continuity support is off for ${current.support.refusal.scope}`);

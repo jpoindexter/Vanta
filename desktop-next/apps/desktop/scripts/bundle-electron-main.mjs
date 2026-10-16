@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 import { isMain, workspaceTool } from '../../../scripts/build/frontend-common.mjs'
 import { environmentDefaultsBanner } from './bundle-env.mjs'
+import { sharedAliases } from './shared-alias.mjs'
 
 const repoRoot = resolve(import.meta.dirname, '../../..')
 
@@ -19,10 +20,10 @@ function productIdentity(source, stamp) {
   }
   return execFileSync(process.execPath, ['-e', 'console.log(JSON.stringify(require(process.argv[1])))',
     join(source, 'apps/desktop/product-identity.cjs')], {
-    env: { ...process.env, HERMES_DESKTOP_VARIANT: variant, HERMES_PAYLOAD_TAG: stamp.tag || '',
+    env: { ...process.env, VANTA_DESKTOP_VARIANT: variant, VANTA_PAYLOAD_TAG: stamp.tag || '',
       // Commit builds stamp source='commit-build'; the display name carries
       // the short SHA (see product-identity.cjs). Tagged builds pass ''.
-      HERMES_BUILD_COMMIT: stamp.source === 'commit-build' ? (stamp.commit || '') : '' },
+      VANTA_BUILD_COMMIT: stamp.source === 'commit-build' ? (stamp.commit || '') : '' },
     encoding: 'utf8',
   }).trim()
 }
@@ -32,24 +33,21 @@ export const electronOutputs = Object.freeze({
   main: 'electron-main.mjs', preload: 'electron-preload.js', previewGuestPreload: 'preview-guest-preload.js',
 })
 
-// Which main/preload pair to bundle. 'vanta' is the Vanta shell (electron/vanta/*): it boots the Vanta
-// server and exposes the bridge facade. 'hermes' is the imported Hermes main, kept only until the old
-// renderer is retired (DN-14), and still pinned by bundle-electron-main.test.mjs.
+// The Vanta shell (electron/vanta/*) boots the Vanta server and exposes the bridge facade.
 const shellEntries = Object.freeze({
-  hermes: { main: 'apps/desktop/electron/entry.ts', preload: 'apps/desktop/electron/preload.ts' },
   vanta: { main: 'apps/desktop/electron/vanta/entry.ts', preload: 'apps/desktop/electron/vanta/preload.ts' },
 })
 
 /** Bundle main/preload using only the prepared workspace's compiler. */
 export async function bundleElectronMain({ source, out, stamp, dev = false, shell = process.env.VANTA_DESKTOP_SHELL || 'vanta' }) {
   const entries = shellEntries[shell]
-  if (!entries) throw new Error(`Unknown desktop shell "${shell}". Use "vanta" or "hermes".`)
+  if (!entries) throw new Error(`Unknown desktop shell "${shell}". Use "vanta".`)
   source = resolve(source)
   out = resolve(out)
   const { build } = await import(pathToFileURL(workspaceTool(source, 'apps/desktop', 'esbuild')).href)
   // Defaults must run before bundled modules resolve paths or onboarding flags.
   // Dev bundles leave the environment alone so source-tree resolution keeps working.
-  const envBanner = dev ? '' : environmentDefaultsBanner(process.env.HERMES_BUNDLE_ENV_JSON || '{}')
+  const envBanner = dev ? '' : environmentDefaultsBanner(process.env.VANTA_BUNDLE_ENV_JSON || '{}')
   const define = {}
   let bakedStamp = null
   if (!dev) {
@@ -59,9 +57,9 @@ export async function bundleElectronMain({ source, out, stamp, dev = false, shel
     // The baked bytes, and the clock the caller must record: re-reading the stamp
     // after this point would report a restamp the output never saw.
     bakedStamp = metadata.builtAt ?? null
-    define['process.env.HERMES_DESKTOP_IS_PACKAGED'] = JSON.stringify(true)
-    define.__HERMES_INSTALL_STAMP__ = raw
-    define.__HERMES_PRODUCT_IDENTITY__ = productIdentity(source, metadata)
+    define['process.env.VANTA_DESKTOP_IS_PACKAGED'] = JSON.stringify(true)
+    define.__VANTA_INSTALL_STAMP__ = raw
+    define.__VANTA_PRODUCT_IDENTITY__ = productIdentity(source, metadata)
   }
   mkdirSync(out, { recursive: true })
   const common = {
@@ -69,6 +67,7 @@ export async function bundleElectronMain({ source, out, stamp, dev = false, shel
     bundle: true,
     platform: 'node',
     target: 'node20',
+    alias: sharedAliases(join(source, 'apps/shared')),
     external: ['electron', 'node-pty', 'get-windows', 'fs'],
     define,
     logLevel: 'info',

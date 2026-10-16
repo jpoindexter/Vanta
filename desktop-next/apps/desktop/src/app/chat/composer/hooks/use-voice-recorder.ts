@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { type ResolvedOwner, resolveOwnerNow } from '@/hermes'
+import { type ResolvedOwner, resolveOwnerNow } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { syncSttLease, VOICE_INPUT_LEASE } from '@/lib/stt-lease'
 import { fetchVoiceClientConfigFor } from '@/lib/voice-client-direct'

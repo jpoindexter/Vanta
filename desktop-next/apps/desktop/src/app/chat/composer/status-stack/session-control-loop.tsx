@@ -194,7 +194,7 @@ export const SessionControlLoopSection = memo(function SessionControlLoopSection
               label={headerLabel}
             >
               <div>
-                <StatusControlRow className="text-[0.75rem] leading-4 text-foreground/92 break-words" icon="comment">
+                <StatusControlRow className="text-meta leading-4 text-foreground/92 break-words" icon="comment">
                   {loop.prompt}
                 </StatusControlRow>
                 <StatusControlRow icon="clock">

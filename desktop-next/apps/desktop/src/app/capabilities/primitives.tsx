@@ -22,7 +22,7 @@ export function DetailHeader({
   return (
     <header>
       <div className="flex min-h-6 flex-wrap items-center gap-2">
-        <h3 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight">{title}</h3>
+        <h3 className="min-w-0 truncate text-body font-semibold tracking-tight">{title}</h3>
         {pills}
       </div>
       <p className="mt-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">

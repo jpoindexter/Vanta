@@ -1,4 +1,4 @@
-import type { ConnectorRow, SetupChooseKind, SetupChooseOption } from '@hermes/shared'
+import type { ConnectorRow, SetupChooseKind, SetupChooseOption } from '@vanta/shared'
 import { useMemo } from 'react'
 
 import { MODE_OPTIONS } from '@/app/settings/constants'

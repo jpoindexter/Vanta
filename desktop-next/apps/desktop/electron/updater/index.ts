@@ -10,7 +10,7 @@
 //   posix-handoff   git checkout on macOS/Linux — the repo posix hand-off
 //                   script owns the swap.
 //   manual          checkout with no staged updater — the user runs
-//                   `hermes update` themselves.
+//                   `vanta update` themselves.
 //
 // The build stamp declares the owner. Runtime dispatch needs no payload probe
 // or Store inference; the strategy reports its mechanism to the renderer.
@@ -45,7 +45,7 @@ export function resolveUpdaterMechanism(facts: MechanismFacts): UpdaterMechanism
   return facts.platform === 'win32' ? 'windows-handoff' : 'posix-handoff'
 }
 
-/** The status shape main.ts already sends over `hermes:updates:check`. */
+/** The status shape main.ts already sends over `desktop:updates:check`. */
 export interface UpdaterStatusWire {
   supported: boolean
   mechanism?: UpdaterMechanism
@@ -67,11 +67,11 @@ export interface UpdaterStatusWire {
   targetSha?: string
   commits?: { sha: string; summary: string; author: string; at: number }[]
   dirty?: boolean
-  hermesRoot?: string
+  vantaRoot?: string
   fetchedAt?: number
 }
 
-/** The result shape main.ts already sends over `hermes:updates:apply`. */
+/** The result shape main.ts already sends over `desktop:updates:apply`. */
 export interface UpdaterApplyResultWire {
   ok: boolean
   mechanism?: UpdaterMechanism
@@ -80,7 +80,7 @@ export interface UpdaterApplyResultWire {
   manual?: boolean
   bundled?: boolean
   command?: string
-  hermesRoot?: string
+  vantaRoot?: string
   handedOff?: boolean
   updater?: string
   [key: string]: unknown

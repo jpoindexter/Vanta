@@ -11,14 +11,14 @@ export const esBoot = {
       loadingSessions: 'Cargando sesiones recientes',
       retryingRemoteBackend: 'Reconectando al backend remoto de Vanta…',
       startingDesktopConnection: 'Iniciando la conexión de escritorio',
-      startingHermesDesktop: 'Iniciando Vanta Desktop…'
+      startingDesktopBridge: 'Iniciando Vanta Desktop…'
     },
     errors: {
       backgroundExited:
         'El servicio que ejecuta tus chats se cerró de forma inesperada. Reinícialo para continuar; tus chats y ajustes están a salvo.',
       backgroundExitedDuringStartup: 'Vanta se detuvo justo después de iniciarse.',
       backendStopped: 'Vanta dejó de funcionar en segundo plano',
-      restartHermes: 'Reiniciar Vanta',
+      restartVanta: 'Reiniciar Vanta',
       openLogs: 'Abrir registros',
       desktopBootFailed: 'Vanta no pudo iniciarse',
       gatewayConnectionLost: 'Vanta perdió la conexión',

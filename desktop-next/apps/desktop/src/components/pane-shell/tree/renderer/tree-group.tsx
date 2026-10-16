@@ -827,7 +827,7 @@ export function TreeGroup({
           {isEmpty ? (
             <div className="grid h-full place-items-center">
               {/* Same decode primitive as the CONNECTING boot overlay. */}
-              <DecodeText className="text-(--ui-text-quaternary)" cursor prefix={1} text="HERMES" />
+              <DecodeText className="text-(--ui-text-quaternary)" cursor prefix={1} text="VANTA" />
             </div>
           ) : (
             inlinePanes.map(paneId => {
@@ -866,7 +866,7 @@ export function TreeGroup({
                     </PaneGroupContext.Provider>
                   ) : (
                     isActive && (
-                      <div className="p-3 font-mono text-[0.75rem] text-(--ui-text-quaternary)">
+                      <div className="p-3 font-mono text-meta text-(--ui-text-quaternary)">
                         {t.zones.missingPane(paneId)}
                       </div>
                     )
@@ -899,7 +899,7 @@ export function TreeGroup({
               outlineColor: 'color-mix(in srgb, var(--ui-accent) 55%, transparent)'
             }}
           >
-            <span className="flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-md border border-(--ui-stroke-secondary) bg-popover px-2 py-1 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-(--ui-text-secondary)">
+            <span className="flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-md border border-(--ui-stroke-secondary) bg-popover px-2 py-1 text-meta font-semibold uppercase tracking-[0.16em] text-(--ui-text-secondary)">
               <Codicon className="shrink-0" name="gripper" size="0.8125rem" />
               <span className="min-w-0 truncate">{tabText(activeId)}</span>
             </span>
@@ -1049,7 +1049,7 @@ function ZoneDropOverlay({ node }: { node: GroupNode }) {
   return (
     <div
       className="pointer-events-none absolute inset-0 z-40"
-      style={{ animation: `hermes-zone-fade ${OVERLAY_FADE_MS}ms linear both` }}
+      style={{ animation: `vanta-zone-fade ${OVERLAY_FADE_MS}ms linear both` }}
     >
       <div
         className={cn(

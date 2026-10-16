@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useThemeEpoch } from '@/hooks/use-theme-epoch'
 import { createRendererLoopPauseController } from '@/lib/renderer-loop-pause'
 import { createDoubleTapDetector, isSmartZoomWheel } from '@/lib/trackpad-gestures'
-import type { StarmapGraph } from '@/types/hermes'
+import type { StarmapGraph } from '@/types/desktop'
 
 import { computePalette, memoryInkFor, resolveRgb, rgba } from './color'
 import { RING_OUTER, TILT, ZOOM_MAX, ZOOM_MIN } from './constants'
@@ -487,7 +487,7 @@ export function StarMap({
 
     if (val) {
       const bgVal =
-        style.getPropertyValue('--background').trim() || style.getPropertyValue('--dt-background').trim() || '#000'
+        style.getPropertyValue('--background').trim() || style.getPropertyValue('--dt-background').trim() || 'black'
 
       setMemoryColor(rgba(memoryInkFor(resolveRgb(val), resolveRgb(bgVal)), 0.9))
     }
@@ -978,14 +978,14 @@ export function StarMap({
       </div>
 
       {/* Legend — bottom-left, one entry per line like a conventional key. */}
-      <div className="pointer-events-none absolute bottom-2 left-2 flex flex-col gap-1 text-[0.75rem] text-muted-foreground">
+      <div className="pointer-events-none absolute bottom-2 left-2 flex flex-col gap-1 text-meta text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="inline-block size-2 rounded-full bg-[var(--theme-primary)]/80" /> skill
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block size-2 rotate-45" style={{ backgroundColor: memoryColor }} /> memory
         </span>
-        <span className="text-[0.75rem] text-muted-foreground/65">core = oldest · outer = newer</span>
+        <span className="text-meta text-muted-foreground/65">core = oldest · outer = newer</span>
         <RevealLabel axis={timeAxis} revealStore={revealStore} />
       </div>
     </div>

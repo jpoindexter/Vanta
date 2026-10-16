@@ -85,7 +85,7 @@ export function TreeEditBar() {
           <p className="text-xs text-muted-foreground/80">
             {t.zones.editHint}{' '}
             {toggleCombo && (
-              <kbd className="rounded border border-(--ui-stroke-secondary) bg-foreground/5 px-1 font-mono text-[0.75rem]">
+              <kbd className="rounded border border-(--ui-stroke-secondary) bg-foreground/5 px-1 font-mono text-meta">
                 {formatCombo(toggleCombo)}
               </kbd>
             )}

@@ -68,7 +68,7 @@ function detailOf(data: unknown): string {
 }
 
 /**
- * `hermesDesktop.api()`: resolves the response body, rejects `"<status>: <detail>"` like the Hermes
+ * `desktopBridge.api()`: resolves the response body, rejects `"<status>: <detail>"` like the Vanta
  * proxy. PUT, PATCH and DELETE are remapped to POST by the transport in the main process.
  */
 export function createApiProxy(ipc: IpcRendererLike) {

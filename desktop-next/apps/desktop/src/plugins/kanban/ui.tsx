@@ -14,7 +14,7 @@ import {
   profileColorSoft,
   relativeTime,
   useQuery
-} from '@hermes/plugin-sdk'
+} from '@vanta/plugin-sdk'
 import { type ReactNode, useEffect, useState } from 'react'
 
 import { fetchOrchestration, orchestrationKey, useKanbanScope } from './api'
@@ -207,7 +207,7 @@ export function StatusMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[0.75rem] font-semibold uppercase tracking-wide transition-[filter] hover:brightness-105"
+          className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-meta font-semibold uppercase tracking-wide transition-[filter] hover:brightness-105"
           style={{ backgroundColor: `color-mix(in srgb, ${meta.tone} 15%, transparent)`, color: meta.tone }}
           type="button"
         >
@@ -248,7 +248,7 @@ export function PriorityGlyph({ priority }: { priority: number }) {
 
 // The board's one field/section-label style — hoisted so Section (here), the
 // create dialog's Field, and the orchestration panel all read identically.
-export const FIELD_LABEL = 'text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-(--ui-text-quaternary)'
+export const FIELD_LABEL = 'text-meta font-semibold uppercase tracking-[0.14em] text-(--ui-text-quaternary)'
 
 export function Section({ action, children, label }: { action?: ReactNode; children: ReactNode; label: string }) {
   return (
@@ -279,9 +279,9 @@ export function Callout({
   return (
     <div
       className="flex flex-col gap-2 rounded-md p-2.5"
-      style={{ backgroundColor: `color-mix(in srgb, ${tone} 7%, transparent)`, borderLeft: `2px solid ${tone}` }}
+      style={{ backgroundColor: `color-mix(in srgb, ${tone} 7%, transparent)` }}
     >
-      <div className="flex items-start gap-1.5 text-[0.75rem] font-medium" style={{ color: tone }}>
+      <div className="flex items-start gap-1.5 text-meta font-medium" style={{ color: tone }}>
         <Codicon className="mt-px shrink-0" name={icon} size="0.8rem" />
         <span>{title}</span>
       </div>

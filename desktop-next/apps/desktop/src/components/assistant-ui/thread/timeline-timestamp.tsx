@@ -61,7 +61,7 @@ export const TimelineTimestamp: FC<{
       // `text-muted-foreground/55` doubled an alpha: muted-foreground is
       // already a 54% mix of the base ink, so the stamp landed near 30% —
       // faint over a dark chrome and fainter over a light one.
-      className={cn('text-[0.75rem] leading-4 tabular-nums text-(--conversation-scaffold-meta)', className)}
+      className={cn('text-meta leading-4 tabular-nums text-(--conversation-scaffold-meta)', className)}
       data-slot="timeline-timestamp"
       title={title}
     >

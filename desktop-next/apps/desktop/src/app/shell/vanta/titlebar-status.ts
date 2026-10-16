@@ -6,7 +6,7 @@
  * finally the settled ones. A chat nothing was sent to has no status at all.
  */
 
-import type { ConnectionState } from '@hermes/shared'
+import type { ConnectionState } from '@vanta/shared'
 
 export type PillStatus = 'done' | 'failed' | 'needs-input' | 'offline' | 'running' | 'waiting'
 

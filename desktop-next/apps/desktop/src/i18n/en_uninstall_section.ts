@@ -4,7 +4,7 @@ import type { UninstallSectionTranslations } from './types_uninstall_section'
 export const enUninstallSection: UninstallSectionTranslations = {
   dangerZone: 'Danger zone',
   checkingInstalled: 'Checking what’s installed…',
-  uninstallHermes: 'Uninstall Vanta',
+  uninstallVanta: 'Uninstall Vanta',
   managedBody: 'This install is managed by your system, so Vanta cannot remove itself.',
   dataKept: path => `Your config, chats, and secrets live in ${path}. Removing the app does not delete them.`,
   openAppsSettings: 'Open Apps settings',

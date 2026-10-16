@@ -59,46 +59,8 @@
 
 /* ---------- shared primitives ---------- */
 
-.vp-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--vp-line);
-  border-radius: var(--vp-radius-control);
-  background: var(--vp-bg);
-  color: var(--vp-ink);
-  font: inherit;
-  font-size: var(--vp-text);
-  line-height: var(--vp-leading);
-  cursor: pointer;
-}
-
-.vp-btn:hover:not(:disabled) {
-  background: var(--vp-panel);
-}
-
-.vp-btn[data-tone='primary'] {
-  border-color: var(--vp-ink);
-  background: var(--vp-ink);
-  color: var(--vp-bg);
-}
-
-.vp-btn[data-tone='primary']:hover:not(:disabled) {
-  background: var(--vp-ink);
-  opacity: 0.88;
-}
-
-.vp-btn:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.vp-btn:focus-visible,
 .vp-action:focus-visible,
-.vp-step:focus-visible,
-.vp-chip:focus-visible {
+.vp-step:focus-visible {
   outline: 2px solid var(--vp-ring);
   outline-offset: 2px;
 }
@@ -265,7 +227,7 @@
   width: 100%;
 }
 
-/* The restore-checkpoint button is a Hermes control inside the Vanta action row: it must not make the row taller. */
+/* The restore-checkpoint button is a Vanta control inside the Vanta action row: it must not make the row taller. */
 .vp-hover-actions .size-6 {
   width: 21.39px;
   height: 21.39px;
@@ -357,7 +319,7 @@
   border: 1px solid var(--vp-line);
   border-radius: var(--vp-radius-card);
   background: var(--vp-bg);
-  box-shadow: 0 8px 16px -4px color-mix(in srgb, #000 18%, transparent);
+  box-shadow: 0 8px 16px -4px color-mix(in srgb, black 18%, transparent);
   white-space: nowrap;
 }
 
@@ -369,7 +331,7 @@
   cursor: pointer;
 }
 
-/* Hermes strips padding and dims every button in the action bar; the Vanta bar
+/* Vanta strips padding and dims every button in the action bar; the Vanta bar
    draws its own flat buttons, so restore them at higher specificity. */
 [data-slot='aui_msg-actions'].vp-hover-actions button.vp-action {
   gap: 4px;
@@ -466,39 +428,6 @@
   background-color: color-mix(in srgb, var(--vp-ink) 88%, var(--vp-bg));
 }
 
-.vp-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: auto;
-  padding: 1px 9px;
-  border: 1px solid var(--vp-line);
-  border-radius: var(--radius-pill);
-  background: var(--vp-bg);
-  color: var(--vp-ink2);
-  font: inherit;
-  font-size: var(--vp-meta);
-  font-weight: 400;
-  line-height: var(--vp-leading);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.vp-chip:hover:not(:disabled) {
-  background: var(--vp-panel);
-  color: var(--vp-ink);
-}
-
-.vp-chip:focus-visible {
-  outline: 2px solid var(--vp-ring);
-  outline-offset: 2px;
-}
-
-.vp-chip:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
 .vp-hint {
   margin: 8px 0 0;
   padding-inline: 5px;
@@ -583,19 +512,10 @@
 }
 
 /* The starter chips are buttons at body size, pill-shaped. */
-.vp-chip--lg {
-  padding: 5px 10px;
-  font-size: var(--vp-text);
-  color: var(--vp-ink);
-}
 
 /* ---------- live line and step actions ---------- */
 
-.vp-btn--inline {
-  margin-left: auto;
-}
-
-/* The column's gap is the only block rhythm: the Hermes adjacency margins would double it. */
+/* The column's gap is the only block rhythm: the Vanta adjacency margins would double it. */
 [data-slot='aui_assistant-message-content'][data-slot]
   > :is([data-slot='tool-block'], [data-slot='aui_thinking-disclosure'], [data-slot='aui_turn-activity'], .aui-md)
   + :is([data-slot='tool-block'], [data-slot='aui_thinking-disclosure'], [data-slot='aui_turn-activity'], .aui-md),

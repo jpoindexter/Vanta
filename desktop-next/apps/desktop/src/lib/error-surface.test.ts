@@ -160,7 +160,7 @@ describe('free-tier refusals', () => {
     code: 'free_tier_disabled',
     layer: 'provider',
     message: '  Using Vanta without signing in is switched off right now. To sign in: /login. ',
-    provider: 'nous',
+    provider: 'vanta',
     retryable: false
   })!
 

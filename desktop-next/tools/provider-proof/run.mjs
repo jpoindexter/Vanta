@@ -31,7 +31,7 @@ const envKeysOnly = (text) => text.split("\n").filter(Boolean).map((line) => lin
 const bodyText = () => ctx.cur.page.evaluate(() => document.body.innerText);
 const count = async (text) => (await bodyText()).split(text).length - 1;
 const api = (apiPath) => ctx.cur.page.evaluate(async (p) => {
-  try { return { ok: true, data: await window.hermesDesktop.api({ path: p }) }; } catch (e) { return { ok: false, error: String(e.message ?? e).slice(0, 200) }; }
+  try { return { ok: true, data: await window.desktopBridge.api({ path: p }) }; } catch (e) { return { ok: false, error: String(e.message ?? e).slice(0, 200) }; }
 }, apiPath);
 
 async function waitText(text, { timeout = TIMEOUT, present = true } = {}) {

@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import { expectOk, parseBody } from './rpc'
 import { enqueue, requireClient } from './handlers-prompt'

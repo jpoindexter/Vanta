@@ -27,7 +27,7 @@
  * classified so none is notified. Empty slug ('') suppressed.
  */
 
-import { host, type PluginOs, type PluginRestOptions, type PluginTranslate } from '@hermes/plugin-sdk'
+import { host, type PluginOs, type PluginRestOptions, type PluginTranslate } from '@vanta/plugin-sdk'
 
 import { en } from './i18n'
 

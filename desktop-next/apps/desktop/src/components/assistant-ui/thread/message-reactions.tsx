@@ -7,9 +7,9 @@ import { triggerHaptic } from '@/lib/haptics'
 import { Plus } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { QUICK_REACTIONS } from '@/store/reactions'
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/desktop'
 
-// Served from the app's own origin (vite.config.ts `hermes:emojibase-assets`
+// Served from the app's own origin (vite.config.ts `desktop:emojibase-assets`
 // plugin bundles emojibase-data): Electron must work offline, and the app
 // should never phone a CDN to draw a picker.
 const EMOJIBASE_URL = './emojibase'
@@ -57,7 +57,7 @@ const FullEmojiPicker: FC<{ onSelect: (emoji: string) => void }> = ({ onSelect }
         components={{
           CategoryHeader: ({ category, ...props }) => (
             <div
-              className="bg-(--ui-bg-elevated) px-1.5 pt-2 pb-1 text-[0.75rem] text-(--ui-text-tertiary)"
+              className="bg-(--ui-bg-elevated) px-1.5 pt-2 pb-1 text-meta text-(--ui-text-tertiary)"
               {...props}
             >
               {category.label}
@@ -170,7 +170,7 @@ export const ReactionBadge: FC<{
 
   return (
     <span
-      className={cn('flex items-center gap-1 text-[0.8125rem] leading-none', className)}
+      className={cn('flex items-center gap-1 text-ui leading-none', className)}
       data-slot="aui_msg-reactions"
     >
       {reactions.map(reaction =>

@@ -11,7 +11,7 @@ import { $approvalRequests } from '@/store/prompts'
 import { $currentCwd, $gatewayState, $sessions, sessionMatchesStoredId } from '@/store/session'
 import { $focusedStoredSessionId } from '@/store/session-focus'
 import { $focusedRuntimeId, $focusedSessionState, $focusedWorkspaceCwd } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { formatElapsed, type PillStatus, pillStatusFor } from './titlebar-status'
 

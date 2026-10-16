@@ -13,7 +13,7 @@ import { defaultRehypePlugins, defaultRemarkPlugins, Streamdown } from 'streamdo
 import { getApiRequestConnection } from '@/api/client'
 import { requestComposerFocus, requestComposerInsertRefs } from '@/app/chat/composer/focus'
 import { droppedFileInlineRef } from '@/app/chat/composer/inline-refs'
-import { HERMES_PATHS_MIME } from '@/app/chat/hooks/use-composer-actions'
+import { VANTA_PATHS_MIME } from '@/app/chat/hooks/use-composer-actions'
 import { RichCodeBlock } from '@/components/assistant-ui/embeds'
 import { CodeEditor } from '@/components/chat/code-editor'
 import { FileDiffPanel } from '@/components/chat/diff-lines'
@@ -147,7 +147,7 @@ export function PreviewEmptyState({
             )}
             {secondaryAction && (
               <button
-                className="text-[0.75rem] font-medium text-muted-foreground underline decoration-current/20 underline-offset-4 transition-colors hover:text-foreground disabled:cursor-default disabled:text-muted-foreground/55 disabled:no-underline"
+                className="text-meta font-medium text-muted-foreground underline decoration-current/20 underline-offset-4 transition-colors hover:text-foreground disabled:cursor-default disabled:text-muted-foreground/55 disabled:no-underline"
                 disabled={secondaryAction.disabled}
                 onClick={secondaryAction.onClick}
                 type="button"
@@ -293,14 +293,14 @@ async function readTextPreview(filePath: string) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
 
-    if (!message.includes("No handler registered for 'hermes:readFileText'")) {
+    if (!message.includes("No handler registered for 'desktop:readFileText'")) {
       throw error
     }
   }
 
   // Back-compat for a running Electron process whose preload hasn't been
   // restarted since readFileText was added. readFileDataUrl already existed.
-  const dataUrl = await window.hermesDesktop.readFileDataUrl(filePath)
+  const dataUrl = await window.desktopBridge.readFileDataUrl(filePath)
 
   if (isReadFileErrorResult(dataUrl)) {
     throw new Error(dataUrl.message || `File read failed: ${dataUrl.error}`)
@@ -550,7 +550,7 @@ export function PreviewModeSwitcher({
         modes.map(mode => (
           <button
             className={cn(
-              'text-[0.75rem] font-bold underline-offset-4 transition-colors',
+              'text-meta font-bold underline-offset-4 transition-colors',
               mode === active
                 ? 'text-foreground underline decoration-current/30'
                 : 'text-muted-foreground hover:text-foreground'
@@ -585,7 +585,7 @@ function EditControls({
   return (
     <>
       <button
-        className="flex items-center gap-1 rounded-md px-1.5 text-[0.75rem] font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="flex items-center gap-1 rounded-md px-1.5 text-meta font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         onClick={onCancel}
         type="button"
       >
@@ -593,7 +593,7 @@ function EditControls({
         {t.common.cancel}
       </button>
       <button
-        className="flex items-center gap-1 rounded-md bg-primary px-2 py-0.5 text-[0.75rem] font-bold text-primary-foreground shadow-xs transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="flex items-center gap-1 rounded-md bg-primary px-2 py-0.5 text-meta font-bold text-primary-foreground shadow-xs transition-opacity hover:opacity-90 disabled:opacity-50"
         disabled={!dirty || saving}
         onClick={onSave}
         type="button"
@@ -614,7 +614,7 @@ function startLineDrag(event: ReactDragEvent<HTMLElement>, filePath: string, { e
   const lineEnd = end > start ? end : undefined
   const label = lineEnd ? `${filePath}:${start}-${end}` : `${filePath}:${start}`
 
-  event.dataTransfer.setData(HERMES_PATHS_MIME, JSON.stringify([{ line: start, lineEnd, path: filePath }]))
+  event.dataTransfer.setData(VANTA_PATHS_MIME, JSON.stringify([{ line: start, lineEnd, path: filePath }]))
   event.dataTransfer.setData('text/plain', label)
   event.dataTransfer.effectAllowed = 'copy'
 }
@@ -703,7 +703,7 @@ export function SourceView({ filePath, language, text }: { filePath?: string; la
 
   return (
     <div className="h-full overflow-auto" onScroll={onScroll} ref={scrollerRef}>
-      <div className="grid min-w-max grid-cols-[auto_minmax(0,1fr)] font-mono text-[0.75rem] leading-relaxed">
+      <div className="grid min-w-max grid-cols-[auto_minmax(0,1fr)] font-mono text-meta leading-relaxed">
         {beforeRows > 0 && <div aria-hidden className="col-span-2" style={{ height: beforeRows * SOURCE_LINE_PX }} />}
         {visibleChunks.map(chunk => (
           <Fragment key={chunk.start}>
@@ -1099,7 +1099,7 @@ export function LocalFilePreview({
           trailing={<EditControls dirty={dirty} onCancel={cancelEdit} onSave={() => void saveEdit()} saving={saving} />}
         />
         {conflict && (
-          <div className="shrink-0 border-b border-amber-400/40 bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 dark:border-amber-300/30 dark:bg-amber-300/10 dark:text-amber-100">
+          <div className="shrink-0 border-b border-amber-400/40 bg-amber-50 px-3 py-2 text-meta text-amber-900 dark:border-amber-300/30 dark:bg-amber-300/10 dark:text-amber-100">
             <div className="font-semibold">{t.preview.diskChangedTitle}</div>
             <div className="mt-0.5 leading-relaxed">{t.preview.diskChangedBody}</div>
             <div className="mt-1.5 flex gap-3">
@@ -1121,7 +1121,7 @@ export function LocalFilePreview({
           </div>
         )}
         {saveError && (
-          <div className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-3 py-1.5 text-[0.75rem] text-destructive">
+          <div className="shrink-0 border-b border-destructive/40 bg-destructive/10 px-3 py-1.5 text-meta text-destructive">
             {t.preview.saveFailed(saveError)}
           </div>
         )}
@@ -1251,7 +1251,7 @@ export function LocalFilePreview({
         ref={readViewRef}
       >
         {state.truncated && (
-          <div className="border-b border-border/60 bg-muted/35 px-3 py-1.5 text-[0.75rem] text-muted-foreground">
+          <div className="border-b border-border/60 bg-muted/35 px-3 py-1.5 text-meta text-muted-foreground">
             {t.preview.truncated}
           </div>
         )}
@@ -1263,7 +1263,7 @@ export function LocalFilePreview({
             canEdit ? (
               <Tip label={`${t.preview.edit} (e)`}>
                 <button
-                  className="flex items-center gap-1 text-[0.75rem] font-bold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
+                  className="flex items-center gap-1 text-meta font-bold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
                   onClick={beginEdit}
                   type="button"
                 >

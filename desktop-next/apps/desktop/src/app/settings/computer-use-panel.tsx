@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { getActionStatus, getComputerUseStatus, grantComputerUsePermissions } from '@/hermes'
+import { getActionStatus, getComputerUseStatus, grantComputerUsePermissions } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { AlertTriangle, Check, ExternalLink, Loader2, RefreshCw, X } from '@/lib/icons'
 import { upsertDesktopActionTask } from '@/store/activity'
 import { notify, notifyError } from '@/store/notifications'
-import type { ComputerUseStatus } from '@/types/hermes'
+import type { ComputerUseStatus } from '@/types/desktop'
 
 import { Pill } from './primitives'
 
@@ -38,7 +38,7 @@ function PermissionRow({ granted, label, hint }: { granted: boolean | null; labe
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/55 p-2.5">
       <div className="min-w-0">
         <span className="text-sm font-medium">{label}</span>
-        <p className="mt-0.5 text-[0.75rem] text-muted-foreground">{hint}</p>
+        <p className="mt-0.5 text-meta text-muted-foreground">{hint}</p>
       </div>
       <Pill tone={tone(granted)}>
         <GrantIcon granted={granted} />
@@ -172,14 +172,14 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <div className="min-w-0">
           {status.can_grant ? (
-            <p className="text-[0.75rem] text-muted-foreground">
+            <p className="text-meta text-muted-foreground">
               Grants attach to CuaDriver&apos;s own identity (com.trycua.driver), not Vanta — so the dialog is
               attributed to the process that drives your Mac.
             </p>
           ) : (
-            <p className="text-[0.75rem] text-muted-foreground">{PLATFORM_NOTE[status.platform] ?? ''}</p>
+            <p className="text-meta text-muted-foreground">{PLATFORM_NOTE[status.platform] ?? ''}</p>
           )}
-          {status.version && <p className="text-[0.75rem] text-muted-foreground/80">{status.version}</p>}
+          {status.version && <p className="text-meta text-muted-foreground/80">{status.version}</p>}
         </div>
         <Button onClick={() => void refresh()} size="sm" variant="text">
           <RefreshCw className="size-3.5" />
@@ -211,14 +211,14 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       )}
 
       {failingChecks.map(c => (
-        <p className="px-1 text-[0.75rem] text-muted-foreground" key={c.label}>
+        <p className="px-1 text-meta text-muted-foreground" key={c.label}>
           <AlertTriangle className="mr-1 inline size-3" />
           {c.label}: {c.message}
         </p>
       ))}
 
       {status.error && (
-        <p className="px-1 text-[0.75rem] text-muted-foreground">
+        <p className="px-1 text-meta text-muted-foreground">
           <AlertTriangle className="mr-1 inline size-3" />
           {status.error}
         </p>

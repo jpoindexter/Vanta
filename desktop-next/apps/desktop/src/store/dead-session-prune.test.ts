@@ -1,12 +1,12 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesModule from '@/hermes'
-import type { ProfileInfo, SessionInfo } from '@/types/hermes'
+import type * as VantaModule from '@/desktop-api'
+import type { ProfileInfo, SessionInfo } from '@/types/desktop'
 
 const getSessionMock = vi.fn<(id: string, profile?: null | string) => Promise<SessionInfo>>()
 
-vi.mock('@/hermes', async importOriginal => {
-  const actual = await importOriginal<typeof HermesModule>()
+vi.mock('@/desktop-api', async importOriginal => {
+  const actual = await importOriginal<typeof VantaModule>()
 
   return {
     ...actual,
@@ -40,7 +40,7 @@ const notFound = () => new Error('404: {"detail":"Session not found"}')
 
 beforeAll(() => {
   ;(globalThis as { window?: unknown }).window ??= {}
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {}
+  ;(window as unknown as { desktopBridge: unknown }).desktopBridge = {}
 })
 
 beforeEach(() => {

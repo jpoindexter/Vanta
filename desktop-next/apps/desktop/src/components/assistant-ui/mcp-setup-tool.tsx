@@ -380,7 +380,7 @@ function McpSetupRow({ action, onReissue, reissueBlocked, reissuing, request, ta
       label: action === 'authorize' ? label : t.connectors.openInBrowser,
       onClick: () => {
         if (target.connectUrl) {
-          void window.hermesDesktop?.openExternal?.(target.connectUrl)
+          void window.desktopBridge?.openExternal?.(target.connectUrl)
         }
       }
     },
@@ -419,7 +419,7 @@ function McpSetupRow({ action, onReissue, reissueBlocked, reissuing, request, ta
         onConnect={env => void approve(env)}
         onOpenBrowser={() => {
           if (target.connectUrl) {
-            void window.hermesDesktop?.openExternal?.(target.connectUrl)
+            void window.desktopBridge?.openExternal?.(target.connectUrl)
           }
         }}
         open={setupOpen}

@@ -80,7 +80,7 @@ export function McpLogPane({ server }: McpLogPaneProps) {
           {(['stdio', 'agent'] as const).map(kind => (
             <TextTab
               active={source === kind}
-              className="h-5 px-0.5 text-[0.75rem]"
+              className="h-5 px-0.5 text-meta"
               key={kind}
               onClick={() => setSource(kind)}
             >
@@ -91,7 +91,7 @@ export function McpLogPane({ server }: McpLogPaneProps) {
       }
       defaultHeight={176}
       id="mcp-logs"
-      title={<span className="text-[0.75rem] font-normal text-muted-foreground/60">{server ?? m.allServers}</span>}
+      title={<span className="text-meta font-normal text-muted-foreground/60">{server ?? m.allServers}</span>}
     >
       <LogTail emptyLabel={m.noOutput} lines={lines} search={search} />
     </DetailPane>

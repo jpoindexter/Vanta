@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { closeHome } from '@/store/home-view'
 
-import type { HermesGateway } from '@/hermes'
+import type { VantaGateway } from '@/desktop-api'
 import { $gateway } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'
 
@@ -53,8 +53,8 @@ afterEach(() => {
 
 describe('ChatRoutesSurface', () => {
   it('passes the live gateway after an open-to-open profile switch', () => {
-    const gatewayA = { id: 'a' } as unknown as HermesGateway
-    const gatewayB = { id: 'b' } as unknown as HermesGateway
+    const gatewayA = { id: 'a' } as unknown as VantaGateway
+    const gatewayB = { id: 'b' } as unknown as VantaGateway
 
     $gateway.set(gatewayA)
     const actions = { getGateway: () => $gateway.get() } as unknown as WiringActions

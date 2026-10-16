@@ -27,7 +27,7 @@ const buttonClass =
 const stopTitlebarDrag = (event: PointerEvent<HTMLButtonElement>) => event.stopPropagation()
 
 export function WslgWindowControls({ isFullscreen, isMaximized }: WslgWindowControlsProps) {
-  const controls = window.hermesDesktop?.windowControls
+  const controls = window.desktopBridge?.windowControls
 
   if (!controls || isFullscreen) {
     return null
@@ -41,7 +41,7 @@ export function WslgWindowControls({ isFullscreen, isMaximized }: WslgWindowCont
   return (
     <div
       aria-label="Window controls"
-      className="fixed right-0 top-0 z-80 flex items-stretch overflow-hidden bg-(--ui-chat-surface-background) text-[0.75rem]"
+      className="fixed right-0 top-0 z-80 flex items-stretch overflow-hidden bg-(--ui-chat-surface-background) text-meta"
       // Pin the real titlebar height: the shared --titlebar-height var is
       // contextually zeroed inside the contrib shell, so read the constant.
       style={{ height: `${TITLEBAR_HEIGHT}px` } as CSSProperties}
@@ -68,7 +68,7 @@ export function WslgWindowControls({ isFullscreen, isMaximized }: WslgWindowCont
         aria-label="Close window"
         className={cn(
           buttonClass,
-          'hover:bg-[#c42b1c] hover:text-white active:bg-[#b3271a] active:text-white dark:hover:bg-[#c42b1c]'
+          'hover:bg-destructive hover:text-destructive-foreground active:bg-destructive/85 active:text-destructive-foreground'
         )}
         onClick={() => controls.close()}
         onPointerDown={stopTitlebarDrag}

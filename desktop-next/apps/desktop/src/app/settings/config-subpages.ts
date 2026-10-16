@@ -1,4 +1,4 @@
-import { isHiddenMemorySubpage, isHiddenModelSubpage } from './hermes-extras'
+import { isHiddenMemorySubpage, isHiddenModelSubpage } from './settings-extras'
 
 interface ConfigSubpageDefinition {
   id: string
@@ -94,7 +94,7 @@ const CONFIG_SUBPAGE_DEFINITIONS: Record<string, ConfigSubpageDefinition[]> = {
   ]
 }
 
-// Pages Vanta does not serve (see hermes-extras.ts) drop out of both the list and the field lookup.
+// Pages Vanta does not serve (see vanta-extras.ts) drop out of both the list and the field lookup.
 function visiblePages(sectionId: string): ConfigSubpageDefinition[] {
   return (CONFIG_SUBPAGE_DEFINITIONS[sectionId] ?? []).filter(
     page => !(sectionId === 'model' && isHiddenModelSubpage(page.id)) && !(sectionId === 'memory' && isHiddenMemorySubpage(page.id))

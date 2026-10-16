@@ -10,7 +10,7 @@
  *
  * Every query key and the persisted board selection are scoped by the ACTIVE
  * CONNECTION (`host.state.connectionId`): a board lives on ONE gateway, so a
- * connection switch must be a clean cache miss (the hermes-bots roster
+ * connection switch must be a clean cache miss (the vanta-bots roster
  * pattern), and each gateway remembers its own selected board instead of
  * pinning a slug the next gateway 404s on.
  */
@@ -25,7 +25,7 @@ import {
   type PluginTranslate,
   queryClient,
   useValue
-} from '@hermes/plugin-sdk'
+} from '@vanta/plugin-sdk'
 
 // Native completion notification.
 import { bindCompletionNotify, type CompletionEvent, onKanbanEventsFrame } from './completion-notify'

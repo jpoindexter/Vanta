@@ -6,7 +6,7 @@ const AREA = "profile rail";
 const rail = (page) => page.locator('[data-slot="profile-rail"]');
 const side = (page) => page.locator('[data-tour="sessions-sidebar"]').first();
 
-const profilesJson = (page) => page.evaluate(async () => JSON.stringify(await window.hermesDesktop.api({ method: "GET", path: "/api/profiles" })));
+const profilesJson = (page) => page.evaluate(async () => JSON.stringify(await window.desktopBridge.api({ method: "GET", path: "/api/profiles" })));
 
 export async function profileRail(ctx) {
   const { page, app } = ctx;

@@ -40,9 +40,9 @@ const STOP_PHRASES: readonly string[] = [
   'cancel'
 ]
 
-// Optional address prefixes so "hermes stop" / "ok stop" / "hey hermes, stop"
+// Optional address prefixes so "vanta stop" / "ok stop" / "hey vanta, stop"
 // still count. Stripped before matching the core phrase.
-const ADDRESS_PREFIXES: readonly string[] = ['hey vanta', 'hey vanta,', 'vanta', 'vanta,', 'hey hermes', 'hey hermes,', 'hermes', 'hermes,', 'ok', 'okay', 'hey']
+const ADDRESS_PREFIXES: readonly string[] = ['hey vanta', 'hey vanta,', 'vanta', 'vanta,', 'hey vanta', 'hey vanta,', 'vanta', 'vanta,', 'ok', 'okay', 'hey']
 
 // Normalise: Unicode-compose (so an NFD "отбой" from STT equals the NFC phrase
 // in config.yaml), lowercase, turn punctuation from ANY script into spaces
@@ -61,7 +61,7 @@ function normalize(text: string): string {
 function stripAddress(text: string): string {
   for (const prefix of ADDRESS_PREFIXES) {
     if (text === prefix) {
-      // Bare address ("hermes") is not a stop command on its own.
+      // Bare address ("vanta") is not a stop command on its own.
       continue
     }
 

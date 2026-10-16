@@ -409,7 +409,7 @@ export function ZoneEditor() {
           <h2 className="text-sm font-semibold text-foreground">{t.zones.zoneEditorTitle}</h2>
           <p className="text-xs text-muted-foreground/80">
             {t.zones.editorHintPre}
-            <kbd className="rounded border border-(--ui-stroke-secondary) bg-foreground/5 px-1 font-mono text-[0.75rem]">
+            <kbd className="rounded border border-(--ui-stroke-secondary) bg-foreground/5 px-1 font-mono text-meta">
               ⇧
             </kbd>
             {t.zones.editorHintPost}
@@ -469,7 +469,7 @@ export function ZoneEditor() {
             >
               {/* Quiet zone tag — the app's small-caps label voice, not a
                   billboard number. */}
-              <span className="select-none text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-(--ui-text-tertiary)">
+              <span className="select-none text-meta font-semibold uppercase tracking-[0.16em] text-(--ui-text-tertiary)">
                 {t.zones.zoneTag(zone.index + 1)}
               </span>
             </div>

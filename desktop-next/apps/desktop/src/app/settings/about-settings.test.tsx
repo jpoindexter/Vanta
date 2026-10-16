@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { DesktopUpdateStatus, DesktopVersionInfo, HermesConnection } from '@/global'
+import type { DesktopUpdateStatus, DesktopVersionInfo, VantaConnection } from '@/global'
 import { en } from '@/i18n/en'
 import { $confirmRequest, settleConfirm } from '@/store/confirm'
 import type * as SessionStore from '@/store/session'
@@ -25,7 +25,7 @@ vi.mock('@/store/session', async (importOriginal): Promise<Record<string, unknow
   const actual = await importOriginal<typeof SessionStore>()
   const { atom } = await import('nanostores')
 
-  return { ...actual, $connection: atom<HermesConnection | null>(null) }
+  return { ...actual, $connection: atom<VantaConnection | null>(null) }
 })
 
 vi.mock('@/store/updates', async (): Promise<Record<string, unknown>> => {
@@ -61,7 +61,7 @@ vi.mock('@/store/updates', async (): Promise<Record<string, unknown>> => {
   }
 })
 
-function connection(mode: 'local' | 'remote'): HermesConnection {
+function connection(mode: 'local' | 'remote'): VantaConnection {
   return {
     baseUrl: 'http://gateway:9119',
     isFullscreen: false,
@@ -83,7 +83,7 @@ describe('AboutSettings', (): void => {
       electronVersion: '40',
       nodeVersion: '26',
       platform: 'linux',
-      hermesRoot: '/test/hermes',
+      vantaRoot: '/test/vanta',
       installId: 'test-install'
     })
     $updateStatus.set({ supported: true, behind: 0 })

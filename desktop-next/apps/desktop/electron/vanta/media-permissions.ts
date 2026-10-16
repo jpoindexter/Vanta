@@ -1,7 +1,7 @@
 // Only the app's own page may open the microphone (V-022). Ported from the Vanta desktop's
 // `microphone-permissions.mjs`: audio only, main frame only, pinned to the renderer's own origin.
 // Video, fullscreen, screen capture, location, notifications and every other origin are denied.
-// The Hermes handler this replaces allowed video and fullscreen; that is deliberately not carried over.
+// The Vanta handler this replaces allowed video and fullscreen; that is deliberately not carried over.
 import { pathToFileURL } from 'node:url'
 import path from 'node:path'
 

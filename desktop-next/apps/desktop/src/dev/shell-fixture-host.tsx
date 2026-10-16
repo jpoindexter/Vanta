@@ -147,7 +147,7 @@ export default function FixtureHost({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* A page route (Schedules is /cron) also opens its Hermes overlay; the fixture page is what is measured, so the overlay must not cover it. */}
+      {/* A page route (Schedules is /cron) also opens its Vanta overlay; the fixture page is what is measured, so the overlay must not cover it. */}
       {layers.page && <style>{'[data-overlay-surface]{display:none!important}'}</style>}
       <div className="flex h-full min-h-0 w-full min-w-0">
         <div className="relative h-full min-h-0 min-w-0 flex-1" data-docked-main={docked ? '' : undefined} data-fixture-main="">

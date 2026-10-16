@@ -6,7 +6,7 @@ import { CodeEditor } from '@/components/chat/code-editor'
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
-import { getProfileSoul, type ProfileInfo, updateProfileSoul } from '@/hermes'
+import { getProfileSoul, type ProfileInfo, updateProfileSoul } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { displayPath } from '@/lib/display-path'
 import { AlertTriangle, Save } from '@/lib/icons'
@@ -232,12 +232,12 @@ function ProfileDetail({ profile }: { profile: ProfileInfo }) {
       <header className="space-y-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[0.95rem] font-semibold tracking-tight text-foreground">{profileLabel(profile)}</h3>
+            <h3 className="text-body font-semibold tracking-tight text-foreground">{profileLabel(profile)}</h3>
             {profile.is_default && <PanelPill tone="good">{p.defaultBadge}</PanelPill>}
             {profile.has_env && <PanelPill tone="muted">.env</PanelPill>}
           </div>
           <p
-            className="mt-1 truncate font-mono text-[0.75rem] text-muted-foreground/55"
+            className="mt-1 truncate font-mono text-meta text-muted-foreground/55"
             title={displayPath(profile.path)}
           >
             {displayPath(profile.path)}
@@ -330,10 +330,10 @@ function SoulEditor({ profileName }: { profileName: string }) {
     <section className="space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <PanelSectionLabel className="text-[0.75rem] tracking-[0.14em]">SOUL.md</PanelSectionLabel>
+          <PanelSectionLabel className="text-meta tracking-[0.14em]">SOUL.md</PanelSectionLabel>
           <p className="text-xs text-muted-foreground">{missing ? p.soulMissing : p.soulDesc}</p>
         </div>
-        {dirty && <span className="text-[0.75rem] text-muted-foreground">{p.unsavedChanges}</span>}
+        {dirty && <span className="text-meta text-muted-foreground">{p.unsavedChanges}</span>}
       </div>
 
       {loading ? (

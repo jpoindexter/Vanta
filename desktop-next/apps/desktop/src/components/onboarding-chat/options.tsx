@@ -195,7 +195,7 @@ export function LayoutPreviewCard({
       </span>
       <span className="flex flex-col items-center gap-0.5">
         <span className={cn('text-xs', active ? 'text-foreground' : 'text-muted-foreground')}>{name}</span>
-        {description && <span className="text-[0.75rem] text-muted-foreground/70">{description}</span>}
+        {description && <span className="text-meta text-muted-foreground/70">{description}</span>}
       </span>
     </button>
   )

@@ -277,7 +277,7 @@ export type DesktopMode = 'bots' | 'sessions'
 
 // ── limits ────────────────────────────────────────────────────────────────────
 
-const STATE_KEY = 'hermes.desktop.metrics.v1'
+const STATE_KEY = 'vanta.desktop.metrics.v1'
 /** Friction per (kind, detail) per day; slow frames per bucket per day. */
 const FRICTION_DAILY_CAP = 20
 const SLOW_FRAME_DAILY_CAP = 5

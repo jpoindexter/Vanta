@@ -1,0 +1,128 @@
+[
+  {
+    "finding": "mcp",
+    "artifact_path": ".vite/build/index.pre.js",
+    "character_offset": 810962,
+    "excerpt": "ink\",\"no_answer\",\"not_read\"];[...rQ,...iQ];var aQ=\"-3p\",oQ=\"Claude\",sQ=`${`${oQ}`}${aQ}`;`${oQ}${aQ}`;var cQ=\"claude_desktop_config.json\";function lQ(){if(process.env.CLAUDE_USER_DATA_DIR)return T.app.getPath(\"userData\");if(process.platform===\"win32\"&&process.env.LOCALAPPDATA)return h.join(",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "mcp",
+    "artifact_path": ".vite/build/index.pre.js",
+    "character_offset": 891066,
+    "excerpt": "om.anthropic.claudecode,com.anthropic.claudecode.plist\".split(\",\")),X8=new Set([\".claude.json\",\"config.json\",\"claude_desktop_config.json\",\"developer_settings.json\",\"settings.json\",\"settings.local.json\",\"main.log\",\"window-state.json\"]),Z8=[/^app-\\d+(?:\\.\\d+){1,3}$/,/^\\d+\\.\\d+\\.\\d+$/,/^<(?:on",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "hosted_ui",
+    "artifact_path": ".vite/build/mainWindow.js",
+    "character_offset": 3090,
+    "excerpt": "utingId===t.webFrame.routingId)&&((e.origin===\"null\"||e.origin===null?`${e.protocol}//${e.host}`:e.origin)===\"https://claude.ai\"||(e.origin===\"null\"||e.origin===null?`${e.protocol}//${e.host}`:e.origin)===\"https://preview.claude.ai\"||(e.origin===\"null\"||e.origin===null?`${e.protoco",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "ipc_bridge",
+    "artifact_path": ".vite/build/mainWindow.js",
+    "character_offset": 2657,
+    "excerpt": "ude.internal.ui\"].MainWindowTitleBar=c)},u={};a(u),s(u),l(u);for(let[t,n]of Object.entries(u))e.contextBridge.exposeInMainWorld(t,n);var d=\"$eipc_message$_8a0a627c-fbdf-4ca1-a9ef-04e993858c3c_$_claude.hybrid_$_\";function f(){let e;try{e=new URL(window.location.href)}catch{return!1}r",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "ipc_bridge",
+    "artifact_path": ".vite/build/mainWindow.js",
+    "character_offset": 4163,
+    "excerpt": "ybrid\"]||{},e[\"claude.hybrid\"].DesktopIntl=p)},te={};ee(te);for(let[t,n]of Object.entries(te))e.contextBridge.exposeInMainWorld(t,n);var m=typeof __SENTRY_DEBUG__>\"u\"||__SENTRY_DEBUG__,h=globalThis,ne=\"10.49.0\";function re(){return ie(h),h}function ie(e){let t=e.__SENTRY__=e.__SENTR",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "hosted_ui",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 832314,
+    "excerpt": "ESIZE===\"1\",ize=process.env.CLAUDE_HARNESS_RESIZE!==\"1\",aze=\"posix\",oze=\"login-item-daemon\",sze=\"darwin\",cze=\"https://claude.ai/download?open_in_browser=1\",lze=\"darwin\",uze=\"plist\",dze={plist:\"MDM profile\",registry:\"GPO registry policy\",etc_file:\"/etc/claude-desktop/managed-setting",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "hosted_ui",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 1592286,
+    "excerpt": "!!(e.senderFrame?.parent===null&&((t.origin===\"null\"||t.origin===null?`${t.protocol}//${t.host}`:t.origin)===\"https://claude.ai\"||(t.origin===\"null\"||t.origin===null?`${t.protocol}//${t.host}`:t.origin)===\"https://preview.claude.ai\"||(t.origin===\"null\"||t.origin===null?`${t.protoco",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "load_url",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 3167700,
+    "excerpt": "o(\"Reloading current URL: %o\",e),V?.webContents?.reload()):(N.info(\"Redirecting to claude.ai\"),V?.webContents?.loadURL(VD()))})).catch((e=>{N.error(\"Error getting current URL: %o\",{error:e}),V?.webContents?.loadURL(VD())}))}function mI(e){return!(typeof e!=\"number\"||!(e>=0)",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "load_url",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 3167796,
+    "excerpt": "?.webContents?.loadURL(VD()))})).catch((e=>{N.error(\"Error getting current URL: %o\",{error:e}),V?.webContents?.loadURL(VD())}))}function mI(e){return!(typeof e!=\"number\"||!(e>=0)||!(e<=1073741824))}function FUn(e){return!(!e||typeof e!=\"object\"||!mI(e.heapUsedKb)||!mI(e.hea",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "webcontents_view",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 537554,
+    "excerpt": "ion OSe(e){return B=new a.BrowserWindow(e),Ai(B.webContents,Oi.MAIN_WINDOW),dSe(B),B}function kSe(e){return V=new a.WebContentsView(e),Ai(V.webContents,Oi.CLAUDE_AI_WEB),mo=!1,V.webContents.on(\"enter-html-full-screen\",(()=>{mo=!0})),V.webContents.on(\"leave-html-full-screen\",(()=>{mo=!1}",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "webcontents_view",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 538294,
+    "excerpt": "())},V.webContents.once(\"did-finish-load\",i)):(r=!0,clearTimeout(a),t()))}),100)}))}function ASe(e){return ho=new a.WebContentsView(e),Ai(ho.webContents,Oi.FIND_IN_PAGE),ho}function Co(){return!B||B.isDestroyed()?!1:B.isFocused()||V?.webContents?.isFocused()}function jSe(){let e=V?.webC",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "node_isolation",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 3181905,
+    "excerpt": ");function RI(){return a.nativeTheme.shouldUseDarkColors?uUn.dark:uUn.light}var lGn=Object.freeze({sandbox:!0,contextIsolation:!0,nodeIntegration:!1,nodeIntegrationInSubFrames:!1,nodeIntegrationInWorker:!1,webviewTag:!1,navigateOnDragDrop:!1,spellcheck:!1,enableBlinkFeatures:\"\",backg",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "node_isolation",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 3181925,
+    "excerpt": "rn a.nativeTheme.shouldUseDarkColors?uUn.dark:uUn.light}var lGn=Object.freeze({sandbox:!0,contextIsolation:!0,nodeIntegration:!1,nodeIntegrationInSubFrames:!1,nodeIntegrationInWorker:!1,webviewTag:!1,navigateOnDragDrop:!1,spellcheck:!1,enableBlinkFeatures:\"\",backgroundThrottling:!0,",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "file_index",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 3689615,
+    "excerpt": "sn({name:\"file-index\",serviceName:\"Claude Desktop File Index\",worker:{buildName:\"file-index-worker\",fileName:\"fileIndexWorker.js\"},qos:Xsn,parseReply:vur,onWorkerExit:()=>this.exitCallback?.()})}onWorkerExit(e){this.exitCallback=e}async setProjectFiles(e){await this.request({type",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "mcp",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 842007,
+    "excerpt": "t n=process.env.LOCALAPPDATA;return process.platform===\"win32\"&&n?[Ul,wBe].map((r=>DBe(n,r,e,t))):[]}var kBe=\"claude_desktop_config.json\",ABe=1048576;function Gl(){if(process.env.CLAUDE_USER_DATA_DIR)return a.app.getPath(\"userData\");if(process.platform===\"win32\"&&process.env.LOCALAPPDATA)re",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "mcp",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 1686838,
+    "excerpt": "vers couldn't be loaded\",id:\"ucijXSDDUQ\"}),detail:X().formatMessage({defaultMessage:\"The following entries in claude_desktop_config.json are not valid MCP server configurations and were skipped: {names}\",id:\"rfqC+v5aF0\"},{names:n})})))}function Sht(e){N.error(`Error reading or parsing confi",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "streaming",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 1315303,
+    "excerpt": "this,qm,Jm).call(this,`Non-200 status code (${i})`,i);return}if(!(a.get(\"content-type\")||\"\").startsWith(\"text/event-stream\")){Nm(this,qm,Jm).call(this,'Invalid content type, expected \"text/event-stream\"',i);return}if(Am(this,Pm)===this.CLOSED)return;Mm(this,Pm,this.OPEN);let o",
+    "status": "static text observation; reachability unverified"
+  },
+  {
+    "finding": "streaming",
+    "artifact_path": ".vite/build/index.chunk-muI2IV6k.js",
+    "character_offset": 1315382,
+    "excerpt": "t-type\")||\"\").startsWith(\"text/event-stream\")){Nm(this,qm,Jm).call(this,'Invalid content type, expected \"text/event-stream\"',i);return}if(Am(this,Pm)===this.CLOSED)return;Mm(this,Pm,this.OPEN);let o=new Event(\"open\");if((t=Am(this,Km))==null||t.call(this,o),this.dispatchEvent(",
+    "status": "static text observation; reachability unverified"
+  }
+]

@@ -22,7 +22,7 @@ import {
   setSessionsLoading
 } from '@/store/session'
 import { clearAllSessionStates, publishSessionState } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { useBackgroundQueueDrain } from './use-background-queue-drain'
 import type { SubmitTextOptions } from './use-prompt-actions/utils'
@@ -76,7 +76,7 @@ describe('useBackgroundQueueDrain', () => {
     // The queue store merges over live localStorage on save (cross-window sync,
     // #46732) — stale persisted entries from an earlier test would be adopted
     // into the atom and drained here as if they were fresh queue state.
-    window.localStorage.removeItem('hermes.desktop.composerQueue.v1')
+    window.localStorage.removeItem('vanta.desktop.composerQueue.v1')
     resetFrozenQueuedTransportsForTests()
     // Production drain waits for the sidebar list. Tests that assert drain
     // behavior are post-load unless they opt into the loading gate.

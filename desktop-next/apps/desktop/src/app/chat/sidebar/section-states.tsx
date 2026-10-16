@@ -52,7 +52,7 @@ export function SidebarPinnedEmptyState() {
   const { t } = useI18n()
 
   return (
-    <div className="flex min-h-7 items-center gap-1.5 rounded-lg pl-2 text-[0.75rem] text-(--ui-text-tertiary)">
+    <div className="flex min-h-7 items-center gap-1.5 rounded-lg pl-2 text-meta text-(--ui-text-tertiary)">
       <span className="grid w-3.5 shrink-0 place-items-center text-(--ui-text-quaternary)">
         <Codicon name="pin" size="0.75rem" />
       </span>
@@ -109,8 +109,8 @@ export function SidebarStorageCorruptNotice({
         <AlertDescription>
           <p>{copy.body(profiles.join(', '))}</p>
           <p>{copy.action}</p>
-          <code className="break-all text-[0.75rem]">
-            hermes sessions recover --source &lt;state.db&gt; --inspect-only
+          <code className="break-all text-meta">
+            vanta sessions recover --source &lt;state.db&gt; --inspect-only
           </code>
           <Button
             className="-ml-1 mt-0.5 text-(--ui-text-secondary)"

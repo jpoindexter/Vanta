@@ -5,9 +5,9 @@ import type {
   ToolsetConfig,
   ToolsetInfo,
   ToolsetModelsResponse
-} from '@/types/hermes'
+} from '@/types/desktop'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, rawApi } from './client'
+import { capabilityScoped, vantaApi, type ProfileScope, profileScoped, rawApi } from './client'
 
 // The optional trailing `profile` on every capability fetcher below is the
 // Capabilities view's profile-scope override: it lets the Skills/Tools/MCP
@@ -74,11 +74,11 @@ export interface SelectToolsetProviderResponse {
   provider: string
   /** Present when the selection was scoped to one web capability. */
   capability?: string
-  /** Present (true) when a managed Nous row was selected but the Portal
+  /** Present (true) when a managed Vanta row was selected but the Portal
    *  entitlement is missing — the row won't activate until the user signs
-   *  in to Nous Portal. */
-  needs_nous_auth?: boolean
-  /** The managed feature key (e.g. "browser") when needs_nous_auth is set. */
+   *  in to Vanta Portal. */
+  needs_vanta_auth?: boolean
+  /** The managed feature key (e.g. "browser") when needs_vanta_auth is set. */
   feature?: string
 }
 
@@ -129,14 +129,14 @@ export function selectTerminalBackend(
 }
 
 export function getComputerUseStatus(): Promise<ComputerUseStatus> {
-  return hermesApi<ComputerUseStatus>({
+  return vantaApi<ComputerUseStatus>({
     ...profileScoped(),
     path: '/api/tools/computer-use/status'
   })
 }
 
 export function grantComputerUsePermissions(): Promise<ActionResponse> {
-  return hermesApi<ActionResponse>({
+  return vantaApi<ActionResponse>({
     ...profileScoped(),
     path: '/api/tools/computer-use/permissions/grant',
     method: 'POST'

@@ -11,11 +11,11 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { saveMemoryProviderConfig } from '@/hermes'
+import { saveMemoryProviderConfig } from '@/desktop-api'
 import { ExternalLink, Loader2, Save, SlidersHorizontal } from '@/lib/icons'
 import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile } from '@/store/profile'
-import type { MemoryProviderConfig, MemoryProviderField } from '@/types/hermes'
+import type { MemoryProviderConfig, MemoryProviderField } from '@/types/desktop'
 
 import { ListRow } from '../primitives'
 
@@ -106,7 +106,7 @@ export function ProviderConfigModal({
               href={config.docs_url}
               onClick={event => {
                 event.preventDefault()
-                void window.hermesDesktop?.openExternal?.(config.docs_url)
+                void window.desktopBridge?.openExternal?.(config.docs_url)
               }}
               rel="noreferrer"
               target="_blank"
@@ -120,7 +120,7 @@ export function ProviderConfigModal({
         <div className="min-w-0">
           {groupFields(config.fields).map(([group, fields]) => (
             <section className="mt-6 first:mt-2" key={group}>
-              <h3 className="border-b border-(--ui-accent-secondary)/30 pb-1.5 font-mono text-[0.75rem] uppercase tracking-wide text-(--ui-accent-secondary)">
+              <h3 className="border-b border-(--ui-accent-secondary)/30 pb-1.5 font-mono text-meta uppercase tracking-wide text-(--ui-accent-secondary)">
                 {group}
               </h3>
               <div className="pl-1">

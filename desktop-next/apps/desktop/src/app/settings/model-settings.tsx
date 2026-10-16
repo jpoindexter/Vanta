@@ -1,5 +1,5 @@
-import type { ModelOptionProvider } from '@hermes/shared'
-import { DEFAULT_REASONING_EFFORT, REASONING_EFFORT_VALUES } from '@hermes/shared'
+import type { ModelOptionProvider } from '@vanta/shared'
+import { DEFAULT_REASONING_EFFORT, REASONING_EFFORT_VALUES } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
@@ -15,11 +15,11 @@ import {
   getGlobalModelOptions,
   getMoaModels,
   getRecommendedDefaultModel,
-  saveHermesConfig,
+  saveVantaConfig,
   saveMoaModels,
   setEnvVar,
   setModelAssignment
-} from '@/hermes'
+} from '@/desktop-api'
 import type {
   AuxiliaryModelsResponse,
   AuxiliaryTaskAssignment,
@@ -27,7 +27,7 @@ import type {
   MoaModelSlot,
   ModelAssignmentRequest,
   StaleAuxAssignment
-} from '@/hermes'
+} from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { isCodeSkewRestartRequired } from '@/lib/code-skew-error'
 import { AlertTriangle, Cpu, Loader2 } from '@/lib/icons'
@@ -40,7 +40,7 @@ import { setMainModelAssignment } from '@/store/model-assignment'
 import { notify, notifyError, readableError } from '@/store/notifications'
 import { startManualLocalEndpoint, startManualOnboarding, startManualProviderOAuth } from '@/store/onboarding'
 
-import { hermesConfigCacheWriter, invalidateHermesConfig, useHermesConfigRecord } from '../hooks/use-config-record'
+import { vantaConfigCacheWriter, invalidateVantaConfig, useVantaConfigRecord } from '../hooks/use-config-record'
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
 import { PanelEmpty } from '../overlays/panel'
 
@@ -53,7 +53,7 @@ import {
 } from './aux-task-rows'
 import { CONTROL_TEXT } from './constants'
 import { getNested, setNested } from './helpers'
-import { isHiddenModelSubpage, SHOW_HERMES_MODEL_EXTRAS } from './hermes-extras'
+import { isHiddenModelSubpage, SHOW_VANTA_MODEL_EXTRAS } from './settings-extras'
 import { ModelSelect, withActive } from './model-select'
 import { ListRow, ListRowSkeleton, Pill, SectionHeading, SectionHeadingSkeleton } from './primitives'
 import { dismissStaleAux, readStaleAuxDismissal, staleAuxFingerprint } from './stale-aux-dismissal'
@@ -80,7 +80,7 @@ export function ModelSettingsSkeleton({ subpage }: Pick<ModelSettingsProps, 'sub
         </section>
       )}
 
-      {SHOW_HERMES_MODEL_EXTRAS && (subpage === undefined || subpage === 'auxiliary' || subpage === 'moa') && (
+      {SHOW_VANTA_MODEL_EXTRAS && (subpage === undefined || subpage === 'auxiliary' || subpage === 'moa') && (
         <section>
           <SectionHeadingSkeleton />
           <div className="grid gap-1">
@@ -97,7 +97,7 @@ export function ModelSettingsSkeleton({ subpage }: Pick<ModelSettingsProps, 'sub
 type SpeedTier = 'fast' | 'normal' | 'ultrafast'
 
 // A provider row is "ready" to pick a model from when it reports models. The
-// backend now surfaces the full `hermes model` universe (every canonical
+// backend now surfaces the full `vanta model` universe (every canonical
 // provider), so unconfigured providers come back with `authenticated:false`
 // and an empty `models` list — those need a setup step before a model exists.
 function isProviderReady(p?: ModelOptionProvider): boolean {
@@ -303,8 +303,8 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
   // A deep link to a page Vanta does not serve lands on the main model page.
   const page = isHiddenModelSubpage(subpage) ? 'main' : subpage
   const showMain = page === undefined || page === 'main'
-  const showAuxiliary = SHOW_HERMES_MODEL_EXTRAS && (page === undefined || page === 'auxiliary')
-  const showMoa = SHOW_HERMES_MODEL_EXTRAS && (page === undefined || page === 'moa')
+  const showAuxiliary = SHOW_VANTA_MODEL_EXTRAS && (page === undefined || page === 'auxiliary')
+  const showMoa = SHOW_VANTA_MODEL_EXTRAS && (page === undefined || page === 'moa')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [skewRestart, setSkewRestart] = useState(false)
@@ -323,8 +323,8 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
   const [newMoaPresetName, setNewMoaPresetName] = useState('')
   // agent.* defaults round-trip through the shared config cache (read → write
   // back the whole record), so a save here shows in the MCP/model surfaces.
-  const { data: config, writeScope } = useHermesConfigRecord(scopeProfile)
-  const setConfig = useMemo(() => hermesConfigCacheWriter(scopeProfile), [scopeProfile])
+  const { data: config, writeScope } = useVantaConfigRecord(scopeProfile)
+  const setConfig = useMemo(() => vantaConfigCacheWriter(scopeProfile), [scopeProfile])
   const [applying, setApplying] = useState(false)
   const [editingAuxTask, setEditingAuxTask] = useState<null | string>(null)
 
@@ -429,7 +429,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
 
         // The config record loads via its own shared query; a model switch can
         // change it server-side (aux slots), so nudge that cache to refetch.
-        void invalidateHermesConfig(scopeProfile)
+        void invalidateVantaConfig(scopeProfile)
       } catch (err) {
         if (profileEpoch.current === epoch) {
           setCaughtError(err, m.loadFailed)
@@ -717,7 +717,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       setConfig(next)
 
       try {
-        await saveHermesConfig(setNested({}, key, value), writeScope ?? scopeProfile)
+        await saveVantaConfig(setNested({}, key, value), writeScope ?? scopeProfile)
       } catch (err) {
         setConfig(prev)
         notifyError(err, m.defaultsFailed)
@@ -746,7 +746,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       setApiKeyDraft('')
 
       // Pick a sensible default for the freshly-activated provider (mirrors
-      // `hermes model` curation). Best-effort — fall through to the refreshed
+      // `vanta model` curation). Best-effort — fall through to the refreshed
       // model list if it fails.
       let nextModel = ''
 
@@ -963,7 +963,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
     setSkewRestart(false)
 
     try {
-      await window.hermesDesktop?.recycleBackend?.(scopeProfile)
+      await window.desktopBridge?.recycleBackend?.(scopeProfile)
       await refresh({ replaceSelection: true })
     } catch (err) {
       setCaughtError(err, m.restartFailed)
@@ -1480,7 +1480,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                 }
                 className={cn(slot.enabled === false && 'opacity-60')}
                 description={
-                  <span className="font-mono text-[0.75rem]">
+                  <span className="font-mono text-meta">
                     {slot.provider} · {slot.model || m.model}
                   </span>
                 }
@@ -1552,7 +1552,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                 </div>
               }
               description={
-                <span className="font-mono text-[0.75rem]">
+                <span className="font-mono text-meta">
                   {currentMoaPreset.aggregator.provider} · {currentMoaPreset.aggregator.model}
                 </span>
               }

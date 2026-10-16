@@ -1,4 +1,4 @@
-import type { OnboardingStateResult } from '@hermes/shared'
+import type { OnboardingStateResult } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useEffect } from 'react'
 

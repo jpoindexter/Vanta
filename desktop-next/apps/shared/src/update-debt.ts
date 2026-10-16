@@ -1,4 +1,4 @@
-// Owed post-commit work of a dashboard-started `hermes update`, read from the
+// Owed post-commit work of a dashboard-started `vanta update`, read from the
 // receipt summary the action status route attaches. Shared by the web
 // dashboard toast and the Desktop backend-apply store so both surfaces name
 // the same debt with the same rules as the managed SSH result.
@@ -16,10 +16,10 @@ export interface UpdateDebtReceipt {
 }
 
 export interface UpdateDebt {
-  /** Follow-ups a rerun of `hermes update` finishes, as `step (reason); step`; '' when none. */
+  /** Follow-ups a rerun of `vanta update` finishes, as `step (reason); step`; '' when none. */
   followups: string
   /** What only the user can do (e.g. re-apply a parked stash) as `step: <producer's instruction>`;
-   *  '' when none. Never phrase this as "re-run hermes update": a rerun does not restore it. */
+   *  '' when none. Never phrase this as "re-run vanta update": a rerun does not restore it. */
   userAction: string
 }
 

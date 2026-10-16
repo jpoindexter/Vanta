@@ -1,4 +1,4 @@
-import type { GatewayEvent } from '@hermes/shared'
+import type { GatewayEvent } from '@vanta/shared'
 // Repro for "when I steer it often sends out of order — a user bubble way
 // above" (#73793 / #83151 class). Drives the REAL stream reducer
 // (useMessageStream.handleGatewayEvent) and the REAL steer entry point
@@ -68,7 +68,7 @@ function Harness() {
     activeSessionIdRef,
     hydrateFromStoredSession: vi.fn(async () => undefined),
     queryClient: queryClientRef.current,
-    refreshHermesConfig: vi.fn(async () => undefined),
+    refreshVantaConfig: vi.fn(async () => undefined),
     refreshSessions: vi.fn(async () => undefined),
     sessionStateByRuntimeIdRef,
     updateSessionState

@@ -1,4 +1,4 @@
-import { stripAnsi } from '@hermes/shared/ansi'
+import { stripAnsi } from '@vanta/shared/ansi'
 
 import { type ToolTitleKey, translateNow } from '@/i18n'
 import { normalizeExternalUrl } from '@/lib/external-link'

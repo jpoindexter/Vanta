@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { $archivedSessions, listEveryArchivedSession, loadArchivedSessions } from './sidebar-archive'
 

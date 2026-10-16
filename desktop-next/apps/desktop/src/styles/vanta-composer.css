@@ -28,15 +28,7 @@
   outline: none;
 }
 
-.vp .vp-chip--menu {
-  align-items: center;
-  display: inline-flex;
-}
-
 /* The caret box overlaps the text gap so the pill is as wide as the wireframe's "text ▾". */
-.vp .vp-chip--menu svg {
-  margin-left: -3px;
-}
 
 .vp .vp-chips {
   display: flex;

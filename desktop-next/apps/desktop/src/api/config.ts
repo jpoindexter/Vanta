@@ -4,17 +4,17 @@ import type {
   CustomEndpointUpdate,
   CustomEndpointValidationResponse,
   EnvVarInfo,
-  HermesConfig,
-  HermesConfigRecord,
+  VantaConfig,
+  VantaConfigRecord,
   LogsResponse,
   OAuthPollResponse,
   OAuthProvidersResponse,
   OAuthStartResponse,
   OAuthSubmitResponse,
   StatusResponse
-} from '@/types/hermes'
+} from '@/types/desktop'
 
-import { capabilityScoped, hermesApi, rawApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
+import { capabilityScoped, vantaApi, rawApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
 
 type ConfigReadOrigin = { connectionId?: string; priority?: 'foreground'; profile?: string }
 
@@ -85,7 +85,7 @@ export function resolveConfigWriteScope(
 }
 
 export function getStatus(): Promise<StatusResponse> {
-  return hermesApi<StatusResponse>({
+  return vantaApi<StatusResponse>({
     ...profileScoped(),
     path: '/api/status'
   })
@@ -122,14 +122,14 @@ export function getLogs(params: {
 
   const suffix = query.toString()
 
-  return hermesApi<LogsResponse>({
+  return vantaApi<LogsResponse>({
     ...profileScoped(),
     path: suffix ? `/api/logs?${suffix}` : '/api/logs'
   })
 }
 
-export function getHermesConfig(profile?: string): Promise<HermesConfig> {
-  return hermesApi<HermesConfig>({
+export function getVantaConfig(profile?: string): Promise<VantaConfig> {
+  return vantaApi<VantaConfig>({
     ...profileScoped(profile),
     path: '/api/config',
     timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
@@ -141,10 +141,10 @@ export function getHermesConfig(profile?: string): Promise<HermesConfig> {
 async function fetchBoundConfigRecord(
   profile: ProfileScope,
   request: { path: string; timeoutMs?: number }
-): Promise<HermesConfigRecord> {
+): Promise<VantaConfigRecord> {
   const origin = capabilityScoped(profile ?? undefined)
 
-  const record = await rawApi<HermesConfigRecord>({ ...origin, ...request })
+  const record = await rawApi<VantaConfigRecord>({ ...origin, ...request })
 
   if (record && typeof record === 'object') {
     bindConfigReadOrigin(record, origin)
@@ -153,31 +153,31 @@ async function fetchBoundConfigRecord(
   return record
 }
 
-export function getHermesConfigRecord(
+export function getVantaConfigRecord(
   profile?: ProfileScope,
   { includeDefaults = true }: { includeDefaults?: boolean } = {}
-): Promise<HermesConfigRecord> {
+): Promise<VantaConfigRecord> {
   return fetchBoundConfigRecord(profile, {
     path: includeDefaults ? '/api/config' : '/api/config?include_defaults=false'
   })
 }
 
-export function getHermesConfigDefaults(): Promise<HermesConfigRecord> {
+export function getVantaConfigDefaults(): Promise<VantaConfigRecord> {
   return fetchBoundConfigRecord(undefined, {
     path: '/api/config/defaults',
     timeoutMs: STARTUP_REQUEST_TIMEOUT_MS
   })
 }
 
-export function getHermesConfigSchema(profile?: null | string): Promise<ConfigSchemaResponse> {
-  return hermesApi<ConfigSchemaResponse>({
+export function getVantaConfigSchema(profile?: null | string): Promise<ConfigSchemaResponse> {
+  return vantaApi<ConfigSchemaResponse>({
     ...profileScoped(profile),
     path: '/api/config/schema'
   })
 }
 
-export function saveHermesConfig(
-  config: HermesConfigRecord,
+export function saveVantaConfig(
+  config: VantaConfigRecord,
   profile?: ProfileScope,
   { preserveLanguage = false }: { preserveLanguage?: boolean } = {}
 ): Promise<{ ok: boolean }> {
@@ -189,10 +189,10 @@ export function saveHermesConfig(
   })
 }
 
-/** Capability-scoped counterpart of saveHermesConfig — writes the config of
+/** Capability-scoped counterpart of saveVantaConfig — writes the config of
  *  the profile/connection the Capabilities scope selector points at (possibly
- *  on another registered gateway), mirroring getHermesConfigRecord. */
-export function saveHermesConfigRecord(config: HermesConfigRecord, profile?: ProfileScope): Promise<{ ok: boolean }> {
+ *  on another registered gateway), mirroring getVantaConfigRecord. */
+export function saveVantaConfigRecord(config: VantaConfigRecord, profile?: ProfileScope): Promise<{ ok: boolean }> {
   return rawApi<{ ok: boolean }>({
     ...resolveConfigWriteScope(config, profile),
     path: '/api/config',
@@ -202,7 +202,7 @@ export function saveHermesConfigRecord(config: HermesConfigRecord, profile?: Pro
 }
 
 export function getEnvVars(profile?: null | string): Promise<Record<string, EnvVarInfo>> {
-  return hermesApi<Record<string, EnvVarInfo>>({
+  return vantaApi<Record<string, EnvVarInfo>>({
     ...profileScoped(profile),
     path: '/api/env'
   })
@@ -263,7 +263,7 @@ export function validateProviderCredential(
 }
 
 export function getCustomEndpoints(profile?: null | string): Promise<CustomEndpointsResponse> {
-  return hermesApi<CustomEndpointsResponse>({
+  return vantaApi<CustomEndpointsResponse>({
     ...profileScoped(profile),
     path: '/api/providers/custom-endpoints'
   })
@@ -273,7 +273,7 @@ export function saveCustomEndpoint(
   endpoint: CustomEndpointUpdate,
   profile?: null | string
 ): Promise<CustomEndpointsResponse> {
-  return hermesApi<CustomEndpointsResponse>({
+  return vantaApi<CustomEndpointsResponse>({
     ...profileScoped(profile),
     path: '/api/providers/custom-endpoints',
     method: 'POST',
@@ -285,7 +285,7 @@ export function validateCustomEndpoint(
   endpoint: CustomEndpointUpdate,
   profile?: null | string
 ): Promise<CustomEndpointValidationResponse> {
-  return hermesApi<CustomEndpointValidationResponse>({
+  return vantaApi<CustomEndpointValidationResponse>({
     ...profileScoped(profile),
     path: '/api/providers/custom-endpoints/validate',
     method: 'POST',
@@ -297,7 +297,7 @@ export function activateCustomEndpoint(
   id: string,
   profile?: null | string
 ): Promise<{ ok: boolean; provider: string; model: string }> {
-  return hermesApi<{ ok: boolean; provider: string; model: string }>({
+  return vantaApi<{ ok: boolean; provider: string; model: string }>({
     ...profileScoped(profile),
     path: `/api/providers/custom-endpoints/${encodeURIComponent(id)}/activate`,
     method: 'POST'
@@ -305,7 +305,7 @@ export function activateCustomEndpoint(
 }
 
 export function deleteCustomEndpoint(id: string, profile?: null | string): Promise<CustomEndpointsResponse> {
-  return hermesApi<CustomEndpointsResponse>({
+  return vantaApi<CustomEndpointsResponse>({
     ...profileScoped(profile),
     path: `/api/providers/custom-endpoints/${encodeURIComponent(id)}`,
     method: 'DELETE'
@@ -323,7 +323,7 @@ export function disconnectOAuthProvider(
   providerId: string,
   profile?: null | string
 ): Promise<{ ok: boolean; provider: string }> {
-  return hermesApi<{ ok: boolean; provider: string }>({
+  return vantaApi<{ ok: boolean; provider: string }>({
     ...profileScoped(profile),
     path: `/api/providers/oauth/${encodeURIComponent(providerId)}`,
     method: 'DELETE'

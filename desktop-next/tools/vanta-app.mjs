@@ -49,7 +49,7 @@ function makeProject(root) {
 function sandboxEnv({ root, project, modelUrl, hidden, kernelPort, extraEnv = {} }) {
   const env = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("HERMES_")) env[key] = value;
+    if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("VANTA_")) env[key] = value;
   }
   const home = path.join(root, "home");
   fs.mkdirSync(home, { recursive: true });

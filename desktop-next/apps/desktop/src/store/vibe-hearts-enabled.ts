@@ -13,7 +13,7 @@ import { persistString, storedString } from '@/lib/storage'
 
 import { recordFeatureToggle } from './desktop-metrics'
 
-const KEY = 'hermes.desktop.vibeHearts.v1'
+const KEY = 'vanta.desktop.vibeHearts.v1'
 
 // Absent key and anything other than "off" keep hearts on, matching the
 // pre-toggle always-on default for existing installs.

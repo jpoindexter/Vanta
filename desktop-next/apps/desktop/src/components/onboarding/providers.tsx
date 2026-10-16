@@ -2,13 +2,13 @@ import { RowButton } from '@/components/ui/row-button'
 import { useI18n } from '@/i18n'
 import { Check, ChevronRight, Terminal } from '@/lib/icons'
 import { PROVIDER_DISPLAY_NAMES } from '@/lib/model-status-label'
-import type { OAuthProvider } from '@/types/hermes'
+import type { OAuthProvider } from '@/types/desktop'
 
 // Titles live in PROVIDER_DISPLAY_NAMES (shared with the model pill); this is
 // only the featured order. Both Anthropic entries sit at the bottom: the API-key
 // path first, then the subscription OAuth path (only works with extra usage credits).
 const PROVIDER_ORDER: Record<string, number> = {
-  nous: 0,
+  vanta: 0,
   'openai-codex': 1,
   'minimax-oauth': 2,
   'qwen-oauth': 3,
@@ -23,7 +23,7 @@ export const providerTitle = (p: OAuthProvider) => PROVIDER_DISPLAY_NAMES[p.id] 
 const orderOf = (p: OAuthProvider) => PROVIDER_ORDER[p.id] ?? 99
 
 /** Hosted-account providers Vanta does not offer: sign-in rows for them are never shown. */
-const HOSTED_ACCOUNT_PROVIDER_IDS: ReadonlySet<string> = new Set(['nous'])
+const HOSTED_ACCOUNT_PROVIDER_IDS: ReadonlySet<string> = new Set(['vanta'])
 
 export const isOfferedProvider = (p: OAuthProvider): boolean => !HOSTED_ACCOUNT_PROVIDER_IDS.has(p.id)
 
@@ -47,7 +47,7 @@ export function FeaturedProviderRow({
       onClick={() => onSelect(provider)}
       type="button"
     >
-      <span aria-hidden className="arc-border arc-reverse arc-nous" />
+      <span aria-hidden className="arc-border arc-reverse arc-vanta" />
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <img alt="" className="size-5 shrink-0 rounded" src={assetPath('apple-touch-icon.png')} />
@@ -59,7 +59,7 @@ export function FeaturedProviderRow({
           ) : loggedIn ? (
             <ConnectedTag />
           ) : (
-            <span className="inline-flex items-center gap-1.5 bg-primary px-2 py-0.5 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-primary-foreground">
+            <span className="inline-flex items-center gap-1.5 bg-primary px-2 py-0.5 text-meta font-semibold uppercase tracking-[0.16em] text-primary-foreground">
               <span aria-hidden="true" className="dither inline-block size-2 shrink-0" />
               {t.onboarding.recommended}
             </span>
@@ -99,7 +99,7 @@ function ConnectedTag() {
 const PROVIDER_ROW_CLASS =
   'group flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-(--ui-control-hover-background)'
 
-/** Quick-key row for API-key providers (Fireworks leads the expanded list after Nous, OpenRouter further down). */
+/** Quick-key row for API-key providers (Fireworks leads the expanded list after Vanta, OpenRouter further down). */
 export function KeyProviderRow({ onClick, pitch, title }: { onClick: () => void; pitch: string; title: string }) {
   return (
     <RowButton className={PROVIDER_ROW_CLASS} onClick={onClick}>

@@ -74,7 +74,7 @@ export function TerminalInstance({
       {selection.trim() && (
         <div className="absolute z-50 flex items-center gap-1" style={selectionStyle ?? { right: 12, top: 8 }}>
           <Button
-            className="h-6 rounded-md px-2 text-[0.75rem] shadow-md backdrop-blur-md"
+            className="h-6 rounded-md px-2 text-meta shadow-md backdrop-blur-md"
             onClick={event => event.preventDefault()}
             onMouseDown={event => {
               event.preventDefault()

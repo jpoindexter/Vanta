@@ -21,7 +21,7 @@ const STOP_TEXT: Record<string, string> = {
   tool_budget: 'Task stopped at the tool-call safety limit.'
 }
 
-/** Vanta `stoppedReason` to the Hermes `message.complete` status. Unknown reasons are failures, not silent successes. */
+/** Vanta `stoppedReason` to the Vanta `message.complete` status. Unknown reasons are failures, not silent successes. */
 export function outcomeForStop(reason: string | undefined): TurnOutcome {
   if (reason === undefined || reason === 'done') {
     return { status: 'complete' }

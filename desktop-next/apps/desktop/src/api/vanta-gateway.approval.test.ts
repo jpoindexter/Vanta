@@ -1,4 +1,4 @@
-import type { GatewayEvent, ServerRequest } from '@hermes/shared'
+import type { GatewayEvent, ServerRequest } from '@vanta/shared'
 import { describe, expect, it } from 'vitest'
 
 import { VantaGateway } from './vanta-gateway'

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
+import type { VantaConnection } from '@/global'
 
 import { $activeGatewayProfile } from './profile'
 import { $selectedStoredSessionId, setConnection } from './session'
@@ -13,21 +13,21 @@ const local = {
   connectionId: 'local',
   mode: 'local',
   profile
-} as unknown as HermesConnection
+} as unknown as VantaConnection
 
 const remote = {
   baseUrl: 'https://homelab.example:8443',
   connectionId: 'homelab',
   mode: 'remote',
   profile
-} as unknown as HermesConnection
+} as unknown as VantaConnection
 
 const otherRemote = {
   baseUrl: 'https://other.example:8443',
   connectionId: 'other-remote',
   mode: 'remote',
   profile
-} as unknown as HermesConnection
+} as unknown as VantaConnection
 
 beforeEach(() => {
   window.localStorage.clear()
@@ -73,7 +73,7 @@ describe('session tiles across registered backend switches (#120106)', () => {
 
     // A restart must keep the composite key; profile-only migration would
     // silently fold remote tabs back into the local bucket.
-    const persisted = JSON.parse(window.localStorage.getItem('hermes.desktop.sessionTiles.v2') || '{}')
+    const persisted = JSON.parse(window.localStorage.getItem('vanta.desktop.sessionTiles.v2') || '{}')
     expect(persisted[profile]?.map((tile: { storedSessionId: string }) => tile.storedSessionId)).toEqual([
       'stored-local'
     ])
@@ -101,7 +101,7 @@ describe('session tiles across registered backend switches (#120106)', () => {
 
   it('migrates legacy remote-owned tabs out of a profile-only bucket', async () => {
     window.localStorage.setItem(
-      'hermes.desktop.sessionTiles.v2',
+      'vanta.desktop.sessionTiles.v2',
       JSON.stringify({
         [profile]: [
           { dir: 'right', ownerRoute: { connectionId: 'local', profile }, storedSessionId: 'legacy-local' },

@@ -15,7 +15,7 @@ interface StatusControlRowProps {
 export function StatusControlRow({ children, className, icon }: StatusControlRowProps) {
   return (
     <StatusRow
-      className={cn('status-control-row text-[0.75rem] text-muted-foreground/80', className)}
+      className={cn('status-control-row text-meta text-muted-foreground/80', className)}
       leading={icon ? <Codicon className="text-muted-foreground/70" name={icon} size="0.8rem" /> : undefined}
     >
       {children}

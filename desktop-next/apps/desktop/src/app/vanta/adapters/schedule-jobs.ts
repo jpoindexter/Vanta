@@ -1,4 +1,4 @@
-import type { CronJob } from '@/types/hermes'
+import type { CronJob } from '@/types/desktop'
 
 /** One row of Vanta's `GET /api/schedules` (the server's CronEntry). */
 export interface ScheduleEntry {

@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesApi from '@/hermes'
+import type * as VantaApi from '@/desktop-api'
 import type { FreeTierRequester } from '@/store/free-tier'
 
 const startOAuthLogin = vi.fn()
 const pollOAuthSession = vi.fn()
 const cancelOAuthSession = vi.fn(async (_id: string) => ({ ok: true }))
 
-vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof HermesApi>()),
+vi.mock('@/desktop-api', async importOriginal => ({
+  ...(await importOriginal<typeof VantaApi>()),
   cancelOAuthSession: (id: string) => cancelOAuthSession(id),
   listOAuthProviders: async () => ({ providers: [] }),
   pollOAuthSession: (providerId: string, sessionId: string) => pollOAuthSession(providerId, sessionId),

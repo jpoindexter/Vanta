@@ -3,7 +3,7 @@
 // into window B. This bus pings peers with the stored session id so a window
 // viewing that chat re-pulls history and stays current. Sends never wait on it:
 // the backend folds other surfaces' rows into the model's context itself.
-// Distinct from hermes:sessions (sidebar list).
+// Distinct from vanta:sessions (sidebar list).
 
 export type TranscriptChangedPayload = {
   /** Stored session id shared across Desktop windows. */
@@ -12,7 +12,7 @@ export type TranscriptChangedPayload = {
   messageCount?: number
 }
 
-const CHANNEL = 'hermes:transcript'
+const CHANNEL = 'desktop:transcript'
 
 const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(CHANNEL)
 

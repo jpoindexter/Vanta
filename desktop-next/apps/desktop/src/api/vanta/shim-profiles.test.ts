@@ -14,7 +14,7 @@ const makeSend = (reply: unknown = { ok: true, id: 'research', path: '/v/profile
   vi.fn(async (request: { body?: unknown; path: string }) => (request.path === '/api/profiles' ? views : reply))
 
 describe('profile shim', () => {
-  it('maps the Vanta list to Hermes profile rows with the sticky default flagged', async () => {
+  it('maps the Vanta list to Vanta profile rows with the sticky default flagged', async () => {
     const result = (await vantaRestShim({ path: '/api/profiles' }, makeSend())) as {
       profiles: Array<{ display_name?: string; is_default: boolean; name: string; skill_count: number }>
     }

@@ -1,9 +1,9 @@
-import type { GatewayEvent } from '@hermes/shared'
+import type { GatewayEvent } from '@vanta/shared'
 import { act, cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { chatMessageText, toChatMessages } from '@/lib/chat-messages'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/desktop'
 
 import { renderMessageStream } from './test-harness'
 

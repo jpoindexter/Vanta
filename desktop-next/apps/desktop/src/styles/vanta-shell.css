@@ -184,7 +184,7 @@ button.vs-chip:hover {
 }
 
 /* Restored app controls (settings, layout editor, HUD, swap sides, right sidebar)
-   sit beside the workbench toggles; Hermes' own tool buttons, sized to match. */
+   sit beside the workbench toggles; Vanta' own tool buttons, sized to match. */
 .vs-tb-tools {
   display: flex;
   align-items: center;

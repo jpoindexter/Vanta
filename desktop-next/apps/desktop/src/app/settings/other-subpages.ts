@@ -1,4 +1,4 @@
-import { SHOW_VAULT } from './hermes-extras'
+import { SHOW_VAULT } from './settings-extras'
 
 // Pages with separate tasks expose content-only subpages. Billing keeps its
 // existing capability-gated bview=overview|plans flow rather than adding a

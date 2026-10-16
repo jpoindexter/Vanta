@@ -1,9 +1,9 @@
-import type { ConnectorAccountRow, ConnectorToolsResult } from '@hermes/shared'
+import type { ConnectorAccountRow, ConnectorToolsResult } from '@vanta/shared'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo } from 'react'
 
 import { GATEWAY_NOT_CONNECTED_MESSAGE } from '@/api/client'
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/desktop-api'
 import { translateNow } from '@/i18n'
 import { isMissingRpcMethod, isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { queryClient } from '@/lib/query-client'
@@ -160,7 +160,7 @@ export function useHostedConnectors(scope: ProfileScope): HostedConnectorsView {
     retryRules,
     rows: blanked ? [] : joined.rows,
     rulesFailed,
-    rulesSignedOut: policyError?.reason === 'NEEDS_NOUS_AUTH',
+    rulesSignedOut: policyError?.reason === 'NEEDS_VANTA_AUTH',
     titles: joined.titles
   }
 }
@@ -226,7 +226,7 @@ export function useConnectorTools(scope: ProfileScope, slug: null | string, list
   return {
     refresh: () => revalidate.mutate(),
     retry: () => invalidateConnectorApp(scope, slug ?? ''),
-    signedOut: reason === 'NEEDS_NOUS_AUTH',
+    signedOut: reason === 'NEEDS_VANTA_AUTH',
     status:
       slug === null
         ? null

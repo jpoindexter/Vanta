@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { getOfficialSkills, getSkillHubSources, installSkillFromHub, previewSkillHub, scanSkillHub, searchSkillsHub } from '@/api/skills'
-import type { HermesApiRequest } from '@/global'
+import { deleteLearningNode, editLearningNode, getOfficialSkills, getSkillHubSources, installSkillFromHub, previewSkillHub, scanSkillHub, searchSkillsHub } from '@/api/skills'
+import type { VantaApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
 const PREVIEW = {
@@ -14,7 +14,7 @@ const PREVIEW = {
 }
 
 describe('the Skills tab reads and installs from the hub through the Vanta routes', () => {
-  let calls: HermesApiRequest[]
+  let calls: VantaApiRequest[]
   let preview: typeof PREVIEW
 
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('the Skills tab reads and installs from the hub through the Vanta route
     preview = { ...PREVIEW }
     Object.defineProperty(window, 'vantaDesktop', { configurable: true, value: {} })
 
-    installRestBridge((request: HermesApiRequest) => {
+    installRestBridge((request: VantaApiRequest) => {
       calls.push(request)
 
       if (request.path === '/api/skills/hub-search') {
@@ -36,6 +36,10 @@ describe('the Skills tab reads and installs from the hub through the Vanta route
 
       if (request.path === '/api/skills/hub-preview') {
         return preview
+      }
+
+      if (request.path === '/api/learning/node-edit' || request.path === '/api/learning/node-archive') {
+        return { message: 'Saved.', ok: true }
       }
 
       return { name: 'seo', ok: true, status: 'active' }
@@ -86,5 +90,13 @@ describe('the Skills tab reads and installs from the hub through the Vanta route
 
     await installSkillFromHub('useful')
     expect(calls.at(-1)).toMatchObject({ body: { slug: 'useful' }, path: '/api/skills/install' })
+  })
+
+  it('edits and archives a Memory Graph node through the Vanta routes', async () => {
+    expect(await editLearningNode('memory:1.md', 'new words')).toEqual({ message: 'Saved.', ok: true })
+    expect(calls.at(-1)).toMatchObject({ body: { content: 'new words', id: 'memory:1.md' }, method: 'POST', path: '/api/learning/node-edit' })
+
+    expect(await deleteLearningNode('skill:Old trick')).toEqual({ message: 'Saved.', ok: true })
+    expect(calls.at(-1)).toMatchObject({ body: { id: 'skill:Old trick' }, method: 'POST', path: '/api/learning/node-archive' })
   })
 })

@@ -400,7 +400,7 @@ export const frOverrides = {
       "Cette application Vanta est plus ancienne que le backend auquel elle est connectée et peut ne pas fonctionner correctement. Effectuez la mise à jour de l'application pour les aligner.",
     updateDesktopApp: "Mettre à jour l'application",
     installMethodUnsupportedTitle: "Méthode d'installation non prise en charge",
-    updateHermes: 'Mettre à jour Vanta',
+    updateVanta: 'Mettre à jour Vanta',
     updateReadyTitle: 'Mise à jour prête',
     updateReadyMessage: count =>
       `${count} ${count === 1 ? 'nouvelle modification disponible' : 'nouvelles modifications disponibles'}.`,
@@ -432,10 +432,10 @@ export const frOverrides = {
       codeSkewRestartRequired:
         "Ce backend exécute encore l'ancien code après une mise à jour. Redémarrez-le pour charger le nouveau code.",
       rpcOutOfSync: "L'application et le backend ne sont pas sur la même version. Mettez-les tous les deux à jour.",
-      restartHermesFailed: 'Impossible de redémarrer Vanta'
+      restartVantaFailed: 'Impossible de redémarrer Vanta'
     },
     actions: {
-      restartHermes: 'Redémarrer Vanta',
+      restartVanta: 'Redémarrer Vanta',
       openKeys: 'Ouvrir les clés',
       openGateways: 'Ouvrir les gateways',
       openMaintenance: 'Ouvrir Maintenance'
@@ -1443,7 +1443,7 @@ export const frOverrides = {
     uninstallSection: {
       dangerZone: 'Zone dangereuse',
       checkingInstalled: 'Vérification des éléments installés…',
-      uninstallHermes: 'Désinstaller Vanta',
+      uninstallVanta: 'Désinstaller Vanta',
       chooseHowMuch:
         'Choisissez ce que vous souhaitez supprimer. L’application se ferme pour terminer ; rouvrez le programme d’installation à tout moment pour revenir.',
       confirmUninstall: 'Confirmer la désinstallation',
@@ -1734,7 +1734,7 @@ export const frOverrides = {
         'Local par défaut. Utilisez distant quand cette application doit piloter un backend Vanta ailleurs. Remplacements par profil ci-dessous.',
       envOverrideTitle: "Des variables d'environnement contrôlent cette session desktop.",
       envOverrideDesc:
-        'Supprimez les variables HERMES_DESKTOP_REMOTE_URL et HERMES_DESKTOP_REMOTE_TOKEN pour utiliser le paramètre enregistré ci-dessous.',
+        'Supprimez les variables VANTA_DESKTOP_REMOTE_URL et VANTA_DESKTOP_REMOTE_TOKEN pour utiliser le paramètre enregistré ci-dessous.',
       modeTitle: 'Mode de connexion',
       localTitle: 'Gateway local',
       localDesc:
@@ -1858,9 +1858,9 @@ export const frOverrides = {
       sshPortDesc: 'Vide = 22 ou le port de ~/.ssh/config.',
       sshKeyTitle: "Fichier d'identité",
       sshKeyDesc: 'Chemin de la clé privée. Vide = ssh-agent ou ~/.ssh/config.',
-      sshHermesPathTitle: 'Chemin Vanta (facultatif)',
-      sshHermesPathDesc: 'Chemin complet vers le binaire Vanta distant. Vide = détection automatique.',
-      sshHermesPathPlaceholder: 'détection automatique',
+      sshVantaPathTitle: 'Chemin Vanta (facultatif)',
+      sshVantaPathDesc: 'Chemin complet vers le binaire Vanta distant. Vide = détection automatique.',
+      sshVantaPathPlaceholder: 'détection automatique',
       sshTestConnection: 'Tester SSH',
       sshConnect: 'Se connecter',
       sshButtonsHint: "Enregistrer s'applique au prochain lancement. Connecter se reconnecte immédiatement.",
@@ -2364,10 +2364,10 @@ export const frOverrides = {
       activeBackend: 'Actif',
       activeBackendHint: "Il s'agit de votre backend actif",
       useBackend: 'Utiliser ce backend',
-      nousAuthSignIn: 'Se connecter',
-      nousAuthDoneMessage: "Vos backends d'abonnement sont maintenant actifs.",
-      nousAuthFailedMessage: 'Réessayez.',
-      nousAuthTryAgain: 'Réessayer',
+      vantaAuthSignIn: 'Se connecter',
+      vantaAuthDoneMessage: "Vos backends d'abonnement sont maintenant actifs.",
+      vantaAuthFailedMessage: 'Réessayez.',
+      vantaAuthTryAgain: 'Réessayer',
       noApiKeyRequired: 'Aucune clé API requise.',
       postSetupHint: step =>
         `Ce backend nécessite une installation unique (${step}). S'exécute sur cette machine — peut prendre quelques minutes.`,
@@ -2548,7 +2548,7 @@ export const frOverrides = {
       serverStates: {
         connected: 'connecté',
         app_not_running: 'application non lancée',
-        hermes_not_connected: 'connexion MCP manquante',
+        vanta_not_connected: 'connexion MCP manquante',
         endpoint_unavailable: 'point de terminaison indisponible',
         no_interactive_session: 'aucune session interactive',
         version_too_old: 'version trop ancienne',
@@ -2870,7 +2870,7 @@ export const frOverrides = {
     noSessions: 'Aucune session pour le moment.',
     gatewayRunning: 'Gateway de messagerie en cours',
     gatewayStopped: 'Gateway de messagerie arrêté',
-    hermesActiveSessions: (version, count) => `Vanta ${version} · Sessions actives ${count}`,
+    vantaActiveSessions: (version, count) => `Vanta ${version} · Sessions actives ${count}`,
     restartGateway: 'Redémarrer le gateway',
     openBrowser: 'Basculer le navigateur',
     toggleBrowser: 'Basculer le navigateur',
@@ -2879,7 +2879,7 @@ export const frOverrides = {
     sharedGatewayRestartDescription: bots => `Tous les bots de cet appareil se reconnecteront : ${bots}`,
     sharedGatewayRestartConfirm: 'Tout redémarrer',
     sharedGatewayRestarted: count => `Gateway partagé redémarré (${count} ${count === 1 ? 'bot' : 'bots'})`,
-    updateHermes: 'Mettre à jour Vanta',
+    updateVanta: 'Mettre à jour Vanta',
     reloadWindow: 'Recharger la fenêtre',
     actionRunning: 'en cours',
     actionDone: 'terminé',
@@ -3784,7 +3784,7 @@ export const frOverrides = {
     placeholderReconnecting: 'Reconnexion à Vanta…',
     placeholderFollowUp: 'Envoyer un suivi',
     newSessionPlaceholders: [
-      'Sur quoi travaillons-nous ?',
+      'Sur quoi travaillons-vanta ?',
       'Donnez une tâche à Vanta',
       "Qu'avez-vous en tête ?",
       'Décrivez ce dont vous avez besoin',
@@ -5141,8 +5141,8 @@ export const frOverrides = {
       errorChooseModel: 'Choisir un modèle',
       errorCompressConversation: 'Compresser la conversation',
       errorCompressFailed: 'Impossible de compresser la conversation',
-      errorOpenHermesFolder: 'Ouvrir le dossier Vanta',
-      errorOpenHermesFolderFailed: "Impossible d'ouvrir le dossier Vanta",
+      errorOpenVantaFolder: 'Ouvrir le dossier Vanta',
+      errorOpenVantaFolderFailed: "Impossible d'ouvrir le dossier Vanta",
       errorUpdateApiKey: 'Mettre à jour la clé API',
       errorSignInAgain: provider => `Se reconnecter à ${provider}`,
       errorOauthExpired: provider =>

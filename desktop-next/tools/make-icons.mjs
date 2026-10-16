@@ -90,7 +90,7 @@ for (const dir of [out("assets", "appx"), out("build", "appx")]) {
 }
 
 // DMG background: a 2x image tagged 144 dpi so it displays at the 660x400 window size.
-fs.rmSync(out("packaging", "nous-dmg-2b.tiff"), { force: true });
+fs.rmSync(out("packaging", "vanta-dmg-2b.tiff"), { force: true });
 magick(path.join(work, "dmg.png"), "-resize", "1320x800!", "-units", "PixelsPerInch", "-density", 144, out("packaging", "vanta-dmg-background.tiff"));
 
 fs.rmSync(work, { recursive: true, force: true });

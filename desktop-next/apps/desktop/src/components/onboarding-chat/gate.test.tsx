@@ -1,4 +1,4 @@
-import type { OnboardingStateResult } from '@hermes/shared'
+import type { OnboardingStateResult } from '@vanta/shared'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -27,12 +27,12 @@ const unseenFirstRun = async <T,>(method: string): Promise<T> => {
 const neverKicksOff = () => new Promise<never>(() => {})
 
 beforeEach(() => {
-  Object.assign(window, { hermesDesktop: { guestOnboardingEnabled: true } })
+  Object.assign(window, { desktopBridge: { guestOnboardingEnabled: true } })
 })
 
 afterEach(() => {
   cleanup()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
 })
 
 describe('OnboardingChatGate', () => {

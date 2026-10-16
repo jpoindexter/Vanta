@@ -125,7 +125,7 @@ function isOppositeScheme(textLuma: number, mode: RenderedMode): boolean {
 }
 
 function renderedMode(doc: Document): RenderedMode {
-  const attr = doc.documentElement.dataset.hermesMode
+  const attr = doc.documentElement.dataset.vantaMode
 
   if (attr === 'light' || attr === 'dark') {
     return attr

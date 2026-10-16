@@ -2,11 +2,11 @@ import { useStore } from '@nanostores/react'
 
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { TabDropdown } from '@/components/ui/tab-dropdown'
-import type { HermesReviewScope } from '@/global'
+import type { VantaReviewScope } from '@/global'
 import { useI18n } from '@/i18n'
 import { $reviewScope, clearReviewSelection, refreshReview } from '@/store/review'
 
-function selectScope(id: HermesReviewScope) {
+function selectScope(id: VantaReviewScope) {
   $reviewScope.set(id)
   clearReviewSelection()
   void refreshReview()
@@ -21,7 +21,7 @@ export function ReviewScopeRow() {
   const c = t.statusStack.coding
   const scope = useStore($reviewScope)
 
-  const options: { id: HermesReviewScope; label: string }[] = [
+  const options: { id: VantaReviewScope; label: string }[] = [
     { id: 'uncommitted', label: c.scopeUncommitted },
     { id: 'branch', label: c.scopeBranch },
     { id: 'lastTurn', label: c.scopeLastTurn }
@@ -29,7 +29,7 @@ export function ReviewScopeRow() {
 
   return (
     <div className="@container shrink-0 px-2 pb-1.5" data-suppress-pane-reveal-side="">
-      <SegmentedControl<HermesReviewScope>
+      <SegmentedControl<VantaReviewScope>
         className="hidden w-full auto-cols-[minmax(0,auto)] @[13.5rem]:grid [&>button]:px-2"
         onChange={selectScope}
         options={options}

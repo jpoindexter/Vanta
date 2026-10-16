@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/desktop-api'
 import { translateNow } from '@/i18n'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { notify } from '@/store/notifications'
@@ -20,7 +20,6 @@ import {
   retryableAccount
 } from './data/account-operations'
 import type { WriteOutcome } from './data/mutations'
-import { openConnectorsAdmin } from './data/portal'
 import { type HostedConnectorsView, useConnectorTools } from './data/queries'
 import { localServerName } from './derive'
 import { ConnectorDialogMenu } from './dialog-menu'
@@ -176,7 +175,6 @@ export function HostedConnectorDialog({
       onDisconnect={onDisconnect}
       onEscape={accountList.cancelEdit}
       onInstall={onInstall}
-      onOpenAdmin={() => void openConnectorsAdmin()}
       onOpenChange={next => {
         if (!next) {
           if (operation?.settled) {

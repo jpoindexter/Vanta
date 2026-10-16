@@ -4,18 +4,18 @@ import { runFreeTierChallenge } from './free-tier-challenge'
 
 const challenge = {
   type: 'browser',
-  url: 'https://portal.nousresearch.com/challenge?code=abc',
+  url: 'https://vanta.invalid/account',
   required: true,
   expires_in: 600,
   message: 'A quick check first.'
 }
 
 function installBridge(run: (request: unknown) => Promise<string>) {
-  ;(window as unknown as { hermesDesktop?: unknown }).hermesDesktop = { freeTierChallenge: { run } }
+  ;(window as unknown as { desktopBridge?: unknown }).desktopBridge = { freeTierChallenge: { run } }
 }
 
 afterEach(() => {
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { desktopBridge?: unknown }).desktopBridge
 })
 
 describe('runFreeTierChallenge', () => {

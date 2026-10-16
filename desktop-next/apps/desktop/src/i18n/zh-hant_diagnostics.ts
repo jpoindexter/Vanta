@@ -19,7 +19,7 @@ export const zhHantDiagnostics = {
     desktopOutOfDateMessage: '此 Vanta 應用程式早於所連接的後端，可能無法正常運作。請更新應用程式以保持一致。',
     updateDesktopApp: '更新應用程式',
     installMethodUnsupportedTitle: '不受支援的安裝方式',
-    updateHermes: '更新 Vanta',
+    updateVanta: '更新 Vanta',
     updateReadyTitle: '有可用更新',
     updateReadyMessage: count => `有 ${count} 項新變更可用。`,
     updateReadyMessageUnknown: '有新更新可用。',

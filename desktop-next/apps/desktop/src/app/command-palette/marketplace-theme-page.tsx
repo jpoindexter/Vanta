@@ -41,7 +41,7 @@ export function MarketplaceThemePage({ search, onPickTheme }: MarketplaceThemePa
 
   const query = useQuery({
     queryKey: ['marketplace-themes', debouncedSearch],
-    queryFn: () => window.hermesDesktop?.themes?.searchMarketplace(debouncedSearch) ?? Promise.resolve([]),
+    queryFn: () => window.desktopBridge?.themes?.searchMarketplace(debouncedSearch) ?? Promise.resolve([]),
     staleTime: 5 * 60 * 1000
   })
 
@@ -95,7 +95,7 @@ export function MarketplaceThemePage({ search, onPickTheme }: MarketplaceThemePa
 
   return (
     <div role="listbox">
-      {installError && <p className="px-2 pb-1 pt-1.5 text-[0.75rem] text-(--ui-red)">{installError}</p>}
+      {installError && <p className="px-2 pb-1 pt-1.5 text-meta text-(--ui-red)">{installError}</p>}
       {results.map(item => {
         const busy = installingId === item.extensionId
         const done = installs.has(item.extensionId)
@@ -117,12 +117,12 @@ export function MarketplaceThemePage({ search, onPickTheme }: MarketplaceThemePa
             <Palette className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
             <span className="flex min-w-0 flex-col">
               <span className="truncate font-medium">{item.displayName}</span>
-              <span className="truncate text-[0.75rem] text-muted-foreground/80">
+              <span className="truncate text-meta text-muted-foreground/80">
                 {item.publisher}
                 {item.installs > 0 ? ` · ${copy.installs(compactNumber.format(item.installs))}` : ''}
               </span>
             </span>
-            <span className="ml-auto mt-0.5 flex shrink-0 items-center gap-1 text-[0.75rem] text-muted-foreground">
+            <span className="ml-auto mt-0.5 flex shrink-0 items-center gap-1 text-meta text-muted-foreground">
               {busy ? (
                 <>
                   <Loader2 className="size-3 animate-spin" />

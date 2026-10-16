@@ -11,13 +11,13 @@ export const deBoot = {
       loadingSessions: 'Letzte Sessions werden geladen',
       retryingRemoteBackend: 'Wird mit dem Remote-Vanta-Backend neu verbunden…',
       startingDesktopConnection: 'Desktop-Verbindung wird gestartet',
-      startingHermesDesktop: 'Vanta Desktop wird gestartet…'
+      startingDesktopBridge: 'Vanta Desktop wird gestartet…'
     },
     errors: {
       backgroundExited: 'Der Vanta-Hintergrundprozess wurde beendet.',
       backgroundExitedDuringStartup: 'Der Vanta-Hintergrundprozess wurde während des Starts beendet.',
       backendStopped: 'Backend gestoppt',
-      restartHermes: 'Vanta neu starten',
+      restartVanta: 'Vanta neu starten',
       openLogs: 'Logs öffnen',
       desktopBootFailed: 'Desktop-Start fehlgeschlagen',
       gatewayConnectionLost: 'Verbindung zum Gateway verloren',

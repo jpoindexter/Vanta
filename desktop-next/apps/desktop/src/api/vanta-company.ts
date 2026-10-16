@@ -1,4 +1,4 @@
-import type { VantaHttpMethod, VantaResult, VantaTransport } from '@hermes/shared/vanta'
+import type { VantaHttpMethod, VantaResult, VantaTransport } from '@vanta/shared/vanta'
 import { z } from 'zod'
 
 import { bridgeTransport, hasVantaBridge } from './vanta/bridge-transport'

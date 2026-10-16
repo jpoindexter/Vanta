@@ -81,7 +81,7 @@ function TreeThumbnail({ node, resting }: { node: LayoutNode; resting: ReadonlyS
 /** Small-caps section heading — the app's SidebarPanelLabel voice. */
 function PickerSectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-(--ui-text-quaternary)">
+    <span className="text-meta font-semibold uppercase tracking-[0.16em] text-(--ui-text-quaternary)">
       {children}
     </span>
   )
@@ -109,7 +109,7 @@ function PresetCard({ preset }: { preset: Contribution }) {
           <TreeThumbnail node={tree} resting={layoutPresetResting(preset.id)} />
         </div>
         <span
-          className={cn('truncate text-[0.75rem] font-medium', active ? 'text-foreground' : 'text-muted-foreground/80')}
+          className={cn('truncate text-meta font-medium', active ? 'text-foreground' : 'text-muted-foreground/80')}
         >
           {preset.title ?? preset.id}
         </span>
@@ -150,10 +150,10 @@ function ModeCard({ mode }: { mode: InterfaceMode }) {
       onClick={() => setInterfaceMode(mode)}
       type="button"
     >
-      <span className={cn('text-[0.75rem] font-medium', active ? 'text-foreground' : 'text-muted-foreground/80')}>
+      <span className={cn('text-meta font-medium', active ? 'text-foreground' : 'text-muted-foreground/80')}>
         {copy.label}
       </span>
-      <span className="text-[0.75rem] leading-snug text-(--ui-text-tertiary)">{copy.description}</span>
+      <span className="text-meta leading-snug text-(--ui-text-tertiary)">{copy.description}</span>
     </button>
   )
 }
@@ -193,7 +193,7 @@ export function LayoutPicker() {
             <ModeCard key={mode} mode={mode} />
           ))}
         </div>
-        <p className="text-[0.75rem] text-(--ui-text-quaternary)">{t.interfaceMode.hint}</p>
+        <p className="text-meta text-(--ui-text-quaternary)">{t.interfaceMode.hint}</p>
       </section>
 
       <section className="flex flex-col gap-2">

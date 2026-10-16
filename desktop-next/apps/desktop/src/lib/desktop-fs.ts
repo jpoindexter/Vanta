@@ -1,16 +1,16 @@
-import { hermesApi } from '@/api/client'
+import { vantaApi } from '@/api/client'
 import type {
-  HermesConnection,
-  HermesReadDirResult,
-  HermesReadFileErrorResult,
-  HermesReadFileTextResult,
-  HermesSelectPathsOptions
+  VantaConnection,
+  VantaReadDirResult,
+  VantaReadFileErrorResult,
+  VantaReadFileTextResult,
+  VantaSelectPathsOptions
 } from '@/global'
 import { translateNow } from '@/i18n'
 import { $connection } from '@/store/session'
 
 export interface DesktopFsRemotePicker {
-  selectPaths: (options?: HermesSelectPathsOptions) => Promise<string[]>
+  selectPaths: (options?: VantaSelectPathsOptions) => Promise<string[]>
 }
 
 let remotePicker: DesktopFsRemotePicker | null = null
@@ -19,7 +19,7 @@ export function setDesktopFsRemotePicker(next: DesktopFsRemotePicker | null) {
   remotePicker = next
 }
 
-function connectionCacheKey(connection: HermesConnection | null) {
+function connectionCacheKey(connection: VantaConnection | null) {
   if (!connection) {
     return 'local:'
   }
@@ -39,7 +39,7 @@ function connectionCacheKey(connection: HermesConnection | null) {
   return `${connection.mode || 'local'}:${connection.remoteKind || ''}:${connection.profile || ''}:${target}`
 }
 
-export function desktopFsCacheKey(connection: HermesConnection | null = $connection.get()) {
+export function desktopFsCacheKey(connection: VantaConnection | null = $connection.get()) {
   return connectionCacheKey(connection)
 }
 
@@ -58,7 +58,7 @@ function fsPath(endpoint: string, filePath: string) {
 }
 
 function bridge() {
-  const desktop = window.hermesDesktop
+  const desktop = window.desktopBridge
 
   if (!desktop) {
     throw new Error('Vanta bridge is unavailable')
@@ -68,7 +68,7 @@ function bridge() {
 }
 
 function remoteFsApi<T>(path: string, body?: Record<string, unknown>): Promise<T> {
-  return hermesApi<T>(
+  return vantaApi<T>(
     body ? { body, method: 'POST', path, profile: desktopFsProfile() } : { path, profile: desktopFsProfile() }
   )
 }
@@ -79,11 +79,11 @@ function remoteFsApi<T>(path: string, body?: Record<string, unknown>): Promise<T
  *  not spam Electron's console with a stack trace per probe). Callers that
  *  already try/catch their read get the same behavior as a rejection: throw
  *  with the original message. */
-export function isReadFileErrorResult(value: unknown): value is HermesReadFileErrorResult {
+export function isReadFileErrorResult(value: unknown): value is VantaReadFileErrorResult {
   return !!value && typeof value === 'object' && (value as { ok?: unknown }).ok === false
 }
 
-function throwForReadErrorResult(result: HermesReadFileErrorResult): never {
+function throwForReadErrorResult(result: VantaReadFileErrorResult): never {
   throw new DesktopFileMissingError(result)
 }
 
@@ -94,22 +94,22 @@ function throwForReadErrorResult(result: HermesReadFileErrorResult): never {
 export class DesktopFileMissingError extends Error {
   readonly code: string
 
-  constructor(result: HermesReadFileErrorResult) {
+  constructor(result: VantaReadFileErrorResult) {
     super(result.message || `File read failed: ${result.error}`)
     this.name = 'DesktopFileMissingError'
     this.code = result.error
   }
 }
 
-export async function readDesktopDir(path: string): Promise<HermesReadDirResult> {
+export async function readDesktopDir(path: string): Promise<VantaReadDirResult> {
   if (!isDesktopFsRemoteMode()) {
     return bridge().readDir(path)
   }
 
-  return remoteFsApi<HermesReadDirResult>(fsPath('list', path))
+  return remoteFsApi<VantaReadDirResult>(fsPath('list', path))
 }
 
-export async function readDesktopFileText(path: string): Promise<HermesReadFileTextResult> {
+export async function readDesktopFileText(path: string): Promise<VantaReadFileTextResult> {
   if (!isDesktopFsRemoteMode()) {
     const result = await bridge().readFileText(path)
 
@@ -120,7 +120,7 @@ export async function readDesktopFileText(path: string): Promise<HermesReadFileT
     return result
   }
 
-  return remoteFsApi<HermesReadFileTextResult>(fsPath('read-text', path))
+  return remoteFsApi<VantaReadFileTextResult>(fsPath('read-text', path))
 }
 
 // Save UTF-8 text back to a file. Local writes go through the hardened Electron
@@ -174,7 +174,7 @@ export async function readDesktopFileDataUrl(path: string): Promise<string> {
  */
 export async function readDesktopFileDataUrlLocalFirst(path: string): Promise<string> {
   try {
-    const local = await window.hermesDesktop?.readFileDataUrl?.(path)
+    const local = await window.desktopBridge?.readFileDataUrl?.(path)
 
     if (local && !isReadFileErrorResult(local)) {
       return local
@@ -267,7 +267,7 @@ export async function desktopFileDiff(repoRoot: string, filePath: string): Promi
   return git?.fileDiff ? git.fileDiff(repoRoot, filePath) : ''
 }
 
-export async function selectDesktopPaths(options?: HermesSelectPathsOptions): Promise<string[]> {
+export async function selectDesktopPaths(options?: VantaSelectPathsOptions): Promise<string[]> {
   const desktop = bridge()
   const profile = desktopFsProfile()
   const localOptions = profile ? { ...options, profile } : options

@@ -22,10 +22,11 @@ interface LogTailProps {
 
 // A hairline in the gutter, not a tint on the text: the level word is already
 // in the line, this only makes warnings and errors findable at a glance.
-const SEVERITY_RULE: Record<LogSeverity, string> = {
-  critical: 'before:bg-destructive',
-  error: 'before:bg-destructive',
-  warning: 'before:bg-(--ui-yellow)'
+// Severity colours the line's text; a coloured bar hung off the left edge is decoration, not information.
+const SEVERITY_TEXT: Record<LogSeverity, string> = {
+  critical: 'text-destructive',
+  error: 'text-destructive',
+  warning: 'text-(--ui-yellow)'
 }
 
 const HOVER_CONTROL =
@@ -131,7 +132,7 @@ export function LogTail({ className, emptyLabel, lines, search }: LogTailProps) 
         ref={scrollRef}
       >
         {lines === null || lines.length === 0 ? (
-          <p className="px-2 py-1.5 font-mono text-[0.75rem] leading-relaxed text-muted-foreground/50">
+          <p className="px-2 py-1.5 font-mono text-meta leading-relaxed text-muted-foreground/50">
             {lines === null ? '…' : emptyLabel}
           </p>
         ) : (
@@ -146,11 +147,7 @@ export function LogTail({ className, emptyLabel, lines, search }: LogTailProps) 
                     className={cn(
                       'block',
                       line.startsWith('=====') && 'mt-1 text-(--ui-text-tertiary)',
-                      severity &&
-                        cn(
-                          'relative before:absolute before:-left-1.5 before:inset-y-0 before:w-0.5 before:rounded-full',
-                          SEVERITY_RULE[severity]
-                        )
+                      severity && SEVERITY_TEXT[severity]
                     )}
                     data-log-severity={severity ?? undefined}
                     key={index}

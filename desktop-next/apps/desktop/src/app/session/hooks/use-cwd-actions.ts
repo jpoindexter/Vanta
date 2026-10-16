@@ -10,7 +10,7 @@ import {
   setCurrentCwdExplicit,
   setNewChatWorkspaceTarget
 } from '@/store/session'
-import type { SessionRuntimeInfo } from '@/types/hermes'
+import type { SessionRuntimeInfo } from '@/types/desktop'
 
 interface CwdActionsOptions {
   activeSessionIdRef: MutableRefObject<string | null>

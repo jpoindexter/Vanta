@@ -35,6 +35,27 @@ describe("Memory Graph data", () => {
     expect(graph.edges).toEqual([]);
   });
 
+  it("gives each skill node the time it was last changed, in seconds", async () => {
+    await writeSkill({ name: "Dated skill", description: "d", body: "b" }, { env: process.env });
+    const before = Math.floor(Date.now() / 1000) - 5;
+
+    const node = ((await h.get("/api/learning/graph")).body as Graph).nodes.find((n) => n.id === "skill:Dated skill");
+
+    expect(typeof node?.timestamp).toBe("number");
+    expect(node?.timestamp as number).toBeGreaterThanOrEqual(before);
+    expect(node?.timestamp as number).toBeLessThanOrEqual(Math.floor(Date.now() / 1000) + 5);
+  });
+
+  it("reads a skill by its bare name, as the Skills tab asks", async () => {
+    await writeSkill({ name: "Bare read", description: "d", body: "the body" }, { env: process.env });
+
+    const res = await h.get("/api/learning/node?id=Bare%20read");
+
+    expect(res.body).toMatchObject({ ok: true, kind: "skill", label: "Bare read" });
+    expect(String((res.body as { content: string }).content)).toContain("the body");
+    expect((await h.get("/api/learning/node?id=")).status).toBe(400);
+  });
+
   it("is empty, not an error, for a fresh home", async () => {
     const graph = (await h.get("/api/learning/graph")).body as Graph;
 
@@ -63,7 +84,7 @@ describe("Memory Graph data", () => {
   it("refuses ids that could leave the memories folder and names unknown ones", async () => {
     expect((await h.get("/api/learning/node?id=memory%3A..%2F..%2Fsettings.json")).status).toBe(400);
     expect((await h.get("/api/learning/node?id=memory%3A..%2Fsecret.md")).status).toBe(400);
-    expect((await h.get("/api/learning/node?id=nothing")).status).toBe(400);
+    expect((await h.get("/api/learning/node?id=nothing")).status).toBe(404); // a bare name is a skill name
     expect((await h.get("/api/learning/node?id=skill%3Amissing")).status).toBe(404);
     expect((await h.get("/api/learning/node?id=memory%3A9.md")).status).toBe(404);
   });

@@ -34,7 +34,7 @@ export function versionInfo(appVersion: string, versions: NodeJS.ProcessVersions
     channel: null,
     distribution: 'desktop-app' as const,
     electronVersion: versions.electron ?? '',
-    hermesRoot: '',
+    vantaRoot: '',
     nodeVersion: versions.node,
     platform,
     source: 'build' as const

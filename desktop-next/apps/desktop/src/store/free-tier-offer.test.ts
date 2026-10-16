@@ -4,14 +4,14 @@ import { $freeTierStatus, type FreeTierRequester } from '@/store/free-tier'
 import { $freeTierSignIn, closeFreeTierSignIn, stopFreeTierOffer, syncFreeTierOffer } from '@/store/free-tier-sign-in'
 import { activeGatewayProfileKey, ensureGatewayForProfile } from '@/store/gateway'
 import { $onboardingGate } from '@/store/onboarding-gate'
-import type { FreeTierStatus } from '@/types/hermes'
+import type { FreeTierStatus } from '@/types/desktop'
 
 const status = (nudge_due_in: null | number, available = true): FreeTierStatus => ({
   available,
   enabled: true,
   has_guest: available,
-  label: 'Nous · free tier',
-  model: 'nous/welcome',
+  label: 'Vanta · free tier',
+  model: 'vanta/welcome',
   notice_pending: false,
   nudge_due_in
 })
@@ -61,7 +61,7 @@ afterEach(() => {
   closeFreeTierSignIn()
   $freeTierStatus.set(null)
   $onboardingGate.set({ guideKickoff: 'idle', guideQueued: false, phase: 'idle' })
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
   vi.useRealTimers()
 })
 
@@ -106,7 +106,7 @@ describe('sign-in offer after a finished task', () => {
   it('does not claim while guided onboarding is on screen, the dialog is open, or off the free tier', async () => {
     const requestGateway = gateway({ statuses: [status(0)] })
 
-    Object.assign(window, { hermesDesktop: { guestOnboardingEnabled: true } })
+    Object.assign(window, { desktopBridge: { guestOnboardingEnabled: true } })
     $onboardingGate.set({ guideKickoff: 'started', guideQueued: false, phase: 'guided' })
     syncFreeTierOffer(status(0), requestGateway)
     await vi.advanceTimersByTimeAsync(0)

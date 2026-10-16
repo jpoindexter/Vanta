@@ -29,8 +29,8 @@ function failBoot() {
 }
 
 function stubDesktop(config: Record<string, unknown>, overrides: Record<string, unknown> = {}) {
-  const original = window.hermesDesktop
-  Object.defineProperty(window, 'hermesDesktop', {
+  const original = window.desktopBridge
+  Object.defineProperty(window, 'desktopBridge', {
     configurable: true,
     value: {
       getRecentLogs: async () => ({ lines: [] }),
@@ -51,7 +51,7 @@ function stubDesktop(config: Record<string, unknown>, overrides: Record<string, 
     }
   })
 
-  return () => Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: original })
+  return () => Object.defineProperty(window, 'desktopBridge', { configurable: true, value: original })
 }
 
 const remoteToken = {
@@ -247,14 +247,14 @@ describe('BootFailureOverlay', () => {
   })
 
   it('recovers a cloud connection through the portal cascade instead of native OAuth', async () => {
-    const gatewayUrl = 'https://agent-1.agents.nousresearch.com'
+    const gatewayUrl = 'https://agent-1.agents.vanta.com'
     const logout = vi.fn().mockResolvedValue({ ok: true, connected: false })
     const nativeLogin = vi.fn().mockResolvedValue({ ok: true, connected: false })
-    const cloudStatus = vi.fn().mockResolvedValue({ portalBaseUrl: 'https://portal.nousresearch.com', signedIn: false })
+    const cloudStatus = vi.fn().mockResolvedValue({ portalBaseUrl: 'https://vanta.invalid/account', signedIn: false })
 
     const cloudLogin = vi.fn().mockResolvedValue({
       ok: true,
-      portalBaseUrl: 'https://portal.nousresearch.com',
+      portalBaseUrl: 'https://vanta.invalid/account',
       signedIn: true
     })
 
@@ -273,7 +273,7 @@ describe('BootFailureOverlay', () => {
         cloud: { status: cloudStatus, login: cloudLogin, agentSignIn: cloudAgentSignIn },
         oauthLoginConnectionConfig: nativeLogin,
         oauthLogoutConnectionConfig: logout,
-        probeConnectionConfig: vi.fn().mockResolvedValue({ providers: [{ id: 'nous', type: 'oauth' }] })
+        probeConnectionConfig: vi.fn().mockResolvedValue({ providers: [{ id: 'vanta', type: 'oauth' }] })
       }
     )
 

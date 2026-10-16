@@ -22,7 +22,7 @@ describe("parseDeepLink", () => {
     ["a plugin install, which would run code", "vanta://plugin/install?repo=https://evil.example/x.git"],
     ["a skill install", "vanta://skill/install?identifier=evil"],
     ["an MCP install", "vanta://mcp/install?name=evil"],
-    ["another scheme", "hermes://session/abc"],
+    ["another scheme", "other://session/abc"],
     ["http", "https://session/abc"],
     ["javascript", "javascript:alert(1)"],
     ["a kind that is not a word", "vanta://SESSION%00/abc"],

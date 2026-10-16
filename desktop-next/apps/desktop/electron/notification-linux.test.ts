@@ -4,10 +4,11 @@ import type { Message } from 'dbus-native'
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import type { HermesNotification } from './notification-types'
+import type { VantaNotification } from './notification-types'
 
 const host = vi.hoisted(() => ({ handle: vi.fn(), fromWebContents: vi.fn(), createClient: vi.fn() }))
 vi.mock('electron', () => ({
+  app: { getName: () => 'Vanta' },
   BrowserWindow: { fromWebContents: host.fromWebContents },
   ipcMain: { handle: host.handle },
   Notification: class extends EventEmitter {
@@ -154,7 +155,7 @@ function setup(alreadyRunning = false) {
     platform: 'linux'
   })
 
-  const notify = (payload: HermesNotification) =>
+  const notify = (payload: VantaNotification) =>
     Promise.resolve(
       host.handle.mock.calls[0][1]({ sender: source.webContents } as unknown as IpcMainInvokeEvent, payload)
     )
@@ -247,7 +248,7 @@ it('bounds failed delivery without dropping older callbacks, and retries only on
   expect(await h.notify({ tag: 'cooldown' })).toBe(false)
   expect(h.calls).toHaveLength(attempts)
   h.signal('ActionInvoked', [oldId, 'default'])
-  expect(h.source.webContents.send).toHaveBeenCalledWith('hermes:focus-session', 'old-session')
+  expect(h.source.webContents.send).toHaveBeenCalledWith('desktop:focus-session', 'old-session')
   const afterConsumption = h.calls.length
   await vi.advanceTimersByTimeAsync(11000)
   expect(h.calls).toHaveLength(afterConsumption) // No automatic replay of an ambiguous Notify.
@@ -277,7 +278,7 @@ it('releases naturally closed notifications while retaining other click targets'
   expect(h.source.webContents.send).not.toHaveBeenCalled()
 
   h.signal('ActionInvoked', [activeId, 'default'])
-  expect(h.source.webContents.send).toHaveBeenCalledWith('hermes:focus-session', 'active-session')
+  expect(h.source.webContents.send).toHaveBeenCalledWith('desktop:focus-session', 'active-session')
   expect(vi.getTimerCount()).toBe(0)
   h.connection.emit('close')
 })
@@ -314,7 +315,7 @@ it('preserves activation, dedupe and source ownership while fencing daemon ID re
   expect(h.source.webContents.send).not.toHaveBeenCalled()
   h.fail('CloseNotification', 'org.freedesktop.DBus.Error.InvalidArgs')
   h.signal('ActionInvoked', [firstId, '1'])
-  expect(h.source.webContents.send).toHaveBeenCalledWith('hermes:notification-action', {
+  expect(h.source.webContents.send).toHaveBeenCalledWith('desktop:notification-action', {
     sessionId: 'runtime',
     actionId: 'reject'
   })
@@ -324,7 +325,7 @@ it('preserves activation, dedupe and source ownership while fencing daemon ID re
   const pluginId = h.lastId()
   h.source.isDestroyed.mockReturnValue(true)
   h.signal('ActionInvoked', [pluginId, 'default'])
-  expect(h.primary.webContents.send).toHaveBeenCalledWith('hermes:notification-activate', {
+  expect(h.primary.webContents.send).toHaveBeenCalledWith('desktop:notification-activate', {
     activate: '/plugin',
     notifyId: undefined,
     tag: 'plugin'
@@ -340,7 +341,7 @@ it('preserves activation, dedupe and source ownership while fencing daemon ID re
   reused.signal('ActionInvoked', [retainedId, 'default'], ':1.20')
   expect(reused.source.webContents.send).not.toHaveBeenCalled()
   reused.signal('ActionInvoked', [retainedId, 'default'])
-  expect(reused.source.webContents.send).toHaveBeenCalledWith('hermes:focus-session', 'new-session')
+  expect(reused.source.webContents.send).toHaveBeenCalledWith('desktop:focus-session', 'new-session')
 
   // Quit teardown closes the bus; a delivered notification's callbacks die with it.
   reused.dispose()

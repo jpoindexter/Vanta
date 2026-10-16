@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Slider } from '@/components/ui/slider'
-import { saveHermesConfig } from '@/hermes'
+import { saveVantaConfig } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Download, Loader2, Palette, Trash2 } from '@/lib/icons'
@@ -67,7 +67,7 @@ import { getBaseColors, useTheme } from '@/themes/context'
 import type { DesktopTheme } from '@/themes/types'
 import { isUserTheme, removeUserTheme } from '@/themes/user-themes'
 
-import { setHermesConfigCache, useHermesConfigRecord } from '../hooks/use-config-record'
+import { setVantaConfigCache, useVantaConfigRecord } from '../hooks/use-config-record'
 
 import { AppearanceExtraSlot } from './appearance-contrib'
 import type { AppearanceSubpageId } from './appearance-subpages'
@@ -88,7 +88,7 @@ import { useSettingDeepLink } from './use-setting-deep-link'
 function ResumeLastSessionSetting() {
   const { t } = useI18n()
   const a = t.settings.appearance
-  const configQuery = useHermesConfigRecord()
+  const configQuery = useVantaConfigRecord()
   const config = configQuery.data
   const writeScope = configQuery.writeScope
   const checked = (config?.display as { resume_last_session?: unknown } | undefined)?.resume_last_session !== false
@@ -99,17 +99,17 @@ function ResumeLastSessionSetting() {
     }
 
     const next = setNested(config, 'display.resume_last_session', on)
-    setHermesConfigCache(next)
+    setVantaConfigCache(next)
     // Sparse patch: PUT /api/config deep-merges, and echoing the cached
     // snapshot would overwrite keys other surfaces changed since it loaded.
-    void saveHermesConfig(setNested({}, 'display.resume_last_session', on), writeScope)
+    void saveVantaConfig(setNested({}, 'display.resume_last_session', on), writeScope)
       .then(result => {
         if (!result.ok) {
           throw new Error(t.settings.config.autosaveFailed)
         }
       })
       .catch(error => {
-        setHermesConfigCache(config)
+        setVantaConfigCache(config)
         notifyError(error, t.settings.config.autosaveFailed)
       })
   }

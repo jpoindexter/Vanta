@@ -1,5 +1,5 @@
 /**
- * The slash commands the Vanta adapter backs today. Hermes' catalog has ~100 entries that run in
+ * The slash commands the Vanta adapter backs today. Vanta' catalog has ~100 entries that run in
  * its Python gateway; offering those would promise behaviour Vanta does not have.
  */
 const PAIRS: string[][] = [

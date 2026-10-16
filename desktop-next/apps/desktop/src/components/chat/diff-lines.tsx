@@ -64,7 +64,7 @@ const PREVIEW_OVERSCAN_LINES = 400
 // the page (no scroll-trap); `overscroll-x-contain` keeps a trackpad's sideways
 // overscroll on long code lines from firing browser back/forward navigation.
 const DIFF_BOX_CLASS =
-  '-mx-1.5 -mb-1.5 max-h-[12rem] max-w-none min-w-0 overflow-auto overscroll-x-contain overscroll-y-auto font-mono text-[0.75rem] leading-relaxed text-(--ui-text-secondary)'
+  '-mx-1.5 -mb-1.5 max-h-[12rem] max-w-none min-w-0 overflow-auto overscroll-x-contain overscroll-y-auto font-mono text-meta leading-relaxed text-(--ui-text-secondary)'
 
 function diffKind(line: string): DiffKind {
   if (line.startsWith('+') && !line.startsWith('+++')) {

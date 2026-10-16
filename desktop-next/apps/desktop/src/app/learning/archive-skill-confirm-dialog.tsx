@@ -1,5 +1,5 @@
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { deleteLearningNode, type ProfileScope } from '@/hermes'
+import { deleteLearningNode, type ProfileScope } from '@/desktop-api'
 import { type Translations, useI18n } from '@/i18n'
 import { notify } from '@/store/notifications'
 

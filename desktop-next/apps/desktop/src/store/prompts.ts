@@ -90,7 +90,7 @@ export interface ApprovalRequest extends KeyedPrompt {
   command: string
   description: string
   requestId?: string
-  /** The server's exact-action request (headline, kind, tool); absent for Hermes-shaped prompts. */
+  /** The server's exact-action request (headline, kind, tool); absent for Vanta-shaped prompts. */
   request?: PermissionRequest
   serverRequestId?: string
   smartDenied?: boolean

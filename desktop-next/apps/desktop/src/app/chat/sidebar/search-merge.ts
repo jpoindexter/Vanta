@@ -1,4 +1,4 @@
-import { type SessionInfo, type SessionSearchResult } from '@/hermes'
+import { type SessionInfo, type SessionSearchResult } from '@/desktop-api'
 import { sessionMatchesSearch } from '@/lib/session-search'
 
 // FTS results cover sessions that aren't in the loaded page; synthesize a
@@ -6,7 +6,7 @@ import { sessionMatchesSearch } from '@/lib/session-search'
 // by id; the snippet stands in for the preview).
 
 // The backend's FTS layer wraps matched terms in literal '>>>' / '<<<'
-// highlight markers (sqlite snippet() delimiters — see hermes_state_search.py).
+// highlight markers (sqlite snippet() delimiters — see vanta_state_search.py).
 // The sidebar renders the snippet as plain text, so the markers must be
 // stripped or a search for "foo" paints rows titled ">>>foo<<<".
 // Exported for tests.

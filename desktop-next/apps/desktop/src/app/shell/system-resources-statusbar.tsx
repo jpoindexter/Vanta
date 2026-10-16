@@ -2,12 +2,12 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
 import type { StatusbarItem } from '@/app/shell/statusbar-controls'
-import { getLocalHardware } from '@/hermes'
+import { getLocalHardware } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Activity } from '@/lib/icons'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import { $statusbarHiddenIds } from '@/store/statusbar-prefs'
-import type { LocalHardware } from '@/types/hermes'
+import type { LocalHardware } from '@/types/desktop'
 
 // Live host-resource readout for the bottom bar: GPU utilization + VRAM +
 // RAM, fed by /api/local-models/hardware. Hidden by default (an item most
@@ -151,7 +151,7 @@ export function useSystemResourcesStatusbarItem(): StatusbarItem {
     menuAlign: 'end',
     menuClassName: 'w-64 p-0',
     menuContent: (
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 text-[0.75rem]" data-slot="system-resources-panel">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 text-meta" data-slot="system-resources-panel">
         {/* min-w-0 everywhere a flex/grid child must shrink: grid items
             default min-width:auto, so a long GPU name's nowrap min-content
             props the track open past the w-64 box and overflow-x:hidden
@@ -161,7 +161,7 @@ export function useSystemResourcesStatusbarItem(): StatusbarItem {
           <p className="shrink-0 font-medium text-foreground">{copy.title}</p>
 
           {hardware?.gpu_name && (
-            <span className="min-w-0 truncate text-[0.75rem] text-muted-foreground">{hardware.gpu_name}</span>
+            <span className="min-w-0 truncate text-meta text-muted-foreground">{hardware.gpu_name}</span>
           )}
         </div>
 
@@ -187,7 +187,7 @@ export function useSystemResourcesStatusbarItem(): StatusbarItem {
           value={`${gbLong(ramUsed)} / ${gbLong(hardware?.ram_total_bytes)}`}
         />
 
-        {hardware?.uma && <p className="text-[0.75rem] text-muted-foreground">{copy.unifiedNote}</p>}
+        {hardware?.uma && <p className="text-meta text-muted-foreground">{copy.unifiedNote}</p>}
       </div>
     ),
     toggleLabel: enabled ? copy.toggle : undefined,

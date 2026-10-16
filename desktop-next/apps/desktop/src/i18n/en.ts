@@ -185,7 +185,7 @@ export const en: Translations = {
       providedByPlugin: (plugin: string) => `Provided by plugin ${plugin}`,
       openPlugins: 'Open the Plugins tab',
       // Verbatim, by decision of the design of record.
-      nousLine: 'Managed apps follow your account, not the profile.',
+      vantaLine: 'Managed apps follow your account, not the profile.',
       rulesReadOnly: 'Rules cannot be changed right now.',
       rulesAppOff: (name: string) => `Turn ${name} on to change its tools.`,
       rulesSignIn: 'Sign in to change what Vanta may do here.',
@@ -401,7 +401,7 @@ export const en: Translations = {
       'This Vanta app is older than the backend it is connected to and may not work correctly. Update the app to align them.',
     updateDesktopApp: 'Update app',
     installMethodUnsupportedTitle: 'Unsupported install method',
-    updateHermes: 'Update Vanta',
+    updateVanta: 'Update Vanta',
     updateReadyTitle: 'Update ready',
     updateReadyMessage: count => `${count} new change${count === 1 ? '' : 's'} available.`,
     updateReadyMessageUnknown: 'A new update is available.',
@@ -433,10 +433,10 @@ export const en: Translations = {
       codeSkewRestartRequired:
         'Vanta was updated but is still running the old version. Restart it to finish the update.',
       rpcOutOfSync: 'The app and the backend are on different versions. Update both.',
-      restartHermesFailed: "Couldn't restart Vanta"
+      restartVantaFailed: "Couldn't restart Vanta"
     },
     actions: {
-      restartHermes: 'Restart Vanta',
+      restartVanta: 'Restart Vanta',
       openKeys: 'Open Keys',
       openGateways: 'Open Gateways',
       openMaintenance: 'Open Maintenance'
@@ -1522,9 +1522,9 @@ export const en: Translations = {
       sshPortDesc: 'Blank = 22 or the ~/.ssh/config port.',
       sshKeyTitle: 'Identity file',
       sshKeyDesc: 'Private key path. Blank = ssh-agent or ~/.ssh/config.',
-      sshHermesPathTitle: 'Vanta path (optional)',
-      sshHermesPathDesc: 'Full path to the remote vanta binary. Blank = auto-detect.',
-      sshHermesPathPlaceholder: 'auto-detect',
+      sshVantaPathTitle: 'Vanta path (optional)',
+      sshVantaPathDesc: 'Full path to the remote vanta binary. Blank = auto-detect.',
+      sshVantaPathPlaceholder: 'auto-detect',
       sshTestConnection: 'Test SSH',
       sshConnect: 'Connect',
       sshButtonsHint: 'Save applies on the next launch. Connect reconnects now.',
@@ -2022,16 +2022,16 @@ export const en: Translations = {
       activeBackend: 'Active',
       activeBackendHint: 'This is your active backend',
       useBackend: 'Use this backend',
-      nousIncluded: 'Included with a subscription — sign in with your account to activate.',
-      nousAuthNeededTitle: 'Sign in with your account',
-      nousAuthNeededMessage: provider =>
+      vantaIncluded: 'Included with a subscription — sign in with your account to activate.',
+      vantaAuthNeededTitle: 'Sign in with your account',
+      vantaAuthNeededMessage: provider =>
         `${provider} is saved but will only work once you sign in with your account.`,
-      nousAuthSignIn: 'Sign in',
-      nousAuthDoneTitle: 'Account connected',
-      nousAuthDoneMessage: 'Your subscription backends are now active.',
-      nousAuthFailed: 'Sign-in did not complete',
-      nousAuthFailedMessage: 'Try again.',
-      nousAuthTryAgain: 'Try again',
+      vantaAuthSignIn: 'Sign in',
+      vantaAuthDoneTitle: 'Account connected',
+      vantaAuthDoneMessage: 'Your subscription backends are now active.',
+      vantaAuthFailed: 'Sign-in did not complete',
+      vantaAuthFailedMessage: 'Try again.',
+      vantaAuthTryAgain: 'Try again',
       noApiKeyRequired: 'No API key required.',
       postSetupHint: step =>
         `This backend needs a one-time install (${step}). Runs on this machine — may take a few minutes.`,
@@ -2221,7 +2221,7 @@ export const en: Translations = {
       serverStates: {
         connected: 'connected',
         app_not_running: 'app not running',
-        hermes_not_connected: 'MCP connection missing',
+        vanta_not_connected: 'MCP connection missing',
         endpoint_unavailable: 'endpoint unavailable',
         no_interactive_session: 'no interactive session',
         version_too_old: 'version too old',
@@ -2514,7 +2514,7 @@ export const en: Translations = {
     noSessions: 'No sessions yet.',
     gatewayRunning: 'Messaging gateway running',
     gatewayStopped: 'Messaging gateway stopped',
-    hermesActiveSessions: (version, count) => `Vanta ${version} · Active sessions ${count}`,
+    vantaActiveSessions: (version, count) => `Vanta ${version} · Active sessions ${count}`,
     restartGateway: 'Restart gateway',
     openBrowser: 'Toggle browser',
     toggleBrowser: 'Toggle browser',
@@ -2523,7 +2523,7 @@ export const en: Translations = {
     sharedGatewayRestartDescription: bots => `All bots on this device reconnect: ${bots}`,
     sharedGatewayRestartConfirm: 'Restart all',
     sharedGatewayRestarted: count => `Shared gateway restarted (${count} ${count === 1 ? 'bot' : 'bots'})`,
-    updateHermes: 'Update Vanta',
+    updateVanta: 'Update Vanta',
     reloadWindow: 'Reload window',
     actionRunning: 'running',
     actionDone: 'done',
@@ -4714,7 +4714,7 @@ export const en: Translations = {
           title: 'Disk full',
           body: 'Your disk is full, so Vanta could not save this conversation. Free some space, then retry.'
         },
-        // Nous free tier. The body is normally the backend's own sentence (it names the wait
+        // Vanta free tier. The body is normally the backend's own sentence (it names the wait
         // and the way forward); these bodies stand in for an older backend that sent none.
         free_tier_disabled: {
           title: 'Using Vanta without signing in is switched off right now',
@@ -4767,8 +4767,8 @@ export const en: Translations = {
       errorChooseModel: 'Choose a model',
       errorCompressConversation: 'Compress conversation',
       errorCompressFailed: 'Could not compress the conversation',
-      errorOpenHermesFolder: 'Open Vanta folder',
-      errorOpenHermesFolderFailed: 'Could not open the Vanta folder',
+      errorOpenVantaFolder: 'Open Vanta folder',
+      errorOpenVantaFolderFailed: 'Could not open the Vanta folder',
       errorUpdateApiKey: 'Update API key',
       errorSignInAgain: provider => `Sign in to ${provider} again`,
       errorSignInFreeTier: 'Sign in with an account',

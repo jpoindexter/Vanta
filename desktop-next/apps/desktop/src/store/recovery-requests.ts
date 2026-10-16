@@ -27,6 +27,16 @@ export function requestRoute(path: string): void {
   $routeRequest.set({ seq: routeSeq, path })
 }
 
+/**
+ * True from an unexpected server exit until it is restarted. The gateway link is plain HTTP, so its connection state
+ * stays "open" after the server dies; this is what lets the status bar say so.
+ */
+export const $backendStopped = atom(false)
+
+export function setBackendStopped(stopped: boolean): void {
+  $backendStopped.set(stopped)
+}
+
 /** Restart the local Vanta service for the profile currently in view. */
 export const $backendRestartRequest = atom(0)
 

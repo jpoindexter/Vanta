@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { getMessagingPlatforms, testMessagingPlatform, updateMessagingPlatform } from '@/api/messaging'
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
 const ADAPTERS = [
@@ -30,7 +30,7 @@ const ADAPTERS = [
 ]
 
 describe('Connections reads and saves messaging platforms through the Vanta routes', () => {
-  let calls: HermesApiRequest[]
+  let calls: VantaApiRequest[]
 
   beforeEach(() => {
     calls = []
@@ -52,7 +52,7 @@ describe('Connections reads and saves messaging platforms through the Vanta rout
   })
 
   afterEach(() => {
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { desktopBridge?: unknown }).desktopBridge
     delete (window as { vantaDesktop?: unknown }).vantaDesktop
   })
 

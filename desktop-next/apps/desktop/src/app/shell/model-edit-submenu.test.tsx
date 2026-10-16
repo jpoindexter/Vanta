@@ -137,7 +137,7 @@ describe('ModelEditSubmenu reports edits without performing them', () => {
     expect(screen.getAllByRole('menuitemradio').map(item => item.textContent)).toEqual(['Low', 'Medium', 'High'])
   })
 
-  it('keeps every level when the backend does not say (Hermes behaviour)', () => {
+  it('keeps every level when the backend does not say (Vanta behaviour)', () => {
     renderSubmenu({ fastControl: { kind: 'none' }, onSetOptions: vi.fn(), reasoning: true })
 
     expect(screen.getAllByRole('menuitemradio').length).toBeGreaterThan(3)

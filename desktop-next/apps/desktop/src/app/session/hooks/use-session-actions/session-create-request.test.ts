@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const requestGatewayForAgent = vi.fn()
@@ -16,7 +16,7 @@ const rejection = (field: string, suffix = '') =>
   })
 
 const OUT_OF_SYNC =
-  ' — the client and the Vanta backend are out of sync (different versions); run `hermes update` and restart both'
+  ' — the client and the Vanta backend are out of sync (different versions); run `vanta update` and restart both'
 
 const PRE_122899_REJECTION = rejection('cwd_explicit', OUT_OF_SYNC) // v0.21.4 – v0.21.5 wording
 const V0213_REJECTION = rejection('cwd_explicit') // v0.21.3 wording, no out-of-sync suffix

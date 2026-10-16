@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { CronJob } from '@/types/hermes'
+import type { CronJob } from '@/types/desktop'
 
 import { cronJobsToRows, cronJobToRow } from './cron-rows'
 

@@ -43,16 +43,6 @@
   gap: 2px;
 }
 
-.vp-wb__tabs .vp-btn {
-  border-color: transparent;
-  border-radius: var(--radius-lg);
-}
-
-.vp-wb__tabs .vp-btn[aria-selected='true'] {
-  background: var(--vp-bg3);
-  color: var(--vp-ink);
-}
-
 .vp-wb__close {
   margin-left: auto;
 }

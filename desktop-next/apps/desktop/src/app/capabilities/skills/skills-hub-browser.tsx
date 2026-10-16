@@ -2,11 +2,11 @@ import { type FormEvent, type ReactElement, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { installSkillFromHub, type ProfileScope, previewSkillHub, scanSkillHub, searchSkillsHub } from '@/hermes'
+import { installSkillFromHub, type ProfileScope, previewSkillHub, scanSkillHub, searchSkillsHub } from '@/desktop-api'
 import { Loader2 } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
 import { notify, notifyError } from '@/store/notifications'
-import type { SkillHubResult, SkillHubScanResult } from '@/types/hermes'
+import type { SkillHubResult, SkillHubScanResult } from '@/types/desktop'
 
 import { HUB_BROWSER_COPY as COPY, skillExcerpt } from './hub-browser-copy'
 import { SKILLS_QUERY_KEY } from './skills-data'

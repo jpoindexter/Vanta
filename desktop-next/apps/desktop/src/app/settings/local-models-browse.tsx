@@ -10,7 +10,7 @@ import {
   listHFRepoFiles,
   searchHFModels,
   sideloadLocalModel
-} from '@/hermes'
+} from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Cpu, Download, FolderOpen, Loader2, Search } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -25,7 +25,7 @@ import {
   watchLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
 import { notify, notifyError } from '@/store/notifications'
-import type { LocalRuntimeJob } from '@/types/hermes'
+import type { LocalRuntimeJob } from '@/types/desktop'
 
 import { downloadStatusText, gbLabel, LocalModelDownloadActions, ProgressBar } from './local-model-download-progress'
 import { useScopedLocalModelsOwner } from './local-models-owner'
@@ -164,7 +164,7 @@ export function LocalModelsBrowseSection(): ReactElement {
   )
 
   const sideload = useCallback((): void => {
-    window.hermesDesktop
+    window.desktopBridge
       .selectPaths({ filters: [{ extensions: ['gguf'], name: 'GGUF models' }], title: copy.sideloadTitle })
       .then((paths: string[]): Promise<void> | undefined => {
         if (!paths.length) {
@@ -204,7 +204,7 @@ export function LocalModelsBrowseSection(): ReactElement {
       title={copy.browseTitle}
     >
       <div id="local-model-browse">
-        <p className="text-[0.75rem] text-muted-foreground">{copy.browseHint}</p>
+        <p className="text-meta text-muted-foreground">{copy.browseHint}</p>
 
         <SearchField
           containerClassName="w-full"
@@ -215,13 +215,13 @@ export function LocalModelsBrowseSection(): ReactElement {
         />
 
         {searching && (
-          <p className="flex items-center gap-2 text-[0.75rem] text-muted-foreground">
+          <p className="flex items-center gap-2 text-meta text-muted-foreground">
             <Loader2 className="size-3 animate-spin" />
             {copy.browseSearching}
           </p>
         )}
 
-        {error && <p className="text-[0.75rem] text-destructive">{error}</p>}
+        {error && <p className="text-meta text-destructive">{error}</p>}
 
         <div className="grid gap-1">
           {hits.map(hit => (
@@ -240,20 +240,20 @@ export function LocalModelsBrowseSection(): ReactElement {
                     {hit.gated ? ` · ${copy.browseGated}` : ''}
                   </span>
                 }
-                title={<span className="font-mono text-[0.8rem]">{hit.repo}</span>}
+                title={<span className="font-mono text-ui">{hit.repo}</span>}
               />
 
               {openRepo === hit.repo && (
                 <div className="ml-4 grid grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] gap-1.5 border-l border-(--ui-border) py-1 pl-3">
                   {listing && (
-                    <p className="col-span-full flex items-center gap-2 py-1 text-[0.75rem] text-muted-foreground">
+                    <p className="col-span-full flex items-center gap-2 py-1 text-meta text-muted-foreground">
                       <Loader2 className="size-3 animate-spin" />
                       {copy.browseListing}
                     </p>
                   )}
 
                   {!listing && files.length === 0 && (
-                    <p className="col-span-full py-1 text-[0.75rem] text-muted-foreground">{copy.browseNoGguf}</p>
+                    <p className="col-span-full py-1 text-meta text-muted-foreground">{copy.browseNoGguf}</p>
                   )}
 
                   {files.map(group => {
@@ -268,7 +268,7 @@ export function LocalModelsBrowseSection(): ReactElement {
                         key={group.label}
                       >
                         <span className="flex w-full items-center justify-between gap-2">
-                          <span className="truncate font-mono text-[0.75rem]">
+                          <span className="truncate font-mono text-meta">
                             {group.label}
                             {group.paths.length > 1 ? ` ×${group.paths.length}` : ''}
                           </span>
@@ -289,7 +289,7 @@ export function LocalModelsBrowseSection(): ReactElement {
                           <>
                             <ProgressBar paused={dJob.status === 'paused'} percent={dJob.percent} />
 
-                            <span className="text-[0.75rem] text-muted-foreground">
+                            <span className="text-meta text-muted-foreground">
                               {downloadStatusText(dJob, copy)}
                             </span>
 
@@ -308,7 +308,7 @@ export function LocalModelsBrowseSection(): ReactElement {
                                     : copy.browseFitUnknown}
                             </Pill>
 
-                            <span className="shrink-0 text-[0.75rem] text-muted-foreground">
+                            <span className="shrink-0 text-meta text-muted-foreground">
                               {gbLabel(group.total_bytes)}
                             </span>
                           </span>

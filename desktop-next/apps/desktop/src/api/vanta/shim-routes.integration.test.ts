@@ -3,18 +3,18 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { GatewayEvent, ServerRequest } from '@hermes/shared'
-import { createHttpTransport, remapMethod } from '@hermes/shared/vanta'
+import type { GatewayEvent, ServerRequest } from '@vanta/shared'
+import { createHttpTransport, remapMethod } from '@vanta/shared/vanta'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 
 import { vantaRestShim } from './rest-shim'
 import { type RealServer, restoreServerEnv, startRealServer, vantaRuntimeAvailable, warmRealServer } from './integration-server'
 import { VantaGateway } from '../vanta-gateway'
 
 // The renderer's REST shim and gateway talking to the REAL Vanta desktop server (real stores in a
-// temporary VANTA_HOME): this is the path a Hermes control takes from click to disk and back.
+// temporary VANTA_HOME): this is the path a Vanta control takes from click to disk and back.
 
 const servers: RealServer[] = []
 const gateways: VantaGateway[] = []
@@ -42,8 +42,8 @@ async function boot() {
   })
   await gateway.connect('vanta://local')
 
-  // What hermesDesktop.api does in the Electron main process: PUT/PATCH/DELETE go out as POST.
-  const send = async (request: HermesApiRequest): Promise<unknown> => {
+  // What desktopBridge.api does in the Electron main process: PUT/PATCH/DELETE go out as POST.
+  const send = async (request: VantaApiRequest): Promise<unknown> => {
     const result = await transport.request({
       body: request.body,
       clientId: request.clientId ?? 'vanta-gateway-probe',
@@ -59,8 +59,8 @@ async function boot() {
     return result.data
   }
 
-  // hermesApi: the shim answers what it maps, everything else goes straight through.
-  const api = <T>(request: HermesApiRequest): Promise<T> =>
+  // vantaApi: the shim answers what it maps, everything else goes straight through.
+  const api = <T>(request: VantaApiRequest): Promise<T> =>
     (vantaRestShim(request, send) ?? send(request)) as Promise<T>
 
   return { api, events, gateway, requests, server }
@@ -84,7 +84,7 @@ async function waitFor<T>(read: () => T | undefined | false, what: string, timeo
   }
 }
 
-describe.skipIf(!vantaRuntimeAvailable)('Hermes controls over the REST shim against the real server', { timeout: 60_000 }, () => {
+describe.skipIf(!vantaRuntimeAvailable)('Vanta controls over the REST shim against the real server', { timeout: 60_000 }, () => {
   beforeAll(warmRealServer, 120_000)
 
   it('manages profiles end to end, and imports one only after the approval card is answered', async () => {

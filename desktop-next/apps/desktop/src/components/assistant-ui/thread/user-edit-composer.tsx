@@ -53,12 +53,12 @@ import { isRedoShortcut, isUndoShortcut } from '@/app/chat/composer/undo-history
 import { chipTypedUrlOnSpace, linkifyUrls } from '@/app/chat/composer/url-refs'
 import {
   extractDroppedFiles,
-  HERMES_PATHS_MIME,
+  VANTA_PATHS_MIME,
   isImagePath,
   partitionDroppedFiles
 } from '@/app/chat/hooks/use-composer-actions'
 import { uploadComposerAttachment } from '@/app/session/hooks/use-prompt-actions'
-import { hermesDirectiveFormatter } from '@/components/assistant-ui/directive-text'
+import { vantaDirectiveFormatter } from '@/components/assistant-ui/directive-text'
 import {
   StickyHumanMessageContainer,
   StopGlyph,
@@ -67,7 +67,7 @@ import {
   USER_BUBBLE_BASE_CLASS
 } from '@/components/assistant-ui/thread/user-message'
 import { Codicon } from '@/components/ui/codicon'
-import type { HermesGateway } from '@/hermes'
+import type { VantaGateway } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { attachmentDisplayText, attachmentId, pathLabel } from '@/lib/chat-runtime'
 import { sanitizeComposerInput } from '@/lib/composer-input-sanitize'
@@ -85,7 +85,7 @@ import { notifyThreadEditClose } from '@/store/thread-scroll'
 
 interface UserEditComposerProps {
   cwd: string | null
-  gateway: HermesGateway | null
+  gateway: VantaGateway | null
   sessionId: string | null
 }
 
@@ -375,7 +375,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
 
       rememberInitialDraft()
       recordUndoPoint()
-      const serialized = hermesDirectiveFormatter.serialize(item)
+      const serialized = vantaDirectiveFormatter.serialize(item)
       const starter = serialized.endsWith(':')
       const text = starter || serialized.endsWith(' ') ? serialized : `${serialized} `
       const directive = !starter && serialized.match(/^@([^:]+):(.+)$/)
@@ -504,7 +504,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
   }, [])
 
   const handleDragEnter = (event: ReactDragEvent<HTMLElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, VANTA_PATHS_MIME)) {
       return
     }
 
@@ -517,7 +517,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
   }
 
   const handleDragOver = (event: ReactDragEvent<HTMLElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, VANTA_PATHS_MIME)) {
       return
     }
 
@@ -535,7 +535,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
   }
 
   const handleDrop = (event: ReactDragEvent<HTMLElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, VANTA_PATHS_MIME)) {
       // A plain text drag within the editor mutates the DOM without a
       // React-visible beforeinput (insertFromDrop), so the undo snapshot has
       // to be banked here — before Chromium applies the move.
@@ -927,7 +927,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
             </ComposerPrimitive.Input>
             {staging && (
               <span
-                className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-1.5 py-0.5 text-[0.75rem] text-muted-foreground backdrop-blur-[1px]"
+                className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-background/80 px-1.5 py-0.5 text-meta text-muted-foreground backdrop-blur-[1px]"
                 data-slot="aui_edit-staging"
               >
                 <Loader2Icon className="size-3 animate-spin" />

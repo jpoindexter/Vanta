@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@vanta/shared'
 import { type MouseEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { LogSearchField, useLogSearch } from '@/components/chat/log-search'
@@ -10,8 +10,8 @@ import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { ResponsiveTabs } from '@/components/ui/tab-dropdown'
 import { Tip } from '@/components/ui/tooltip'
-import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateHermes } from '@/hermes'
-import type { ActionStatusResponse, AnalyticsResponse, SessionInfo, StatusResponse } from '@/hermes'
+import { getActionStatus, getLogs, getStatus, getUsageAnalytics, restartGateway, updateVanta } from '@/desktop-api'
+import type { ActionStatusResponse, AnalyticsResponse, SessionInfo, StatusResponse } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
 import {
@@ -311,7 +311,7 @@ export function CommandCenterView({
       }
 
       try {
-        const started = kind === 'restart' ? await restartGateway() : await updateHermes()
+        const started = kind === 'restart' ? await restartGateway() : await updateVanta()
         let nextStatus: ActionStatusResponse | null = null
 
         for (let attempt = 0; attempt < 18; attempt += 1) {
@@ -497,7 +497,7 @@ export function CommandCenterView({
                             </span>
                           </div>
                           <div className="mt-1 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                            {cc.hermesActiveSessions(status.version, status.active_sessions)}
+                            {cc.vantaActiveSessions(status.version, status.active_sessions)}
                           </div>
                         </div>
                         <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap max-[47.5rem]:whitespace-normal">
@@ -505,7 +505,7 @@ export function CommandCenterView({
                             {cc.restartGateway}
                           </Button>
                           <Button onClick={() => void runSystemAction('update')} size="xs" variant="textStrong">
-                            {cc.updateHermes}
+                            {cc.updateVanta}
                           </Button>
                         </div>
                       </div>
@@ -527,7 +527,7 @@ export function CommandCenterView({
 
                 <div className="flex min-h-0 flex-col pt-2">
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                    <span className="text-[0.75rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+                    <span className="text-meta font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
                       {cc.recentLogs}
                     </span>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -653,10 +653,10 @@ function UsagePanel({ error, loading, onRefresh, period, usage }: UsagePanelProp
 
       <section>
         <div className="mb-2 flex items-baseline justify-between">
-          <span className="text-[0.75rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+          <span className="text-meta font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
             {cc.dailyTokens}
           </span>
-          <span className="flex items-center gap-3 text-[0.75rem] text-(--ui-text-tertiary)">
+          <span className="flex items-center gap-3 text-meta text-(--ui-text-tertiary)">
             <span className="inline-flex items-center gap-1">
               <span className="size-2 rounded-xs bg-[color:var(--dt-primary)]/60" /> {cc.input}
             </span>
@@ -694,7 +694,7 @@ function UsagePanel({ error, loading, onRefresh, period, usage }: UsagePanelProp
                 )
               })}
             </div>
-            <div className="mt-1 flex justify-between text-[0.75rem] text-(--ui-text-tertiary)">
+            <div className="mt-1 flex justify-between text-meta text-(--ui-text-tertiary)">
               <span>{daily[0]?.day}</span>
               <span>{daily[daily.length - 1]?.day}</span>
             </div>
@@ -737,7 +737,7 @@ function UsageList({
 }) {
   return (
     <section className="min-w-0">
-      <div className="mb-1.5 text-[0.75rem] font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+      <div className="mb-1.5 text-meta font-medium uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
         {title}
       </div>
       {rows.length === 0 ? (
@@ -748,8 +748,8 @@ function UsageList({
         <ul>
           {rows.map(row => (
             <li className="flex items-center justify-between gap-2 py-1.5" key={row.key}>
-              <span className="min-w-0 truncate font-mono text-[0.75rem] text-foreground">{row.label}</span>
-              <span className="shrink-0 text-[0.75rem] text-(--ui-text-tertiary)">{row.value}</span>
+              <span className="min-w-0 truncate font-mono text-meta text-foreground">{row.label}</span>
+              <span className="shrink-0 text-meta text-(--ui-text-tertiary)">{row.value}</span>
             </li>
           ))}
         </ul>
@@ -761,9 +761,9 @@ function UsageList({
 function UsageStat({ hint, label, value }: { hint?: string; label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[0.75rem] font-medium uppercase tracking-[0.12em] text-(--ui-text-tertiary)">{label}</div>
+      <div className="text-meta font-medium uppercase tracking-[0.12em] text-(--ui-text-tertiary)">{label}</div>
       <div className="mt-1 truncate text-base font-semibold tracking-tight text-foreground">{value}</div>
-      {hint && <div className="mt-0.5 truncate text-[0.75rem] text-(--ui-text-tertiary)">{hint}</div>}
+      {hint && <div className="mt-0.5 truncate text-meta text-(--ui-text-tertiary)">{hint}</div>}
     </div>
   )
 }

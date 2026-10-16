@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 const patch = vi.fn<(id: string, pinned: boolean, profile?: null | string) => Promise<{ ok: boolean }>>(() =>
   Promise.resolve({ ok: true })
@@ -8,7 +8,7 @@ const patch = vi.fn<(id: string, pinned: boolean, profile?: null | string) => Pr
 
 const reorder = vi.fn<(ids: string[]) => Promise<{ orderedIds: string[] }>>(ids => Promise.resolve({ orderedIds: ids }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   reorderPinnedSessionsRemote: (ids: string[]) => reorder(ids),
   // The layout store reaches the profile store, which sets the request profile
   // at import time; this suite only cares about the pin call.
@@ -29,7 +29,7 @@ const flush = () => Promise.resolve()
 
 beforeAll(() => {
   ;(globalThis as { window?: unknown }).window ??= {}
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {}
+  ;(window as unknown as { desktopBridge: unknown }).desktopBridge = {}
   // Attach the listeners once — module state is process-global.
   watchSessionPins()
 })

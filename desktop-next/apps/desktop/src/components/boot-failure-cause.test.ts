@@ -21,7 +21,7 @@ describe('local boot failure classification', () => {
       )
     ).toBe('exitedEarly')
     expect(classifyLocalBootFailure('Timed out connecting to Vanta backend after 45000ms')).toBe('timedOut')
-    expect(classifyLocalBootFailure("EACCES: permission denied, open '/home/x/.hermes/state.db'")).toBe('permission')
+    expect(classifyLocalBootFailure("EACCES: permission denied, open '/home/x/.vanta/state.db'")).toBe('permission')
     expect(classifyLocalBootFailure('OSError: [Errno 28] No space left on device')).toBe('diskFull')
     expect(classifyLocalBootFailure('listen EADDRINUSE: address already in use 127.0.0.1:9191')).toBe('portInUse')
     expect(classifyLocalBootFailure(null)).toBeNull()

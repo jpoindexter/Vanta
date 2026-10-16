@@ -111,7 +111,7 @@ export async function filesPane(page, app) {
   await row.click({ button: "right" });
   await pick(page, "Copy path");
   await page.waitForTimeout(300);
-  const copied = (await page.evaluate(() => window.hermesDesktop.readClipboard())).endsWith("notes.txt");
+  const copied = (await page.evaluate(() => window.desktopBridge.readClipboard())).endsWith("notes.txt");
   const has = (word) => items.some((item) => item.startsWith(word));
   verdict("F-097", AREA, "File menu: Reveal, Copy path, Rename, Delete", revealed && copied && has("Rename") && has("Delete"), {
     pass: `menu: ${items.join(" / ")}; Reveal reached the OS call, Copy path wrote the clipboard`,

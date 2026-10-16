@@ -10,7 +10,7 @@
 
 import { pathLeaf } from '@/lib/display-path'
 import { isNeedsYouStatus, type ShellStatus } from '@/app/shell/vanta/session-status'
-import type { ProjectInfo, SessionInfo } from '@/types/hermes'
+import type { ProjectInfo, SessionInfo } from '@/types/desktop'
 
 export type SidebarGroupKind = 'needs-you' | 'pinned' | 'project' | 'recent'
 

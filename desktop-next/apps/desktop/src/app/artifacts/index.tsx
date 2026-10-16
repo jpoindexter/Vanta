@@ -2,6 +2,7 @@ import type * as React from 'react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import { requestComposerFocus, requestComposerInsert } from '@/app/chat/composer/focus'
 import { TitlebarIcon } from '@/app/shell/titlebar-icon'
 import { ZoomableImage } from '@/components/chat/zoomable-image'
 import { PageLoader } from '@/components/page-loader'
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/pagination'
 import { RowButton } from '@/components/ui/row-button'
 import { Tip } from '@/components/ui/tooltip'
-import { getSessionMessages, listAllProfileSessions } from '@/hermes'
+import { getSessionMessages, listAllProfileSessions } from '@/desktop-api'
 import { type Translations, useI18n } from '@/i18n'
 import { resolveBrandIcon } from '@/lib/brand-icon'
 import {
@@ -40,6 +41,7 @@ import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { openSessionFromPicker } from '../open-session'
 import { PageSearchShell } from '../page-search-shell'
+import { NEW_CHAT_ROUTE } from '../routes'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import {
@@ -49,6 +51,12 @@ import {
   type ArtifactRecord,
   loadArtifactsForSessions
 } from './artifact-utils'
+import { RUNS_COPY } from './runs-model'
+import { RunsPanel } from './runs-panel'
+
+// Past tasks live beside the file filters: same search box, same tab strip.
+const NEW_CHAT_MOUNT_MS = 150
+const PAGE_TABS = [...ARTIFACT_FILTERS, 'runs'] as const
 
 function formatArtifactTime(timestamp: number): string {
   return fmtDayTime.format(new Date(timestamp))
@@ -118,7 +126,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   const [artifacts, setArtifacts] = useState<ArtifactRecord[] | null>(null)
   const [query, setQuery] = useState('')
 
-  const [kindFilter, setKindFilter] = useRouteEnumParam('tab', ARTIFACT_FILTERS, 'all')
+  const [kindFilter, setKindFilter] = useRouteEnumParam('tab', PAGE_TABS, 'all')
 
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(() => new Set())
   const [imagePage, setImagePage] = useState(1)
@@ -289,8 +297,8 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           return
         }
 
-        if (window.hermesDesktop?.openExternal) {
-          await window.hermesDesktop.openExternal(href)
+        if (window.desktopBridge?.openExternal) {
+          await window.desktopBridge.openExternal(href)
         } else {
           window.open(href, '_blank', 'noopener,noreferrer')
         }
@@ -316,6 +324,18 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   // async title fetch re-rendered the page repeatedly. openArtifact is already
   // a useCallback; navigate is stable, so onOpenChat can be too.
   const openChat = useCallback((sessionId: string) => openSessionFromPicker(sessionId, navigate), [navigate])
+  // A past prompt becomes a draft in a fresh chat; the person edits and sends it.
+  const reuseRun = useCallback(
+    (prompt: string) => {
+      navigate(NEW_CHAT_ROUTE)
+      // The new chat's composer mounts after the route change; insert once it is there.
+      window.setTimeout(() => {
+        requestComposerInsert(prompt)
+        requestComposerFocus()
+      }, NEW_CHAT_MOUNT_MS)
+    },
+    [navigate]
+  )
   const cellCtx: CellCtx = useMemo(() => ({ onOpen: openArtifact, onOpenChat: openChat }), [openArtifact, openChat])
 
   return (
@@ -324,9 +344,9 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
       activeTab={kindFilter}
       onSearchChange={setQuery}
       onTabChange={id => setKindFilter(id as typeof kindFilter)}
-      searchHidden={counts.all === 0}
+      searchHidden={counts.all === 0 && kindFilter !== 'runs'}
       searchHints={searchHints}
-      searchPlaceholder={a.search}
+      searchPlaceholder={kindFilter === 'runs' ? RUNS_COPY.search : a.search}
       searchTrailingAction={
         <Tip label={refreshing ? a.refreshing : a.refresh}>
           <Button
@@ -346,10 +366,13 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
         { id: 'all', label: a.tabAll, meta: artifacts ? counts.all : null },
         { id: 'image', label: a.tabImages, meta: artifacts ? counts.image : null },
         { id: 'file', label: a.tabFiles, meta: artifacts ? counts.file : null },
-        { id: 'link', label: a.tabLinks, meta: artifacts ? counts.link : null }
+        { id: 'link', label: a.tabLinks, meta: artifacts ? counts.link : null },
+        { id: 'runs', label: RUNS_COPY.tab }
       ]}
     >
-      {!artifacts ? (
+      {kindFilter === 'runs' ? (
+        <RunsPanel onReuse={reuseRun} query={query} />
+      ) : !artifacts ? (
         <PageLoader label={a.indexing} />
       ) : visibleArtifacts.length === 0 ? (
         <div className="grid h-full place-items-center px-6 text-center">
@@ -392,7 +415,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
                 <div className="sticky top-0 z-10 -mx-3 flex h-7 items-center gap-3 overflow-x-auto bg-background px-3">
                   <ArtifactsPagination
                     className="ml-auto justify-end px-0"
-                    itemLabel={itemsLabel(kindFilter, a)}
+                    itemLabel={itemsLabel(kindFilter as ArtifactFilter, a)}
                     onPageChange={setFilePage}
                     page={currentFilePage}
                     pageSize={100}
@@ -400,7 +423,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
                   />
                 </div>
                 <div className="overflow-x-auto rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-chat-bubble-background)">
-                  <ArtifactTable artifacts={pagedFileArtifacts} ctx={cellCtx} filter={kindFilter} />
+                  <ArtifactTable artifacts={pagedFileArtifacts} ctx={cellCtx} filter={kindFilter as ArtifactFilter} />
                 </div>
               </section>
             )}
@@ -427,7 +450,7 @@ function ArtifactsPagination({ className, itemLabel, onPageChange, page, pageSiz
 
   return (
     <div className={cn('flex h-6 items-center justify-between gap-2 px-1', className)}>
-      <div className="shrink-0 text-[0.75rem] text-muted-foreground">
+      <div className="shrink-0 text-meta text-muted-foreground">
         {pageRangeLabel(total, page, pageSize, a)} {itemLabel}
       </div>
       {pageCount > 1 && (
@@ -525,17 +548,17 @@ function ArtifactImageCard({ artifact, failedImage, onImageError, onOpenChat }: 
 
       <div className="space-y-1.5 p-2">
         <div className="min-w-0">
-          <div className="mb-0.5 flex items-center gap-1 text-[0.75rem] uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+          <div className="mb-0.5 flex items-center gap-1 text-meta uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
             <FileImage className="size-3" />
             {kindLabel}
           </div>
           <div className="truncate text-[length:var(--conversation-caption-font-size)] font-medium">
             {artifact.label}
           </div>
-          <div className="mt-0.5 truncate text-[0.75rem] text-(--ui-text-tertiary)">{artifact.value}</div>
+          <div className="mt-0.5 truncate text-meta text-(--ui-text-tertiary)">{artifact.value}</div>
         </div>
 
-        <div className="truncate text-[0.75rem] text-(--ui-text-tertiary)">
+        <div className="truncate text-meta text-(--ui-text-tertiary)">
           {artifact.sessionTitle} · {formatArtifactTime(artifact.timestamp)}
         </div>
 
@@ -647,7 +670,7 @@ const SessionCell = memo(function SessionCell({ artifact, ctx }: { artifact: Art
     <ArtifactCellAction onClick={() => ctx.onOpenChat(artifact.sessionId)} title={artifact.sessionTitle}>
       <span className="flex min-w-0 flex-col">
         <span className="truncate">{artifact.sessionTitle}</span>
-        <span className="truncate text-[0.75rem] font-normal text-(--ui-text-tertiary)">
+        <span className="truncate text-meta font-normal text-(--ui-text-tertiary)">
           {formatArtifactTime(artifact.timestamp)}
         </span>
       </span>
@@ -694,7 +717,7 @@ function ArtifactTable({
 
   return (
     <table className="w-full min-w-176 table-fixed text-left text-[length:var(--conversation-caption-font-size)]">
-      <thead className="border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) text-[0.75rem] uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
+      <thead className="border-b border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) text-meta uppercase tracking-[0.08em] text-(--ui-text-tertiary)">
         <tr>
           {ARTIFACT_COLUMNS.map(col => (
             <th className={cn(col.width(filter), 'px-2.5 py-1.5 font-medium')} key={col.id}>

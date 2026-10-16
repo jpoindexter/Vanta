@@ -10,7 +10,7 @@ export function HostedNotice({ hasGuest, phase }: { hasGuest: boolean; phase: Ho
 
   if (phase === 'signedOut') {
     return (
-      <p className="flex shrink-0 items-center gap-1 text-[0.75rem] text-(--ui-text-tertiary)">
+      <p className="flex shrink-0 items-center gap-1 text-meta text-(--ui-text-tertiary)">
         {copy.signInLine}
         <Button onClick={() => openFreeTierSignIn()} size="xs" variant="text">
           {copy.signIn}
@@ -20,8 +20,8 @@ export function HostedNotice({ hasGuest, phase }: { hasGuest: boolean; phase: Ho
   }
 
   if (phase === 'unavailable') {
-    return <p className="shrink-0 text-[0.75rem] text-(--ui-text-tertiary)">{copy.managedUnavailable}</p>
+    return <p className="shrink-0 text-meta text-(--ui-text-tertiary)">{copy.managedUnavailable}</p>
   }
 
-  return hasGuest ? <p className="shrink-0 text-[0.75rem] text-(--ui-text-tertiary)">{copy.freeTierNote}</p> : null
+  return hasGuest ? <p className="shrink-0 text-meta text-(--ui-text-tertiary)">{copy.freeTierNote}</p> : null
 }

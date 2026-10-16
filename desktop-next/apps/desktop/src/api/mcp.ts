@@ -1,6 +1,6 @@
-import type { McpCatalogResponse, McpServerSummary } from '@/types/hermes'
+import type { McpCatalogResponse, McpServerSummary } from '@/types/desktop'
 
-import { capabilityScoped, hermesApi, type ProfileScope, profileScoped, rawApi } from './client'
+import { capabilityScoped, vantaApi, type ProfileScope, profileScoped, rawApi } from './client'
 
 export interface McpTestResult {
   ok: boolean
@@ -34,7 +34,7 @@ export function testMcpServer(name: string, profile?: ProfileScope): Promise<Mcp
 }
 
 /** Replace the whole `mcp_servers` map (the mcp.json editor's save). Unlike
- *  `saveHermesConfig`, this REPLACES rather than deep-merges, so deletes,
+ *  `saveVantaConfig`, this REPLACES rather than deep-merges, so deletes,
  *  re-enables (dropping `enabled: false`), and removed nested fields persist. */
 export function saveMcpServers(
   servers: Record<string, Record<string, unknown>>,
@@ -63,12 +63,12 @@ export function mcpOAuthRpc(scope?: ProfileScope) {
 
 // ---------------------------------------------------------------------------
 // MCP servers — structured list / test / enable toggle / catalog (parity with
-// `hermes mcp` and the dashboard MCP page). Raw JSON editing stays in
-// config.yaml via saveHermesConfig.
+// `vanta mcp` and the dashboard MCP page). Raw JSON editing stays in
+// config.yaml via saveVantaConfig.
 // ---------------------------------------------------------------------------
 
 export function listMcpServers(): Promise<{ servers: McpServerSummary[] }> {
-  return hermesApi<{ servers: McpServerSummary[] }>({
+  return vantaApi<{ servers: McpServerSummary[] }>({
     ...profileScoped(),
     path: '/api/mcp/servers'
   })
@@ -106,7 +106,7 @@ export function removeMcpServer(name: string, profile?: ProfileScope): Promise<{
 }
 
 export function setMcpServerEnabled(name: string, enabled: boolean): Promise<{ ok: boolean }> {
-  return hermesApi<{ ok: boolean }>({
+  return vantaApi<{ ok: boolean }>({
     ...profileScoped(),
     path: `/api/mcp/servers/${encodeURIComponent(name)}/enabled`,
     method: 'PUT',

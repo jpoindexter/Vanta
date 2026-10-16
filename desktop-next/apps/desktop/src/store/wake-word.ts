@@ -19,7 +19,7 @@ export interface WakeWordState {
   notice: string
   /** A toggle RPC is in flight — guards double-clicks. */
   pending: boolean
-  /** Human-facing wake phrase, e.g. "hey hermes". */
+  /** Human-facing wake phrase, e.g. "hey vanta". */
   phrase: string
 }
 

@@ -1,4 +1,4 @@
-import { GatewayReauthRequiredError } from '@hermes/shared'
+import { GatewayReauthRequiredError } from '@vanta/shared'
 import { describe, expect, it, vi } from 'vitest'
 
 import { connectInitialGateway } from './use-gateway-boot'

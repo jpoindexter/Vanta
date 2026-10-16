@@ -34,7 +34,7 @@ export interface VoiceMenuProps {
 
 /**
  * Every voice control behind one trigger: dictation, spoken replies, the
- * "hey hermes" wake word, and starting a full conversation.
+ * "hey vanta" wake word, and starting a full conversation.
  *
  * The bar carried four separate icon buttons — mic, speaker, ear, and the
  * voice-conversation primary — which is most of a Spotlight-width composer

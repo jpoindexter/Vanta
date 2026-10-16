@@ -321,7 +321,7 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
       $newChatProfile.set(null)
       closeHome()
       deps.startFreshSession()
-      window.dispatchEvent(new CustomEvent('hermes:new-session-shortcut'))
+      window.dispatchEvent(new CustomEvent('desktop:new-session-shortcut'))
     },
     'session.newTab': () => deps.openNewSessionTab(),
     'session.newWindow': () => void openNewWindow(),
@@ -445,7 +445,7 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
   useEffect(() => {
     const updateF12Ownership = () => {
       const hasF12Binding = [...$comboIndex.get().keys()].some(combo => combo === 'f12' || combo.endsWith('+f12'))
-      window.hermesDesktop?.setF12ShortcutActive?.(hasF12Binding || $capture.get() !== null)
+      window.desktopBridge?.setF12ShortcutActive?.(hasF12Binding || $capture.get() !== null)
     }
 
     const stopBindings = $comboIndex.subscribe(updateF12Ownership)
@@ -454,12 +454,12 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
     return () => {
       stopBindings()
       stopCapture()
-      window.hermesDesktop?.setF12ShortcutActive?.(false)
+      window.desktopBridge?.setF12ShortcutActive?.(false)
     }
   }, [])
 
   useEffect(() => {
-    const stopF12Shortcut = window.hermesDesktop?.onF12Shortcut?.(input => {
+    const stopF12Shortcut = window.desktopBridge?.onF12Shortcut?.(input => {
       const target = document.activeElement ?? document.body ?? document.documentElement
       target.dispatchEvent(
         new KeyboardEvent('keydown', {

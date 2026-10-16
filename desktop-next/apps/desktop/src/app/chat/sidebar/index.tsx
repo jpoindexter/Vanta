@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Tip, TipKeybindLabel } from '@/components/ui/tooltip'
 import { useContributions } from '@/contrib/react/use-contributions'
-import { type SessionInfo } from '@/hermes'
+import { type SessionInfo } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { comboTokens } from '@/lib/keybinds/combo'
 import { normalizeSessionSource, sessionSourceLabel } from '@/lib/session-source'
@@ -235,7 +235,7 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
     keybindActionId: 'nav.home'
   },
   // Wireframe order: Home, Schedules, Connections, Skills & tools, Outputs, then Company.
-  // Artifacts and Scheduled jobs are outputs of running Hermes the developer
+  // Artifacts and Scheduled jobs are outputs of running Vanta the developer
   // way; Capabilities and Messaging are how anyone sets it up.
   {
     id: 'cron',
@@ -306,7 +306,7 @@ const HEADER_ACTION_BTN =
 const HEADER_NAV_BTN =
   'text-(--ui-text-tertiary) opacity-70 transition-opacity hover:bg-(--ui-control-hover-background) hover:text-foreground hover:opacity-100 focus-visible:opacity-100'
 
-/** Vanta names for the built-in destinations; routes and ids stay the Hermes ones. */
+/** Vanta names for the built-in destinations; routes and ids stay the Vanta ones. */
 function useNavLabel() {
   const { t } = useI18n()
   const v = t.vantaShell.sidebar.nav
@@ -529,10 +529,10 @@ function FullSidebar({
       timeout = setTimeout(() => setNewSessionKbdFlash(false), 140)
     }
 
-    window.addEventListener('hermes:new-session-shortcut', onShortcut)
+    window.addEventListener('desktop:new-session-shortcut', onShortcut)
 
     return () => {
-      window.removeEventListener('hermes:new-session-shortcut', onShortcut)
+      window.removeEventListener('desktop:new-session-shortcut', onShortcut)
       clearTimeout(timeout)
     }
   }, [])
@@ -1085,7 +1085,7 @@ function FullSidebar({
   const [scopedRepoWorktrees] = useRepoWorktreeMap(scopedRepoPaths, inEnteredProject)
 
   // Re-probe worktree lanes on out-of-band git changes the renderer can't see.
-  // A turn can `git worktree add/remove` in the terminal (e.g. you ask Hermes to
+  // A turn can `git worktree add/remove` in the terminal (e.g. you ask Vanta to
   // "remove that worktree"), and the window never blurs during an in-app chat,
   // so nothing would otherwise re-run the visual probe. Re-sync when a working
   // session settles (its turn finished) or the window refocuses (an external
@@ -1568,7 +1568,7 @@ function FullSidebar({
                       // resolved region has been observed to swallow clicks on the
                       // top rows. Same carve-out as USER_BUBBLE_BASE_CLASS in
                       // thread.tsx.
-                      'flex h-7 w-full justify-start gap-2 rounded-md px-2 text-left text-[0.8125rem] font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
+                      'flex h-7 w-full justify-start gap-2 rounded-md px-2 text-left text-ui font-medium text-(--ui-text-secondary) transition-colors duration-100 ease-out [-webkit-app-region:no-drag] hover:bg-(--ui-control-hover-background) hover:text-foreground hover:transition-none',
                       active && 'bg-(--ui-control-active-background) text-foreground shadow-none',
                       !isInteractive &&
                         'cursor-default hover:bg-transparent hover:text-inherit'
@@ -1950,7 +1950,7 @@ function FullSidebar({
                 labelMeta={
                   worktreeGroupingActive ? (
                     reposScanning && !projectsSkeletonVisible ? (
-                      <GlyphSpinner ariaLabel={s.loading} className="text-[0.75rem] text-(--ui-text-quaternary)" />
+                      <GlyphSpinner ariaLabel={s.loading} className="text-meta text-(--ui-text-quaternary)" />
                     ) : undefined
                   ) : undefined
                 }
@@ -2017,7 +2017,7 @@ function FullSidebar({
                     label={group.label}
                     labelIcon={
                       <PlatformAvatar
-                        className="size-4 rounded-sm text-[0.75rem] [&_svg]:size-3"
+                        className="size-4 rounded-sm text-meta [&_svg]:size-3"
                         platformId={group.sourceId}
                         platformName={group.label}
                       />

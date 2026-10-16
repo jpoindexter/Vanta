@@ -34,7 +34,7 @@ const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, m
 const isBusy = (status: number, data: unknown) => status === 409 && /already running/i.test(errorText(data) ?? '')
 
 /**
- * Start a turn without waiting for it. `prompt.submit` is an acknowledgement in the Hermes protocol:
+ * Start a turn without waiting for it. `prompt.submit` is an acknowledgement in the Vanta protocol:
  * progress arrives as events and the end as `message.complete`.
  */
 export function startTurn(hub: GatewayHub, client: ChatClient, input: TurnInput): void {

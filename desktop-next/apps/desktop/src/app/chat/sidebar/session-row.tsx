@@ -1,4 +1,4 @@
-import { compactNumber } from '@hermes/shared'
+import { compactNumber } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { memo } from 'react'
 import type * as React from 'react'
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { RowButton } from '@/components/ui/row-button'
 import { OverflowTip, Tip } from '@/components/ui/tooltip'
-import type { SessionInfo } from '@/hermes'
+import type { SessionInfo } from '@/desktop-api'
 import { type Translations, useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
 import { pathLeaf } from '@/lib/display-path'
@@ -226,7 +226,7 @@ function SidebarSessionRowImpl({
       key: 'figures',
       node: (
         <span
-          className="pointer-events-none whitespace-nowrap text-[0.75rem] leading-none text-(--ui-text-tertiary)"
+          className="pointer-events-none whitespace-nowrap text-meta leading-none text-(--ui-text-tertiary)"
           data-testid="sidebar-row-time"
         >
           {head}
@@ -524,7 +524,7 @@ function SidebarSessionRowImpl({
               handoffSource && handoffLabel ? (
                 <Tip label={r.handoffOrigin(handoffLabel)}>
                   <PlatformAvatar
-                    className="-mt-px size-4 shrink-0 rounded-sm text-[0.75rem] [&_svg]:size-2.5"
+                    className="-mt-px size-4 shrink-0 rounded-sm text-meta [&_svg]:size-2.5"
                     platformId={handoffSource}
                     platformName={handoffLabel}
                   />
@@ -581,7 +581,7 @@ function SidebarSessionRowImpl({
                     {density !== 'compact' && details.metadata && (
                       <span
                         className={cn(
-                          'mt-0.5 block truncate text-[0.75rem] text-(--ui-text-tertiary)',
+                          'mt-0.5 block truncate text-meta text-(--ui-text-tertiary)',
                           SIDEBAR_TRUNCATED_LEADING
                         )}
                       >
@@ -591,7 +591,7 @@ function SidebarSessionRowImpl({
                     {density === 'detailed' && details.preview && (
                       <span
                         className={cn(
-                          'mt-1 block truncate text-[0.75rem] text-(--ui-text-quaternary)',
+                          'mt-1 block truncate text-meta text-(--ui-text-quaternary)',
                           SIDEBAR_TRUNCATED_LEADING
                         )}
                       >
@@ -616,7 +616,7 @@ function SidebarSessionRowImpl({
                   <SessionRowSlot area={SESSION_ROW_AREAS.leading} sessionId={sessionPinId(session)} />
                   <span
                     className={cn(
-                      'min-w-0 flex-1 truncate text-[0.75rem] text-(--ui-text-tertiary)',
+                      'min-w-0 flex-1 truncate text-meta text-(--ui-text-tertiary)',
                       SIDEBAR_TRUNCATED_LEADING
                     )}
                   >
@@ -637,7 +637,7 @@ function SidebarSessionRowImpl({
                     <OverflowTip label={title} placement="row">
                       <SidebarRowLabel
                         className={cn(
-                          'hover-marquee text-[0.8125rem] font-medium text-(--ui-text-primary) group-data-[working=true]:text-foreground',
+                          'hover-marquee text-ui font-medium text-(--ui-text-primary) group-data-[working=true]:text-foreground',
                           SIDEBAR_TRUNCATED_LEADING
                         )}
                         onPointerEnter={armMarquee}
@@ -650,7 +650,7 @@ function SidebarSessionRowImpl({
                   {session.preview && rowMeta.includes('preview') ? (
                     <span
                       className={cn(
-                        'min-w-0 truncate text-[0.75rem] text-(--ui-text-quaternary)',
+                        'min-w-0 truncate text-meta text-(--ui-text-quaternary)',
                         SIDEBAR_TRUNCATED_LEADING
                       )}
                     >
@@ -661,7 +661,7 @@ function SidebarSessionRowImpl({
                 {model || size || todoProgress ? (
                   <span
                     className={cn(
-                      'flex min-w-0 items-baseline gap-2 text-[0.75rem] text-(--ui-text-tertiary)',
+                      'flex min-w-0 items-baseline gap-2 text-meta text-(--ui-text-tertiary)',
                       SIDEBAR_TRUNCATED_LEADING
                     )}
                   >

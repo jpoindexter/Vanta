@@ -14,7 +14,7 @@ const KEY = 'sk-fixture-new-key-that-must-not-leak-9876'
 const getEnvVars = vi.hoisted(() => vi.fn())
 const setEnvVar = vi.hoisted(() => vi.fn())
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/desktop-api', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
   getEnvVars: (...args: unknown[]) => getEnvVars(...args),
   setEnvVar: (...args: unknown[]) => setEnvVar(...args)

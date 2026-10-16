@@ -4,7 +4,7 @@
  * The Capabilities → Plugins tab embeds the docs-site catalog page
  * (`CATALOG_PICKER_URL`) as a one-click picker; that page renders
  * `PLUGIN_CATALOG_URL` (`/docs/api/plugins.json`, generated from the repo's
- * `plugin-catalog/` directory at site build). A `hermes://plugin/install?catalog=<name>`
+ * `plugin-catalog/` directory at site build). A `vanta://plugin/install?catalog=<name>`
  * deep link resolves against the SAME document so a link and an in-app pick
  * always agree on the repo, subdir and reviewed pin for a name.
  *
@@ -12,14 +12,14 @@
  * catalog with its cache, kill list and in-tree fallback: the same catalog the
  * install resolves its pin from. A renderer fetch of the JSON also depends on
  * the docs host's cross-origin redirect carrying a CORS header, which it did
- * not until 2026-10-13 (hermes-agent 136483). Only a backend that predates the
+ * not until 2026-10-13 (vanta-agent 136483). Only a backend that predates the
  * method falls back to the direct fetch.
  *
  * Everything here only classifies — nothing installs. Callers open the Install
  * Plugin dialog, which still requires the user's explicit confirmation.
  */
 
-import type { ConnectionState } from '@hermes/shared'
+import type { ConnectionState } from '@vanta/shared'
 import type { ReadableAtom } from 'nanostores'
 
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'

@@ -121,7 +121,7 @@ export async function runReset(scope: ResetScope, confirm: unknown, deps: ResetD
   }
 
   const plan = await planReset(scope, deps)
-  if (!plan.ok) return plan
+  if ('error' in plan) return plan
 
   const trashed: string[] = []
   deps.log(`[reset] ${scope}: stopping the runtime`)

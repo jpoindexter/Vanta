@@ -56,7 +56,7 @@ function orphanToolResult(message: VantaMessage): TranscriptEntry {
 
 /**
  * Vanta stores assistant tool calls inside the assistant message and the result as a separate `tool`
- * message. The Hermes transcript projects each call as ONE `tool` row carrying args and result.
+ * message. The Vanta transcript projects each call as ONE `tool` row carrying args and result.
  */
 export function toTranscript(messages: readonly VantaMessage[]): TranscriptEntry[] {
   const rows: TranscriptEntry[] = []

@@ -1,4 +1,4 @@
-import { type ConnectionState, JSON_RPC_METHOD_NOT_FOUND, JsonRpcGatewayError } from '@hermes/shared'
+import { type ConnectionState, JSON_RPC_METHOD_NOT_FOUND, JsonRpcGatewayError } from '@vanta/shared'
 import { atom } from 'nanostores'
 import { describe, expect, it, vi } from 'vitest'
 

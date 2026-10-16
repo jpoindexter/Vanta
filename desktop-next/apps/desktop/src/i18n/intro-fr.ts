@@ -25,7 +25,7 @@ export const introFr: Translations['intro'] = {
       'système de fichiers, terminal, git, navigateur, recherche. Décrivez la modification ; je renvoie les diffs et la sortie des tests.'
     ],
     creative: [
-      'Que construisons-nous ? Collez une idée, une fonction à moitié cassée ou un rêve. Je lui donnerai forme.',
+      'Que construisons-vanta ? Collez une idée, une fonction à moitié cassée ou un rêve. Je lui donnerai forme.',
       'Donnez-moi une étincelle — une fonctionnalité, un refactoring, un prototype fou — et j’en ferai du code qui tourne.',
       'Décrivez ce qui n’existe pas encore. J’assemble tests, fichiers et API en un premier jet fonctionnel.',
       'Apportez une intention, pas un cahier des charges. Prototypons vite, peaufinons ensuite et réécrivons le monde dans la marge.',
@@ -35,7 +35,7 @@ export const introFr: Translations['intro'] = {
       'Posez une question sur un fichier, un concept ou une erreur. J’explique le pourquoi, pas seulement le correctif, avec un exemple détaillé.',
       'Collez du code à relire, un bug à traquer ou un concept à décortiquer. Je vous guide pas à pas.',
       'Partagez le problème. Je le découpe, explique chaque partie et vous laisse capable de résoudre le suivant seul.',
-      'Nous lirons le code ensemble, trouverons la cause racine et bâtirons un modèle mental réutilisable.',
+      'Vanta lirons le code ensemble, trouverons la cause racine et bâtirons un modèle mental réutilisable.',
       'Nommez le sujet ou collez l’extrait. Au programme : explications, schémas en prose et exercices.'
     ],
     kawaii: [
@@ -88,7 +88,7 @@ export const introFr: Translations['intro'] = {
       'je peux wancew des tests, modifiew des fichiews et ouvwiw des PR à wewiwe. dis juste we mot, copain uwu'
     ],
     philosopher: [
-      'Quel problème se tient devant vous ? Décrivez-le, et nous en examinerons la forme, la cause et la solution.',
+      'Quel problème se tient devant vous ? Décrivez-le, et vanta en examinerons la forme, la cause et la solution.',
       'Chaque bug est une question déguisée. Partagez la vôtre ; je lirai, raisonnerai et rendrai une réponse — et un correctif.',
       'Que souhaitez-vous construire, ou comprendre ? Je raisonnerai à partir des premiers principes, modifierai et vérifierai par les tests.',
       'Décrivez la fin que vous recherchez. Je la poursuis à travers fichiers, tests et docs, et rends compte de ce que je trouve en chemin.',

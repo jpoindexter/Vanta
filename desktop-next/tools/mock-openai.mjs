@@ -5,6 +5,14 @@
 //   slow ...        the reply streams one word every 400ms (a turn that stays "running")
 //   shell: <cmd>    the model asks to run <cmd> with shell_cmd (an approval card), then finishes
 //   clarify ...     the model asks a question with the clarify tool
+//   plan ...        the model writes a five-step plan with the todo tool (two done, one running), then marks all done.
+//                   Known: the agent keeps iterating after that and ends at its step limit; this is only for looking at the plan panel.
+//   write ...       the model saves a short Markdown brief with write_file (an output card), then says it is ready
+//   canvas ...      the model calls render_canvas with a bar chart (a canvas card). The proof model counts as a LOCAL
+//                   provider, which only gets a short coding-tool list; launch with extraEnv VANTA_LOCAL_FULL_TOOLS=1 or the
+//                   server answers "unknown tool: render_canvas".
+//   badcanvas ...   render_canvas with invalid arguments: the tool fails for real (ok:false), for checking failed steps
+//   MOCK_TOOL_LOG=<file> appends the tool result the model receives (name: content), for debugging a scenario.
 //   fail ...        the provider answers 500 (a failed turn)
 //   image ...       the reply carries a small image
 //   (any message that carries an attached image is answered "I can see the attached image.")
@@ -63,6 +71,18 @@ function lastText(message) {
 function plan(body, options) {
   const messages = body.messages ?? [];
   const last = messages[messages.length - 1];
+  // A plan: the first write leaves work running; the model then marks everything done and stops. Counted from its own
+  // earlier todo calls, so the agent's follow-up nudges never start a plan again.
+  const planWrites = messages.filter((message) => message.role === "assistant" && (message.tool_calls ?? []).some((call) => call?.function?.name === "todo")).length;
+  if (planWrites === 1) {
+    const done = ["Read last week's snapshot", "Fetch current pricing pages", "Diff the two", "Draft the one-page brief", "Save to Outputs"].map((text) => ({ text, status: "done" }));
+    return { tool: { name: "todo", args: { action: "write", items: done } } };
+  }
+  if (planWrites > 1) return { text: "All five steps are done." };
+  const drew = messages.some((message) => message.role === "assistant" && (message.tool_calls ?? []).some((call) => call?.function?.name === "render_canvas"));
+  if (last?.role === "tool" && drew) return { text: "The chart is ready." };
+  const wrote = messages.some((message) => message.role === "assistant" && (message.tool_calls ?? []).some((call) => call?.function?.name === "write_file"));
+  if (last?.role === "tool" && wrote) return { text: "The draft is ready. Review it in the pane." };
   if (last?.role === "tool") return { text: "Done. The command finished." };
   const prompt = [...messages].reverse().find((message) => message.role === "user");
   const text = lastText(prompt).trim();
@@ -71,6 +91,22 @@ function plan(body, options) {
   if (shell) return { tool: { name: "shell_cmd", args: { command: shell[1].trim() } } };
   if (/^clarify\b/im.test(text)) {
     return { tool: { name: "clarify", args: { question: "Which option should the proof take?", options: ["Option A", "Option B"] } } };
+  }
+  if (/^plan\b/im.test(text)) {
+    const items = [
+      ["Read last week's snapshot", "done"], ["Fetch current pricing pages", "done"], ["Diff the two", "in_progress"],
+      ["Draft the one-page brief", "pending"], ["Save to Outputs", "pending"],
+    ].map(([t, status]) => ({ text: t, status }));
+    return { tool: { name: "todo", args: { action: "write", items } } };
+  }
+  if (/^badcanvas\b/im.test(text)) {
+    return { tool: { name: "render_canvas", args: { kind: "chart", title: "Broken" } } };
+  }
+  if (/^canvas\b/im.test(text)) {
+    return { tool: { name: "render_canvas", args: { kind: "chart", title: "Weekly sales", chart: { type: "bar", categories: ["W40", "W41", "W42"], series: [{ name: "Acme", values: [30, 45, 52] }, { name: "Bravo", values: [20, 25, 41] }], yLabel: "Units", xLabel: "week" } } } };
+  }
+  if (/^write\b/im.test(text)) {
+    return { tool: { name: "write_file", args: { path: "outputs/pricing-brief-w42.md", content: "# Competitor pricing brief, week 42\n\nTwo vendors changed prices.\n" } } };
   }
   if (/^fail\b/im.test(text)) return { fail: true };
   if (/^slow\b/im.test(text)) return { text: REPLY, delay: 400 };
@@ -102,6 +138,10 @@ async function handle(req, res, options) {
   }
   if (!req.url?.endsWith("/chat/completions")) return sendJson(res, 404, { error: "not found" });
   const body = await readBody(req);
+  const lastMsg = (body.messages ?? []).at(-1);
+  if (process.env.MOCK_TOOL_LOG && lastMsg?.role === "tool") {
+    (await import("node:fs")).appendFileSync(process.env.MOCK_TOOL_LOG, `${lastMsg.name ?? "?"}: ${String(lastMsg.content).slice(0, 600)}\n`);
+  }
   const step = plan(body, options);
   if (step.fail) return sendJson(res, 500, { error: { message: "The proof model is set to fail this turn." } });
   if (body.stream !== true) {

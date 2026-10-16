@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 
 import { $sessionFacts, isNeedsYouStatus, shellStatusFor } from '@/app/shell/vanta/session-status'
 import { $sessionDotStateById } from '@/store/session-dot-state'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 /** Sessions that wait on the person (approval or a question), pinned ones
  *  first. They show under Needs you only, so every other list drops them. */

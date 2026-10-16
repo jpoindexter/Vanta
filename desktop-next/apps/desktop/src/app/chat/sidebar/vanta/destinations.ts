@@ -21,7 +21,7 @@ export interface ShellDestination {
   route: string
   /** Keybind action that opens it; its combo shows as the row hint. */
   actionId?: string
-  /** The id the Hermes sidebar rows use (`nav-<id>` test ids), so both sidebars expose the same hooks. */
+  /** The id the Vanta sidebar rows use (`nav-<id>` test ids), so both sidebars expose the same hooks. */
   navId: string
 }
 

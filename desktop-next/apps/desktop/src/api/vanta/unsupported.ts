@@ -1,4 +1,4 @@
-import { JSON_RPC_METHOD_NOT_FOUND } from '@hermes/shared'
+import { JSON_RPC_METHOD_NOT_FOUND } from '@vanta/shared'
 
 export interface UnsupportedResult {
   error: { code: number; message: string }

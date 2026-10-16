@@ -45,5 +45,5 @@ export function writeDepartment(box, workerId, goalId) {
 
 /** Call a company route through the app's own Electron bridge (the same path the screens use). */
 export function bridgeCall(page, method, route, body) {
-  return page.evaluate(([m, p, b]) => window.hermesDesktop.vanta.request({ method: m, path: p, body: b, clientId: "company-ui" }), [method, route, body]);
+  return page.evaluate(([m, p, b]) => window.desktopBridge.vanta.request({ method: m, path: p, body: b, clientId: "company-ui" }), [method, route, body]);
 }

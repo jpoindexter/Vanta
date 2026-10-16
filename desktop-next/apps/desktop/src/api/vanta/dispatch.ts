@@ -27,7 +27,7 @@ import {
   sessionTitle
 } from './handlers-session'
 
-/** Hermes RPC method to the Vanta HTTP calls that implement it. Anything not listed is unsupported. */
+/** Vanta RPC method to the Vanta HTTP calls that implement it. Anything not listed is unsupported. */
 export const DISPATCH: Readonly<Record<string, Handler>> = {
   'approval.pending': approvalPending,
   'approval.respond': approvalRespond,

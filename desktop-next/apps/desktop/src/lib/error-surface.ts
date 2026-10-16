@@ -55,7 +55,7 @@ export const ERROR_CODE_KEYS = [
   // Raised by the desktop, never by the backend: the backend reported a turn
   // over after its events stopped, and no reply reached this window.
   'no_reply',
-  // The Nous free tier refused or could not serve the turn (agent/error_surface.py
+  // The Vanta free tier refused or could not serve the turn (agent/error_surface.py
   // `free_tier_<kind>`). The backend's sentence rides in `message` and is the card body.
   'free_tier_disabled',
   'free_tier_rate_limited',
@@ -83,7 +83,7 @@ export interface ErrorSurface {
    *  the fix is signing in again (expired/revoked grant); `api_key` means a
    *  key needs replacing. Absent from older backends. */
   authKind?: 'api_key' | 'oauth'
-  /** Auth layer only: display name of the failing provider ("Nous Portal"). */
+  /** Auth layer only: display name of the failing provider ("Vanta Portal"). */
   providerLabel?: string
   /** Auth layer, api_key only: the env var holding the rejected key
    *  (OPENAI_API_KEY). Deep-links Settings → Keys to that row. Absent from
@@ -207,7 +207,7 @@ export function formatCountdown(remainingMs: number): string {
   return hours > 0 ? `${hours}h ${tail}` : tail.replace(/^0/, '')
 }
 
-/** True when the Nous free tier refused or could not serve the turn: the way
+/** True when the Vanta free tier refused or could not serve the turn: the way
  *  forward is the free sign-in (or another provider), never an OAuth re-login. */
 export function isFreeTierSurface(surface: ErrorSurface | null | undefined): boolean {
   return typeof surface?.code === 'string' && surface.code.startsWith('free_tier_')
@@ -267,7 +267,7 @@ export interface ErrorRecoveryPlan {
   /** Open the preceding user message in the edit composer (safety refusal). */
   editMessage: boolean
   /** Reveal the Vanta data folder so the user can free space (disk_full). */
-  openHermesFolder: boolean
+  openVantaFolder: boolean
   /** Settings → Keys deep link (auth, api_key). */
   updateApiKey: boolean
   /** Vanta's own: the provider refused the saved key and the request is saved, so a new key resumes it. */
@@ -293,7 +293,7 @@ const CODE_PLANS: Partial<Record<ErrorCodeKey, Partial<ErrorRecoveryPlan>>> = {
   SESSION_NOT_OWNED: { retry: false, startNewSession: true },
   content_policy_blocked: { editMessage: true, retry: false },
   context_overflow: { compress: true, retry: false, startNewSession: true },
-  disk_full: { openHermesFolder: true, retry: true },
+  disk_full: { openVantaFolder: true, retry: true },
   loop_error: { startNewSession: true },
   model_not_found: { chooseModel: true, retry: false },
   payload_too_large: { compress: true, retry: false, startNewSession: true }
@@ -307,7 +307,7 @@ export function errorRecoveryPlan(surface: ErrorSurface | null | undefined): Err
     chooseModel: false,
     compress: false,
     editMessage: false,
-    openHermesFolder: false,
+    openVantaFolder: false,
     // Retry re-runs the failed prompt in place. Suppressed when the classifier
     // says the failure is deterministic — except for a credential rejection,
     // where fixing the credential changes the outcome and Retry is the

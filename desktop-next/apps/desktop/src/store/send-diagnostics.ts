@@ -2,13 +2,13 @@
 //
 // Flow: an error card (or any surface) calls requestSendDiagnostics() with
 // optional error context → the modal host renders the privacy notice → the
-// user explicitly clicks Upload → diagnostics.share_nous runs backend-side
-// (collect + force-redact + Nous-S3 upload) → the modal shows the private
-// view link plus the support handoff (GitHub Issues · Nous Portal Support ·
+// user explicitly clicks Upload → diagnostics.share_vanta runs backend-side
+// (collect + force-redact + Vanta-S3 upload) → the modal shows the private
+// view link plus the support handoff (GitHub Issues · Vanta Portal Support ·
 // Discord).
 //
 // Consent is per-upload and explicit — no "always allow", mirroring the CLI's
-// `hermes debug share --nous` confirmation contract. On a remote connection
+// `vanta debug share --vanta` confirmation contract. On a remote connection
 // the backend bundles ITS OWN logs (the runtime that owns the failure); the
 // local desktop.log is attached as a client-side extra so support sees both
 // halves in one bundle.
@@ -54,7 +54,7 @@ export function dismissSendDiagnostics(): void {
   $sendDiagnostics.set(null)
 }
 
-interface ShareNousResponse {
+interface ShareVantaResponse {
   error?: string
   expires_at?: string
   ok: boolean
@@ -67,7 +67,7 @@ interface ShareNousResponse {
  *  IPC (browser dashboard, older shells) just omits the file. */
 async function collectLocalExtras(): Promise<Record<string, string>> {
   try {
-    const logs = await window.hermesDesktop?.getRecentLogs?.()
+    const logs = await window.desktopBridge?.getRecentLogs?.()
     const lines = Array.isArray(logs?.lines) ? logs.lines : []
 
     return lines.length ? { 'desktop.log': lines.join('\n') } : {}
@@ -81,7 +81,7 @@ async function collectLocalExtras(): Promise<Record<string, string>> {
 const SHARE_TIMEOUT_MS = 120_000
 
 interface UploadOutcome {
-  response?: ShareNousResponse
+  response?: ShareVantaResponse
   stale?: true
 }
 
@@ -99,8 +99,8 @@ async function runUpload(current: SendDiagnosticsState, stillCurrent: () => bool
     return { stale: true }
   }
 
-  const response = await gateway.request<ShareNousResponse>(
-    'diagnostics.share_nous',
+  const response = await gateway.request<ShareVantaResponse>(
+    'diagnostics.share_vanta',
     {
       ...(current.errorContext ? { error_context: current.errorContext } : {}),
       ...(Object.keys(extraFiles).length ? { extra_files: extraFiles } : {})

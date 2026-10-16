@@ -70,7 +70,7 @@ describe('named-profile appearance seeds the global fallback (#101216)', () => {
   })
 
   it('promotes a unanimous pre-existing per-profile mode into the empty global slot', () => {
-    window.localStorage.setItem('hermes-desktop-profile-modes-v1', JSON.stringify({ forge: 'dark' }))
+    window.localStorage.setItem('vanta-desktop-profile-modes-v1', JSON.stringify({ forge: 'dark' }))
     expect(modePref.resolve('atlas')).toBe('dark')
   })
 })

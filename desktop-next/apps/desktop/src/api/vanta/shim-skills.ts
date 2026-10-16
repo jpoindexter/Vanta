@@ -8,7 +8,7 @@ import type {
   SkillHubSearchResponse,
   SkillHubSource,
   SkillHubSourcesResponse
-} from '@/types/hermes'
+} from '@/types/desktop'
 
 import { APPROVAL_TIMEOUT_MS, post, type ShimRoute, text } from './shim-core'
 
@@ -16,6 +16,7 @@ const HUB_TIMEOUT_MS = 45_000
 const DEFAULT_SEARCH_LIMIT = 20
 
 const installedSchema = z.looseObject({ name: z.string() })
+const changedSchema = z.looseObject({ message: z.string() })
 
 const resultSchema = z.looseObject({
   category: z.string().nullable(),
@@ -93,7 +94,7 @@ const toScan = (preview: z.infer<typeof previewSchema>): SkillHubScanResult => {
 /** A hub identifier names its source ("skills-sh:owner/repo/skill"); a bare slug is a registry skill. */
 const isHubIdentifier = (identifier: string): boolean => identifier.includes(':')
 
-/** The Hermes skills-hub calls, answered by the Vanta hub (skills.sh, GitHub taps) and registry installs. */
+/** The Vanta skills-hub calls, answered by the Vanta hub (skills.sh, GitHub taps) and registry installs. */
 export const skillRoutes: readonly ShimRoute[] = [
   {
     handle: async (): Promise<SkillHubSourcesResponse> => ({ featured: [], index_available: false, installed: {}, sources: SOURCES }),
@@ -144,6 +145,25 @@ export const skillRoutes: readonly ShimRoute[] = [
     handle: async ({ query, send }): Promise<SkillHubScanResult> => toScan(await loadPreview(send, query.get('identifier') ?? '')),
     method: 'GET',
     path: /^\/api\/skills\/hub\/scan$/
+  },
+  {
+    // Editing and archiving a Memory Graph node: one approval card each, answered by the Vanta server.
+    handle: async ({ body, send }) => {
+      const changed = changedSchema.parse(await post(send, '/api/learning/node-edit', { content: text(body.content), id: text(body.id) }, APPROVAL_TIMEOUT_MS))
+
+      return { message: changed.message, ok: true }
+    },
+    method: 'PUT',
+    path: /^\/api\/learning\/node$/
+  },
+  {
+    handle: async ({ body, send }) => {
+      const changed = changedSchema.parse(await post(send, '/api/learning/node-archive', { id: text(body.id) }, APPROVAL_TIMEOUT_MS))
+
+      return { message: changed.message, ok: true }
+    },
+    method: 'DELETE',
+    path: /^\/api\/learning\/node$/
   },
   {
     handle: async ({ body, send }): Promise<ActionResponse> => {

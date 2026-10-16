@@ -1,3 +1,5 @@
+// Must be first: carries saved state over from the old key names before any store reads it.
+import './lib/legacy-storage-migrate'
 import './styles.css'
 import './styles/vanta.css'
 // Side-effect: reports in-flight turns to the main process for the quit guard.

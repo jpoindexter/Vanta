@@ -21,14 +21,14 @@ const params = parseFixtureParams(window.location.search)
 
 // Appearance is read from per-profile storage at mount, so seed it first.
 try {
-  window.localStorage.setItem('hermes-desktop-mode-v1', params.theme)
-  window.localStorage.setItem('hermes-desktop-theme-v2', 'vanta')
-  window.localStorage.removeItem('hermes.desktop.composerQueue.v1')
+  window.localStorage.setItem('vanta-desktop-mode-v1', params.theme)
+  window.localStorage.setItem('vanta-desktop-theme-v2', 'vanta')
+  window.localStorage.removeItem('vanta.desktop.composerQueue.v1')
 } catch {
   // Storage may be blocked; the harness then follows the OS scheme.
 }
 
-Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { api: async () => ({}) } })
+Object.defineProperty(window, 'desktopBridge', { configurable: true, value: { api: async () => ({}) } })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

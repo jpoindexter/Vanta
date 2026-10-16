@@ -11,7 +11,7 @@
  * way chat does.
  */
 
-import { resolveGatewayWsUrl } from '@hermes/shared'
+import { resolveGatewayWsUrl } from '@vanta/shared'
 
 const RESOLVE_TIMEOUT_MS = 15_000
 
@@ -47,7 +47,7 @@ export async function resolveSiblingWsUrl(
   path: string,
   options: { stripGatewayCredential?: boolean } = {}
 ): Promise<string> {
-  const desktop = window.hermesDesktop
+  const desktop = window.desktopBridge
 
   if (!desktop?.getConnection) {
     throw new Error('Vanta connection bridge unavailable')

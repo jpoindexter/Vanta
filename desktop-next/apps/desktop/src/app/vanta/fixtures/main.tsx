@@ -35,7 +35,7 @@ const theme = params.get('theme') === 'dark' ? 'dark' : 'light'
 
 // The ThemeProvider reads the persisted mode; seed it before first render.
 try {
-  localStorage.setItem('hermes-desktop-mode-v1', theme)
+  localStorage.setItem('vanta-desktop-mode-v1', theme)
 } catch {
   // Storage can be unavailable in locked-down contexts; the system mode applies.
 }

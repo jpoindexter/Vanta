@@ -16,9 +16,9 @@ type RestartPreviewServer = NonNullable<ReturnType<typeof $restartPreviewServer.
 export function useOpenKeybindsListener(navigate: NavigateFunction) {
   useEffect(() => {
     const onOpenKeybinds = () => navigate(`${SETTINGS_ROUTE}?tab=keybinds`)
-    window.addEventListener('hermes:open-keybinds', onOpenKeybinds)
+    window.addEventListener('desktop:open-keybinds', onOpenKeybinds)
 
-    return () => window.removeEventListener('hermes:open-keybinds', onOpenKeybinds)
+    return () => window.removeEventListener('desktop:open-keybinds', onOpenKeybinds)
   }, [navigate])
 }
 
@@ -75,7 +75,7 @@ export function useGatewayScopeRefresh(
   activeConnectionId: null | string,
   activeGatewayProfile: string,
   refreshCurrentModel: (force: boolean) => Promise<unknown>,
-  refreshHermesConfig: (force: boolean) => Promise<unknown>
+  refreshVantaConfig: (force: boolean) => Promise<unknown>
 ) {
   const gatewayScope = `${activeConnectionId ?? ''}\0${activeGatewayProfile}`
   const lastGatewayScopeRef = useRef(gatewayScope)
@@ -92,8 +92,8 @@ export function useGatewayScopeRefresh(
     // backend. These refreshes carry intent tokens so an in-flight picker
     // click still wins.
     void refreshCurrentModel(true)
-    void refreshHermesConfig(true)
+    void refreshVantaConfig(true)
     void refreshActiveProfile()
     resetProjectTreeState()
-  }, [gatewayScope, refreshCurrentModel, refreshHermesConfig])
+  }, [gatewayScope, refreshCurrentModel, refreshVantaConfig])
 }

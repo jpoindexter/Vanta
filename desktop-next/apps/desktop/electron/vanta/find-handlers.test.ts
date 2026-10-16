@@ -38,7 +38,7 @@ describe("find in page", () => {
     await expect(find("needle", { findNext: false, forward: true })).resolves.toEqual({ count: 0 });
 
     expect(contents.findInPage).toHaveBeenCalledWith("needle", { findNext: false, forward: true });
-    expect(contents.send).toHaveBeenCalledWith("hermes:found-in-page", { activeMatchOrdinal: 1, count: 4 });
+    expect(contents.send).toHaveBeenCalledWith("desktop:found-in-page", { activeMatchOrdinal: 1, count: 4 });
   });
 
   it("installs the result forwarder once per window", async () => {
@@ -48,7 +48,7 @@ describe("find in page", () => {
     await find("b");
 
     expect(contents.listenerCount("found-in-page")).toBeGreaterThanOrEqual(1);
-    expect(contents.send.mock.calls.filter(call => call[0] === "hermes:found-in-page")).toHaveLength(2);
+    expect(contents.send.mock.calls.filter(call => call[0] === "desktop:found-in-page")).toHaveLength(2);
   });
 
   it("does not search for an overlong query or a non-string", async () => {

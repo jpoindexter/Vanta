@@ -1,9 +1,9 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 import type { z } from 'zod'
 
 import type { ChatClient } from './client-registry'
 import { errorBodySchema } from './schemas'
-import type { VantaCall, VantaResult, VantaTransport } from '@hermes/shared/vanta'
+import type { VantaCall, VantaResult, VantaTransport } from '@vanta/shared/vanta'
 
 export const SESSION_NOT_FOUND_CODE = 4001
 

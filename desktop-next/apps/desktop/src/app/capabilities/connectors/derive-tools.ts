@@ -150,7 +150,7 @@ export function toolReadStatus({ hasData, listHasApp, pending, reason }: ToolRea
   }
 
   if (reason !== null) {
-    return reason === 'NEEDS_NOUS_AUTH' ? 'signedOut' : 'unavailable'
+    return reason === 'NEEDS_VANTA_AUTH' ? 'signedOut' : 'unavailable'
   }
 
   return pending ? 'loading' : null

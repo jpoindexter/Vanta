@@ -1,7 +1,7 @@
 // The plugin authoring contract types; the SDK barrel re-exports them.
 
 export type {
-  HermesPlugin,
+  VantaPlugin,
   PetMessageTone,
   PetSayOptions,
   PluginAppActionId,

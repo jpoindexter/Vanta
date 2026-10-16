@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n";
 import { pinSession, unpinSession } from "@/store/layout";
 import { $pinnedSessionIds } from "@/store/layout";
 import { sessionPinId } from "@/store/session";
-import type { SessionInfo } from "@/types/hermes";
+import type { SessionInfo } from "@/types/desktop";
 import { useStore } from "@nanostores/react";
 
 interface TitleMenuProps {

@@ -1,4 +1,4 @@
-import type { HermesGateway } from '@/hermes'
+import type { VantaGateway } from '@/desktop-api'
 import { type ClarifyRequest } from '@/store/clarify'
 import { forgetServerRequest } from '@/store/server-requests'
 import { requestForOwnedSession } from '@/store/session-states'
@@ -19,7 +19,7 @@ export interface LockedAnswer {
  */
 export async function lockClarifyAnswers(
   request: ClarifyRequest,
-  gateway: HermesGateway,
+  gateway: VantaGateway,
   answers: readonly LockedAnswer[]
 ): Promise<void> {
   for (const { answer, qid } of answers) {

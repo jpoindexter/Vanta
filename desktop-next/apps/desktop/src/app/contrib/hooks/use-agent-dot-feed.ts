@@ -12,6 +12,6 @@ export function useAgentDotFeed(): void {
   const needsInput = useStore($attentionSessionIds).length > 0
 
   useEffect(() => {
-    window.hermesDesktop?.agentDot?.feed({ needsInput, working })
+    window.desktopBridge?.agentDot?.feed({ needsInput, working })
   }, [needsInput, working])
 }

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { getAllSessionMessages, searchSessions, setSessionArchived, setSessionPinnedRemote, setSessionUnreadRemote } from '@/api/sessions'
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
 const stored = [
@@ -12,7 +12,7 @@ const stored = [
 ]
 
 function setup() {
-  const calls: HermesApiRequest[] = []
+  const calls: VantaApiRequest[] = []
 
   installRestBridge(request => {
     calls.push(request)
@@ -34,14 +34,14 @@ function setup() {
 }
 
 describe('session controls reach the Vanta routes', () => {
-  let calls: HermesApiRequest[]
+  let calls: VantaApiRequest[]
 
   beforeEach(() => {
     calls = setup()
   })
 
   afterEach(() => {
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { desktopBridge?: unknown }).desktopBridge
     delete (window as { vantaDesktop?: unknown }).vantaDesktop
   })
 

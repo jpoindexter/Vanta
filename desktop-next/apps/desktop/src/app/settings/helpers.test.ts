@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { HermesConfigRecord } from '@/types/hermes'
+import type { VantaConfigRecord } from '@/types/desktop'
 
 import { BUILTIN_PERSONALITIES } from './constants'
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
@@ -98,7 +98,7 @@ describe('settings helpers', () => {
   })
 
   it('reads and writes nested config paths', () => {
-    const config: HermesConfigRecord = { display: { theme: 'mono' } }
+    const config: VantaConfigRecord = { display: { theme: 'mono' } }
     const next = setNested(config, 'display.theme', 'slate')
 
     expect(getNested(next, 'display.theme')).toBe('slate')
@@ -106,7 +106,7 @@ describe('settings helpers', () => {
   })
 
   it('rejects prototype-polluting config paths', () => {
-    const config: HermesConfigRecord = {}
+    const config: VantaConfigRecord = {}
 
     expect(() => setNested(config, '__proto__.polluted', true)).toThrow('Unsafe config path')
     expect(() => setNested(config, 'constructor.prototype.polluted', true)).toThrow('Unsafe config path')
@@ -135,8 +135,8 @@ describe('settings helpers', () => {
       // KIMI_CN_ likewise must beat KIMI_.
       expect(providerGroup('KIMI_CN_API_KEY')).toBe('Kimi (China)')
       expect(providerGroup('KIMI_API_KEY')).toBe('Kimi / Moonshot')
-      // HERMES_QWEN_ shares the HERMES_ stem with other integrations.
-      expect(providerGroup('HERMES_QWEN_BASE_URL')).toBe('DashScope (Qwen)')
+      // VANTA_QWEN_ shares the VANTA_ stem with other integrations.
+      expect(providerGroup('VANTA_QWEN_BASE_URL')).toBe('DashScope (Qwen)')
       expect(providerGroup('GEMINI_API_KEY')).toBe('Gemini')
     })
 
@@ -146,7 +146,7 @@ describe('settings helpers', () => {
   })
 
   describe('enumOptionsFor — backend selector dropdowns', () => {
-    const config: HermesConfigRecord = {}
+    const config: VantaConfigRecord = {}
 
     it('narrows OpenAI TTS voice suggestions to what the selected model supports', () => {
       // gpt-4o-mini-tts (and unset/unknown models): full 13-voice set.
@@ -175,7 +175,7 @@ describe('settings helpers', () => {
     })
 
     it('surfaces user-defined command-type TTS providers (canonical providers nesting + legacy)', () => {
-      const withCustom: HermesConfigRecord = {
+      const withCustom: VantaConfigRecord = {
         tts: {
           provider: 'neutts',
           // canonical location the runtime resolves first: tts.providers.<name>
@@ -208,7 +208,7 @@ describe('settings helpers', () => {
     })
 
     it('surfaces command-type STT providers too (canonical providers nesting)', () => {
-      const withCustom: HermesConfigRecord = {
+      const withCustom: VantaConfigRecord = {
         stt: {
           provider: 'local',
           providers: { myasr: { type: 'command', command: 'curl …' } }
@@ -227,7 +227,7 @@ describe('settings helpers', () => {
     // STT), where filtering on ENUM_OPTIONS instead of the runtime's built-in set
     // would wrongly offer a provider that can never dispatch.
     it('never offers a built-in name as a command provider, even one absent from the dropdown list', () => {
-      const shadowing: HermesConfigRecord = {
+      const shadowing: VantaConfigRecord = {
         tts: {
           provider: 'edge',
           providers: {
@@ -249,7 +249,7 @@ describe('settings helpers', () => {
     })
 
     it('never offers a built-in STT name absent from the dropdown list as a command provider', () => {
-      const shadowing: HermesConfigRecord = {
+      const shadowing: VantaConfigRecord = {
         stt: {
           provider: 'local',
           providers: {
@@ -271,10 +271,10 @@ describe('settings helpers', () => {
 
   describe('enumOptionsFor — display.personality dropdown', () => {
     it('lists a root-level `personalities` block alongside the built-ins (#123297)', () => {
-      // The Python spec (`hermes_cli.personality.available_personalities`) overlays
+      // The Python spec (`vanta_cli.personality.available_personalities`) overlays
       // the built-ins with the root `personalities` block then `agent.personalities`;
       // the dropdown must surface a root-registered persona the CLI/gateway resolve.
-      const config: HermesConfigRecord = { personalities: { root_persona: { prompt: 'hi' } } }
+      const config: VantaConfigRecord = { personalities: { root_persona: { prompt: 'hi' } } }
       const opts = enumOptionsFor('display.personality', '', config)
 
       // Derive the expected built-ins from the source of truth, per the repo's
@@ -288,7 +288,7 @@ describe('settings helpers', () => {
     })
 
     it('merges root and agent personalities, deduping a clashing name', () => {
-      const config: HermesConfigRecord = {
+      const config: VantaConfigRecord = {
         personalities: { root_persona: {}, shared: {} },
         agent: { personalities: { agent_persona: {}, shared: {} } }
       }
@@ -302,7 +302,7 @@ describe('settings helpers', () => {
 
     it('ignores a non-object or array `personalities` block', () => {
       for (const bad of [[], 'nope', 42, null]) {
-        const opts = enumOptionsFor('display.personality', '', { personalities: bad } as HermesConfigRecord)!
+        const opts = enumOptionsFor('display.personality', '', { personalities: bad } as VantaConfigRecord)!
         // still the built-ins + empty sentinel, no crash on a malformed block
         expect(opts).toContain('')
 
@@ -317,9 +317,9 @@ describe('settings helpers', () => {
       // spellings; without matching that, the dropdown offers a case-variant duplicate,
       // a whitespace-padded name, or a neutral name the runtime canonicalises away —
       // rows the user can pick but that never load the definition shown (#123297).
-      const config: HermesConfigRecord = {
+      const config: VantaConfigRecord = {
         personalities: { Catgirl: {}, '  Spaced  ': {}, none: {}, Default: {}, NEUTRAL: {} }
-      } as HermesConfigRecord
+      } as VantaConfigRecord
 
       const opts = enumOptionsFor('display.personality', '', config)!
 
@@ -340,7 +340,7 @@ describe('settings helpers', () => {
   describe('sectionFieldEntries', () => {
     it('renders memory.provider from config even when the backend schema omits it', () => {
       const schema = { 'memory.memory_enabled': { type: 'boolean' as const } }
-      const config: HermesConfigRecord = { memory: { memory_enabled: true, provider: '' } }
+      const config: VantaConfigRecord = { memory: { memory_enabled: true, provider: '' } }
 
       const memoryKeys = (sectionFieldEntries(schema, config).get('memory') ?? []).map(([key]) => key)
 
@@ -348,7 +348,7 @@ describe('settings helpers', () => {
     })
 
     it('infers the field type from the config value when the schema omits the key', () => {
-      const config: HermesConfigRecord = { memory: { provider: '', memory_enabled: true, memory_char_limit: 2200 } }
+      const config: VantaConfigRecord = { memory: { provider: '', memory_enabled: true, memory_char_limit: 2200 } }
 
       const fields = new Map(sectionFieldEntries({}, config).get('memory') ?? [])
 
@@ -359,7 +359,7 @@ describe('settings helpers', () => {
 
     it('prefers the backend schema entry over inference when both exist', () => {
       const schema = { 'memory.provider': { type: 'select' as const, options: ['honcho'] } }
-      const config: HermesConfigRecord = { memory: { provider: 'honcho' } }
+      const config: VantaConfigRecord = { memory: { provider: 'honcho' } }
 
       const field = new Map(sectionFieldEntries(schema, config).get('memory') ?? []).get('memory.provider')
 
@@ -374,8 +374,8 @@ describe('settings helpers', () => {
 
   describe('clearsEnabledToolsets', () => {
     it('flags a non-empty → empty transition', () => {
-      const prev: HermesConfigRecord = { toolsets: ['memory', 'terminal', 'web_search'] }
-      const next: HermesConfigRecord = { toolsets: [] }
+      const prev: VantaConfigRecord = { toolsets: ['memory', 'terminal', 'web_search'] }
+      const next: VantaConfigRecord = { toolsets: [] }
 
       expect(clearsEnabledToolsets(prev, next)).toBe(true)
     })
@@ -384,29 +384,29 @@ describe('settings helpers', () => {
       // PUT /api/config deep-merges the override onto the stored config, so an
       // import that omits `toolsets` keeps the existing list — no wipe happens,
       // so there is nothing to confirm.
-      const prev: HermesConfigRecord = { toolsets: ['memory'] }
-      const next: HermesConfigRecord = {}
+      const prev: VantaConfigRecord = { toolsets: ['memory'] }
+      const next: VantaConfigRecord = {}
 
       expect(clearsEnabledToolsets(prev, next)).toBe(false)
     })
 
     it('does not flag when at least one toolset remains', () => {
-      const prev: HermesConfigRecord = { toolsets: ['memory', 'terminal'] }
-      const next: HermesConfigRecord = { toolsets: ['memory'] }
+      const prev: VantaConfigRecord = { toolsets: ['memory', 'terminal'] }
+      const next: VantaConfigRecord = { toolsets: ['memory'] }
 
       expect(clearsEnabledToolsets(prev, next)).toBe(false)
     })
 
     it('does not flag when the list was already empty', () => {
-      const prev: HermesConfigRecord = { toolsets: [] }
-      const next: HermesConfigRecord = { toolsets: [] }
+      const prev: VantaConfigRecord = { toolsets: [] }
+      const next: VantaConfigRecord = { toolsets: [] }
 
       expect(clearsEnabledToolsets(prev, next)).toBe(false)
     })
 
     it('does not flag an unrelated edit that never touched toolsets', () => {
-      const prev: HermesConfigRecord = { model: 'a', toolsets: ['memory'] }
-      const next: HermesConfigRecord = { model: 'b', toolsets: ['memory'] }
+      const prev: VantaConfigRecord = { model: 'a', toolsets: ['memory'] }
+      const next: VantaConfigRecord = { model: 'b', toolsets: ['memory'] }
 
       expect(clearsEnabledToolsets(prev, next)).toBe(false)
     })
@@ -415,38 +415,38 @@ describe('settings helpers', () => {
   describe('diffConfig', () => {
     it('omits a top-level key the draft never touched', () => {
       // The autosave baseline is a snapshot taken when Settings opened. A key
-      // an agent set via `hermes config set` while the page sat open must not
+      // an agent set via `vanta config set` while the page sat open must not
       // come back in the patch just because it's still present in the draft.
-      const baseline: HermesConfigRecord = { fallback_providers: ['nara1'], timezone: 'UTC' }
-      const draft: HermesConfigRecord = { fallback_providers: ['nara1'], timezone: 'America/New_York' }
+      const baseline: VantaConfigRecord = { fallback_providers: ['nara1'], timezone: 'UTC' }
+      const draft: VantaConfigRecord = { fallback_providers: ['nara1'], timezone: 'America/New_York' }
 
       expect(diffConfig(baseline, draft)).toEqual({ timezone: 'America/New_York' })
     })
 
     it('includes a nested key only when it actually changed, leaving siblings out', () => {
-      const baseline: HermesConfigRecord = { display: { personality: 'default', show_reasoning: true } }
-      const draft: HermesConfigRecord = { display: { personality: 'default', show_reasoning: false } }
+      const baseline: VantaConfigRecord = { display: { personality: 'default', show_reasoning: true } }
+      const draft: VantaConfigRecord = { display: { personality: 'default', show_reasoning: false } }
 
       expect(diffConfig(baseline, draft)).toEqual({ display: { show_reasoning: false } })
     })
 
     it('sends a new key that was absent from the baseline', () => {
-      const baseline: HermesConfigRecord = {}
-      const draft: HermesConfigRecord = { timezone: 'UTC' }
+      const baseline: VantaConfigRecord = {}
+      const draft: VantaConfigRecord = { timezone: 'UTC' }
 
       expect(diffConfig(baseline, draft)).toEqual({ timezone: 'UTC' })
     })
 
     it('returns an empty object when the draft matches the baseline exactly', () => {
-      const baseline: HermesConfigRecord = { toolsets: ['memory'], display: { personality: 'default' } }
-      const draft: HermesConfigRecord = { toolsets: ['memory'], display: { personality: 'default' } }
+      const baseline: VantaConfigRecord = { toolsets: ['memory'], display: { personality: 'default' } }
+      const draft: VantaConfigRecord = { toolsets: ['memory'], display: { personality: 'default' } }
 
       expect(diffConfig(baseline, draft)).toEqual({})
     })
 
     it('treats an array as a whole value, not diffed element by element', () => {
-      const baseline: HermesConfigRecord = { toolsets: ['memory', 'terminal'] }
-      const draft: HermesConfigRecord = { toolsets: ['memory'] }
+      const baseline: VantaConfigRecord = { toolsets: ['memory', 'terminal'] }
+      const draft: VantaConfigRecord = { toolsets: ['memory'] }
 
       expect(diffConfig(baseline, draft)).toEqual({ toolsets: ['memory'] })
     })

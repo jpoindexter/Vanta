@@ -79,7 +79,7 @@ describe("zoom controller", () => {
 
     expect(state.level).toBeCloseTo(0.1, 9);
     expect(written).toHaveLength(3);
-    expect(send).toHaveBeenLastCalledWith("hermes:zoom:changed", { level: expect.closeTo(0.1, 9), percent: 102 });
+    expect(send).toHaveBeenLastCalledWith("desktop:zoom:changed", { level: expect.closeTo(0.1, 9), percent: 102 });
 
     zoom.reset();
     expect(state.level).toBe(0);

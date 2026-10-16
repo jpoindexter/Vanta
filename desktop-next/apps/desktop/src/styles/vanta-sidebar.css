@@ -1,8 +1,8 @@
-/* The full sidebar (the Hermes list, kept) on the wireframe's metrics:
+/* The full sidebar (the Vanta list, kept) on the wireframe's metrics:
  * docs/wireframe .sidebar, .nav, .grouplabel, .badge and .row. Scoped to the
  * sessions sidebar; the 1100px rail is the Vanta sidebar in vanta-shell.css.
  * Unlayered, imported after styles.css, so it wins over the Tailwind utilities
- * the Hermes components carry. Hooks are data-testid attributes, not classes. */
+ * the Vanta components carry. Hooks are data-testid attributes, not classes. */
 
 /* The pane shell zeroes sidebar borders ([data-tree-group] :is(aside, [data-slot=sidebar])); the wireframe draws one hairline. */
 [data-tree-group] [data-slot='sidebar'][data-tour='sessions-sidebar'] {

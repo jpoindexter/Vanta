@@ -278,7 +278,7 @@ const DESKTOP_COMMAND_SPECS: readonly DesktopCommandSpec[] = [
     argumentMode: 'text'
   },
   // /bg (alias /background) must be an action (prompt.background RPC — the
-  // TUI's path), not exec: the slash worker's HermesCLI prints the completion
+  // TUI's path), not exec: the slash worker's VantaCLI prints the completion
   // from a fire-and-forget thread after process_command already returned,
   // past the worker's stdout capture window, so the result never reached the
   // desktop conversation that started the task (#97635, #57444).
@@ -326,7 +326,7 @@ const DESKTOP_COMMAND_SPECS: readonly DesktopCommandSpec[] = [
 
 /**
  * Offline fallback for the registry's `desktop=` metadata, dumped from
- * `hermes_cli/commands.py::desktop_surface_registry` by
+ * `vanta_cli/commands.py::desktop_surface_registry` by
  * `scripts/dump_desktop_slash_registry.py`. The live `commands.catalog` answers
  * first (`specFromCatalog`); this copy only covers the gap before the backend
  * replies. A Python test and `desktop-slash-commands.test.ts` both fail when
@@ -653,7 +653,7 @@ export function isSideTaskSlashCommand(text: string): boolean {
   return surface?.kind === 'action' && SIDE_TASK_ACTIONS.has(surface.action)
 }
 
-function isKnownHermesSlashCommand(command: string): boolean {
+function isKnownVantaSlashCommand(command: string): boolean {
   const normalized = normalizeCommand(command)
 
   if (SPEC_BY_NAME.has(normalized) || ALIAS_TO_CANONICAL.has(normalized)) {
@@ -676,7 +676,7 @@ export function isDesktopSlashExtensionCommand(command: string): boolean {
     return false
   }
 
-  return !isKnownHermesSlashCommand(normalized)
+  return !isKnownVantaSlashCommand(normalized)
 }
 
 /**

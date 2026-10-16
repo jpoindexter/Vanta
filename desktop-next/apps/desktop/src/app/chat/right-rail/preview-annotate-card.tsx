@@ -74,7 +74,7 @@ export function PreviewAnnotateCard({
   return (
     <form
       aria-label={title}
-      className="absolute z-20 flex h-11 w-[min(17.5rem,calc(100%-1.5rem))] items-center gap-1 rounded-full pl-4 pr-1 shadow-nous"
+      className="absolute z-20 flex h-11 w-[min(17.5rem,calc(100%-1.5rem))] items-center gap-1 rounded-full pl-4 pr-1 shadow-vanta"
       data-annotate-card="true"
       data-annotate-number={number}
       onSubmit={event => {
@@ -92,7 +92,7 @@ export function PreviewAnnotateCard({
       <input
         aria-label={placeholder}
         autoComplete="off"
-        className="min-w-0 flex-1 bg-transparent text-[0.8125rem] leading-5 outline-none placeholder:text-white/45"
+        className="min-w-0 flex-1 bg-transparent text-ui leading-5 outline-none placeholder:text-white/45"
         onChange={event => onChange(event.target.value)}
         onKeyDown={event => {
           if (event.key === 'Escape') {

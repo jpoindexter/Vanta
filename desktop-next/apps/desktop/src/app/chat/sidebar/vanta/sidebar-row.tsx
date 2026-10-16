@@ -5,7 +5,7 @@ import type { ShellStatus } from '@/app/shell/vanta/session-status'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { sessionTitle } from '@/lib/chat-runtime'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { SessionActionsMenu, SessionContextMenu } from '../session-actions-menu'
 

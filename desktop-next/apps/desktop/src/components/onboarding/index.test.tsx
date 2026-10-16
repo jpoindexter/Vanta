@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { $desktopOnboarding, type DesktopOnboardingState, type OnboardingContext } from '@/store/onboarding'
 import { makeOAuthProvider } from '@/test/oauth-provider'
-import type { OAuthProvider } from '@/types/hermes'
+import type { OAuthProvider } from '@/types/desktop'
 
 import { ApiKeyForm, Picker } from '.'
 
@@ -48,8 +48,8 @@ afterEach(() => {
 })
 
 describe('onboarding Picker', () => {
-  it('never offers the hosted Nous sign-in, and shows the remaining providers directly', () => {
-    setProviders([makeOAuthProvider('anthropic', 'Anthropic Claude'), makeOAuthProvider('nous', 'Hosted portal')])
+  it('never offers the hosted Vanta sign-in, and shows the remaining providers directly', () => {
+    setProviders([makeOAuthProvider('anthropic', 'Anthropic Claude'), makeOAuthProvider('vanta', 'Hosted portal')])
     render(<Picker ctx={ctx} />)
 
     expect(screen.queryByText('Hosted portal')).toBeNull()
@@ -74,7 +74,7 @@ describe('onboarding Picker', () => {
   })
 
   it('offers "choose later" on first run and persists the skip', () => {
-    setProviders([makeOAuthProvider('nous', 'Nous Portal')])
+    setProviders([makeOAuthProvider('vanta', 'Vanta Portal')])
     render(<Picker ctx={ctx} />)
 
     const skip = screen.getByRole('button', { name: "I'll choose a provider later" })
@@ -82,11 +82,11 @@ describe('onboarding Picker', () => {
     fireEvent.click(skip)
 
     expect($desktopOnboarding.get().firstRunSkipped).toBe(true)
-    expect(window.localStorage.getItem('hermes-onboarding-skipped-v1')).toBe('1')
+    expect(window.localStorage.getItem('vanta-onboarding-skipped-v1')).toBe('1')
   })
 
   it('hides "choose later" in manual (add-provider) mode', () => {
-    setProviders([makeOAuthProvider('nous', 'Nous Portal')])
+    setProviders([makeOAuthProvider('vanta', 'Vanta Portal')])
     $desktopOnboarding.set({ ...$desktopOnboarding.get(), manual: true })
     render(<Picker ctx={ctx} />)
 

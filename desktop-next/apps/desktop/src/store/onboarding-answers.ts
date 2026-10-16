@@ -6,7 +6,7 @@ export interface OnboardingAnswers {
   accent: null | string
 }
 
-const ANSWERS_KEY = 'hermes-onboarding-wizard-answers-v1'
+const ANSWERS_KEY = 'vanta-onboarding-wizard-answers-v1'
 
 export const DEFAULT_ANSWERS: OnboardingAnswers = { accent: null }
 

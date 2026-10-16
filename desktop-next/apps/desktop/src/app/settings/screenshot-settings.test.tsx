@@ -37,7 +37,7 @@ function installBridge() {
     })
   }
 
-  vi.stubGlobal('hermesDesktop', { screenshot: api })
+  vi.stubGlobal('desktopBridge', { screenshot: api })
 
   return { api, emit: (status: ScreenshotStatus) => onStatus(status), unsubscribe }
 }
@@ -152,7 +152,7 @@ describe('ScreenshotSettings', () => {
     view.unmount()
     expect(unsubscribe).toHaveBeenCalledOnce()
 
-    vi.stubGlobal('hermesDesktop', {})
+    vi.stubGlobal('desktopBridge', {})
     const unsupported = render(<ScreenshotSettings />)
     expect(unsupported.container.childElementCount).toBe(0)
   })

@@ -66,6 +66,21 @@ describe("desktop continuity API", () => {
     }
   });
 
+  it.each(["session", "pattern", "global"] as const)("turns support back on after a %s refusal, and capture works again", async (scope) => {
+    const live = await started();
+    try {
+      await post(live.base, { action: "off", scope });
+      expect((await post(live.base, { action: "capture", text: "blocked while off" })).status).toBe(409);
+
+      const on = await post(live.base, { action: "on" });
+      expect(on.status).toBe(200);
+      expect(await on.json()).toMatchObject({ support: { refusal: { active: false } } });
+      expect((await post(live.base, { action: "capture", text: "allowed again" })).status).toBe(201);
+    } finally {
+      await new Promise<void>((resolve) => live.server.close(() => resolve()));
+    }
+  });
+
   it.each(["pattern", "global"] as const)("persists %s refusal across a server restart", async (scope) => {
     const live = await started();
     try {

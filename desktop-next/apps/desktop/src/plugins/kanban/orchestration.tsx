@@ -18,7 +18,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient
-} from '@hermes/plugin-sdk'
+} from '@vanta/plugin-sdk'
 import { useState } from 'react'
 
 import {
@@ -97,14 +97,14 @@ function ProfileDescriptionRow({ profile }: { profile: KanbanProfile }) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="w-24 shrink-0 truncate text-[0.75rem] font-medium text-(--ui-text-secondary)">
+      <span className="w-24 shrink-0 truncate text-meta font-medium text-(--ui-text-secondary)">
         {profile.name}
         {profile.is_default && (
-          <span className="ml-1 text-[0.75rem] text-(--ui-text-quaternary)">{k.defaultParen}</span>
+          <span className="ml-1 text-meta text-(--ui-text-quaternary)">{k.defaultParen}</span>
         )}
       </span>
       <Input
-        className="h-7 flex-1 text-[0.75rem]"
+        className="h-7 flex-1 text-meta"
         onChange={event => setDraft(event.target.value)}
         placeholder={k.profileGoodAt}
         value={draft}
@@ -163,7 +163,7 @@ export function OrchestrationPanel() {
           profiles={roster.profiles}
           value={settings.default_assignee}
         />
-        <label className="flex cursor-pointer items-center gap-2 pb-1.5 text-[0.75rem] text-(--ui-text-secondary)">
+        <label className="flex cursor-pointer items-center gap-2 pb-1.5 text-meta text-(--ui-text-secondary)">
           <Switch
             aria-label={k.autoDecompose}
             checked={settings.auto_decompose}
@@ -176,7 +176,7 @@ export function OrchestrationPanel() {
 
       <div className="flex flex-col gap-1.5">
         <span className={FIELD_LABEL}>{k.profileDescriptions}</span>
-        <p className="text-[0.75rem] text-(--ui-text-quaternary)">{k.profileDescriptionsHint}</p>
+        <p className="text-meta text-(--ui-text-quaternary)">{k.profileDescriptionsHint}</p>
         {roster.profiles.map(profile => (
           <ProfileDescriptionRow key={`${profile.name}:${profile.description}`} profile={profile} />
         ))}

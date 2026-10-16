@@ -32,7 +32,7 @@ export async function messageRows(page) {
   for (const name of assistant) if ((await labelled(page, name).count()) > 0) have.push(name);
   await labelled(page, "Copy").last().click();
   await page.waitForTimeout(300);
-  const copied = await page.evaluate(() => window.hermesDesktop.readClipboard());
+  const copied = await page.evaluate(() => window.desktopBridge.readClipboard());
   verdict("F-142", AREA, "Assistant message actions", have.length >= 5 && /canned/.test(copied), { pass: `${have.join(", ")}; Copy put the reply text on the clipboard`, why: `present=${have.join(",")} clipboard=${copied.slice(0, 40)}` });
   const user = ["Edit message", "Restore checkpoint"];
   const userHave = [];
@@ -91,7 +91,7 @@ export async function focusRouting(ctx) {
   await page.getByRole("button", { name: "Reject" }).first().click().catch(() => undefined);
   await page.waitForTimeout(1500);
   // Control: tell main no chat is in front. The card must then go to the chat that opened last (beta), not the one on screen.
-  await page.evaluate(() => window.hermesDesktop.vanta.focusClient(null));
+  await page.evaluate(() => window.desktopBridge.vanta.focusClient(null));
   await page.keyboard.type("curl -s http://127.0.0.1:9/");
   await page.keyboard.press("Enter");
   const control = await waitUntil(async () => /Needs you[\s\S]*beta chat/.test(await sidebar(page).innerText()), 10000);

@@ -1,4 +1,4 @@
-import type { ModelOptionProvider, ProviderLimit, ProviderUsageAccount, ProviderUsageWindow } from '@hermes/shared'
+import type { ModelOptionProvider, ProviderLimit, ProviderUsageAccount, ProviderUsageWindow } from '@vanta/shared'
 
 import { DAY, fmtClock, fmtDayTime, startOfLocalDay } from '@/lib/time'
 

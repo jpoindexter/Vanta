@@ -4,7 +4,7 @@ import {
   type GatewayEvent,
   type GatewayEventName,
   type ServerRequestHandler
-} from '@hermes/shared'
+} from '@vanta/shared'
 
 import { approvalServerRequest } from './approvals'
 import { ClientRegistry, type ChatClient } from './client-registry'
@@ -13,7 +13,7 @@ import { DISPATCH } from './dispatch'
 import type { GatewayHub } from './hub'
 import { VantaCaller } from './rpc'
 import type { ApprovalPayload } from './schemas'
-import type { VantaTransport } from '@hermes/shared/vanta'
+import type { VantaTransport } from '@vanta/shared/vanta'
 import { isUnsupportedResult, unsupportedResult } from './unsupported'
 
 export const DEFAULT_APPROVAL_POLL_MS = 1500

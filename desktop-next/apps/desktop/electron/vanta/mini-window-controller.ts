@@ -28,7 +28,7 @@ export interface MiniDeps {
 }
 
 /**
- * The compact always-on-top window that stands in for the Hermes HUD: the renderer's HUD variant, driven by
+ * The compact always-on-top window that stands in for the Vanta HUD: the renderer's HUD variant, driven by
  * the same hud.* members. Opening it steps the main window aside, closing it brings the main window back, and
  * every window is told which way it went so the toggle always reads the truth.
  */

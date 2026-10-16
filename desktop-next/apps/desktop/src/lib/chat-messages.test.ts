@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { toolResultRecord } from '@/lib/tool-result-metadata'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/desktop'
 
 import type { ChatMessage, ChatMessagePart } from './chat-messages'
 import {
@@ -246,7 +246,7 @@ describe('toChatMessages', () => {
   })
 
   it('lifts the leading attachment block into the chip row, like the live bubble (large paste)', () => {
-    const paste = '@file:/home/u/.hermes/attachments/pasted_content_2026-09-27_21-33-42-827_55e028-2.txt'
+    const paste = '@file:/home/u/.vanta/attachments/pasted_content_2026-09-27_21-33-42-827_55e028-2.txt'
 
     const [captioned, bare] = toChatMessages([
       {
@@ -287,13 +287,13 @@ describe('toChatMessages', () => {
     const [message] = toChatMessages([
       {
         role: 'assistant',
-        content: "MEDIA:/Users/brooklyn/.hermes/cache/audio/tts_20260501_222725.mp3\n\nhow's that sound?",
+        content: "MEDIA:/Users/brooklyn/.vanta/cache/audio/tts_20260501_222725.mp3\n\nhow's that sound?",
         timestamp: 1
       }
     ])
 
     expect(chatMessageText(message)).toBe(
-      "[Audio: tts_20260501_222725.mp3](#media:%2FUsers%2Fbrooklyn%2F.hermes%2Fcache%2Faudio%2Ftts_20260501_222725.mp3)\n\nhow's that sound?"
+      "[Audio: tts_20260501_222725.mp3](#media:%2FUsers%2Fbrooklyn%2F.vanta%2Fcache%2Faudio%2Ftts_20260501_222725.mp3)\n\nhow's that sound?"
     )
   })
 

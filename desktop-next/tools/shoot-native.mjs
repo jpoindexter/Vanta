@@ -38,7 +38,7 @@ const toggle = (id) => page.getByTestId(`titlebar-${id}`);
 const sidebar = () => page.locator('[data-tour="sessions-sidebar"]').first();
 
 async function setMode(mode) {
-  await page.evaluate((value) => localStorage.setItem("hermes-desktop-mode-v1", value), mode);
+  await page.evaluate((value) => localStorage.setItem("vanta-desktop-mode-v1", value), mode);
   await page.reload();
   await waitForShell(page);
   await settle(2500);

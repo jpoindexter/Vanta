@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react'
 import { memo, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import type { ProfileScope } from '@/hermes'
+import type { ProfileScope } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Loader2 } from '@/lib/icons'
 import { isHubConfigured, VANTA_HUB_ORIGIN } from '@/lib/vanta-endpoints'
@@ -21,7 +21,7 @@ import { $paneHeightOverride, setPaneHeightOverride } from '@/store/panes'
 // The REAL Skills Hub page (docs site) embedded as a one-click picker — the
 // same trick the Bot Mode agent editor uses. `?embed=picker` hides the docs
 // chrome and adds a "+ Add to this Agent" button per card, which posts
-//   { type: 'hermes-skill-pick', name, identifier, installCmd, source }
+//   { type: 'vanta-skill-pick', name, identifier, installCmd, source }
 // to the parent window. We validate the origin and route the install through
 // the standard hub action pipeline (background action + tailed log + Skills
 // list invalidation), scoped to the Capabilities profile selector.
@@ -142,7 +142,7 @@ const HubPickerFrame = memo(function HubPickerFrame({
 
       const data = event.data as SkillPickMessage | null
 
-      if (!data || data.type !== 'hermes-skill-pick' || !data.name) {
+      if (!data || data.type !== 'vanta-skill-pick' || !data.name) {
         return
       }
 
@@ -199,7 +199,7 @@ const HubPickerFrame = memo(function HubPickerFrame({
         />
       </div>
       <div className="flex shrink-0 items-center justify-between px-3 py-1.5">
-        <span className="text-[0.75rem] font-medium text-(--ui-text-tertiary)">{h.pickerTitle}</span>
+        <span className="text-meta font-medium text-(--ui-text-tertiary)">{h.pickerTitle}</span>
         <div className="flex items-center gap-1">
           <Button disabled={updating} onClick={updateAll} size="xs" variant="text">
             {updating && <Loader2 className="size-3 animate-spin" />}
@@ -249,7 +249,7 @@ const HubPickerFrame = memo(function HubPickerFrame({
               title={h.pickerTitle}
             />
           </div>
-          <p className="shrink-0 px-1 text-[0.75rem] leading-4 text-(--ui-text-quaternary)">{h.pickerHint}</p>
+          <p className="shrink-0 px-1 text-meta leading-4 text-(--ui-text-quaternary)">{h.pickerHint}</p>
         </div>
       )}
     </section>

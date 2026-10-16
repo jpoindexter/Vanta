@@ -8,7 +8,7 @@
  * multi-hundred-megabyte board of attachments out of the renderer heap.
  */
 
-import { host, type PluginOs } from '@hermes/plugin-sdk'
+import { host, type PluginOs } from '@vanta/plugin-sdk'
 
 import { exportBoard, importBoard } from './api'
 import type { KanbanText } from './i18n'

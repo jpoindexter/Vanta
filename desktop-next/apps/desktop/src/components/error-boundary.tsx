@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // the main process for windows with a console hook, is minified, and loses
     // the component stack. This survives the window and names the component.
     try {
-      window.hermesDesktop?.reportRendererError?.({
+      window.desktopBridge?.reportRendererError?.({
         label: new URLSearchParams(window.location.search).get('win') ?? 'main',
         boundary: label || 'unlabeled',
         message: error.message,
@@ -169,7 +169,7 @@ function RootErrorFallback({ error, reset }: ErrorBoundaryFallbackProps) {
             {error.message ? (
               <details className="mt-2 text-left text-xs text-muted-foreground">
                 <summary className="cursor-pointer select-none text-center">{t.errors.boundaryDetails}</summary>
-                <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.75rem]">
+                <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-meta">
                   {error.message}
                 </pre>
               </details>
@@ -184,10 +184,10 @@ function RootErrorFallback({ error, reset }: ErrorBoundaryFallbackProps) {
         <Button onClick={() => window.location.reload()} variant="text">
           {t.errors.reloadWindow}
         </Button>
-        <Button onClick={() => void window.hermesDesktop?.revealLogs()?.catch(() => undefined)} variant="text">
+        <Button onClick={() => void window.desktopBridge?.revealLogs()?.catch(() => undefined)} variant="text">
           {t.errors.openLogs}
         </Button>
-        <Button onClick={() => void window.hermesDesktop?.writeClipboard?.(error.stack || error.message)} variant="text">
+        <Button onClick={() => void window.desktopBridge?.writeClipboard?.(error.stack || error.message)} variant="text">
           {t.assistant.thread.errorCopyDiagnostics}
         </Button>
       </ErrorState>

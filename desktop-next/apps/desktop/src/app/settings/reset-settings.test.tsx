@@ -15,13 +15,13 @@ let resetRun: ReturnType<typeof vi.fn>
 beforeEach(() => {
   resetRun = vi.fn().mockResolvedValue({ ok: true, trashed: [] })
   Object.assign(window, {
-    hermesDesktop: { resetPlan: vi.fn(async (scope: 'app' | 'everything') => planOf(scope)), resetRun }
+    desktopBridge: { resetPlan: vi.fn(async (scope: 'app' | 'everything') => planOf(scope)), resetRun }
   })
 })
 
 afterEach(() => {
   cleanup()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
 })
 
 describe('formatBytes', () => {
@@ -39,7 +39,7 @@ describe('ResetSettings', () => {
   })
 
   it('says so when the Vanta bridge is missing', () => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'desktopBridge')
     render(<ResetSettings />)
 
     expect(screen.getByText(/only available in the Vanta desktop app/)).toBeTruthy()

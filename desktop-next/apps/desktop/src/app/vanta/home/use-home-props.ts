@@ -2,7 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { hermesApi } from '@/api/client'
+import { vantaApi } from '@/api/client'
 import { $sessionFacts } from '@/app/shell/vanta/session-status'
 import { ARTIFACTS_ROUTE, CRON_ROUTE } from '@/app/routes'
 import { $cronJobs } from '@/store/cron'
@@ -47,7 +47,7 @@ function useOutputs(): {
   useEffect(() => {
     let live = true
 
-    hermesApi<ArtifactEntry[]>({ path: '/api/artifacts' })
+    vantaApi<ArtifactEntry[]>({ path: '/api/artifacts' })
       .then(entries => live && setOutputs(ready(Array.isArray(entries) ? entries : [])))
       .catch(() => live && setOutputs({ message: 'Outputs did not load.', status: 'error' }))
 

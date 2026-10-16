@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { type ScheduleEntry, scheduleToCronJob } from '@/app/vanta/adapters/schedule-jobs'
-import type { AutomationBlueprint, CronDeliveryTarget, CronJob } from '@/types/hermes'
+import type { AutomationBlueprint, CronDeliveryTarget, CronJob } from '@/types/desktop'
 
 import { sessionRow, isoToSeconds } from './shim-session-row'
 import { APPROVAL_TIMEOUT_MS, get, post, segment, type Send, type ShimCall, type ShimRoute, text } from './shim-core'

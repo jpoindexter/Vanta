@@ -80,13 +80,13 @@ describe('guardAttach', () => {
       allowpopups: '',
       disablewebsecurity: '',
       nodeintegration: '',
-      partition: 'persist:hermes-preview',
+      partition: 'persist:vanta-preview',
       preload: 'file:///app/bridge.js',
       src: 'http://localhost:5173/',
       webpreferences: 'nodeIntegration=yes'
     }
 
-    const prefs = { partition: 'persist:hermes-preview', preload: '/x' }
+    const prefs = { partition: 'persist:vanta-preview', preload: '/x' }
 
     expect(guardAttach(prefs, params)).toBe(true)
     expect(prefs.partition).toBe(GUEST_PARTITION)
@@ -309,7 +309,7 @@ describe('the new-window relay', () => {
 
   it('injects the relay script when a page is ready', async () => {
     const { guest, listeners } = fakeGuest()
-    const executeJavaScript = vi.fn(async () => undefined)
+    const executeJavaScript = vi.fn(async (_code: string) => undefined)
     lockGuestContents({ ...guest, executeJavaScript }, vi.fn())
 
     listeners['dom-ready']?.()
@@ -349,7 +349,7 @@ describe('installWebviewGuard', () => {
     const refused = { preventDefault: vi.fn() }
     const allowed = { preventDefault: vi.fn() }
     const prefs = { nodeIntegration: true, preload: '/x' }
-    const params = { partition: 'persist:hermes-preview', src: 'file:///etc/hosts' }
+    const params = { partition: 'persist:vanta-preview', src: 'file:///etc/hosts' }
 
     events['will-attach-webview']?.(refused, prefs, params)
     events['will-attach-webview']?.(allowed, {}, { src: 'http://localhost:1/' })

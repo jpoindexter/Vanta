@@ -1,4 +1,4 @@
-import type { ModelOptionsResult } from '@hermes/shared'
+import type { ModelOptionsResult } from '@vanta/shared'
 
 import type {
   AnalyticsResponse,
@@ -7,9 +7,9 @@ import type {
   ModelAssignmentRequest,
   ModelAssignmentResponse,
   ModelInfoResponse
-} from '@/types/hermes'
+} from '@/types/desktop'
 
-import { capabilityScoped, hermesApi, rawApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
+import { capabilityScoped, vantaApi, rawApi, type ProfileScope, profileScoped, STARTUP_REQUEST_TIMEOUT_MS } from './client'
 
 // /api/model/info resolves the live context window, which probes the configured
 // provider's /models endpoint. An unreachable provider must not hold the Model
@@ -18,7 +18,7 @@ import { capabilityScoped, hermesApi, rawApi, type ProfileScope, profileScoped, 
 const MODEL_INFO_REQUEST_TIMEOUT_MS = 5_000
 
 export function getGlobalModelInfo(profile?: null | string): Promise<ModelInfoResponse> {
-  return hermesApi<ModelInfoResponse>({
+  return vantaApi<ModelInfoResponse>({
     ...profileScoped(profile),
     path: '/api/model/info',
     timeoutMs: MODEL_INFO_REQUEST_TIMEOUT_MS
@@ -64,12 +64,12 @@ export function getGlobalModelOptions(
 export interface RecommendedDefaultModel {
   provider: string
   model: string
-  /** True/false for Nous (free vs paid tier); null for other providers. */
+  /** True/false for Vanta (free vs paid tier); null for other providers. */
   free_tier: boolean | null
 }
 
 // Recommended default model for a freshly-authenticated provider. Mirrors the
-// curation `hermes model` does — for Nous it honors the free/paid tier so a
+// curation `vanta model` does — for Vanta it honors the free/paid tier so a
 // free user gets a free model instead of a paid default.
 export function getRecommendedDefaultModel(provider: string, profile?: ProfileScope): Promise<RecommendedDefaultModel> {
   return rawApi<RecommendedDefaultModel>({
@@ -82,7 +82,7 @@ export function setGlobalModel(
   provider: string,
   model: string
 ): Promise<{ ok: boolean; provider: string; model: string }> {
-  return hermesApi<{ ok: boolean; provider: string; model: string }>({
+  return vantaApi<{ ok: boolean; provider: string; model: string }>({
     ...profileScoped(),
     path: '/api/model/set',
     method: 'POST',
@@ -95,14 +95,14 @@ export function setGlobalModel(
 }
 
 export function getAuxiliaryModels(profile?: null | string): Promise<AuxiliaryModelsResponse> {
-  return hermesApi<AuxiliaryModelsResponse>({
+  return vantaApi<AuxiliaryModelsResponse>({
     ...profileScoped(profile),
     path: '/api/model/auxiliary'
   })
 }
 
 export function getMoaModels(profile?: null | string): Promise<MoaConfigResponse> {
-  return hermesApi<MoaConfigResponse>({
+  return vantaApi<MoaConfigResponse>({
     ...profileScoped(profile),
     path: '/api/model/moa'
   })
@@ -112,7 +112,7 @@ export function saveMoaModels(
   body: MoaConfigResponse,
   profile?: null | string
 ): Promise<MoaConfigResponse & { ok: boolean }> {
-  return hermesApi<MoaConfigResponse & { ok: boolean }>({
+  return vantaApi<MoaConfigResponse & { ok: boolean }>({
     ...profileScoped(profile),
     path: '/api/model/moa',
     method: 'PUT',

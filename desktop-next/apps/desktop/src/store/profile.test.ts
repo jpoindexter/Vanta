@@ -1,8 +1,8 @@
 import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
-import type { ProfileInfo } from '@/types/hermes'
+import type { VantaConnection } from '@/global'
+import type { ProfileInfo } from '@/types/desktop'
 
 // Keep profile.ts's side-effecting imports inert: the gateway socket layer and
 // the REST query client must not run for real in a unit test.
@@ -34,7 +34,7 @@ vi.mock('@/store/pool-limits', async () => {
 
   return { $poolLimits: atom({ idleMs: 600_000, maxBackends: 3 }) }
 })
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   setApiRequestProfile: vi.fn()
 }))
@@ -61,25 +61,25 @@ const { $connectionsRegistry } = await import('@/store/connection-registry-state
 
 const { $connection } = await import('./session')
 const { invalidateProfileScopedQueries } = await import('@/lib/query-client')
-const { getProfiles } = await import('@/hermes')
+const { getProfiles } = await import('@/desktop-api')
 
 const profile = (name: string, isDefault = false): ProfileInfo => ({
   has_env: false,
   is_default: isDefault,
   model: null,
   name,
-  path: `/tmp/hermes/${name}`,
+  path: `/tmp/vanta/${name}`,
   provider: null,
   skill_count: 0
 })
 
-const remoteConn = (over: Partial<HermesConnection> = {}): HermesConnection =>
-  ({ baseUrl: 'https://hermes-roy.tail.ts.net', mode: 'remote', profile: 'vps-remote', ...over }) as HermesConnection
+const remoteConn = (over: Partial<VantaConnection> = {}): VantaConnection =>
+  ({ baseUrl: 'https://vanta-roy.tail.ts.net', mode: 'remote', profile: 'vps-remote', ...over }) as VantaConnection
 
-const localConn = (over: Partial<HermesConnection> = {}): HermesConnection =>
-  ({ baseUrl: '', mode: 'local', profile: 'default', ...over }) as HermesConnection
+const localConn = (over: Partial<VantaConnection> = {}): VantaConnection =>
+  ({ baseUrl: '', mode: 'local', profile: 'default', ...over }) as VantaConnection
 
-const getConnection = vi.fn<(profile?: string | null) => Promise<HermesConnection>>()
+const getConnection = vi.fn<(profile?: string | null) => Promise<VantaConnection>>()
 
 beforeEach(() => {
   getConnection.mockReset()
@@ -90,7 +90,7 @@ beforeEach(() => {
   $activeGatewayProfile.set('default')
   $connection.set(localConn())
   $profiles.set([])
-  vi.stubGlobal('window', { hermesDesktop: { getConnection } })
+  vi.stubGlobal('window', { desktopBridge: { getConnection } })
   vi.mocked(invalidateProfileScopedQueries).mockClear()
   resetStarmapGraph.mockClear()
 })

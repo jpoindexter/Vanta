@@ -1,0 +1,537 @@
+{
+  "date": "2026-10-16",
+  "method": "Human-readable assertions recorded after CUA browser interaction; manually transcribed from the browser tool results. Not an unattended replay suite.",
+  "checks": [
+    {
+      "id": "P-001",
+      "criterion": "Chat/Code draft and attachment isolation",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-002",
+      "criterion": "Reload restores current mode and draft",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-003",
+      "criterion": "Plan is read-only and does not show an approval to execute",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-004",
+      "criterion": "Exact one-use preview and durable queue",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-005",
+      "criterion": "Execution and verification are distinct; receipt states sample limit",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-006",
+      "criterion": "Stop preserves partial work and does not auto-resume",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-007",
+      "criterion": "Full access cannot be silently selected",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-008",
+      "criterion": "Offline input remains queued on reconnect",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-009",
+      "criterion": "Diff review comment persists",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-010",
+      "criterion": "Sample terminal never executes user commands",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-011",
+      "criterion": "Profiles create and switch with distinct conversation drafts",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-012",
+      "criterion": "Automation drafts persist without creating a live schedule",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-013",
+      "criterion": "Worker ticket view retains evidence state",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-014",
+      "criterion": "Budget view distinguishes estimated and unknown spend",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-015",
+      "criterion": "Nine Vanta integration entries remain reachable",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-016",
+      "criterion": "Saved run reuse prepares a draft rather than replaying effects",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-017",
+      "criterion": "Preservation review includes all 296 feature IDs",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-018",
+      "criterion": "Dark theme switches both readable text and background tokens",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-019",
+      "criterion": "Model download preview transitions from queued to ready",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-020",
+      "criterion": "Each Vanta feature has an explicit retained destination",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-021",
+      "criterion": "Escape closes a native dialog",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-022",
+      "criterion": "Outputs uses an interactive card grid",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-023",
+      "criterion": "A document card opens its contextual preview",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-024",
+      "criterion": "Canvas card switches among chart, table, and board",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-025",
+      "criterion": "Memory correction persists in the sample editor",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-026",
+      "criterion": "Skill enable and disable changes visible state",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-027",
+      "criterion": "Skill install is a clear preview with no installation",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-028",
+      "criterion": "Global search filters conversations",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-029",
+      "criterion": "Conversation rename updates title and sidebar",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-030",
+      "criterion": "Today capture creates a visible private sample draft",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-031",
+      "criterion": "Support Off removes recommendations and repeated nudges",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-032",
+      "criterion": "Compact window changes layout and Escape restores it",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-033",
+      "criterion": "Concurrent sample tasks retain their own run state",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-034",
+      "criterion": "Denying one sample action does not stop a different task",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-035",
+      "criterion": "Plan card pointer expansion at desktop reference size",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-036",
+      "criterion": "Card expansion survives a Chat/Code round trip",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-037",
+      "criterion": "Queue reorder/edit and attachment removal",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-038",
+      "criterion": "Sample voice and capture do not request device access",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-039",
+      "criterion": "Pin toggles and branch creates a separate conversation",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-040",
+      "criterion": "Archive retains conversation and library restores it",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-041",
+      "criterion": "Profile search excludes other profiles and shortcuts retain selected profile",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-042",
+      "criterion": "Profile clone retains conversations; selection resets permission to Plan",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-043",
+      "criterion": "Synthetic profile import and metadata export download",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-044",
+      "criterion": "Schedule pause, workflow cancellation, and missed-wake recovery are explicit",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-045",
+      "criterion": "Worker pause requires checkpoint acknowledgement and worker creation stays a draft",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-046",
+      "criterion": "Budget draft survives tab navigation without granting spend",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-047",
+      "criterion": "Chat-to-Code handoff prepares scoped draft without starting execution",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-048",
+      "criterion": "390px mobile mode switch, closeable rail, and navigation drawer",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-049",
+      "criterion": "889px workbench closes with Escape and plan cards respond to keyboard",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-050",
+      "criterion": "Output download produces a Markdown file",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-051",
+      "criterion": "Opening a captured thought prepares that exact text as a new Chat draft",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    },
+    {
+      "id": "P-052",
+      "criterion": "Copy output uses the selected brief rather than a different artifact",
+      "result": "executed; observed expected sample behavior",
+      "scope": "Browser prototype only; does not establish native/runtime acceptance"
+    }
+  ],
+  "screenSamples": [
+    {
+      "screen": "Workers budgets",
+      "visibleControlCount": 32,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Workers",
+      "visibleControlCount": 31,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Tickets",
+      "visibleControlCount": 30,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Worker activity",
+      "visibleControlCount": 30,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Output card grid",
+      "visibleControlCount": 34,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Run library",
+      "visibleControlCount": 31,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Memory",
+      "visibleControlCount": 31,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Skill library",
+      "visibleControlCount": 33,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Customize",
+      "visibleControlCount": 29,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Today",
+      "visibleControlCount": 38,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Automations",
+      "visibleControlCount": 33,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Connections",
+      "visibleControlCount": 36,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Profiles",
+      "visibleControlCount": 36,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Settings",
+      "visibleControlCount": 35,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Code conversation",
+      "visibleControlCount": 49,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Browser preview",
+      "visibleControlCount": 37,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Files",
+      "visibleControlCount": 43,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Chat conversation",
+      "visibleControlCount": 38,
+      "width": 1440,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Code rail overlay",
+      "visibleControlCount": 38,
+      "width": 390,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Output cards",
+      "visibleControlCount": 17,
+      "width": 390,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Connections",
+      "visibleControlCount": 19,
+      "width": 390,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Profiles",
+      "visibleControlCount": 19,
+      "width": 390,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    },
+    {
+      "screen": "Rail overlay",
+      "visibleControlCount": 56,
+      "width": 889,
+      "h1": 1,
+      "horizontalPageOverflow": false,
+      "unnamedVisibleControls": []
+    }
+  ],
+  "console": "No captured error/warning entries in the test tab at final log read.",
+  "candidateHashes": [
+    {
+      "file": "prototype/app.js",
+      "algorithm": "SHA-256",
+      "digest": "6f755e9c30ce8a1ae73839aae6df8ac6639ce70de5556befb6c083385a902135"
+    },
+    {
+      "file": "prototype/features.js",
+      "algorithm": "SHA-256",
+      "digest": "a800451f2cd2b61dadd2ff9d27750b16adfe5deec35ca8a6df6ca326b7c803df"
+    },
+    {
+      "file": "prototype/index.html",
+      "algorithm": "SHA-256",
+      "digest": "3ddfa7cc521921d0e7554f6fded54eee7bf95aabf5da40a993072213e9a001c0"
+    },
+    {
+      "file": "prototype/reference.css",
+      "algorithm": "SHA-256",
+      "digest": "604f1233645d4202798751bf2fbefcec12d8647c4f3816231fade36cefafd2c5"
+    },
+    {
+      "file": "prototype/styles.css",
+      "algorithm": "SHA-256",
+      "digest": "b4fb3d5abd67e398309e680e565991c46c11f5c936744e4e120a06bf9b9a67b5"
+    },
+    {
+      "file": "prototype/tokens.css",
+      "algorithm": "SHA-256",
+      "digest": "6356a3c875413c58951cf03204fd8017d0dac995fb246782d670e73537f1a271"
+    }
+  ]
+}

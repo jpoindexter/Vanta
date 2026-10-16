@@ -8,7 +8,7 @@ import type {
   SessionMessage,
   SessionMessagesResponse,
   SessionSearchResponse
-} from '@/types/hermes'
+} from '@/types/desktop'
 
 import {
   ambientOwnerConnectionId,
@@ -16,7 +16,7 @@ import {
   connectionScoped,
   getApiRequestConnection,
   getApiRequestProfile,
-  hermesApi,
+  vantaApi,
   type ProfileScope,
   profileScoped,
   sessionReadOwnerPin
@@ -46,7 +46,7 @@ function sessionScoped(scope?: ProfileScope): { connectionId?: string; profile?:
 /**
  * The profile a session WRITE must name in its body. The PATCH handler reads
  * its target DB from `body.profile` alone (`_with_db(body.profile, ...)`), and
- * under multiplex-only there is no per-profile backend whose HERMES_HOME could
+ * under multiplex-only there is no per-profile backend whose VANTA_HOME could
  * stand in for it: an unnamed owner lands the rename/pin/archive/mark-read on
  * the shared backend's own state.db. "Unnamed" therefore means "the profile I
  * am looking at", not "whatever home the backend was launched in".
@@ -105,7 +105,7 @@ export async function listSessions(
   archived: 'exclude' | 'include' | 'only' = 'exclude',
   order: 'created' | 'recent' = 'recent'
 ): Promise<PaginatedSessions> {
-  const result = await hermesApi<PaginatedSessions>({
+  const result = await vantaApi<PaginatedSessions>({
     ...profileScoped(),
     path:
       `/api/sessions?limit=${limit}&offset=0&min_messages=${Math.max(0, minMessages)}` +
@@ -148,7 +148,7 @@ export async function listAllProfileSessions(
     ? `&exclude_sources=${encodeURIComponent(filter.excludeSources.join(','))}`
     : ''
 
-  const result = await hermesApi<PaginatedSessions>({
+  const result = await vantaApi<PaginatedSessions>({
     ...profileScoped(),
     path:
       `/api/profiles/sessions?limit=${limit}&offset=${Math.max(0, offset)}&min_messages=${Math.max(0, minMessages)}` +
@@ -297,7 +297,7 @@ async function listSidebarSessionsLegacy(req: SidebarSessionsRequest): Promise<S
 export function scanSessionPullRequests(
   ids: string[]
 ): Promise<{ pull_requests: Record<string, { number: number; url: string }>; scanned: string[] }> {
-  return hermesApi<{
+  return vantaApi<{
     pull_requests: Record<string, { number: number; url: string }>
     scanned: string[]
   }>({
@@ -330,7 +330,7 @@ export async function listSidebarSessions(req: SidebarSessionsRequest): Promise<
   let result: SidebarSessionsResponse
 
   try {
-    result = await hermesApi<SidebarSessionsResponse>({
+    result = await vantaApi<SidebarSessionsResponse>({
       ...profileScoped(),
       path: `/api/profiles/sessions/sidebar?${params.toString()}`,
       timeoutMs: SESSION_LIST_REQUEST_TIMEOUT_MS
@@ -381,7 +381,7 @@ export function setSessionArchived(id: string, archived: boolean, profile?: stri
   // state silently fails to stick — the same class as the unscoped DELETE.
   const owner = sessionWriteProfile(profile)
 
-  return hermesApi<{ ok: boolean }>({
+  return vantaApi<{ ok: boolean }>({
     ...(owner ? { profile: owner } : {}),
     path: `/api/sessions/${encodeURIComponent(id)}`,
     method: 'PATCH',
@@ -395,7 +395,7 @@ export function setSessionArchived(id: string, archived: boolean, profile?: stri
 // display; this only feeds the backend policy.
 /** Persist the pinned order (a drag in the sidebar). The server accepts the ids of the pinned chats, first to last. */
 export function reorderPinnedSessionsRemote(orderedIds: string[]): Promise<{ orderedIds: string[] }> {
-  return hermesApi<{ orderedIds: string[] }>({
+  return vantaApi<{ orderedIds: string[] }>({
     path: '/api/sessions/reorder-pins',
     method: 'POST',
     body: { orderedIds }
@@ -408,7 +408,7 @@ export function setSessionPinnedRemote(id: string, pinned: boolean, profile?: st
   // profile's pin must travel in the body or it no-ops on the wrong state.db.
   const owner = sessionWriteProfile(profile)
 
-  return hermesApi<{ ok: boolean }>({
+  return vantaApi<{ ok: boolean }>({
     ...(owner ? { profile: owner } : {}),
     path: `/api/sessions/${encodeURIComponent(id)}`,
     method: 'PATCH',
@@ -427,7 +427,7 @@ export function setSessionUnreadRemote(id: string, unread: boolean, profile?: st
   // state.db.
   const owner = sessionWriteProfile(profile)
 
-  return hermesApi<{ ok: boolean }>({
+  return vantaApi<{ ok: boolean }>({
     ...(owner ? { profile: owner } : {}),
     path: `/api/sessions/${encodeURIComponent(id)}`,
     method: 'PATCH',
@@ -443,7 +443,7 @@ export function searchSessions(query: string, profile?: null | string): Promise<
   const scope = profileScoped(profile)
   const suffix = scope.profile ? `&profile=${encodeURIComponent(scope.profile)}` : ''
 
-  return hermesApi<SessionSearchResponse>({
+  return vantaApi<SessionSearchResponse>({
     ...scope,
     path: `/api/sessions/search?q=${encodeURIComponent(query)}${suffix}`
   })
@@ -460,7 +460,7 @@ export function getSession(id: string, profile?: ProfileScope): Promise<SessionI
   const scope = { ...sessionScoped(profile), ...sessionReadOwnerPin(id, profile) }
   const suffix = scope.profile ? `?profile=${encodeURIComponent(scope.profile)}` : ''
 
-  return hermesApi<SessionInfo>({
+  return vantaApi<SessionInfo>({
     ...scope,
     path: `/api/sessions/${encodeURIComponent(id)}${suffix}`
   })
@@ -503,7 +503,7 @@ export function getSessionMessages(
 
   const suffix = query.size ? `?${query.toString()}` : ''
 
-  return hermesApi<SessionMessagesResponse>({
+  return vantaApi<SessionMessagesResponse>({
     ...sessionScope,
     path: `/api/sessions/${encodeURIComponent(id)}/messages${suffix}`,
     ...(options.passive ? { passive: true } : {})
@@ -730,7 +730,7 @@ export function deleteSession(id: string, profile?: ProfileScope): Promise<{ ok:
   // override + global-remote routing (both re-read/re-append the param).
   const suffix = sessionScopeQuery(profile)
 
-  return hermesApi<{ ok: boolean }>({
+  return vantaApi<{ ok: boolean }>({
     ...sessionScoped(profile),
     path: `/api/sessions/${encodeURIComponent(id)}${suffix}`,
     method: 'DELETE'
@@ -744,7 +744,7 @@ export function renameSession(
 ): Promise<{ ok: boolean; title: string }> {
   const owner = sessionWriteProfile(profile)
 
-  return hermesApi<{ ok: boolean; title: string }>({
+  return vantaApi<{ ok: boolean; title: string }>({
     ...(owner ? { profile: owner } : {}),
     path: `/api/sessions/${encodeURIComponent(id)}`,
     method: 'PATCH',

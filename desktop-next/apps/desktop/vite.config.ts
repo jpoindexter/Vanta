@@ -20,7 +20,7 @@ function compilerPreset() {
 async function cachedCompilerPass(command: string) {
   return withCompilerCache(await babel({ presets: [compilerPreset()] }), {
     command,
-    cacheRoot: path.join(__dirname, 'node_modules/.cache/hermes-react-compiler'),
+    cacheRoot: path.join(__dirname, 'node_modules/.cache/vanta-react-compiler'),
     base: __dirname,
     toolchain: [path.resolve(__dirname, '../../package-lock.json'), fileURLToPath(import.meta.url)]
   })
@@ -95,7 +95,7 @@ const emojibaseDir =
 const EMOJIBASE_PATH = /^[a-z-]+\/(data|messages|shortcodes\/emojibase)\.json$/
 
 const emojibaseAssets = () => ({
-  name: 'hermes:emojibase-assets',
+  name: 'desktop:emojibase-assets',
   configureServer(server: {
     middlewares: { use: (route: string, handler: (req: any, res: any, next: () => void) => void) => void }
   }) {
@@ -141,7 +141,7 @@ export default defineConfig(({ command }) => ({
     // without this, Vite's `postcss-load-config` walks UP the filesystem
     // looking for a stray `postcss.config.*` / `tailwind.config.*`. The desktop
     // build runs from inside the user's home tree (e.g.
-    // `C:\Users\<name>\AppData\Local\hermes\hermes-agent\apps\desktop`), so an
+    // `C:\Users\<name>\AppData\Local\vanta\vanta-agent\apps\desktop`), so an
     // unrelated Tailwind v3 config higher up the tree gets picked up and
     // reprocesses our v4 stylesheet, failing the build with
     // "`@layer base` is used but no matching `@tailwind base` directive is
@@ -234,10 +234,26 @@ export default defineConfig(({ command }) => ({
     alias: {
       '@/debug/dev-only': debugEntry(command, process.env as Record<string, string>),
       '@': path.resolve(__dirname, './src'),
-      '@hermes/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
-      '@hermes/shared/billing': path.resolve(__dirname, '../shared/src/billing-types.ts'),
-      '@hermes/shared/color': path.resolve(__dirname, '../shared/src/color.ts'),
-      '@hermes/shared': path.resolve(__dirname, '../shared/src'),
+      '@vanta/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
+      '@vanta/shared/charge-settlement': path.resolve(__dirname, '../shared/src/charge-settlement.ts'),
+      '@vanta/shared/model-search-text': path.resolve(__dirname, '../shared/src/model-search-text.ts'),
+      '@vanta/shared/reconnect-backoff': path.resolve(__dirname, '../shared/src/reconnect-backoff.ts'),
+      '@vanta/shared/json-rpc-channel': path.resolve(__dirname, '../shared/src/json-rpc-channel.ts'),
+      '@vanta/shared/reasoning-effort': path.resolve(__dirname, '../shared/src/reasoning-effort.ts'),
+      '@vanta/shared/billing-policy': path.resolve(__dirname, '../shared/src/billing-policy.ts'),
+      '@vanta/shared/gateway-events': path.resolve(__dirname, '../shared/src/gateway-events.ts'),
+      '@vanta/shared/theme-presets': path.resolve(__dirname, '../shared/src/theme-presets.ts'),
+      '@vanta/shared/billing': path.resolve(__dirname, '../shared/src/billing-types.ts'),
+      '@vanta/shared/format': path.resolve(__dirname, '../shared/src/format.ts'),
+      '@vanta/shared/color': path.resolve(__dirname, '../shared/src/color.ts'),
+      '@vanta/shared/fuzzy': path.resolve(__dirname, '../shared/src/fuzzy.ts'),
+      '@vanta/shared/slash': path.resolve(__dirname, '../shared/src/slash.ts'),
+      '@vanta/shared/vanta': path.resolve(__dirname, '../shared/src/vanta/index.ts'),
+      '@vanta/shared/ansi': path.resolve(__dirname, '../shared/src/ansi.ts'),
+      '@vanta/shared/i18n': path.resolve(__dirname, '../shared/src/i18n.ts'),
+      '@vanta/shared/skin': path.resolve(__dirname, '../shared/src/skin.ts'),
+      '@vanta/shared/translucency': path.resolve(__dirname, '../shared/src/translucency.ts'),
+      '@vanta/shared': path.resolve(__dirname, '../shared/src/index.ts'),
       // The tour tool's preview surface injects driver.js's prebuilt IIFE into
       // the pane's guest page as raw source; the package's exports map doesn't
       // expose that dist file (nor ./package.json), so resolve the main entry

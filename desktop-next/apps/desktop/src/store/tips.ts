@@ -59,13 +59,13 @@ export interface ActiveTip {
 // Key still says `rotation` from when the switch only covered that half.
 // Renaming it would read as unset for anyone who had already turned tips off,
 // and silently turning them back on is the one outcome worth avoiding here.
-const ENABLED_KEY = 'hermes.desktop.tips.rotation.v1'
+const ENABLED_KEY = 'vanta.desktop.tips.rotation.v1'
 
 export const $tipsEnabled = persistentAtom(ENABLED_KEY, true, Codecs.bool)
-export const $retiredTips = persistentAtom<string[]>('hermes.desktop.tips.retired.v1', [], Codecs.stringArray)
-export const $lastTipId = persistentAtom<null | string>('hermes.desktop.tips.last.v1', null, Codecs.nullableText)
+export const $retiredTips = persistentAtom<string[]>('vanta.desktop.tips.retired.v1', [], Codecs.stringArray)
+export const $lastTipId = persistentAtom<null | string>('vanta.desktop.tips.last.v1', null, Codecs.nullableText)
 export const $nextTipAt = persistentAtom<null | number>(
-  'hermes.desktop.tips.next.v1',
+  'vanta.desktop.tips.next.v1',
   null,
   Codecs.json(value => (typeof value === 'number' && Number.isFinite(value) ? value : null))
 )
@@ -94,7 +94,7 @@ mirrorDisplayToggle('display.in_app_tips', ENABLED_KEY, $tipsEnabled)
  *  it as a clock and re-offer on their own long schedule. `$retiredTips`
  *  still owns the hard ✕. */
 export const $tipShownAt = persistentAtom<Record<string, number>>(
-  'hermes.desktop.tips.shownAt.v1',
+  'vanta.desktop.tips.shownAt.v1',
   {},
   Codecs.json(value => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {

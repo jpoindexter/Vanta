@@ -41,7 +41,7 @@ interface EditorState {
   label: string
   host: string
   keyPath: string
-  remoteHermesPath: string
+  remoteVantaPath: string
   // ssh remote profile, hydrated on edit so the duplicate key matches the
   // main-process one (user@host:port + profile); the editor doesn't expose it.
   remoteProfile: string
@@ -65,7 +65,7 @@ function editorFromConnection(conn: DesktopRegistryConnection): EditorState {
     // would silently resurrect the old values.
     host: conn.host ? `${conn.user ? `${conn.user}@` : ''}${conn.host}${conn.port ? `:${conn.port}` : ''}` : '',
     keyPath: conn.keyPath || '',
-    remoteHermesPath: conn.remoteHermesPath || '',
+    remoteVantaPath: conn.remoteVantaPath || '',
     remoteProfile: conn.remoteProfile || '',
     headers: (conn.headerNames || []).map(name => ({ name, stored: true, value: '' }))
   }
@@ -78,7 +78,7 @@ function emptyEditor(kind: DesktopConnectionKind): EditorState {
     label: '',
     host: '',
     keyPath: '',
-    remoteHermesPath: '',
+    remoteVantaPath: '',
     remoteProfile: '',
     headers: []
   }
@@ -267,7 +267,7 @@ export function ConnectionsRegistrySection() {
 
   remoteAuthModeRef.current = remote.credentials.authMode
 
-  const bridge = window.hermesDesktop?.connections
+  const bridge = window.desktopBridge?.connections
 
   const hasLocal = Boolean(registry?.connections.some(c => c.kind === 'local'))
 
@@ -374,7 +374,7 @@ export function ConnectionsRegistrySection() {
           // of truth — never send separate user/port (see editorFromConnection).
           payload.host = editor.host
           payload.keyPath = editor.keyPath || undefined
-          payload.remoteHermesPath = editor.remoteHermesPath.trim()
+          payload.remoteVantaPath = editor.remoteVantaPath.trim()
         }
 
         const result = await bridge.save(payload)
@@ -501,7 +501,7 @@ export function ConnectionsRegistrySection() {
     [bridge, s.testFailed, s.testOk]
   )
 
-  // Fan out `hermes update` to every eligible source; per-connection results
+  // Fan out `vanta update` to every eligible source; per-connection results
   // land as individual toasts so one dead box doesn't hide the others.
   const updateAll = useCallback(async () => {
     if (!bridge?.updateAll) {
@@ -849,13 +849,13 @@ export function ConnectionsRegistrySection() {
               <ListRow
                 action={
                   <Input
-                    onChange={e => setEditor({ ...editor, remoteHermesPath: e.target.value })}
-                    placeholder={t.settings.gateway.sshHermesPathPlaceholder}
-                    value={editor.remoteHermesPath}
+                    onChange={e => setEditor({ ...editor, remoteVantaPath: e.target.value })}
+                    placeholder={t.settings.gateway.sshVantaPathPlaceholder}
+                    value={editor.remoteVantaPath}
                   />
                 }
-                description={t.settings.gateway.sshHermesPathDesc}
-                title={t.settings.gateway.sshHermesPathTitle}
+                description={t.settings.gateway.sshVantaPathDesc}
+                title={t.settings.gateway.sshVantaPathTitle}
               />
             </>
           )}

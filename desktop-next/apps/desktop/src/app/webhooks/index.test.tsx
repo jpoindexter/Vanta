@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   notifyError: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   getWebhooks: (profile?: string) => mocks.getWebhooks(profile),
   enableWebhooks: (profile?: string) => mocks.enableWebhooks(profile),
   createWebhook: (body: unknown, profile?: string) => mocks.createWebhook(body, profile),

@@ -11,21 +11,21 @@ interface LayoutEntry {
 }
 
 export const LAYOUT_KEYS = {
-  floating: 'hermes.desktop.floatingPanes.v1',
-  tree: 'hermes.desktop.layoutTree.v2',
-  preset: 'hermes.desktop.layoutPreset.active',
-  panes: 'hermes.desktop.paneStates.v1',
-  dismissed: 'hermes.desktop.dismissedPanes.v1',
-  shares: 'hermes.desktop.paneShare.v1',
-  sharePartners: 'hermes.desktop.paneSharePartners.v1',
-  hiddenTabs: 'hermes.desktop.hiddenStripTabs.v1',
-  placed: 'hermes.desktop.userPlacedPanes.v1',
-  flipped: 'hermes.desktop.panesFlipped',
-  collapsed: 'hermes.desktop.collapsedTreeSides.v1'
+  floating: 'vanta.desktop.floatingPanes.v1',
+  tree: 'vanta.desktop.layoutTree.v2',
+  preset: 'vanta.desktop.layoutPreset.active',
+  panes: 'vanta.desktop.paneStates.v1',
+  dismissed: 'vanta.desktop.dismissedPanes.v1',
+  shares: 'vanta.desktop.paneShare.v1',
+  sharePartners: 'vanta.desktop.paneSharePartners.v1',
+  hiddenTabs: 'vanta.desktop.hiddenStripTabs.v1',
+  placed: 'vanta.desktop.userPlacedPanes.v1',
+  flipped: 'vanta.desktop.panesFlipped',
+  collapsed: 'vanta.desktop.collapsedTreeSides.v1'
 } as const
 
 function migrateLayoutScopes(initialMode: InterfaceMode) {
-  const marker = 'hermes.desktop.layoutModeScopes.v1'
+  const marker = 'vanta.desktop.layoutModeScopes.v1'
   const legacy = new Map<string, string>()
 
   if (readKey(marker) !== null) {

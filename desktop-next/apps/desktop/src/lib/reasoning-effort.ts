@@ -1,4 +1,4 @@
-import { DEFAULT_REASONING_EFFORT, isReasoningEffort, type ReasoningEffort } from '@hermes/shared'
+import { DEFAULT_REASONING_EFFORT, isReasoningEffort, type ReasoningEffort } from '@vanta/shared'
 
 import { normalize } from '@/lib/text'
 

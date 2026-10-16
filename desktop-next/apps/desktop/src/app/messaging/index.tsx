@@ -24,7 +24,7 @@ import {
   revokePairing,
   type TelegramOnboardingApplyResponse,
   updateMessagingPlatform
-} from '@/hermes'
+} from '@/desktop-api'
 import { type Translations, useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
 import { AlertTriangle, ExternalLink, RefreshCw, Save, Trash2 } from '@/lib/icons'
@@ -48,7 +48,7 @@ import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { AllowlistField } from './allowlist-field'
 import { PlatformAvatar } from './platform-icon'
-import { SHOW_TELEGRAM_QR_SETUP } from '../settings/hermes-extras'
+import { SHOW_TELEGRAM_QR_SETUP } from '../settings/settings-extras'
 import { TelegramQrSetup } from './telegram-qr-setup'
 
 interface MessagingViewProps extends React.ComponentProps<'section'> {
@@ -480,7 +480,7 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           action: { label: m.restartAgain, onClick: () => void runGatewayRestart() },
           secondaryAction: {
             label: m.openLogs,
-            onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+            onClick: () => void window.desktopBridge?.revealLogs?.().catch(() => undefined)
           }
         })
       }
@@ -703,7 +703,7 @@ function PlatformRow({
             <span
               aria-label={t.messaging.pendingAria(pendingCount)}
               className={cn(
-                'inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[0.75rem] font-medium tabular-nums',
+                'inline-flex min-w-4 items-center justify-center rounded-full px-1 text-meta font-medium tabular-nums',
                 PILL_TONE.warn
               )}
             >
@@ -759,7 +759,7 @@ function PlatformDetail({
         <PlatformAvatar platformId={platform.id} platformName={platform.name} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight">{platform.name}</h3>
+            <h3 className="min-w-0 truncate text-body font-semibold tracking-tight">{platform.name}</h3>
             <StatePill tone={platformStatusTone(platform)}>{stateLabel(platform.state, m)}</StatePill>
             {/* Resting states earn no pill — only actionable ones. */}
             {!platform.configured && <SetupPill active={false}>{m.needsSetup}</SetupPill>}
@@ -922,7 +922,7 @@ function PlatformDetail({
       {hiddenCount > 0 && (
         <section>
           <button
-            className="flex w-full items-center justify-between gap-2 py-0.5 text-left text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
+            className="flex w-full items-center justify-between gap-2 py-0.5 text-left text-meta font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => setShowAdvanced(value => !value)}
             type="button"
           >
@@ -1105,7 +1105,7 @@ function MessagingField({
       title={
         <span className="flex flex-wrap items-center gap-2">
           <label htmlFor={fieldId}>{copy.label}</label>
-          {field.is_set && <span className="text-[0.75rem] font-medium text-primary">{m.saved}</span>}
+          {field.is_set && <span className="text-meta font-medium text-primary">{m.saved}</span>}
         </span>
       }
     />
@@ -1113,7 +1113,7 @@ function MessagingField({
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h4 className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{children}</h4>
+  return <h4 className="text-meta font-semibold uppercase tracking-[0.14em] text-muted-foreground">{children}</h4>
 }
 
 function PlatformHint({ platform }: { platform: MessagingPlatformInfo }) {
@@ -1150,7 +1150,7 @@ function StatePill({ children, tone }: { children: string; tone: StatusTone }) {
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.75rem] font-medium',
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-meta font-medium',
         PILL_TONE[tone]
       )}
     >
@@ -1164,7 +1164,7 @@ function SetupPill({ active, children }: { active: boolean; children: string }) 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-[0.75rem] font-medium',
+        'inline-flex items-center rounded-full px-2 py-0.5 text-meta font-medium',
         PILL_TONE[active ? 'good' : 'muted']
       )}
     >

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { getGlobalModelOptions } from '@/hermes'
+import { getGlobalModelOptions } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { Plus, X } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -129,7 +129,7 @@ export function FallbackModelsField({
 
         return (
           <div className="flex flex-wrap items-center gap-2" key={index}>
-            <span className="w-4 shrink-0 text-center font-mono text-[0.75rem] text-muted-foreground">{index + 1}</span>
+            <span className="w-4 shrink-0 text-center font-mono text-meta text-muted-foreground">{index + 1}</span>
             <Select onValueChange={provider => updateRow(index, { provider, model: '' })} value={entry.provider}>
               <SelectTrigger className={cn('min-w-36', CONTROL_TEXT)}>
                 <SelectValue placeholder={m.provider} />

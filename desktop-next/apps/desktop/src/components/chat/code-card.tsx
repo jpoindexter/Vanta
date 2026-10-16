@@ -25,7 +25,7 @@ function CodeCard({ className, ...props }: React.ComponentProps<'div'>) {
 function CodeCardIcon({ className, ...props }: CodiconProps) {
   return (
     <Codicon
-      className={cn('shrink-0 text-[0.875rem] leading-none text-muted-foreground', className)}
+      className={cn('shrink-0 text-label leading-none text-muted-foreground', className)}
       data-slot="code-card-icon"
       {...props}
     />

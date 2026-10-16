@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
 import { Download, Search } from '@/lib/icons'
-import type { LocalCatalogModel, LocalModelsStatus, LocalRuntimeJob } from '@/types/hermes'
+import type { LocalCatalogModel, LocalModelsStatus, LocalRuntimeJob } from '@/types/desktop'
 
 import { CatalogModelRow, SideloadedModelRow } from './local-models-model-rows'
 import { ListRow, SettingsSection } from './primitives'
@@ -73,7 +73,7 @@ export function LocalModelsModelsSection({
           ))}
       </div>
 
-      {lastError?.kind === 'model-download' && <p className="text-[0.75rem] text-destructive">{lastError.error}</p>}
+      {lastError?.kind === 'model-download' && <p className="text-meta text-destructive">{lastError.error}</p>}
     </SettingsSection>
   )
 }

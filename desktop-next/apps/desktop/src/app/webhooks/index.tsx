@@ -28,7 +28,7 @@ import {
   setWebhookEnabled,
   type WebhookRoute,
   type WebhooksResponse
-} from '@/hermes'
+} from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { AlertTriangle, Globe, Plus, RefreshCw } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -66,7 +66,7 @@ interface CreatedWebhook {
 // there is a single copyable-value chrome in this file.
 function CopyValueRow({ copyLabel, mono = true, value }: { copyLabel: string; mono?: boolean; value: string }) {
   return (
-    <div className="flex items-center gap-1 rounded bg-foreground/5 px-2.5 py-1.5 text-[0.75rem]">
+    <div className="flex items-center gap-1 rounded bg-foreground/5 px-2.5 py-1.5 text-meta">
       <span className={cn('min-w-0 flex-1 truncate text-foreground/80', mono && 'font-mono')}>{value}</span>
       <CopyButton appearance="icon" buttonSize="icon-sm" label={copyLabel} text={value} />
     </div>
@@ -629,7 +629,7 @@ function WebhookDetail({ sub }: { sub: WebhookRoute }) {
     <PanelDetail>
       <header className="space-y-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <h3 className="text-[0.95rem] font-semibold tracking-tight text-foreground">{sub.name}</h3>
+          <h3 className="text-body font-semibold tracking-tight text-foreground">{sub.name}</h3>
           {sub.deliver_only && <PanelPill tone="warn">{w.deliverOnly}</PanelPill>}
         </div>
 

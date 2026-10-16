@@ -42,11 +42,11 @@ function openMenu() {
 describe('titlebar project chip', () => {
   beforeEach(() => {
     vi.stubGlobal('vantaDesktop', { pickProjectFolder: bridge.pick })
-    window.hermesDesktop = {
+    window.desktopBridge = {
       revealPath: bridge.reveal,
       settings: { setDefaultProjectDir: bridge.setDir },
       writeClipboard: bridge.write
-    } as unknown as typeof window.hermesDesktop
+    } as unknown as typeof window.desktopBridge
     Object.values(bridge).forEach(fn => fn.mockReset())
     notify.mockReset()
     notifyError.mockReset()

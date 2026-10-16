@@ -1,4 +1,4 @@
-import { createCronTriggerController, type CronTriggerController } from '@hermes/shared'
+import { createCronTriggerController, type CronTriggerController } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
 import type * as React from 'react'
@@ -43,7 +43,7 @@ import {
   resumeCronJob,
   type SessionInfo,
   updateCronJob
-} from '@/hermes'
+} from '@/desktop-api'
 import { type Translations, useI18n } from '@/i18n'
 import { AlertTriangle } from '@/lib/icons'
 import { requestModelOptions } from '@/lib/model-options'
@@ -876,7 +876,7 @@ function CronJobDetail({
       <header className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="text-[0.95rem] font-semibold tracking-tight text-foreground">{jobTitle(job)}</h3>
+            <h3 className="text-body font-semibold tracking-tight text-foreground">{jobTitle(job)}</h3>
             {scriptOnly && <PanelPill tone="muted">{c.scriptBadge}</PanelPill>}
             <PanelPill tone={STATE_TONE[state] ?? 'muted'}>{c.states[state] ?? state}</PanelPill>
           </div>
@@ -910,7 +910,7 @@ function CronJobDetail({
         />
 
         {job.last_error ? (
-          <div className="space-y-1.5 rounded bg-destructive/10 p-2 text-[0.75rem] text-destructive">
+          <div className="space-y-1.5 rounded bg-destructive/10 p-2 text-meta text-destructive">
             <div className="flex items-start gap-1.5">
               <AlertTriangle className="mt-px size-3 shrink-0" />
               <span className="min-w-0 break-words" title={job.last_error}>
@@ -960,7 +960,7 @@ function formatRunTime(seconds?: null | number): string {
 
 // Script-only (no_agent) jobs have no agent sessions; the runs endpoint
 // surfaces their per-fire output docs as rows with source='cron_output'
-// (see _list_cron_output_runs in hermes_cli/web_routers/cron.py).
+// (see _list_cron_output_runs in vanta_cli/web_routers/cron.py).
 function isSyntheticCronOutputRun(run: SessionInfo): boolean {
   return run.source === 'cron_output'
 }
@@ -1110,7 +1110,7 @@ function CronJobRuns({
                 <Codicon name="loading" size="0.75rem" spinning />
                 <span className="truncate">{c.queuedRun}</span>
               </span>
-              <span className="shrink-0 text-[0.75rem] text-muted-foreground/55 tabular-nums">
+              <span className="shrink-0 text-meta text-muted-foreground/55 tabular-nums">
                 {formatRunTime(pendingRunAt / 1000)}
               </span>
             </div>
@@ -1123,7 +1123,7 @@ function CronJobRuns({
                 <span className="truncate text-foreground/85">
                   {run.title?.trim() || run.preview?.trim() || run.id}
                 </span>
-                <span className="shrink-0 text-[0.75rem] text-muted-foreground/55 tabular-nums">
+                <span className="shrink-0 text-meta text-muted-foreground/55 tabular-nums">
                   {formatRunTime(run.last_active || run.started_at)}
                 </span>
               </div>
@@ -1139,7 +1139,7 @@ function CronJobRuns({
                 <span className="truncate text-foreground/85">
                   {run.title?.trim() || run.preview?.trim() || run.id}
                 </span>
-                <span className="shrink-0 text-[0.75rem] text-muted-foreground/55 tabular-nums">
+                <span className="shrink-0 text-meta text-muted-foreground/55 tabular-nums">
                   {formatRunTime(run.last_active || run.started_at)}
                 </span>
               </button>

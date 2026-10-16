@@ -399,7 +399,7 @@ export const deOverrides = {
       'Diese Vanta-App ist älter als das verbundene Backend und funktioniert möglicherweise nicht richtig. Aktualisieren Sie die App, um beide abzugleichen.',
     updateDesktopApp: 'App aktualisieren',
     installMethodUnsupportedTitle: 'Nicht unterstützte Installationsmethode',
-    updateHermes: 'Vanta aktualisieren',
+    updateVanta: 'Vanta aktualisieren',
     updateReadyTitle: 'Update bereit',
     updateReadyMessage: count => `${count} neue Änderung${count === 1 ? '' : 'en'} verfügbar.`,
     updateReadyMessageUnknown: 'Ein neues Update ist verfügbar.',
@@ -432,10 +432,10 @@ export const deOverrides = {
       codeSkewRestartRequired:
         'Dieses Backend läuft nach einem Update mit altem Code. Starten Sie es neu, um den neuen Code zu laden.',
       rpcOutOfSync: 'App und Backend laufen in unterschiedlichen Versionen. Aktualisieren Sie beide.',
-      restartHermesFailed: 'Vanta konnte nicht neu gestartet werden'
+      restartVantaFailed: 'Vanta konnte nicht neu gestartet werden'
     },
     actions: {
-      restartHermes: 'Vanta neu starten',
+      restartVanta: 'Vanta neu starten',
       openKeys: 'Schlüssel öffnen',
       openGateways: 'Gateways öffnen',
       openMaintenance: 'Wartung öffnen'
@@ -1437,7 +1437,7 @@ export const deOverrides = {
     uninstallSection: {
       dangerZone: 'Gefahrenzone',
       checkingInstalled: 'Installierte Komponenten werden geprüft…',
-      uninstallHermes: 'Vanta deinstallieren',
+      uninstallVanta: 'Vanta deinstallieren',
       chooseHowMuch:
         'Wählen Sie, wie viel entfernt werden soll. Die App wird zum Abschluss geschlossen; Sie können das Installationsprogramm jederzeit erneut öffnen, um zurückzukehren.',
       confirmUninstall: 'Deinstallation bestätigen',
@@ -1852,9 +1852,9 @@ export const deOverrides = {
       sshPortDesc: 'Leer = 22 oder der Port aus ~/.ssh/config.',
       sshKeyTitle: 'Identitätsdatei',
       sshKeyDesc: 'Pfad zum privaten Schlüssel. Leer = ssh-agent oder ~/.ssh/config.',
-      sshHermesPathTitle: 'Vanta-Pfad (optional)',
-      sshHermesPathDesc: 'Vollständiger Pfad zum Remote-Vanta-Binary. Leer = automatisch erkennen.',
-      sshHermesPathPlaceholder: 'automatisch erkennen',
+      sshVantaPathTitle: 'Vanta-Pfad (optional)',
+      sshVantaPathDesc: 'Vollständiger Pfad zum Remote-Vanta-Binary. Leer = automatisch erkennen.',
+      sshVantaPathPlaceholder: 'automatisch erkennen',
       sshTestConnection: 'SSH testen',
       sshConnect: 'Verbinden',
       sshButtonsHint: 'Speichern wird beim nächsten Start angewendet. Verbinden verbindet sofort neu.',
@@ -2359,10 +2359,10 @@ export const deOverrides = {
       activeBackend: 'Aktiv',
       activeBackendHint: 'Das ist Ihr aktives Backend',
       useBackend: 'Dieses Backend verwenden',
-      nousAuthSignIn: 'Anmelden',
-      nousAuthDoneMessage: 'Ihre Abo-Backends sind jetzt aktiv.',
-      nousAuthFailedMessage: 'Versuchen Sie es erneut.',
-      nousAuthTryAgain: 'Erneut versuchen',
+      vantaAuthSignIn: 'Anmelden',
+      vantaAuthDoneMessage: 'Ihre Abo-Backends sind jetzt aktiv.',
+      vantaAuthFailedMessage: 'Versuchen Sie es erneut.',
+      vantaAuthTryAgain: 'Erneut versuchen',
       noApiKeyRequired: 'Kein API-Key erforderlich.',
       postSetupHint: step =>
         `Dieses Backend braucht eine einmalige Installation (${step}). Läuft auf diesem Rechner – kann ein paar Minuten dauern.`,
@@ -2540,7 +2540,7 @@ export const deOverrides = {
       serverStates: {
         connected: 'verbunden',
         app_not_running: 'App läuft nicht',
-        hermes_not_connected: 'MCP-Verbindung fehlt',
+        vanta_not_connected: 'MCP-Verbindung fehlt',
         endpoint_unavailable: 'Endpunkt nicht verfügbar',
         no_interactive_session: 'keine interaktive Session',
         version_too_old: 'Version zu alt',
@@ -2860,7 +2860,7 @@ export const deOverrides = {
     noSessions: 'Noch keine Sessions.',
     gatewayRunning: 'Messaging-Gateway läuft',
     gatewayStopped: 'Messaging-Gateway gestoppt',
-    hermesActiveSessions: (version, count) => `Vanta ${version} · Aktive Sessions ${count}`,
+    vantaActiveSessions: (version, count) => `Vanta ${version} · Aktive Sessions ${count}`,
     restartGateway: 'Gateway neu starten',
     openBrowser: 'Browser umschalten',
     toggleBrowser: 'Browser umschalten',
@@ -2869,7 +2869,7 @@ export const deOverrides = {
     sharedGatewayRestartDescription: bots => `Alle Bots auf diesem Gerät verbinden sich neu: ${bots}`,
     sharedGatewayRestartConfirm: 'Alle neu starten',
     sharedGatewayRestarted: count => `Gemeinsames Gateway neu gestartet (${count} ${count === 1 ? 'Bot' : 'Bots'})`,
-    updateHermes: 'Vanta aktualisieren',
+    updateVanta: 'Vanta aktualisieren',
     reloadWindow: 'Fenster neu laden',
     actionRunning: 'läuft',
     actionDone: 'fertig',
@@ -5133,8 +5133,8 @@ export const deOverrides = {
       errorChooseModel: 'Modell wählen',
       errorCompressConversation: 'Gespräch komprimieren',
       errorCompressFailed: 'Das Gespräch konnte nicht komprimiert werden',
-      errorOpenHermesFolder: 'Vanta-Ordner öffnen',
-      errorOpenHermesFolderFailed: 'Der Vanta-Ordner konnte nicht geöffnet werden',
+      errorOpenVantaFolder: 'Vanta-Ordner öffnen',
+      errorOpenVantaFolderFailed: 'Der Vanta-Ordner konnte nicht geöffnet werden',
       errorUpdateApiKey: 'API-Key aktualisieren',
       errorSignInAgain: provider => `Erneut bei ${provider} anmelden`,
       errorOauthExpired: provider =>

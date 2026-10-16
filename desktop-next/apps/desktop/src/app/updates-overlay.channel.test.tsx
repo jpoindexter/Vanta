@@ -18,7 +18,7 @@ async function openWith(status: Partial<DesktopUpdateStatus>): Promise<void> {
   $desktopVersion.set({
     appVersion: '0.21.6',
     electronVersion: '37',
-    hermesRoot: '/h',
+    vantaRoot: '/h',
     nodeVersion: '22',
     platform: 'linux'
   })

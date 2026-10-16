@@ -1,5 +1,5 @@
-import { hermesApiAs, type OwnerScope, ownerScoped, type ResolvedOwner } from '@/api/client'
-import { getApiRequestConnection, getApiRequestProfile, hermesApi } from '@/hermes'
+import { vantaApiAs, type OwnerScope, ownerScoped, type ResolvedOwner } from '@/api/client'
+import { getApiRequestConnection, getApiRequestProfile, vantaApi } from '@/desktop-api'
 
 /**
  * Client-direct voice: call the active profile's STT/TTS providers straight
@@ -87,11 +87,11 @@ export function clearVoiceClientConfigCache(): void {
 }
 
 export async function fetchVoiceClientConfig(owner?: OwnerScope): Promise<null | VoiceClientConfig> {
-  // hermesApi carries connectionScoped(); profileScoped() adds the profile —
+  // vantaApi carries connectionScoped(); profileScoped() adds the profile —
   // the same routing every relay audio call uses, so the config comes from
   // the backend the user is actually talking to.
   return loadVoiceClientConfig(scopeKey(owner), () =>
-    hermesApi<VoiceConfigResponse>({ ...ownerScoped(owner), path: '/api/audio/voice-config' })
+    vantaApi<VoiceConfigResponse>({ ...ownerScoped(owner), path: '/api/audio/voice-config' })
   )
 }
 
@@ -99,7 +99,7 @@ export async function fetchVoiceClientConfig(owner?: OwnerScope): Promise<null |
  *  lookup cannot drift to whatever scope is ambient by the time it runs. */
 export async function fetchVoiceClientConfigFor(owner: ResolvedOwner): Promise<null | VoiceClientConfig> {
   return loadVoiceClientConfig(`${owner.connectionId || 'local'}::${owner.profile || 'default'}`, () =>
-    hermesApiAs<VoiceConfigResponse>(owner, { path: '/api/audio/voice-config' })
+    vantaApiAs<VoiceConfigResponse>(owner, { path: '/api/audio/voice-config' })
   )
 }
 

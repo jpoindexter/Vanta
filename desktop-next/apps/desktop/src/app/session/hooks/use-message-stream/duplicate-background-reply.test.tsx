@@ -1,4 +1,4 @@
-import type { GatewayEventName } from '@hermes/shared'
+import type { GatewayEventName } from '@vanta/shared'
 import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { afterEach, expect, it } from 'vitest'
 
@@ -7,7 +7,7 @@ import { stubThreadEnvironment, stubThreadViewportSize, ThreadRuntime } from '@/
 import { Thread } from '@/components/assistant-ui/thread'
 import { chatMessageText, toChatMessages } from '@/lib/chat-messages'
 import { toRuntimeMessage } from '@/lib/chat-runtime'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/desktop'
 
 import { preserveLocalPendingTurnMessages } from '../use-session-actions/utils'
 

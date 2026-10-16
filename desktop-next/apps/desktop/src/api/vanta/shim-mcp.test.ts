@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { addMcpServer, getMcpCatalog, installMcpCatalogEntry, listMcpServers, removeMcpServer, setMcpServerEnabled, testMcpServer } from '@/api/mcp'
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 import { installRestBridge } from '@/test/rest-bridge'
 
 const PAYLOAD = {
@@ -24,7 +24,7 @@ describe('Connectors reads and controls MCP servers through the Vanta connector 
     actions = []
     probe = { result: { status: 'connected', tools: ['read'] } }
 
-    installRestBridge((request: HermesApiRequest) => {
+    installRestBridge((request: VantaApiRequest) => {
       if (request.path === '/api/connect/mcp' && !request.method) {
         return PAYLOAD
       }
@@ -46,7 +46,7 @@ describe('Connectors reads and controls MCP servers through the Vanta connector 
   })
 
   afterEach(() => {
-    delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as { desktopBridge?: unknown }).desktopBridge
     delete (window as { vantaDesktop?: unknown }).vantaDesktop
   })
 

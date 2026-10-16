@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { MessagingEnvVarInfo, MessagingPlatformInfo, MessagingPlatformsResponse, MessagingPlatformTestResponse } from '@/types/hermes'
+import type { MessagingEnvVarInfo, MessagingPlatformInfo, MessagingPlatformsResponse, MessagingPlatformTestResponse } from '@/types/desktop'
 
 import { get, post, segment, type ShimRoute } from './shim-core'
 
@@ -40,7 +40,7 @@ function envVar(platform: Platform, field: Platform['fields'][number]): Messagin
   }
 }
 
-// Hermes' state words: only a saved platform is "waiting on the gateway"; the rest read as off, and the
+// Vanta' state words: only a saved platform is "waiting on the gateway"; the rest read as off, and the
 // page adds its own "Needs setup" pill for the unconfigured, so the state must not repeat it.
 const stateOf = (platform: Platform): string => (platform.status === 'ready' ? 'gateway_stopped' : 'disabled')
 
@@ -78,7 +78,7 @@ async function platformById(send: Parameters<ShimRoute['handle']>[0]['send'], id
   return platform
 }
 
-/** The Hermes "messaging platforms" calls, answered from the Vanta adapter list and credential save. */
+/** The Vanta "messaging platforms" calls, answered from the Vanta adapter list and credential save. */
 export const messagingRoutes: readonly ShimRoute[] = [
   {
     handle: async ({ send }): Promise<MessagingPlatformsResponse> => ({

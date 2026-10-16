@@ -2,7 +2,7 @@ import { providerOptionsSchema } from './schemas'
 import { get, type Send, type ShimRoute, text } from './shim-core'
 import { connectProvider, UNSUPPORTED_ENDPOINT } from './shim-providers'
 
-// The Hermes "Local / custom endpoint" form takes a base URL, asks `POST /api/providers/validate` whether
+// The Vanta "Local / custom endpoint" form takes a base URL, asks `POST /api/providers/validate` whether
 // it answers and lists its models, then saves it as provider `custom` with that URL. Vanta's local
 // providers are Ollama and LM Studio at their own addresses, so the form's URL picks which one, the
 // server (not the renderer) checks it answers, and the save becomes `/api/setup` for that provider.

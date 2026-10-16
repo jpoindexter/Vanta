@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import type { StaleAuxAssignment } from '@/hermes'
+import type { StaleAuxAssignment } from '@/desktop-api'
 
 import { dismissStaleAux, readStaleAuxDismissal, staleAuxFingerprint } from './stale-aux-dismissal'
 
@@ -9,22 +9,22 @@ const slots = (entries: Array<[string, string, string, string?]>): StaleAuxAssig
 
 describe('staleAuxFingerprint', () => {
   it('binds the acknowledgement to the main provider and the pinned slots', () => {
-    const a = staleAuxFingerprint('nous', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
-    const same = staleAuxFingerprint('nous', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
+    const a = staleAuxFingerprint('vanta', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
+    const same = staleAuxFingerprint('vanta', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
 
     expect(a).toBe(same)
     expect(a).not.toBe(staleAuxFingerprint('openrouter', slots([['vision', 'alibaba', 'qwen3.6-flash']])))
-    expect(a).not.toBe(staleAuxFingerprint('nous', slots([['vision', 'alibaba', 'qwen3.6-flash-v2']])))
-    expect(a).not.toBe(staleAuxFingerprint('nous', slots([['triage_specifier', 'alibaba', 'qwen3.6-flash']])))
+    expect(a).not.toBe(staleAuxFingerprint('vanta', slots([['vision', 'alibaba', 'qwen3.6-flash-v2']])))
+    expect(a).not.toBe(staleAuxFingerprint('vanta', slots([['triage_specifier', 'alibaba', 'qwen3.6-flash']])))
   })
 
   it('is order-insensitive across slots', () => {
-    const first = staleAuxFingerprint('nous', [
+    const first = staleAuxFingerprint('vanta', [
       { task: 'vision', provider: 'alibaba', model: 'm1' },
       { task: 'curator', provider: 'kimi', model: 'm2' }
     ])
 
-    const second = staleAuxFingerprint('nous', [
+    const second = staleAuxFingerprint('vanta', [
       { task: 'curator', provider: 'kimi', model: 'm2' },
       { task: 'vision', provider: 'alibaba', model: 'm1' }
     ])
@@ -34,27 +34,27 @@ describe('staleAuxFingerprint', () => {
 
   it('includes the slot endpoint, so a repointed base_url re-arms the banner', () => {
     const pinned = staleAuxFingerprint(
-      'nous',
+      'vanta',
       slots([['vision', 'openai', 'gpt-4o-mini', 'https://api.example.com/v1']])
     )
 
     // Same task/provider/model on a different endpoint: different billing
     // surface, so a stored acknowledgement must not cover it.
     expect(pinned).not.toBe(
-      staleAuxFingerprint('nous', slots([['vision', 'openai', 'gpt-4o-mini', 'https://proxy.example.com/v1']]))
+      staleAuxFingerprint('vanta', slots([['vision', 'openai', 'gpt-4o-mini', 'https://proxy.example.com/v1']]))
     )
     // Trailing slashes are the same endpoint, not a re-arm.
     expect(pinned).toBe(
-      staleAuxFingerprint('nous', slots([['vision', 'openai', 'gpt-4o-mini', 'https://api.example.com/v1/']]))
+      staleAuxFingerprint('vanta', slots([['vision', 'openai', 'gpt-4o-mini', 'https://api.example.com/v1/']]))
     )
     // Absent and empty endpoints agree (switch echoes carry no base_url).
-    expect(staleAuxFingerprint('nous', slots([['vision', 'openai', 'gpt-4o-mini']]))).toBe(
-      staleAuxFingerprint('nous', slots([['vision', 'openai', 'gpt-4o-mini', '']]))
+    expect(staleAuxFingerprint('vanta', slots([['vision', 'openai', 'gpt-4o-mini']]))).toBe(
+      staleAuxFingerprint('vanta', slots([['vision', 'openai', 'gpt-4o-mini', '']]))
     )
   })
 
   it('normalizes the main provider casing and surrounding whitespace', () => {
-    expect(staleAuxFingerprint('  Nous ', slots([]))).toBe(staleAuxFingerprint('nous', slots([])))
+    expect(staleAuxFingerprint('  Vanta ', slots([]))).toBe(staleAuxFingerprint('vanta', slots([])))
   })
 })
 
@@ -64,16 +64,16 @@ describe('stale-aux dismissal persistence', () => {
   })
 
   it('persists per profile and re-arms when the pin configuration changes', () => {
-    dismissStaleAux('research', 'nous', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
+    dismissStaleAux('research', 'vanta', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
 
     expect(readStaleAuxDismissal('research')).toBe(
-      staleAuxFingerprint('nous', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
+      staleAuxFingerprint('vanta', slots([['vision', 'alibaba', 'qwen3.6-flash']]))
     )
     // A different profile never sees the acknowledgement.
     expect(readStaleAuxDismissal('default')).toBeNull()
     // A different pin configuration is not the acknowledged one.
     expect(readStaleAuxDismissal('research')).not.toBe(
-      staleAuxFingerprint('nous', slots([['vision', 'alibaba', 'qwen3.6-flash-2']]))
+      staleAuxFingerprint('vanta', slots([['vision', 'alibaba', 'qwen3.6-flash-2']]))
     )
   })
 })

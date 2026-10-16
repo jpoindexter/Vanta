@@ -48,7 +48,7 @@ export function SubagentSection({ sessionId }: SubagentSectionProps) {
       onActivate={() => setSelected(selected === item.id ? null : item.id)}
       trailing={
         <ActivityTimerText
-          className="shrink-0 text-[0.75rem]"
+          className="shrink-0 text-meta"
           seconds={Math.max(0, Math.floor((nowMs - item.startedAt) / 1000))}
         />
       }
@@ -56,7 +56,7 @@ export function SubagentSection({ sessionId }: SubagentSectionProps) {
     >
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs text-(--ui-text-primary)">{item.goal}</span>
-        <span className="block truncate text-[0.75rem] text-(--ui-text-tertiary)">
+        <span className="block truncate text-meta text-(--ui-text-tertiary)">
           {item.stream.at(-1)?.text || (item.status === 'queued' ? t.agents.queued : t.agents.waitingActivity)}
         </span>
       </span>

@@ -8,18 +8,18 @@ let set: ReturnType<typeof vi.fn>
 beforeEach(() => {
   set = vi.fn(async (on: boolean) => ({ enabled: on }))
   Object.assign(window, {
-    hermesDesktop: { agentDot: { feed: vi.fn(), get: vi.fn(async () => ({ enabled: false })), onChanged: vi.fn(() => () => undefined), set } }
+    desktopBridge: { agentDot: { feed: vi.fn(), get: vi.fn(async () => ({ enabled: false })), onChanged: vi.fn(() => () => undefined), set } }
   })
 })
 
 afterEach(() => {
   cleanup()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
 })
 
 describe('AgentDotSetting', () => {
   it('shows nothing outside the Vanta shell', () => {
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'desktopBridge')
     const { container } = render(<AgentDotSetting />)
 
     expect(container.textContent).toBe('')

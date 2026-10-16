@@ -142,7 +142,7 @@ function Header({ card, titleRef, ...rest }: PartProps & { titleRef: RefObject<H
             {card.name}
           </DialogTitle>
 
-          <span className="shrink-0 text-[0.75rem] text-(--ui-text-tertiary)">{connectorKindWord(card, copy)}</span>
+          <span className="shrink-0 text-meta text-(--ui-text-tertiary)">{connectorKindWord(card, copy)}</span>
 
           {showsCatalogMark(card) ? <CatalogMark /> : null}
 
@@ -151,7 +151,7 @@ function Header({ card, titleRef, ...rest }: PartProps & { titleRef: RefObject<H
           </Badge>
         </div>
 
-        <DialogDescription className="truncate text-[0.75rem] text-(--ui-text-secondary)">
+        <DialogDescription className="truncate text-meta text-(--ui-text-secondary)">
           {card.description ?? localTarget(card) ?? copy.state[card.stateWord]}
         </DialogDescription>
       </div>
@@ -317,7 +317,7 @@ function HostedLead({
 
       {showsReason ? (
         <div className="flex items-center gap-3">
-          <p className="min-w-0 flex-1 text-[0.75rem] text-(--ui-text-secondary)">{reason}</p>
+          <p className="min-w-0 flex-1 text-meta text-(--ui-text-secondary)">{reason}</p>
           {waiting ? (
             <Button onClick={waiting} size="inline" variant="textStrong">
               {t.connectorsPage.card.verb.stopWaiting}
@@ -350,7 +350,7 @@ function HostedLead({
 function HostedFoot({ card }: PartProps) {
   const { t } = useI18n()
 
-  return card.ways.hosted ? <FootLine>{t.connectorsPage.dialog.nousLine}</FootLine> : null
+  return card.ways.hosted ? <FootLine>{t.connectorsPage.dialog.vantaLine}</FootLine> : null
 }
 
 function LocalLead({ card, installFields = [], installing, onInstall }: PartProps) {
@@ -380,7 +380,7 @@ function LocalFoot({ advanced, cost }: PartProps) {
   return (
     <div className="grid shrink-0 gap-3 border-t border-(--ui-stroke-tertiary) px-3.5 py-2.5">
       {metrics ? (
-        <p className="text-[0.75rem] text-(--ui-text-tertiary)">
+        <p className="text-meta text-(--ui-text-tertiary)">
           {[
             cost?.usesPerMonth ? `${cost.usesPerMonth} ${copy.usesPerMonth}` : null,
             cost?.tokensPerCall ? `${cost.tokensPerCall} ${copy.tokensPerCall}` : null
@@ -410,7 +410,7 @@ function LocalFoot({ advanced, cost }: PartProps) {
 
 function FootLine({ children }: { children: string }) {
   return (
-    <p className="shrink-0 border-t border-(--ui-stroke-tertiary) px-3.5 py-2 text-[0.75rem] text-(--ui-text-tertiary)">
+    <p className="shrink-0 border-t border-(--ui-stroke-tertiary) px-3.5 py-2 text-meta text-(--ui-text-tertiary)">
       {children}
     </p>
   )
@@ -426,7 +426,7 @@ function OrgNote({ count, onOpenAdmin }: { count: number; onOpenAdmin?: () => vo
 
   return (
     <div className="grid gap-1 rounded-md bg-(--ui-orange)/8 p-2.5">
-      <p className="text-[0.75rem] text-(--ui-text-secondary)">{copy.orgNote(count)}</p>
+      <p className="text-meta text-(--ui-text-secondary)">{copy.orgNote(count)}</p>
       {onOpenAdmin ? (
         <Button className="justify-self-start" onClick={onOpenAdmin} size="inline" variant="textStrong">
           {copy.orgLink}

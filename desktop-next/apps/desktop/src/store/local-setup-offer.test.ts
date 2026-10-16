@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesConnection } from '@/global'
-import type * as Vanta from '@/hermes'
-import type { LocalCatalogModel, LocalModelsStatus } from '@/types/hermes'
+import type { VantaConnection } from '@/global'
+import type * as Vanta from '@/desktop-api'
+import type { LocalCatalogModel, LocalModelsStatus } from '@/types/desktop'
 
 const backend = vi.hoisted(() => ({ catalog: vi.fn(), status: vi.fn() }))
 
-vi.mock('@/hermes', async importOriginal => ({
+vi.mock('@/desktop-api', async importOriginal => ({
   ...(await importOriginal<typeof Vanta>()),
   getLocalCatalog: () => backend.catalog(),
   getLocalModelsStatus: () => backend.status()
@@ -23,7 +23,7 @@ async function eligibilityFor(models: LocalCatalogModel[]) {
   const { refreshLocalSetupEligibility } = await import('./local-setup-offer')
 
   $localModelsEnabled.set(true)
-  $connection.set({ baseUrl: 'http://127.0.0.1:9', isFullscreen: false, mode: 'local' } as HermesConnection)
+  $connection.set({ baseUrl: 'http://127.0.0.1:9', isFullscreen: false, mode: 'local' } as VantaConnection)
 
   return refreshLocalSetupEligibility()
 }

@@ -110,7 +110,7 @@ vi.mock('./surfaces', () => ({
 vi.mock('../gateway/hooks/use-gateway-boot', () => ({ useGatewayBoot: () => ({}) }))
 vi.mock('../session/hooks/use-context-suggestions', () => ({ useContextSuggestions: () => ({}) }))
 vi.mock('../session/hooks/use-cwd-actions', () => ({ useCwdActions: () => ({}) }))
-vi.mock('../session/hooks/use-hermes-config', () => ({ useHermesConfig: () => ({}) }))
+vi.mock('../session/hooks/use-vanta-config', () => ({ useVantaConfig: () => ({}) }))
 vi.mock('../session/hooks/use-message-stream', () => ({ useMessageStream: () => ({}) }))
 vi.mock('../session/hooks/use-model-controls', () => ({ useModelControls: () => ({}) }))
 vi.mock('../session/hooks/use-preview-routing', () => ({ usePreviewRouting: () => ({}) }))
@@ -127,7 +127,7 @@ vi.mock('./hooks/use-pet-bridge', () => ({ usePetBridge: () => ({}) }))
 vi.mock('./hooks/use-quick-entry-bridge', () => ({ useQuickEntryBridge: () => ({}) }))
 vi.mock('./hooks/use-session-tile-delegate', () => ({ useSessionTileDelegate: () => ({}) }))
 vi.mock('@/themes/use-skin-command', () => ({ useSkinCommand: () => ({}) }))
-vi.mock('../hooks/use-config-record', () => ({ useHermesConfigRecord: () => ({}) }))
+vi.mock('../hooks/use-config-record', () => ({ useVantaConfigRecord: () => ({}) }))
 vi.mock('./dev/credits-notice-demo', () => ({ installCreditsNoticeDemo: () => undefined }))
 vi.mock('@/store/wake-word', async importActual => ({
   ...(await importActual<Record<string, unknown>>()),

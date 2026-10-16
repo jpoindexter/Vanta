@@ -1,5 +1,5 @@
-import type { ServerRequest } from '@hermes/shared'
-import { JsonRpcGatewayError } from '@hermes/shared'
+import type { ServerRequest } from '@vanta/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import type { ChatClient } from './client-registry'
 import type { GatewayHub } from './hub'
@@ -27,7 +27,7 @@ export function canRemember(approval: ApprovalPayload): boolean {
   return request?.canRemember !== false && request?.fresh !== true
 }
 
-/** The Hermes `approval` request params for one Vanta approval, carrying the exact-action request through untouched. */
+/** The Vanta `approval` request params for one Vanta approval, carrying the exact-action request through untouched. */
 export function approvalParams(client: ChatClient, approval: ApprovalPayload): Record<string, unknown> {
   const remember = canRemember(approval)
 

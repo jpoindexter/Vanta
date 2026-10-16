@@ -25,7 +25,7 @@ const ms = (start) => Math.round(performance.now() - start);
 async function pollStatus(page, timeoutMs) {
   const deadline = performance.now() + timeoutMs;
   for (;;) {
-    const status = await page.evaluate(() => window.hermesDesktop.api({ path: "/api/status" }).catch((error) => ({ error: String(error) })));
+    const status = await page.evaluate(() => window.desktopBridge.api({ path: "/api/status" }).catch((error) => ({ error: String(error) })));
     if (status?.kernel) return status;
     if (performance.now() > deadline) throw new Error(`/api/status never answered: ${JSON.stringify(status)}`);
     await page.waitForTimeout(250);
@@ -84,9 +84,11 @@ async function runOnce(index) {
     await app?.close().catch(() => undefined);
     await mock.close();
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    const left = stragglers([box.root, appPath]);
+    // Match the app by its own executables, never by a bare path: a shell that merely mentions the path is not the app.
+    const left = stragglers([box.root, `${appPath}/Contents/`]);
     killAll(left);
     facts.leftRunningAfterClose = left.length;
+    facts.leftRunningCommands = left.map((proc) => proc.command.slice(0, 160));
     box.cleanup();
   }
   return facts;
@@ -97,7 +99,7 @@ const results = [];
 for (let index = 1; index <= runs; index += 1) {
   const facts = await runOnce(index);
   results.push(facts);
-  console.log(JSON.stringify({ run: index, windowVisibleMs: facts.windowVisibleMs, composerReadyMs: facts.composerReadyMs, statusMs: facts.statusMs, chatReplyMs: facts.chatReplyMs, kernel: facts.status.kernel, left: facts.leftRunningAfterClose }));
+  console.log(JSON.stringify({ run: index, windowVisibleMs: facts.windowVisibleMs, composerReadyMs: facts.composerReadyMs, statusMs: facts.statusMs, chatReplyMs: facts.chatReplyMs, kernel: facts.status.kernel, left: facts.leftRunningAfterClose, leftCommands: facts.leftRunningCommands }));
 }
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "boot-timings.json"), `${JSON.stringify({ app: appPath, results }, null, 2)}\n`);

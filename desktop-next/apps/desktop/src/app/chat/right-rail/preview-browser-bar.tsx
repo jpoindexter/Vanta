@@ -229,7 +229,7 @@ export function PreviewBrowserBar({
       ) : null}
       {annotateMode ? (
         <span
-          className="hidden shrink-0 items-center rounded-full px-2 py-0.5 text-[0.75rem] font-semibold tracking-wide text-white uppercase sm:inline-flex"
+          className="hidden shrink-0 items-center rounded-full px-2 py-0.5 text-meta font-semibold tracking-wide text-white uppercase sm:inline-flex"
           data-annotate-status="commenting"
           style={{ background: ANNOTATE_BLUE }}
         >
@@ -238,7 +238,7 @@ export function PreviewBrowserBar({
       ) : null}
       {commentCount > 0 && onFlushComments ? (
         <button
-          className="shrink-0 rounded-full px-2 py-0.5 text-[0.75rem] font-semibold text-white"
+          className="shrink-0 rounded-full px-2 py-0.5 text-meta font-semibold text-white"
           onClick={onFlushComments}
           style={{ background: ANNOTATE_BLUE }}
           type="button"

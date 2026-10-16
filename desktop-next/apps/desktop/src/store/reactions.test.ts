@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { MessageReaction } from '@/types/hermes'
+import type { MessageReaction } from '@/types/desktop'
 
 const reactionTestState = vi.hoisted(() => {
   const store = <T>(initial: T) => {

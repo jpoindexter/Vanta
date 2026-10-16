@@ -3,7 +3,7 @@ import { atom } from 'nanostores'
 import { persistBoolean, storedBoolean } from '@/lib/storage'
 import { modeBound } from '@/store/interface-mode'
 
-const TAKEOVER_KEY = 'hermes.desktop.terminalTakeover'
+const TAKEOVER_KEY = 'vanta.desktop.terminalTakeover'
 
 // Simple mode rests the terminal closed without touching this preference; ⌃`
 // still brings it up for the session.

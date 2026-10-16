@@ -7,21 +7,21 @@ import { deliveryTargetFromCommand, replyTextFromResult } from './agent-delivery
 // (the canonical Bot Mode command shape) and the reply extraction.
 describe('delivery command detection', () => {
   it('matches the canonical delivery command', () => {
-    const cmd = 'hermes -p turqoise chat --in ~ -c "Bot Chat" -Q -q "Message from 🤖 Vanta (@hermes): hi there"'
+    const cmd = 'vanta -p turqoise chat --in ~ -c "Bot Chat" -Q -q "Message from 🤖 Vanta (@vanta): hi there"'
 
     expect(deliveryTargetFromCommand(cmd)).toBe('turqoise')
   })
 
   it('matches with a cd prefix and timeout wrapper', () => {
-    const cmd = 'cd ~ && timeout 240 hermes -p mr-tester chat --in "~" -Q -q "Message from 🤖 Vanta: hello"'
+    const cmd = 'cd ~ && timeout 240 vanta -p mr-tester chat --in "~" -Q -q "Message from 🤖 Vanta: hello"'
 
     expect(deliveryTargetFromCommand(cmd)).toBe('mr-tester')
   })
 
   it('ignores ordinary terminal commands', () => {
     expect(deliveryTargetFromCommand('ls -la')).toBeNull()
-    expect(deliveryTargetFromCommand('hermes -p turqoise chat -q "plain question"')).toBeNull()
-    expect(deliveryTargetFromCommand('hermes sessions list')).toBeNull()
+    expect(deliveryTargetFromCommand('vanta -p turqoise chat -q "plain question"')).toBeNull()
+    expect(deliveryTargetFromCommand('vanta sessions list')).toBeNull()
   })
 })
 

@@ -37,6 +37,10 @@ import { isApprovalActivity, isCurrentTurnMessage } from '@/components/assistant
 import { ViewOutputButton } from '@/components/assistant-ui/tool/step-actions'
 import { TooltipIconButton } from '@/components/assistant-ui/tooltip-icon-button'
 import { PreviewAttachment } from '@/components/chat/preview-attachment'
+import { CanvasCards } from '@/components/chat/vanta/canvas-card'
+import { type CanvasData, canvasesFromParts } from '@/components/chat/vanta/canvas-model'
+import { OutputCards } from '@/components/chat/vanta/output-card'
+import { type OutputFile, outputFilesFromParts } from '@/components/chat/vanta/output-files'
 import { Codicon } from '@/components/ui/codicon'
 import { CopyButton } from '@/components/ui/copy-button'
 import { useI18n } from '@/i18n'
@@ -136,7 +140,7 @@ export const AssistantMessage: FC<AssistantMessageProps> = props => {
 /** The compact stand-in a settled inter-agent reply collapses to (Grok-bots
  *  parity — the transcript shows the event; the text is one click away). */
 const InterAgentCollapsedNotice: FC<{ sender: string }> = ({ sender }) => (
-  <div className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60">
+  <div className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-meta leading-5 text-muted-foreground/60">
     <span className="flex items-center justify-center gap-1.5">
       <Codicon className="shrink-0 text-muted-foreground/55" name="arrow-small-right" size="0.8125rem" />
       <span className="wrap-anywhere">Replied to {sender}</span>
@@ -145,7 +149,7 @@ const InterAgentCollapsedNotice: FC<{ sender: string }> = ({ sender }) => (
       <summary className="cursor-pointer select-none text-center text-muted-foreground/45 hover:text-muted-foreground/70">
         show reply
       </summary>
-      <div className="mt-1 max-w-[36rem] rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-[0.75rem] leading-5 text-foreground/85">
+      <div className="mt-1 max-w-[36rem] rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-meta leading-5 text-foreground/85">
         {MESSAGE_PARTS}
       </div>
     </details>
@@ -282,6 +286,7 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
             <StoppedNotice />
             <AssistantStatusSlot />
             <AssistantPreviewEmbeds />
+            <AssistantOutputCards />
             <MessagePrimitive.Error>
               <ErrorPrimitive.Root className="vp-card vp-failure" data-vp="failure-card" role="alert">
                 <div className="flex items-start gap-1.5">
@@ -341,7 +346,7 @@ const StoppedNotice: FC = () => {
 
   return (
     <div
-      className="flex items-center gap-1 px-(--message-text-indent) pt-1 text-[0.75rem] text-(--ui-text-tertiary)"
+      className="flex items-center gap-1 px-(--message-text-indent) pt-1 text-meta text-(--ui-text-tertiary)"
       data-slot="aui_assistant-message-stopped"
     >
       <Codicon className="size-3" name="debug-stop" />
@@ -454,6 +459,37 @@ const AssistantPreviewEmbeds: FC = () => {
       ))}
     </div>
   )
+}
+
+/**
+ * Files and canvases (charts, tables, boards) the agent made this turn, as cards. The selector returns a string so
+ * streaming flushes (new array identity every token) don't re-render the leaf;
+ * while the turn runs it is a stable ''.
+ */
+const AssistantOutputCards: FC = () => {
+  const signature = useAuiState(s => {
+    if (s.message.status?.type === 'running') {
+      return ''
+    }
+
+    const parts = s.message.content as Parameters<typeof outputFilesFromParts>[0]
+    const files = outputFilesFromParts(parts)
+    const canvases = canvasesFromParts(parts)
+
+    return files.length || canvases.length ? JSON.stringify({ canvases, files }) : ''
+  })
+
+  const made = useMemo(
+    () => (signature ? (JSON.parse(signature) as { canvases: CanvasData[]; files: OutputFile[] }) : null),
+    [signature]
+  )
+
+  return made ? (
+    <>
+      <OutputCards files={made.files} />
+      <CanvasCards canvases={made.canvases} />
+    </>
+  ) : null
 }
 
 /**
@@ -738,7 +774,7 @@ const ErrorRecoveryActions: FC = () => {
   const model = useStore($currentModel)
   const connection = useStore($connection)
 
-  // Open Logs reveals the LOCAL Electron profile's HERMES_HOME/logs. On a
+  // Open Logs reveals the LOCAL Electron profile's VANTA_HOME/logs. On a
   // remote/cloud connection the failed turn's gateway+agent logs live on the
   // remote box — the local folder only holds Desktop-side transport logs, so
   // the label says "Open Desktop logs" there instead of implying it opens the
@@ -748,7 +784,7 @@ const ErrorRecoveryActions: FC = () => {
   // One table decides which buttons this failure gets (lib/error-surface.ts).
   const plan = errorRecoveryPlan(surface)
 
-  // An expired/revoked OAuth grant (HTTP 401 on nous / openai-codex / ...):
+  // An expired/revoked OAuth grant (HTTP 401 on vanta / openai-codex / ...):
   // the one-click fix is re-running that provider's sign-in, which the
   // onboarding overlay already owns end to end (device code → poll →
   // reload.env → model confirm). Scoped to the gateway profile the failed
@@ -773,7 +809,7 @@ const ErrorRecoveryActions: FC = () => {
   }, [])
 
   // Reveal a local folder through Electron; `logsRoot` is the profile's
-  // HERMES_HOME/logs, and its parent is the Vanta data folder itself (what
+  // VANTA_HOME/logs, and its parent is the Vanta data folder itself (what
   // the user needs to see to free space after a disk-full failure). Resolved
   // for the profile that OWNS this session (a tile / Bot chat names it in its
   // composer scope), not the pooled backend's launch profile (#119080).
@@ -782,7 +818,7 @@ const ErrorRecoveryActions: FC = () => {
   const openLocalDir = useCallback(
     async (resolve: (logsRoot: string) => string, failedMessage: string) => {
       try {
-        const root = await window.hermesDesktop?.logsRoot?.(normalizeProfileKey(ownerProfile))
+        const root = await window.desktopBridge?.logsRoot?.(normalizeProfileKey(ownerProfile))
 
         if (!root) {
           notifyError(new Error('logs root unavailable'), failedMessage)
@@ -790,7 +826,7 @@ const ErrorRecoveryActions: FC = () => {
           return
         }
 
-        const result = await window.hermesDesktop?.openDir?.(resolve(root))
+        const result = await window.desktopBridge?.openDir?.(resolve(root))
 
         if (result && !result.ok) {
           notifyError(new Error(result.error || 'open failed'), failedMessage)
@@ -807,9 +843,9 @@ const ErrorRecoveryActions: FC = () => {
     [copy.errorOpenLogsFailed, openLocalDir]
   )
 
-  const openHermesFolder = useCallback(
-    () => openLocalDir(root => root.replace(/[\\/]+logs[\\/]*$/, ''), copy.errorOpenHermesFolderFailed),
-    [copy.errorOpenHermesFolderFailed, openLocalDir]
+  const openVantaFolder = useCallback(
+    () => openLocalDir(root => root.replace(/[\\/]+logs[\\/]*$/, ''), copy.errorOpenVantaFolderFailed),
+    [copy.errorOpenVantaFolderFailed, openLocalDir]
   )
 
   const diagnosticsText = useCallback(
@@ -832,7 +868,7 @@ const ErrorRecoveryActions: FC = () => {
     setModelPickerOpen(true)
   }, [])
 
-  const localFolders = Boolean(window.hermesDesktop?.logsRoot)
+  const localFolders = Boolean(window.desktopBridge?.logsRoot)
   // The provider's own reset moment (429 Retry-After / resets_at), so the user knows WHEN
   // Retry will work instead of guessing (#98852). Informational only: no automatic retry.
   const limitReset = formatLimitReset(surface?.resetsAt)
@@ -894,9 +930,9 @@ const ErrorRecoveryActions: FC = () => {
           to={updateApiKeyRoute(surface)}
         />
       )}
-      {plan.openHermesFolder && localFolders && (
-        <button className="aui-error-action" onClick={() => void openHermesFolder()} type="button">
-          {copy.errorOpenHermesFolder}
+      {plan.openVantaFolder && localFolders && (
+        <button className="aui-error-action" onClick={() => void openVantaFolder()} type="button">
+          {copy.errorOpenVantaFolder}
         </button>
       )}
       {plan.retry && (

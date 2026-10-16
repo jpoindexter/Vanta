@@ -2,19 +2,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesApi from '@/hermes'
+import type * as VantaApi from '@/desktop-api'
 import { $desktopOnboarding, type DesktopOnboardingState, type OnboardingContext } from '@/store/onboarding'
 
 import { FlowPanel } from './flow'
 
 // Only the catalog fetch is replaced; the model assignment keeps its real path
-// down to window.hermesDesktop.api so the test observes the wire body.
-vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof HermesApi>()),
+// down to window.desktopBridge.api so the test observes the wire body.
+vi.mock('@/desktop-api', async importOriginal => ({
+  ...(await importOriginal<typeof VantaApi>()),
   getGlobalModelOptions: async () => ({
     providers: [
       { free_tier: false, models: ['gpt-5.6-terra'], name: 'OpenAI OAuth (ChatGPT)', slug: 'openai' },
-      { models: ['deepseek/deepseek-v4-flash-0731'], name: 'Nous Portal', slug: 'nous' }
+      { models: ['deepseek/deepseek-v4-flash-0731'], name: 'Vanta Portal', slug: 'vanta' }
     ]
   })
 }))
@@ -30,8 +30,8 @@ vi.mock('@/components/model-picker', () => ({
     open: boolean
   }) =>
     open ? (
-      <button onClick={() => onSelect({ model: 'deepseek/deepseek-v4-flash-0731', provider: 'nous' })} type="button">
-        pick-nous-model
+      <button onClick={() => onSelect({ model: 'deepseek/deepseek-v4-flash-0731', provider: 'vanta' })} type="button">
+        pick-vanta-model
       </button>
     ) : null
 }))
@@ -82,14 +82,14 @@ describe('ConfirmingModelPanel model pick', () => {
   it('persists a cross-provider pick against the picked model provider, not the sign-in provider', async () => {
     const calls: { body?: unknown; path: string }[] = []
 
-    Object.defineProperty(window, 'hermesDesktop', {
+    Object.defineProperty(window, 'desktopBridge', {
       configurable: true,
       value: {
         api: async ({ body, path }: { body?: unknown; path: string }) => {
           calls.push({ body, path })
 
           if (path === '/api/model/set') {
-            return { ok: true, provider: 'nous', model: 'deepseek/deepseek-v4-flash-0731' }
+            return { ok: true, provider: 'vanta', model: 'deepseek/deepseek-v4-flash-0731' }
           }
 
           throw new Error(`unexpected api path: ${path}`)
@@ -104,15 +104,15 @@ describe('ConfirmingModelPanel model pick', () => {
     await screen.findByText('Pro')
 
     // The user signed in with OpenAI OAuth; the picker offers a deepseek
-    // model that only Nous Portal serves.
+    // model that only Vanta Portal serves.
     fireEvent.click(screen.getByRole('button', { name: 'Change' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'pick-nous-model' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'pick-vanta-model' }))
 
     await waitFor(() => expect(calls.some(c => c.path === '/api/model/set')).toBe(true))
 
     expect(calls.find(c => c.path === '/api/model/set')?.body).toMatchObject({
       scope: 'main',
-      provider: 'nous',
+      provider: 'vanta',
       model: 'deepseek/deepseek-v4-flash-0731'
     })
 
@@ -120,8 +120,8 @@ describe('ConfirmingModelPanel model pick', () => {
     expect(flow.status).toBe('confirming_model')
 
     if (flow.status === 'confirming_model') {
-      expect(flow.providerSlug).toBe('nous')
-      expect(flow.label).toBe('Nous Portal')
+      expect(flow.providerSlug).toBe('vanta')
+      expect(flow.label).toBe('Vanta Portal')
     }
   })
 })

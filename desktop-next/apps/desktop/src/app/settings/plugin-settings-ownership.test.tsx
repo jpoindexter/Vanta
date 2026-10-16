@@ -8,7 +8,7 @@ import { pluginSettingsHref } from '@/contrib/settings-pages'
 import { $agentPlugins, $agentPluginsStatus, type AgentPluginRow } from '@/store/agent-plugins'
 import { $activeGatewayProfile, $profiles } from '@/store/profile'
 import { $settingsScopeOverride } from '@/store/settings-scope'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/desktop'
 
 import { PluginsTab } from '../capabilities/plugins/plugins-tab'
 import { OverlayNav } from '../overlays/overlay-split-layout'

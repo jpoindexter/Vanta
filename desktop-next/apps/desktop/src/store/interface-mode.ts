@@ -41,7 +41,7 @@ export const INTERFACE_MODES: readonly InterfaceMode[] = ['simple', 'advanced']
 
 export const DEFAULT_INTERFACE_MODE: InterfaceMode = 'advanced'
 
-const INTERFACE_MODE_STORAGE_KEY = 'hermes.desktop.interfaceMode.v1'
+const INTERFACE_MODE_STORAGE_KEY = 'vanta.desktop.interfaceMode.v1'
 
 // Advanced is the ABSENCE of a mode: encoded as "no key" so a user who never
 // touched the picker never gains a record, and clearing the key means Advanced.

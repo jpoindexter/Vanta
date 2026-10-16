@@ -1,6 +1,8 @@
 import type { TestProjectConfiguration } from 'vitest/config'
 import { defineConfig } from 'vitest/config'
 
+import { sharedAliases } from './scripts/shared-alias.mjs'
+
 const reactUi: TestProjectConfiguration = {
   extends: './vite.config.ts',
   test: {
@@ -29,6 +31,7 @@ const reactUi: TestProjectConfiguration = {
 }
 
 const electronNative: TestProjectConfiguration = {
+  resolve: { alias: sharedAliases() },
   test: {
     name: 'electron',
     environment: 'node',

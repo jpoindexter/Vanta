@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmHost } from '@/components/confirm-host'
 import { $confirmRequest } from '@/store/confirm'
-import type { OAuthProvider } from '@/types/hermes'
+import type { OAuthProvider } from '@/types/desktop'
 
 const listOAuthProviders = vi.fn()
 const disconnectOAuthProvider = vi.fn()
@@ -13,7 +13,7 @@ const runInTerminal = vi.fn()
 const notify = vi.fn()
 const notifyError = vi.fn()
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   setApiRequestProfile: vi.fn(),
   getProfiles: async () => ({ profiles: [] }),
   disconnectOAuthProvider: (...args: unknown[]) => disconnectOAuthProvider(...args),
@@ -54,8 +54,8 @@ function connectedExternal(patch: Partial<OAuthProvider> = {}): OAuthProvider {
 
 beforeEach(() => {
   listOAuthProviders.mockResolvedValue({ providers: [connectedExternal()] })
-  disconnectOAuthProvider.mockResolvedValue({ ok: false, provider: 'nous' })
-  Object.defineProperty(window, 'hermesDesktop', {
+  disconnectOAuthProvider.mockResolvedValue({ ok: false, provider: 'vanta' })
+  Object.defineProperty(window, 'desktopBridge', {
     configurable: true,
     value: { terminal: {} }
   })
@@ -97,11 +97,11 @@ describe('connected external provider row', () => {
     listOAuthProviders.mockResolvedValue({
       providers: [
         {
-          cli_command: 'hermes auth add nous',
+          cli_command: 'vanta auth add vanta',
           disconnectable: true,
           docs_url: '',
           flow: 'device_code',
-          id: 'nous',
+          id: 'vanta',
           name: 'Hosted portal',
           status: { logged_in: true }
         }

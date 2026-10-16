@@ -1,7 +1,7 @@
-import { contrastRatio } from '@hermes/shared/color'
+import { contrastRatio } from '@vanta/shared/color'
 import { describe, expect, it } from 'vitest'
 
-import { nousTheme, vantaTheme } from './presets'
+import { vantaTheme } from './presets'
 import { resolvePrimarySolid } from './primary-solid'
 
 describe('resolvePrimarySolid', () => {
@@ -26,7 +26,7 @@ describe('resolvePrimarySolid', () => {
   })
 
   it('leaves a deep hued primary as authored', () => {
-    const { primary } = nousTheme.colors
+    const { primary } = vantaTheme.colors
 
     expect(resolvePrimarySolid({ primary, primaryForeground: '#ffffff' }).background).toBe(primary)
   })

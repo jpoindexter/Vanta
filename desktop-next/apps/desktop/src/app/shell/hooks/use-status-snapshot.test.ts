@@ -4,7 +4,7 @@ import { createElement, type ReactElement, type ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NotificationStack } from '@/components/notifications'
-import { getStatus } from '@/hermes'
+import { getStatus } from '@/desktop-api'
 import { I18nProvider, type Locale, TRANSLATIONS, type Translations } from '@/i18n'
 import { $freeTierStatus } from '@/store/free-tier'
 import { $setupReadyTick, notifySetupReady } from '@/store/live-sync'
@@ -15,7 +15,7 @@ import { deferred } from '../../../test/deferred'
 
 import { useStatusSnapshot } from './use-status-snapshot'
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   getStatus: vi.fn()
 }))
 
@@ -204,7 +204,7 @@ describe('useStatusSnapshot', () => {
     const requestGatewayMock = vi.fn(
       async (method: string) =>
         (method === 'setup.runtime_check'
-          ? { error: 'No usable credentials found for nous.', ok: false }
+          ? { error: 'No usable credentials found for vanta.', ok: false }
           : { provider_configured: true }) as never
     )
 
@@ -216,7 +216,7 @@ describe('useStatusSnapshot', () => {
 
     expect(result.current.inferenceStatus).toMatchObject({
       ready: false,
-      reason: expect.stringContaining('No usable credentials found for nous.'),
+      reason: expect.stringContaining('No usable credentials found for vanta.'),
       source: 'runtime_check'
     })
   })
@@ -475,7 +475,7 @@ describe('useStatusSnapshot', () => {
 
     const requestGateway = vi.fn(async (method: string) => {
       if (method === 'setup.runtime_check') {
-        return (healthy ? { ok: true } : { error: 'No usable credentials found for nous.', ok: false }) as never
+        return (healthy ? { ok: true } : { error: 'No usable credentials found for vanta.', ok: false }) as never
       }
 
       return { provider_configured: healthy } as never
@@ -494,7 +494,7 @@ describe('useStatusSnapshot', () => {
     await act(async () => {
       $desktopOnboarding.set({
         ...$desktopOnboarding.get(),
-        flow: { status: 'success', provider: { id: 'nous', name: 'Nous' } as never }
+        flow: { status: 'success', provider: { id: 'vanta', name: 'Vanta' } as never }
       })
       await vi.advanceTimersByTimeAsync(0)
     })
@@ -519,7 +519,7 @@ describe('useStatusSnapshot', () => {
     await act(async () => {
       $desktopOnboarding.set({
         ...$desktopOnboarding.get(),
-        flow: { status: 'starting', provider: { id: 'nous', name: 'Nous' } as never }
+        flow: { status: 'starting', provider: { id: 'vanta', name: 'Vanta' } as never }
       })
       await vi.advanceTimersByTimeAsync(0)
     })

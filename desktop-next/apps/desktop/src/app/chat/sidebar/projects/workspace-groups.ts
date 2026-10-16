@@ -1,5 +1,5 @@
-import type { HermesGitBranch, HermesGitWorktree } from '@/global'
-import type { ProjectInfo, SessionInfo } from '@/hermes'
+import type { VantaGitBranch, VantaGitWorktree } from '@/global'
+import type { ProjectInfo, SessionInfo } from '@/desktop-api'
 import { normalize } from '@/lib/text'
 
 import { rankSessions } from '../order'
@@ -144,7 +144,7 @@ export const DEFAULT_BRANCH_LABEL = 'main'
  */
 export function laneSwitchTarget(
   group: Pick<SidebarSessionGroup, 'isGit' | 'isMain' | 'label' | 'path'>,
-  branches: readonly Pick<HermesGitBranch, 'isRemote' | 'name'>[]
+  branches: readonly Pick<VantaGitBranch, 'isRemote' | 'name'>[]
 ): null | string {
   const label = group.label.trim()
 
@@ -224,7 +224,7 @@ export function sortWorktreeGroups(groups: SidebarSessionGroup[]): SidebarSessio
  */
 export function mergeRepoWorktreeGroups(
   repo: Pick<SidebarWorkspaceTree, 'groups' | 'id' | 'path'>,
-  discoveredWorktrees?: HermesGitWorktree[]
+  discoveredWorktrees?: VantaGitWorktree[]
 ): SidebarSessionGroup[] {
   // Branch-primary labels: a linked worktree's identity in every git UI (VS
   // Code, JetBrains, lazygit, …) is its CHECKED-OUT BRANCH, not the directory it

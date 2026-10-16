@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 
 import { attachStream } from './client-stream'
 import type { ChatClient } from './client-registry'

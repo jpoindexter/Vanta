@@ -41,11 +41,22 @@ describe('frame mapper: typed events', () => {
     expect(out).toEqual([
       gateway('tool.complete', {
         name: 'shell_cmd',
+        result: '\nfirst\nsecond',
         result_text: '\nfirst\nsecond',
         summary: 'first',
         tool_id: 'tool-1'
       })
     ])
+  })
+
+  it('marks a failed tool.complete with an error so the row shows a failure', () => {
+    const out = createFrameMapper().map({
+      typed: { id: 'tool-2', name: 'write_file', ok: false, output: 'could not write a.md: EACCES', type: 'tool.complete' }
+    })
+
+    expect(out[0]).toMatchObject({
+      payload: { error: 'could not write a.md: EACCES', name: 'write_file', result: 'could not write a.md: EACCES' }
+    })
   })
 
   it('maps thinking to thinking.delta', () => {

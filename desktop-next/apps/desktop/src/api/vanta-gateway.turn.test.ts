@@ -1,8 +1,8 @@
-import type { GatewayEvent } from '@hermes/shared'
+import type { GatewayEvent } from '@vanta/shared'
 import { describe, expect, it } from 'vitest'
 
 import { connectedHarness, deferred, flush, healthyTransport, newChat } from './vanta/gateway-fixture'
-import type { VantaResult } from '@hermes/shared/vanta'
+import type { VantaResult } from '@vanta/shared/vanta'
 
 const chatOk = (finalText: string, extra: Record<string, unknown> = {}): VantaResult => ({
   data: { finalText, sessionId: 'x', ...extra },

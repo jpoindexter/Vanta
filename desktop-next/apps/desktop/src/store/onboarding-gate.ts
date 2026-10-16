@@ -1,4 +1,4 @@
-import type { OnboardingStateResult } from '@hermes/shared'
+import type { OnboardingStateResult } from '@vanta/shared'
 import { atom, computed } from 'nanostores'
 
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'

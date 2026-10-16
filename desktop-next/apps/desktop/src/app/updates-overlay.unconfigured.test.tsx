@@ -15,12 +15,12 @@ afterEach((): void => {
   $updateOverlayOpen.set(false)
   $updateStatus.set(null)
   resetUpdateApplyState()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
   check.mockReset()
 })
 
 it('opens the updates window on a clear "not configured" state and never calls the update bridge', async (): Promise<void> => {
-  window.hermesDesktop = { updates: { check } } as unknown as Window['hermesDesktop']
+  window.desktopBridge = { updates: { check } } as unknown as Window['desktopBridge']
   $updateOverlayTarget.set('client')
   $updateOverlayOpen.set(true)
   await checkUpdates({ force: true })

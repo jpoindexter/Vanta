@@ -99,7 +99,7 @@ export interface DesktopTheme {
   description: string
   /** Light palette (also reused for dark when `darkColors` is omitted). */
   colors: DesktopThemeColors
-  /** Hand-tuned dark palette. Skins like `nous` ship one. */
+  /** Hand-tuned dark palette. Skins like `vanta` ship one. */
   darkColors?: DesktopThemeColors
   typography?: Partial<DesktopThemeTypography>
   /** Light-variant terminal ANSI palette (also the fallback for dark). */
@@ -107,7 +107,7 @@ export interface DesktopTheme {
   /** Dark-variant terminal ANSI palette. Falls back to `terminal`. */
   darkTerminal?: DesktopTerminalPalette
   /** Raw CSS injected as a scoped <style> tag on theme apply.
-   *  Persists across updates because it lives in ~/.hermes/skins/,
+   *  Persists across updates because it lives in ~/.vanta/skins/,
    *  not inside app.asar. */
   customCSS?: string
 }

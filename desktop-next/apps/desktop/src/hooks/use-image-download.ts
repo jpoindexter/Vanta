@@ -48,7 +48,7 @@ export function downloadFilename(src: string, mimeType?: string): string {
 function isMissingIpcHandler(error: unknown): boolean {
   const message = error instanceof Error ? error.message : typeof error === 'string' ? error : ''
 
-  return message.includes("No handler registered for 'hermes:saveImageFromUrl'")
+  return message.includes("No handler registered for 'desktop:saveImageFromUrl'")
 }
 
 async function startBrowserDownload(src: string) {
@@ -85,8 +85,8 @@ export function useImageDownload(src?: string) {
     setSaving(true)
 
     try {
-      if (window.hermesDesktop?.saveImageFromUrl) {
-        if (await window.hermesDesktop.saveImageFromUrl(src)) {
+      if (window.desktopBridge?.saveImageFromUrl) {
+        if (await window.desktopBridge.saveImageFromUrl(src)) {
           notify({ kind: 'success', title: copy.imageSaved, message: imageFilename(src) })
         }
 

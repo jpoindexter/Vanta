@@ -36,7 +36,7 @@ import {
 } from '@/components/pane-shell/workspace-scope'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { type ResolvedOwner, transcribeAudio } from '@/hermes'
+import { type ResolvedOwner, transcribeAudio } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { NEW_SESSION_TITLE, sessionTitle } from '@/lib/chat-runtime'
@@ -71,7 +71,7 @@ import {
   type SessionTile,
   sessionTileDelegate
 } from '@/store/session-states'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import type { SessionDragPayload } from './composer/inline-refs'
 import { type ComposerScope, ComposerScopeProvider } from './composer/scope'
@@ -572,8 +572,8 @@ export function SessionTilePane({ storedSessionId }: { storedSessionId: string }
   if (tile?.error) {
     return (
       <div className="grid h-full place-items-center p-4">
-        <div className="max-w-[24rem] space-y-2 text-center font-mono text-[0.75rem]">
-          <div className="text-(--ui-danger,#f87171)">Couldn't open this session</div>
+        <div className="max-w-[24rem] space-y-2 text-center font-mono text-meta">
+          <div className="text-destructive">Couldn't open this session</div>
           <div className="break-words text-(--ui-text-quaternary)">{tile.error}</div>
           <Button onClick={() => patchSessionTile(storedSessionId, { error: undefined })} size="sm" variant="outline">
             Retry

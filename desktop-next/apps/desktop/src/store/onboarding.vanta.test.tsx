@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { VantaGateway } from '@/api/vanta-gateway'
 import { FakeVantaTransport } from '@/api/vanta/fake-transport'
 import { Picker } from '@/components/onboarding'
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 
 import { $desktopOnboarding, type OnboardingContext, refreshOnboarding } from './onboarding'
 
@@ -25,8 +25,8 @@ const setupOptions = [
 ]
 
 interface FakeServer {
-  api: (request: HermesApiRequest) => Promise<unknown>
-  calls: HermesApiRequest[]
+  api: (request: VantaApiRequest) => Promise<unknown>
+  calls: VantaApiRequest[]
   connected: () => string | undefined
   gateway: VantaGateway
   localLive: Set<string>
@@ -37,7 +37,7 @@ async function fakeServer(): Promise<FakeServer> {
   let connected: string | undefined
   const localLive = new Set<string>()
   const setups: Array<Record<string, unknown>> = []
-  const calls: HermesApiRequest[] = []
+  const calls: VantaApiRequest[] = []
   const reply = (data: unknown, status = 200) => ({ data, ok: status < 400, status })
 
   const transport = new FakeVantaTransport()
@@ -73,8 +73,8 @@ async function fakeServer(): Promise<FakeServer> {
   const gateway = new VantaGateway({ approvalPollMs: 0, log: () => undefined, transport })
   await gateway.connect('vanta://local')
 
-  // What hermesDesktop.api does: resolve the body, reject "<status>: <detail>".
-  const api = async (request: HermesApiRequest) => {
+  // What desktopBridge.api does: resolve the body, reject "<status>: <detail>".
+  const api = async (request: VantaApiRequest) => {
     calls.push(request)
     const result = await transport.request({ body: request.body, method: (request.method === 'GET' || !request.method ? 'GET' : 'POST'), path: request.path })
 
@@ -97,7 +97,7 @@ beforeEach(async () => {
   Element.prototype.scrollIntoView = vi.fn()
   server = await fakeServer()
   Object.defineProperty(window, 'vantaDesktop', { configurable: true, value: {} })
-  Object.defineProperty(window, 'hermesDesktop', { configurable: true, value: { api: server.api } })
+  Object.defineProperty(window, 'desktopBridge', { configurable: true, value: { api: server.api } })
   ctx = { requestGateway: (method, params) => server.gateway.request(method, params ?? {}) as never }
   window.localStorage.clear()
   window.sessionStorage.clear()

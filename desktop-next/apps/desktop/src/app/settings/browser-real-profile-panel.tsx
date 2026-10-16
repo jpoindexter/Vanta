@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react'
 
-import { type ProfileScope, saveHermesConfigRecord } from '@/hermes'
+import { type ProfileScope, saveVantaConfigRecord } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { notify, notifyError } from '@/store/notifications'
 
-import { hermesConfigCacheWriter, useHermesConfigRecord } from '../hooks/use-config-record'
+import { vantaConfigCacheWriter, useVantaConfigRecord } from '../hooks/use-config-record'
 
 import { ToggleRow } from './primitives'
 
@@ -42,8 +42,8 @@ export function readUseRealProfile(record: Record<string, unknown> | undefined):
 export function BrowserRealProfilePanel({ profile }: BrowserRealProfilePanelProps) {
   const { t } = useI18n()
   const copy = t.settings.toolsets.browserRealProfile
-  const { data: config, writeScope } = useHermesConfigRecord(profile)
-  const setConfig = hermesConfigCacheWriter(profile)
+  const { data: config, writeScope } = useVantaConfigRecord(profile)
+  const setConfig = vantaConfigCacheWriter(profile)
   const [busy, setBusy] = useState(false)
 
   const enabled = readUseRealProfile(config)
@@ -67,7 +67,7 @@ export function BrowserRealProfilePanel({ profile }: BrowserRealProfilePanelProp
       try {
         // Sparse patch: PUT /api/config deep-merges, and echoing the cached
         // snapshot would overwrite keys other surfaces changed since it loaded.
-        await saveHermesConfigRecord({ browser: { use_real_profile: on } }, writeScope ?? profile)
+        await saveVantaConfigRecord({ browser: { use_real_profile: on } }, writeScope ?? profile)
 
         notify({
           kind: 'info',

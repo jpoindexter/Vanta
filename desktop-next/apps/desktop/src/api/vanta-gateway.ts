@@ -4,7 +4,7 @@ import {
   type GatewayEventName,
   JsonRpcGatewayClient,
   type ServerRequestHandler
-} from '@hermes/shared'
+} from '@vanta/shared'
 
 import { VantaGatewayCore, type VantaGatewayOptions } from './vanta/gateway-core'
 
@@ -46,7 +46,7 @@ function withDeadline<T>(work: Promise<T>, method: string, timeoutMs: number, si
 }
 
 /**
- * Drop-in replacement for the Hermes WebSocket gateway client that speaks to the Vanta desktop
+ * Drop-in replacement for the Vanta WebSocket gateway client that speaks to the Vanta desktop
  * server over HTTP and one SSE stream per chat. It extends JsonRpcGatewayClient only so it is
  * assignable wherever the renderer types a gateway; every public member is overridden and the
  * base class's socket machinery is never used.

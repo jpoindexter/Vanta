@@ -90,7 +90,7 @@ export const SETTINGS_MANIFEST = {
     minimizeToTray: {
       subpage: 'window-layout',
       keywords: ['tray', 'background', 'minimize', 'dock', 'taskbar', 'menu bar'],
-      available: () => Boolean(window.hermesDesktop?.minimizeToTray),
+      available: () => Boolean(window.desktopBridge?.minimizeToTray),
       copy: t => ({ label: t.settings.config.minimizeToTrayTitle, description: t.settings.config.minimizeToTrayDesc })
     },
     translucency: {
@@ -179,13 +179,13 @@ export const SETTINGS_MANIFEST = {
     hudModifier: {
       subpage: 'hud-gesture',
       keywords: ['HUD', 'summon', 'modifier', 'tap', 'Ctrl', 'Alt', 'Command', 'Option'],
-      available: () => Boolean(window.hermesDesktop?.hudModifier),
+      available: () => Boolean(window.desktopBridge?.hudModifier),
       copy: t => ({ label: t.settings.hudModifier.title, description: t.settings.hudModifier.description })
     },
     screenshot: {
       subpage: 'screen-capture',
       keywords: ['screenshot', 'screen capture', 'window', 'attach', 'command keys'],
-      available: () => Boolean(window.hermesDesktop?.screenshot),
+      available: () => Boolean(window.desktopBridge?.screenshot),
       copy: t => ({ label: t.settings.screenshot.enabledTitle, description: t.settings.screenshot.enabledDesc })
     }
   },

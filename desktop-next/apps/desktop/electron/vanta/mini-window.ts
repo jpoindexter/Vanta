@@ -77,7 +77,7 @@ const broadcast = (channel: string, payload: unknown): void => {
 
 /**
  * The mini window: a small frameless always-on-top window running the renderer's HUD variant, driven by the
- * same hud.* members the Hermes HUD used. The game overlay and the modifier-key gesture are not ported.
+ * same hud.* members the Vanta HUD used. The game overlay and the modifier-key gesture are not ported.
  */
 export function registerMiniWindow(deps: MiniWindowDeps): MiniWindowController {
   let live: BrowserWindow | null = null;

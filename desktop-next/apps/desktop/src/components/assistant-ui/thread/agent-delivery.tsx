@@ -4,7 +4,7 @@ import { type FC, useEffect, useState } from 'react'
 import { messageContentText } from '@/components/assistant-ui/thread/content'
 import { AGENT_MESSAGE_RE, agentAvatarCache, resolveAgentAvatar } from '@/components/assistant-ui/thread/user-message'
 
-// Sender-side inter-agent delivery: `hermes -p <agent> chat … -q "Message
+// Sender-side inter-agent delivery: `vanta -p <agent> chat … -q "Message
 // from 🤖 <sender>…"` run through the terminal tool IS the messaging
 // pipeline (the Bot Mode / multi-profile convention shipped with #85855).
 // Rendering it as a terminal transcript makes the sending bot's chat read
@@ -12,7 +12,7 @@ import { AGENT_MESSAGE_RE, agentAvatarCache, resolveAgentAvatar } from '@/compon
 // quiet run returns the recipient's reply, "Message from X" — the same
 // compact event notices the receiving chat shows.
 const DELIVERY_COMMAND_RE =
-  /(?:^|[;&|]\s*|\bhermes\s+)-p\s+("?)([a-z0-9][a-z0-9_-]{0,63})\1\s+chat\b[\s\S]*?-q\s+["']Message from/iu
+  /(?:^|[;&|]\s*|\bvanta\s+)-p\s+("?)([a-z0-9][a-z0-9_-]{0,63})\1\s+chat\b[\s\S]*?-q\s+["']Message from/iu
 
 export function deliveryTargetFromCommand(command: string): null | string {
   const match = DELIVERY_COMMAND_RE.exec(command)
@@ -119,7 +119,7 @@ export function replyTextFromResult(result: unknown): string {
 }
 
 const NOTICE_CLASS =
-  'flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.75rem] leading-5 text-muted-foreground/60'
+  'flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-meta leading-5 text-muted-foreground/60'
 
 const AgentGlyph: FC<{ handle: string }> = ({ handle }) => {
   const [avatar, setAvatar] = useState<null | string>(() => agentAvatarCache.get(handle.toLowerCase())?.url ?? null)
@@ -141,7 +141,7 @@ const AgentGlyph: FC<{ handle: string }> = ({ handle }) => {
   return avatar ? (
     <img alt="" aria-hidden className="size-4 shrink-0 rounded-full object-cover" src={avatar} />
   ) : (
-    <span aria-hidden className="text-[0.8125rem] leading-none">
+    <span aria-hidden className="text-ui leading-none">
       🤖
     </span>
   )
@@ -184,7 +184,7 @@ export const AgentDeliveryNotice: FC<ToolCallMessagePartProps> = props => {
             <summary className="cursor-pointer select-none text-center text-muted-foreground/45 hover:text-muted-foreground/70">
               show message
             </summary>
-            <div className="mt-1 max-w-[36rem] whitespace-pre-wrap rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-[0.75rem] leading-5 text-foreground/85">
+            <div className="mt-1 max-w-[36rem] whitespace-pre-wrap rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-meta leading-5 text-foreground/85">
               {replyBody}
             </div>
           </details>

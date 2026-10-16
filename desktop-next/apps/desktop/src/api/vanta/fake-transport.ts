@@ -1,4 +1,4 @@
-import type { VantaCall, VantaEventHandlers, VantaResult, VantaTransport } from '@hermes/shared/vanta'
+import type { VantaCall, VantaEventHandlers, VantaResult, VantaTransport } from '@vanta/shared/vanta'
 
 type Responder = ((call: VantaCall) => Promise<VantaResult> | VantaResult) | VantaResult
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { SessionMessagesResponse, SessionSearchResponse } from '@/types/hermes'
+import type { SessionMessagesResponse, SessionSearchResponse } from '@/types/desktop'
 
 import { vantaMessageSchema } from './schemas'
 import { get, post, segment, type ShimRoute } from './shim-core'

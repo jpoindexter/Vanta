@@ -5,7 +5,7 @@ import { type FC, type FormEvent, type RefObject, useCallback, useEffect, useRef
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { getEnvVars, setEnvVar } from '@/hermes'
+import { getEnvVars, setEnvVar } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import type { ErrorSurface } from '@/lib/error-surface'
 import { KeyRound } from '@/lib/icons'

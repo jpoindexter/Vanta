@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
 import { Loader2, MessageCircle } from '@/lib/icons'
 import { profileLabel } from '@/store/profile'
-import type { ProfileInfo } from '@/types/hermes'
+import type { ProfileInfo } from '@/types/desktop'
 
 const TITLE_LIMIT = 40
 

@@ -35,7 +35,7 @@ export function useAgentTerminal({ active, id, procId }: { active: boolean; id: 
     // Fall back to the palette's own background, not white — a hardcoded
     // '#ffffff' flashes a white slab in dark mode whenever the probe can't read
     // the token (pre-paint mount). Same contract as the user terminal.
-    const surface = resolveSurfaceColor(base.background ?? '#ffffff')
+    const surface = resolveSurfaceColor(base.background ?? 'white')
 
     return { ...base, background: surface, cursorAccent: surface }
   }

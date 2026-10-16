@@ -114,7 +114,7 @@ function useOpenMediaFile(path: string) {
   const [openFailed, setOpenFailed] = useState(false)
 
   const open = () => {
-    if (window.hermesDesktop && isRemoteGateway()) {
+    if (window.desktopBridge && isRemoteGateway()) {
       setOpenFailed(false)
       void downloadGatewayMediaFile(path).catch(() => setOpenFailed(true))
     } else {
@@ -353,7 +353,7 @@ function MarkdownLink({ children, className, href, ...props }: ComponentProps<'a
 
   // Bare autolink → inline rich embed when a provider matches. Labeled links
   // (`[watch](url)`) stay plain. Desktop only (webview / iframe renderers).
-  if (window.hermesDesktop && text && normalizeExternalUrl(text) === target) {
+  if (window.desktopBridge && text && normalizeExternalUrl(text) === target) {
     const embed = detectEmbed(target)
 
     if (embed) {
@@ -539,7 +539,7 @@ function HugeTextFallback({ containerClassName, text }: { containerClassName?: s
   return (
     <div
       className={cn(
-        'aui-md w-full max-w-none overflow-hidden rounded-xl border border-(--ui-stroke-tertiary) font-mono text-[0.75rem] leading-relaxed text-foreground/90',
+        'aui-md w-full max-w-none overflow-hidden rounded-xl border border-(--ui-stroke-tertiary) font-mono text-meta leading-relaxed text-foreground/90',
         containerClassName
       )}
     >

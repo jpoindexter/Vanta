@@ -119,7 +119,7 @@ export class ServerHost {
 
   /**
    * A runtime that was running and then died on its own is started again the next time something asks
-   * for the connection (the renderer's Retry does), as the Hermes shell does for its backend. Callers
+   * for the connection (the renderer's Retry does), as the Vanta shell does for its backend. Callers
    * that arrive meanwhile share the one restart. A runtime that keeps dying is left stopped with its
    * last error instead of looping.
    */

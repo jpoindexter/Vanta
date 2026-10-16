@@ -1,6 +1,6 @@
 'use client'
 
-import type { SetupChooseKind } from '@hermes/shared'
+import type { SetupChooseKind } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { Puzzle } from 'lucide-react'
 import { type ComponentType, type FormEvent, useCallback, useEffect, useMemo, useRef } from 'react'
@@ -265,7 +265,7 @@ export function SetupChoosePending({
       )}
       <ClarifyShell className="grid gap-3">
         <div className="flex items-start gap-2">
-          <span className="flex-1 text-[0.75rem] leading-4 text-(--ui-text-tertiary)">
+          <span className="flex-1 text-meta leading-4 text-(--ui-text-tertiary)">
             {pickerKind === null ? copy.oneQuestion : setupCopy.kinds[pickerKind]}
           </span>
           <Icon aria-hidden className={CLARIFY_ICON_CLASS} />

@@ -96,7 +96,7 @@ const VERSION =
 const ARCHIVE_REF = /^rc\.(?:[1-9]\d*)-v(?:0|[1-9]\d{0,2})\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/
 
 // Published channel builds may still carry these retired bundle environment keys.
-const RETIRED_BUNDLE_ENV_KEYS = new Set(['HERMES_SKIP_INTRO'])
+const RETIRED_BUNDLE_ENV_KEYS = new Set(['VANTA_SKIP_INTRO'])
 
 function parseChannelJson(body: string): unknown {
   const parsed: unknown = JSON.parse(body)
@@ -369,12 +369,12 @@ function request(fields: Fields): ChannelRequest {
 
   // Match the build-time allowlist: a channel request cannot inject process flags.
   const allowed = new Set([
-    'HERMES_HOME',
-    'HERMES_DATA_DIR_SUFFIX',
-    'HERMES_DESKTOP_USER_DATA_DIR',
-    'HERMES_SHARED_AUTH_DIR',
-    'HERMES_GUEST_ONBOARDING',
-    'HERMES_PREVIEW_FULL_CONNECTORS'
+    'VANTA_HOME',
+    'VANTA_DATA_DIR_SUFFIX',
+    'VANTA_DESKTOP_USER_DATA_DIR',
+    'VANTA_SHARED_AUTH_DIR',
+    'VANTA_GUEST_ONBOARDING',
+    'VANTA_PREVIEW_FULL_CONNECTORS'
   ])
 
   for (const key of environment.keys()) {

@@ -4,7 +4,7 @@ import { inspectHub } from "./hub.js";
 const SKILL = "---\nname: on-page-seo-auditor\ndescription: Audit a page\ncreated: 2026-10-15T00:00:00Z\nupdated: 2026-10-15T00:00:00Z\ntags: []\n---\nSteps.\n";
 
 function githubFetcher(seen: Array<{ url: string; auth: string | undefined }>, status = 200): typeof fetch {
-  return (async (input: RequestInfo | URL, init?: RequestInit) => {
+  return (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
     const url = String(input);
     seen.push({ url, auth: (init?.headers as Record<string, string> | undefined)?.authorization });
     if (status !== 200 && url.startsWith("https://api.github.com/")) return new Response("limited", { status });

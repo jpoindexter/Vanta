@@ -63,7 +63,7 @@ describe('settings subpage routing', () => {
       for (const field of section.keys) {
         const owner = configSubpageForField(section.id, field)
 
-        // Context & compression is hidden in Vanta (hermes-extras.ts SHOW_CONTEXT_SETTINGS): its fields have no page.
+        // Context & compression is hidden in Vanta (vanta-extras.ts SHOW_CONTEXT_SETTINGS): its fields have no page.
         if (section.id === 'memory' && /^(context|compression|auxiliary\.compression)\./.test(field)) {
           expect(owner).toBeUndefined()
 
@@ -79,14 +79,14 @@ describe('settings subpage routing', () => {
     }
 
     const cases: [SettingsView, string, string][] = [
-      // Auxiliary models are hidden in Vanta (hermes-extras.ts), so the old deep link lands on the main page.
+      // Auxiliary models are hidden in Vanta (vanta-extras.ts), so the old deep link lands on the main page.
       ['config:model', 'aux=vision', 'main'],
       ['keybinds', 'setting=keybinds.hud-modifier', 'hud-gesture'],
       ['keybinds', 'page=shortcuts&setting=keybinds.hud-modifier', 'hud-gesture'],
       ['notifications', 'setting=notifications.completion-sound', 'sounds'],
       ['config:advanced', 'setting=advanced.keep-awake', 'desktop'],
       ['sessions', 'session=archived-id', 'archived'],
-      // Passwords & Logins is hidden in Vanta (hermes-extras.ts SHOW_VAULT), so its deep links have no page.
+      // Passwords & Logins is hidden in Vanta (vanta-extras.ts SHOW_VAULT), so its deep links have no page.
       ['config:appearance', 'setting=appearance.hide-thread-timeline', 'chat-display']
     ]
 

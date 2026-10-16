@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { searchSessions, type SessionSearchResult } from '@/hermes'
+import { searchSessions, type SessionSearchResult } from '@/desktop-api'
 import { ALL_PROFILES, normalizeProfileKey } from '@/store/profile'
 
 const SEARCH_DEBOUNCE_MS = 200

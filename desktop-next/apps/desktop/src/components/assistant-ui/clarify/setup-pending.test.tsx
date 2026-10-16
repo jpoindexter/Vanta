@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } fr
 
 import { PRIMARY_SESSION_VIEW, type SessionView, SessionViewProvider } from '@/app/chat/session-view'
 import { accentsFor, DEFAULT_ACCENT } from '@/components/onboarding-chat/options'
-import type { HermesConnection } from '@/global'
+import type { VantaConnection } from '@/global'
 import { I18nProvider } from '@/i18n'
 import {
   answerSetupCard,
@@ -26,7 +26,7 @@ import { SetupChoosePending } from './setup-pending'
 
 const SESSION = 'setup-session'
 
-const CONNECTION: HermesConnection = {
+const CONNECTION: VantaConnection = {
   baseUrl: 'http://localhost:1',
   isFullscreen: false,
   nativeOverlayWidth: 0,

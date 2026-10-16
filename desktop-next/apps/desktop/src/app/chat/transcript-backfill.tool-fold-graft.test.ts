@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { graftRefreshedTailOntoBackfill } from '@/app/chat/transcript-backfill'
 import { type ChatMessage, toChatMessages } from '@/lib/chat-messages'
-import type { SessionMessage } from '@/types/hermes'
+import type { SessionMessage } from '@/types/desktop'
 
 /**
  * A refresh reads only the newest page of a long session, and that page can

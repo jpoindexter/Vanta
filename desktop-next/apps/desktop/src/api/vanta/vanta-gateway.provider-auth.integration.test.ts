@@ -2,11 +2,11 @@
 import { access, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { GatewayEvent } from '@hermes/shared'
-import { createHttpTransport, remapMethod } from '@hermes/shared/vanta'
+import type { GatewayEvent } from '@vanta/shared'
+import { createHttpTransport, remapMethod } from '@vanta/shared/vanta'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 
 import { VantaGateway } from '../vanta-gateway'
 
@@ -44,8 +44,8 @@ async function boot() {
   gateway.onAny(event => events.push(event))
   await gateway.connect('vanta://local')
 
-  // What hermesDesktop.api does in Electron main, with no chat id: the setup lands on the server's default state.
-  const send = async (request: HermesApiRequest): Promise<unknown> => {
+  // What desktopBridge.api does in Electron main, with no chat id: the setup lands on the server's default state.
+  const send = async (request: VantaApiRequest): Promise<unknown> => {
     const result = await transport.request({
       body: request.body,
       clientId: request.clientId,
@@ -61,7 +61,7 @@ async function boot() {
     return result.data
   }
 
-  const api = <T>(request: HermesApiRequest): Promise<T> => (vantaRestShim(request, send) ?? send(request)) as Promise<T>
+  const api = <T>(request: VantaApiRequest): Promise<T> => (vantaRestShim(request, send) ?? send(request)) as Promise<T>
 
   return { api, events, gateway, server }
 }

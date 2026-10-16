@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
-import { getLogs } from '@/hermes'
+import { getLogs } from '@/desktop-api'
 import { startCompletionPoll } from '@/lib/completion-poll'
 import { $activeGatewayProfile } from '@/store/profile'
 

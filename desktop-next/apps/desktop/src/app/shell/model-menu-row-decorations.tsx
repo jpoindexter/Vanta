@@ -88,7 +88,7 @@ export function ModelMenuRowIcon({ icon }: { icon: ReactNode }): ReactElement {
   return (
     <span
       aria-hidden="true"
-      className="grid size-4 shrink-0 place-items-center overflow-hidden text-[0.75rem] leading-none [&>img]:size-full [&>img]:object-contain [&>svg]:size-full"
+      className="grid size-4 shrink-0 place-items-center overflow-hidden text-meta leading-none [&>img]:size-full [&>img]:object-contain [&>svg]:size-full"
       data-slot="model-menu-row-icon"
     >
       <ErrorBoundary fallback={() => null} label={`contrib:${MODEL_MENU_ROW_AREA}`}>

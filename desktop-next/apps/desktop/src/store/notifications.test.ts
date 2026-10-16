@@ -63,7 +63,7 @@ test('405 method-not-allowed toasts a restart in plain words with a Restart Vant
   notifyError(new Error('405 Method Not Allowed'), 'Request failed')
 
   expect(lastMessage()).not.toMatch(/405|Method Not Allowed|backend/i)
-  expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartHermes)
+  expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartVanta)
   $notifications.get()[0]?.action?.onClick()
   expect($backendRestartRequest.get()).toBe(before + 1)
 })
@@ -80,9 +80,9 @@ test('disk-full / ENOSPC phrasings are classified as disk-full, other storage fa
 test('notifyError posts the full error to desktop.log, not the summary', () => {
   const logLine = vi.fn()
 
-  const previous = (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  const previous = (window as unknown as { desktopBridge?: unknown }).desktopBridge
 
-  ;(window as unknown as { hermesDesktop: { logLine: typeof logLine } }).hermesDesktop = { logLine }
+  ;(window as unknown as { desktopBridge: { logLine: typeof logLine } }).desktopBridge = { logLine }
 
   try {
     const error = new Error('sqlite3.OperationalError: database is locked')
@@ -96,9 +96,9 @@ test('notifyError posts the full error to desktop.log, not the summary', () => {
     expect(logLine.mock.calls[0][0]).toContain('session.ts:12')
   } finally {
     if (previous === undefined) {
-      delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as unknown as { desktopBridge?: unknown }).desktopBridge
     } else {
-      ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = previous
+      ;(window as unknown as { desktopBridge: unknown }).desktopBridge = previous
     }
   }
 })
@@ -107,7 +107,7 @@ test.each(['missing', 'closed'] as const)(
   'notifyError still shows a toast when the log bridge is %s',
   (state: 'missing' | 'closed'): void => {
     vi.stubGlobal(
-      'hermesDesktop',
+      'desktopBridge',
       state === 'missing'
         ? undefined
         : {
@@ -130,14 +130,14 @@ test.each(['missing', 'closed'] as const)(
 test('code-skew 503 unwraps to a restart-required summary, not raw IPC JSON', () => {
   notifyError(
     new Error(
-      'Error invoking remote method \'hermes:api\': Error: 503: {"detail":"Restart required: This process is running code from 08b4875f4a but the checkout on disk is now 48d2528066."}'
+      'Error invoking remote method \'desktop:api\': Error: 503: {"detail":"Restart required: This process is running code from 08b4875f4a but the checkout on disk is now 48d2528066."}'
     ),
     'Could not load models'
   )
 
-  expect(lastMessage()).not.toMatch(/hermes:api|systemctl|backend/i)
+  expect(lastMessage()).not.toMatch(/vanta:api|systemctl|backend/i)
   const before = $backendRestartRequest.get()
-  expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartHermes)
+  expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartVanta)
   $notifications.get()[0]?.action?.onClick()
   expect($backendRestartRequest.get()).toBe(before + 1)
 })

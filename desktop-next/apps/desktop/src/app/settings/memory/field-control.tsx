@@ -4,7 +4,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Tip } from '@/components/ui/tooltip'
 import { Check, Info } from '@/lib/icons'
-import type { MemoryProviderField } from '@/types/hermes'
+import type { MemoryProviderField } from '@/types/desktop'
 
 import { CONTROL_TEXT } from '../constants'
 
@@ -108,7 +108,7 @@ export function FieldControl({
           value={value}
         />
         {field.is_set && (
-          <span className="inline-flex items-center gap-1 self-start font-mono text-[0.75rem] text-(--ui-text-tertiary)">
+          <span className="inline-flex items-center gap-1 self-start font-mono text-meta text-(--ui-text-tertiary)">
             <Check className="size-3 text-(--ui-accent-secondary)" />
             set
           </span>

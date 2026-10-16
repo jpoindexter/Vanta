@@ -49,7 +49,7 @@ export async function sidebarTop(page) {
   await page.waitForTimeout(400);
   await check("F-018", "sidebar top", "Home row and dashboard", page.getByTestId("home-surface"));
   notRun("F-019", "sidebar top", "Contributed nav rows", "no plugin contributes a row by default (Kanban ships off)");
-  notRun("F-021", "sidebar top", "Storage-corrupt banner", "Hermes state.db specific; Vanta has no equivalent");
+  notRun("F-021", "sidebar top", "Storage-corrupt banner", "Vanta state.db specific; Vanta has no equivalent");
   record("F-023", "sidebar top", "Sidebar width 275px", Math.abs((await page.locator('[data-tour="sessions-sidebar"]').first().boundingBox())?.width - 275) < 24 ? "PASS" : "FAIL", "measured at 1440 wide");
   const tours = await page.locator('[data-tour^="sidebar-nav-"]').count();
   record("F-024", "sidebar top", "Tour anchors on nav rows", tours >= 5 ? "PASS" : "FAIL", `${tours} anchors`);

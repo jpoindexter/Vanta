@@ -127,7 +127,7 @@ export function BootFailureOverlay() {
       return
     }
 
-    void window.hermesDesktop
+    void window.desktopBridge
       ?.getRecentLogs()
       .then(res => setLogs(res.lines ?? []))
       .catch(() => undefined)
@@ -143,7 +143,7 @@ export function BootFailureOverlay() {
 
     let cancelled = false
 
-    void window.hermesDesktop
+    void window.desktopBridge
       ?.getBootstrapState()
       .then(snapshot => {
         if (!cancelled && snapshot) {
@@ -173,7 +173,7 @@ export function BootFailureOverlay() {
     let cancelled = false
 
     void (async () => {
-      const desktop = window.hermesDesktop
+      const desktop = window.desktopBridge
 
       if (!desktop?.getConnectionConfig) {
         return
@@ -226,7 +226,7 @@ export function BootFailureOverlay() {
 
   const retry = async () => {
     setBusy('retry')
-    await window.hermesDesktop?.resetBootstrap().catch(() => undefined)
+    await window.desktopBridge?.resetBootstrap().catch(() => undefined)
     window.location.reload()
   }
 
@@ -234,11 +234,11 @@ export function BootFailureOverlay() {
     setBusy('repair')
 
     try {
-      if (!window.hermesDesktop?.repairBootstrap) {
+      if (!window.desktopBridge?.repairBootstrap) {
         throw new Error(t.boot.errors.ipcBridgeUnavailable)
       }
 
-      const result = await window.hermesDesktop.repairBootstrap()
+      const result = await window.desktopBridge.repairBootstrap()
 
       // Main refuses repair on a bundled install (its stamp is authoritative;
       // our snapshot may be stale) — say what to do instead of the raw code.
@@ -261,7 +261,7 @@ export function BootFailureOverlay() {
   const switchToLocalGateway = async () => {
     setBusy('local')
     // Soft apply: tears down the primary and re-dials in place (shell stays).
-    await window.hermesDesktop?.applyConnectionConfig({ mode: 'local' }).catch(() => undefined)
+    await window.desktopBridge?.applyConnectionConfig({ mode: 'local' }).catch(() => undefined)
     setBusy(null)
   }
 
@@ -279,7 +279,7 @@ export function BootFailureOverlay() {
     setBusy('signin')
 
     try {
-      const desktop = window.hermesDesktop
+      const desktop = window.desktopBridge
 
       let connected: boolean
       // Only the oauth arm reports a reason (DesktopOauthLoginResult.error);
@@ -334,7 +334,7 @@ export function BootFailureOverlay() {
     }
   }
 
-  const openLogs = () => void window.hermesDesktop?.revealLogs().catch(() => undefined)
+  const openLogs = () => void window.desktopBridge?.revealLogs().catch(() => undefined)
 
   const dismiss = () => setDismissedError(boot.error)
 
@@ -456,7 +456,7 @@ export function BootFailureOverlay() {
   if (view === 'connect') {
     return (
       <BootFailureModal onDismiss={dismiss} title={copy.gatewaySettings}>
-        <div className="relative flex max-h-[86vh] w-full max-w-[46rem] flex-col overflow-hidden rounded-xl border border-(--stroke-nous) bg-(--ui-chat-bubble-background) shadow-nous">
+        <div className="relative flex max-h-[86vh] w-full max-w-[46rem] flex-col overflow-hidden rounded-xl border border-(--stroke-vanta) bg-(--ui-chat-bubble-background) shadow-vanta">
           <DialogCloseButton />
           {/* Subtle back affordance (projects/overlay idiom): muted → foreground
               on hover, no divider. */}
@@ -480,17 +480,17 @@ export function BootFailureOverlay() {
 
   return (
     <BootFailureModal onDismiss={dismiss}>
-      <div className="relative w-full max-w-[40rem] overflow-hidden rounded-xl border border-(--stroke-nous) bg-(--ui-chat-bubble-background) shadow-nous">
+      <div className="relative w-full max-w-[40rem] overflow-hidden rounded-xl border border-(--stroke-vanta) bg-(--ui-chat-bubble-background) shadow-vanta">
         <DialogCloseButton />
         <div className="flex items-start gap-3 px-5 py-4 pr-12">
           <ErrorIcon className="mt-0.5" size="1.25rem" />
           <div>
             <DialogPrimitive.Title asChild>
-              <h2 className="text-[0.9375rem] font-semibold tracking-tight">
+              <h2 className="text-body font-semibold tracking-tight">
                 {remoteReauth ? copy.remoteTitle : cloudDown ? copy.cloudDownTitle : copy.title}
               </h2>
             </DialogPrimitive.Title>
-            <p className="mt-1 text-[0.8125rem] leading-5 text-(--ui-text-tertiary)">
+            <p className="mt-1 text-ui leading-5 text-(--ui-text-tertiary)">
               {remoteReauth ? copy.remoteDescription : cloudDown ? copy.cloudDownDescription : copy.description}
             </p>
           </div>
@@ -503,7 +503,7 @@ export function BootFailureOverlay() {
               <details className="mt-2 text-muted-foreground">
                 <summary className="cursor-pointer select-none font-medium">{copy.details}</summary>
                 <pre
-                  className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.75rem] leading-relaxed"
+                  className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-meta leading-relaxed"
                   data-selectable-text="true"
                 >
                   {failureCopy.rawDetail}

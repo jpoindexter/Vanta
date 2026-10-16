@@ -15,7 +15,7 @@ export const SetupLearnedNote: FC<{ text: string }> = ({ text }) => {
   const [title = '', ...lines] = text.split('\n')
 
   return (
-    <details className="mb-2 text-[0.75rem] text-muted-foreground" data-slot="aui_setup-learned">
+    <details className="mb-2 text-meta text-muted-foreground" data-slot="aui_setup-learned">
       <summary className="cursor-pointer select-none hover:text-foreground/70">{title.replace(/:$/, '')}</summary>
       <div className="mt-1 whitespace-pre-line leading-5 text-foreground/75">{lines.join('\n')}</div>
     </details>

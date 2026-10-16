@@ -1,4 +1,4 @@
-import { contrastRatio } from '@hermes/shared/color'
+import { contrastRatio } from '@vanta/shared/color'
 import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -13,17 +13,17 @@ const stockDefaultSkin = {
   colors: { banner_text: '#FFF8DC', status_bar_bg: '#1a1a2e', ui_accent: '#FFBF00', banner_border: '#CD7F32' }
 }
 
-const BACKEND_THEMES_KEY = 'hermes-desktop-backend-themes-v1'
+const BACKEND_THEMES_KEY = 'vanta-desktop-backend-themes-v1'
 
 const cssVar = (name: string) => window.document.documentElement.style.getPropertyValue(name)
-const paintedSkin = () => window.document.documentElement.dataset.hermesTheme
+const paintedSkin = () => window.document.documentElement.dataset.vantaTheme
 
 type ThemeApi = ReturnType<typeof useTheme>
 
 /** A fresh renderer launch: module state reloads, localStorage survives. */
 async function launch(localSkin: typeof stockDefaultSkin | null) {
   cleanup()
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'desktopBridge', {
     configurable: true,
     value: localSkin ? { localSkin: { profile: 'default', skin: localSkin } } : {}
   })
@@ -64,7 +64,7 @@ describe('Classic Vanta is an explicit Desktop pick, never inferred from stock c
   afterEach(() => {
     cleanup()
     window.localStorage.clear()
-    Reflect.deleteProperty(window, 'hermesDesktop')
+    Reflect.deleteProperty(window, 'desktopBridge')
     vi.resetModules()
   })
 
@@ -85,7 +85,7 @@ describe('Classic Vanta is an explicit Desktop pick, never inferred from stock c
     expect(paintedSkin()).toBe('vanta')
   })
 
-  it('a Classic pick paints gold/navy (dark mode) and survives connect, reconnect and relaunch; a later Nous pick sticks', async () => {
+  it('a Classic pick paints gold/navy (dark mode) and survives connect, reconnect and relaunch; a later Vanta pick sticks', async () => {
     let run = await launch(stockDefaultSkin)
     expect(run.api.theme?.availableThemes.find(t => t.name === 'classic')?.label).toBe('Classic Vanta')
 
@@ -105,21 +105,17 @@ describe('Classic Vanta is an explicit Desktop pick, never inferred from stock c
     expect(paintedSkin()).toBe('classic')
     expect(cssVar('--theme-background-seed')).toBe('#1a1a2e')
 
-    act(() => run.api.theme?.setTheme('nous'))
+    act(() => run.api.theme?.setTheme('vanta'))
     run = await launch(stockDefaultSkin)
     run.connect()
-    expect(run.bootPaint).toBe('nous')
-    expect(paintedSkin()).toBe('nous')
+    expect(run.bootPaint).toBe('vanta')
+    expect(paintedSkin()).toBe('vanta')
   })
 
-  it('/skin gold and /skin hermes select Classic; /skin default stays the Desktop default (Vanta)', async () => {
+  it('/skin gold selects Classic; /skin default stays the Desktop default (Vanta)', async () => {
     const run = await launch(stockDefaultSkin)
 
     act(() => void run.api.skin?.('gold'))
-    expect(run.api.theme?.themeName).toBe('classic')
-
-    act(() => void run.api.skin?.('nous'))
-    act(() => void run.api.skin?.('hermes'))
     expect(run.api.theme?.themeName).toBe('classic')
 
     act(() => void run.api.skin?.('default'))
@@ -154,13 +150,13 @@ describe('Classic Vanta is an explicit Desktop pick, never inferred from stock c
     act(() => run.api.theme?.setTheme('classic'))
 
     act(() => run.api.theme?.setMode('light'))
-    expect(window.document.documentElement.dataset.hermesMode).toBe('light')
+    expect(window.document.documentElement.dataset.vantaMode).toBe('light')
     expect(cssVar('--theme-background-seed').toLowerCase()).toBe('#f5f5f5')
     expect(contrastRatio(cssVar('--theme-foreground'), cssVar('--theme-background-seed'))).toBeGreaterThanOrEqual(4.5)
     expect(contrastRatio(cssVar('--theme-primary'), cssVar('--theme-sidebar-seed'))).toBeGreaterThanOrEqual(4.5)
 
     act(() => run.api.theme?.setMode('dark'))
-    expect(window.document.documentElement.dataset.hermesMode).toBe('dark')
+    expect(window.document.documentElement.dataset.vantaMode).toBe('dark')
     expect(cssVar('--theme-background-seed')).toBe('#1a1a2e')
     expect(contrastRatio(cssVar('--theme-foreground'), cssVar('--theme-background-seed'))).toBeGreaterThanOrEqual(4.5)
   })

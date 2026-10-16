@@ -131,7 +131,7 @@ export function readableOn(bg: string, inks: readonly [string, ...string[]] = DE
  *
  * `step` is the rung size. The default 0.2 (5 rungs) is the desktop's ladder
  * and MUST stay: `--dt-primary-solid` for every shipped preset is derived
- * from it and a finer ladder lands visibly different fills (nous `#3b6acb` vs
+ * from it and a finer ladder lands visibly different fills (vanta `#3b6acb` vs
  * `#3f70d8`). The TUI's chainable form opts into 0.05 for less hue loss.
  * The accumulating loop (rather than `i * step`) is deliberate — it is the
  * exact float sequence the old desktop ladder produced.

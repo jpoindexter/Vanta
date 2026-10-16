@@ -9,8 +9,8 @@ import {
   projectOwnerBySessionId,
   type SidebarProjectTree
 } from '@/app/chat/sidebar/projects/workspace-groups'
-import type { HermesGitBaseBranch, HermesGitBranch } from '@/global'
-import { getHermesConfig, hermesApi, type HermesGateway, type SessionInfo } from '@/hermes'
+import type { VantaGitBaseBranch, VantaGitBranch } from '@/global'
+import { getVantaConfig, vantaApi, type VantaGateway, type SessionInfo } from '@/desktop-api'
 import { translateNow } from '@/i18n'
 import { desktopDefaultCwd, isDesktopFsRemoteMode, selectDesktopPaths, writeDesktopFileText } from '@/lib/desktop-fs'
 import { desktopGit } from '@/lib/desktop-git'
@@ -53,7 +53,7 @@ import {
   type SessionTombstoneGenerationSnapshot,
   tombstoneRowIds
 } from '@/store/session-removal'
-import type { ProjectInfo, ProjectsPayload } from '@/types/hermes'
+import type { ProjectInfo, ProjectsPayload } from '@/types/desktop'
 
 import { recordFeatureUse } from './desktop-metrics'
 
@@ -342,7 +342,7 @@ function projectParams(
 }
 
 async function gatewayRequestOn<T>(
-  gateway: HermesGateway,
+  gateway: VantaGateway,
   method: string,
   params: Record<string, unknown> = {}
 ): Promise<T> {
@@ -363,7 +363,7 @@ interface ProjectRowOwner {
 }
 
 interface ActiveProjectsContext extends ProjectRowOwner {
-  gateway: HermesGateway
+  gateway: VantaGateway
   profile: string
 }
 
@@ -593,7 +593,7 @@ async function refreshProjectTreeAcrossProfiles(): Promise<void> {
   $projectTreeLoading.set(true)
 
   try {
-    const res = await hermesApi<ProjectTreePayload>({
+    const res = await vantaApi<ProjectTreePayload>({
       path: `/api/profiles/projects/tree?preview_limit=${projectTreePreviewLimit()}`,
       timeoutMs: PROJECT_TREE_REQUEST_TIMEOUT_MS
     })
@@ -855,8 +855,8 @@ interface RepoScanState {
   runningSignature?: string
 }
 
-const repoScanStates = new WeakMap<HermesGateway, RepoScanState>()
-const scanningGatewayGenerations = new WeakMap<HermesGateway, number>()
+const repoScanStates = new WeakMap<VantaGateway, RepoScanState>()
+const scanningGatewayGenerations = new WeakMap<VantaGateway, number>()
 
 function syncReposScanning(): void {
   const gateway = activeGateway()
@@ -927,7 +927,7 @@ export async function scanAndRecordRepos(force = false): Promise<void> {
   let generation: number | undefined
 
   try {
-    const policy = repoDiscoveryPolicyFromConfig(await getHermesConfig(context.profile))
+    const policy = repoDiscoveryPolicyFromConfig(await getVantaConfig(context.profile))
     const signature = repoDiscoveryPolicySignature(policy)
 
     if (!force && (state.completedSignature === signature || state.runningSignature === signature)) {
@@ -1483,7 +1483,7 @@ export async function startWorkInRepo(
 // by hand first.
 // Empty on a non-repo. On a remote gateway the list comes from the backend's
 // /api/git/branches mirror, so it acts on the repo where sessions actually run.
-export async function listRepoBranches(repoPath: string): Promise<HermesGitBranch[]> {
+export async function listRepoBranches(repoPath: string): Promise<VantaGitBranch[]> {
   const git = desktopGit()
 
   if (!git?.branchList || !repoPath) {
@@ -1497,7 +1497,7 @@ export async function listRepoBranches(repoPath: string): Promise<HermesGitBranc
 // new-worktree dialog. The remote default (origin/HEAD) is flagged so the
 // UI can preselect it. Empty on a non-repo; remote gateways serve it from the
 // backend's /api/git/base-branches mirror.
-export async function listBaseBranches(repoPath: string): Promise<HermesGitBaseBranch[]> {
+export async function listBaseBranches(repoPath: string): Promise<VantaGitBaseBranch[]> {
   const git = desktopGit()
 
   if (!git?.baseBranchList || !repoPath) {
@@ -1623,7 +1623,7 @@ export async function revealPath(path: null | string): Promise<void> {
 // Copy a path to the clipboard (git-GUI standard).
 export async function copyPath(path: null | string): Promise<void> {
   if (path) {
-    await window.hermesDesktop?.writeClipboard?.(path)
+    await window.desktopBridge?.writeClipboard?.(path)
   }
 }
 

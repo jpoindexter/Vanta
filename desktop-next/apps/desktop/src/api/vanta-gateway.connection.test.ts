@@ -7,11 +7,11 @@ describe('VantaGateway connection', () => {
   it('rejects requests until connected, with the not-connected message', async () => {
     const { VantaGateway } = await import('./vanta-gateway')
     const gateway = new VantaGateway({
-      notConnectedMessage: 'Hermes gateway is not connected',
+      notConnectedMessage: 'Vanta gateway is not connected',
       transport: healthyTransport()
     })
 
-    await expect(gateway.request('session.list')).rejects.toThrow('Hermes gateway is not connected')
+    await expect(gateway.request('session.list')).rejects.toThrow('Vanta gateway is not connected')
   })
 
   it('fails connect with an actionable message and the error state when the server is down', async () => {
@@ -132,7 +132,7 @@ describe('VantaGateway unsupported methods', () => {
     )
   })
 
-  it('times out a handler that never answers with the Hermes timeout message', async () => {
+  it('times out a handler that never answers with the Vanta timeout message', async () => {
     const transport = healthyTransport().route('GET /api/sessions', () => new Promise(() => undefined))
     const harness = await connectedHarness(transport)
 

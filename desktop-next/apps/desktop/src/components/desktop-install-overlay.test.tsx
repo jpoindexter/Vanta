@@ -46,7 +46,7 @@ function installDesktopMock(state: DesktopBootstrapState) {
     }
   }
 
-  Object.defineProperty(window, 'hermesDesktop', {
+  Object.defineProperty(window, 'desktopBridge', {
     configurable: true,
     value: desktop
   })
@@ -88,7 +88,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
-  Reflect.deleteProperty(window, 'hermesDesktop')
+  Reflect.deleteProperty(window, 'desktopBridge')
 })
 
 describe('DesktopInstallOverlay first-run setup', () => {
@@ -97,7 +97,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\vanta\\vanta-agent',
           local: 'none',
           bundled: false
         }
@@ -119,7 +119,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\vanta\\vanta-agent',
           local: 'none',
           bundled: false
         }
@@ -146,7 +146,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\vanta\\vanta-agent',
           local: 'none',
           bundled: false
         }
@@ -170,7 +170,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\vanta\\vanta-agent',
           local: 'none',
           bundled: false
         }
@@ -198,7 +198,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         setupChoice: {
           platform: 'win32',
-          activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent',
+          activeRoot: 'C:\\Users\\me\\AppData\\Local\\vanta\\vanta-agent',
           local: 'none',
           bundled: false
         }
@@ -218,7 +218,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
         type: 'setup-choice',
         active: false,
         platform: 'win32',
-        activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent-repaired'
+        activeRoot: 'C:\\Users\\me\\AppData\\Local\\vanta\\vanta-agent-repaired'
       })
     })
 
@@ -228,7 +228,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('opens the remote connection form from the first-run choice', async () => {
     installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/home/me/.hermes/hermes-agent', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/home/me/.vanta/vanta-agent', local: 'none', bundled: false }
       })
     )
 
@@ -244,7 +244,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('returns from the remote connection form to the first-run choice', async () => {
     installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/home/me/.hermes/hermes-agent', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/home/me/.vanta/vanta-agent', local: 'none', bundled: false }
       })
     )
 
@@ -262,7 +262,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('requires a successful token connection test before applying remote config', async () => {
     const desktop = installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/home/me/.hermes/hermes-agent', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/home/me/.vanta/vanta-agent', local: 'none', bundled: false }
       })
     )
 
@@ -332,7 +332,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('restores remote apply controls when applying the tested connection fails', async () => {
     const desktop = installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/home/me/.hermes/hermes-agent', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/home/me/.vanta/vanta-agent', local: 'none', bundled: false }
       })
     )
 
@@ -379,7 +379,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('signs in, tests, and applies a password-style remote gateway', async () => {
     const desktop = installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/home/me/.hermes/hermes-agent', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/home/me/.vanta/vanta-agent', local: 'none', bundled: false }
       })
     )
 
@@ -450,7 +450,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
   it('does not authorize a new URL with an old login result or save before Apply', async () => {
     const desktop = installDesktopMock(
       bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/tmp/hermes', local: 'none', bundled: false }
+        setupChoice: { platform: 'linux', activeRoot: '/tmp/vanta', local: 'none', bundled: false }
       })
     )
 
@@ -494,7 +494,7 @@ describe('DesktopInstallOverlay first-run setup', () => {
       bootstrapState({
         unsupportedPlatform: {
           platform: 'darwin',
-          activeRoot: '/Users/me/.hermes/hermes-agent',
+          activeRoot: '/Users/me/.vanta/vanta-agent',
           installCommand: 'curl -fsSL https://example.invalid/install.sh | sh',
           docsUrl: 'https://example.invalid/docs'
         }

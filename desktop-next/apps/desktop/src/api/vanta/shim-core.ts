@@ -1,8 +1,8 @@
-import type { HermesApiRequest } from '@/global'
+import type { VantaApiRequest } from '@/global'
 
 import { foregroundClientId } from './foreground-client'
 
-export type Send = (request: HermesApiRequest) => Promise<unknown>
+export type Send = (request: VantaApiRequest) => Promise<unknown>
 
 export interface ShimCall {
   body: Record<string, unknown>
@@ -11,7 +11,7 @@ export interface ShimCall {
   send: Send
 }
 
-/** One Hermes REST call the Vanta server serves under a different path or verb. */
+/** One Vanta REST call the Vanta server serves under a different path or verb. */
 export interface ShimRoute {
   handle: (call: ShimCall) => Promise<unknown>
   method: string
@@ -46,7 +46,7 @@ export const text = (value: unknown, fallback = ''): string => (typeof value ===
 
 export function matchRoute(
   routes: readonly ShimRoute[],
-  request: HermesApiRequest,
+  request: VantaApiRequest,
   send: Send
 ): null | Promise<unknown> {
   const [path = '', search = ''] = request.path.split('?')

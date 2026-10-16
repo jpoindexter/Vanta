@@ -45,7 +45,7 @@ export async function completeMcpDesktopOAuth({
   const deadline = Date.now() + timeoutMs
   const scope = capabilityScoped(profile)
   const rpc = mcpOAuthRpc(scope)
-  const bridge = window.hermesDesktop.mcpOauth
+  const bridge = window.desktopBridge.mcpOauth
 
   // A legacy null connection can resolve to a remote registry primary.
   if (!bridge && scope.connectionId !== 'local') {
@@ -144,7 +144,7 @@ export async function completeMcpDesktopOAuth({
         })
     }
 
-    await window.hermesDesktop.openExternal(authUrl)
+    await window.desktopBridge.openExternal(authUrl)
     let pollFailures = 0
 
     for (;;) {

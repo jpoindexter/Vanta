@@ -1,6 +1,6 @@
 'use client'
 
-import type { SetupChooseKind } from '@hermes/shared'
+import type { SetupChooseKind } from '@vanta/shared'
 import { useStore } from '@nanostores/react'
 import { Puzzle } from 'lucide-react'
 import { type CSSProperties, type FC, type ReactNode, useId, useState } from 'react'
@@ -218,7 +218,7 @@ export const SETUP_PICKERS: Record<SetupPickerKind, FC<SetupPickerProps>> = {
 }
 
 const PILL_CLASS =
-  'flex max-w-full shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-left text-[12px] whitespace-normal wrap-anywhere transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+  'flex max-w-full shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-left text-meta whitespace-normal wrap-anywhere transition-colors disabled:cursor-not-allowed disabled:opacity-50'
 
 const PILL_CURSOR_CLASS = 'ring-2 ring-ring/60 ring-offset-2 ring-offset-(--dt-background)'
 

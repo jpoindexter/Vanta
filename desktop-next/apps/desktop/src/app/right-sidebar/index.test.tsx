@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { $activeTreeGroup, $layoutTree } from '@/components/pane-shell/tree/store'
-import type { HermesReadDirResult } from '@/global'
+import type { VantaReadDirResult } from '@/global'
 import { $connection, $selectedStoredSessionId, $sessions, $workspaceCwdOwner, setCurrentCwd } from '@/store/session'
 import { $sessionTiles } from '@/store/session-states'
 
@@ -10,13 +10,13 @@ import { resetProjectTreeState } from './files/use-project-tree'
 
 import { RightSidebarPane } from './index'
 
-const readDir = vi.fn<(path: string) => Promise<HermesReadDirResult>>()
+const readDir = vi.fn<(path: string) => Promise<VantaReadDirResult>>()
 const repoStatus = vi.fn<(cwd: string) => Promise<null>>()
 
 function installBridge() {
   ;(
-    window as unknown as { hermesDesktop: { git: { repoStatus: typeof repoStatus }; readDir: typeof readDir } }
-  ).hermesDesktop = {
+    window as unknown as { desktopBridge: { git: { repoStatus: typeof repoStatus }; readDir: typeof readDir } }
+  ).desktopBridge = {
     git: { repoStatus },
     readDir
   }
@@ -42,7 +42,7 @@ describe('RightSidebarPane', () => {
     $workspaceCwdOwner.set(null)
     setCurrentCwd('')
     resetProjectTreeState()
-    delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    delete (window as unknown as { desktopBridge?: unknown }).desktopBridge
   })
 
   it('renders the tree whenever the session has a working dir (repo or not) — no picker', async () => {

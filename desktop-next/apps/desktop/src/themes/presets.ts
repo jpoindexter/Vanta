@@ -2,23 +2,23 @@
  * Built-in desktop themes. Names match the CLI skins / dashboard presets.
  * Add new themes here — no code changes needed elsewhere.
  *
- * The palette-bearing skins (nous, catppuccin, everforest, solarized) are forks
+ * The palette-bearing skins (vanta, catppuccin, everforest, solarized) are forks
  * of their VS Code originals, converted by `buildThemeFromMarketplace` (see
  * ./install.ts) from the extensions below — the same path a Marketplace import
  * takes, so each is identical to installing the extension by hand and costs the
  * user neither the download nor the install step.
  *
- *   nous       ← github.github-vscode-theme   (Light Default / Dark Default)
+ *   vanta       ← github.github-vscode-theme   (Light Default / Dark Default)
  *   catppuccin ← Catppuccin.catppuccin-vsc    (Latte / Mocha)
  *   everforest ← sainnhe.everforest
  *   solarized  ← ryanolsonx.solarized
  *
  * Re-convert marketplace forks from the upstream extension rather than
  * hand-editing hexes; hand edits drift from upstream silently and can't be
- * re-derived. `nous-alt` is first-party — do not re-derive it from GitHub.
+ * re-derived.
  */
 
-import { THEME_PRESET_PALETTES } from '@hermes/shared'
+import { THEME_PRESET_PALETTES } from '@vanta/shared'
 
 import { skinToDesktopTheme } from './skin'
 import type { DesktopTheme, DesktopThemeTypography } from './types'
@@ -53,7 +53,7 @@ const VANTA_SANS =
 export const DEFAULT_TYPOGRAPHY: DesktopThemeTypography = { fontSans: SYSTEM_SANS, fontMono: SYSTEM_MONO }
 
 /**
- * Nous — the canonical Vanta desktop identity, forked from the GitHub VS Code
+ * Vanta — the canonical Vanta desktop identity, forked from the GitHub VS Code
  * theme (github.github-vscode-theme). Light is GitHub Light Default, dark is
  * GitHub Dark Default, both converted through the same path a Marketplace
  * install takes, so the palette here is byte-identical to importing the
@@ -65,10 +65,10 @@ export const DEFAULT_TYPOGRAPHY: DesktopThemeTypography = { fontSans: SYSTEM_SAN
 /**
  * GitHub — the upstream palette, unmodified.
  *
- * `nous` is a fork of this with its own accent, so shipping both keeps the
+ * `vanta` is a fork of this with its own accent, so shipping both keeps the
  * original available on its own terms instead of only existing as the thing
- * nous diverged from. Everything but the accent family is identical between
- * them; separate presets are what let nous's accent move without silently
+ * vanta diverged from. Everything but the accent family is identical between
+ * them; separate presets are what let vanta's accent move without silently
  * redefining what "GitHub" means.
  */
 export const githubTheme: DesktopTheme = {
@@ -195,66 +195,6 @@ export const vantaTheme: DesktopTheme = {
 }
 
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
-
-/**
- * Nous — the canonical Vanta desktop identity: GitHub's chrome carrying Nous
- * blue. Forked from github.github-vscode-theme (Light Default / Dark Default),
- * with only the accent family re-seeded; every neutral is upstream's.
- *
- * Two seeds, one blue. `#0053FD` is the brand color and reads at 5.4:1 on the
- * light sidebar, but only 3.6:1 on the near-black dark one — so dark carries
- * `#4a84fe`, the same hue (263°) lifted to clear AA at 5.9:1. The soft
- * surfaces below are mixed from those seeds in OKLab, which is what keeps a
- * saturated blue from drifting violet on its way to white.
- */
-export const nousTheme: DesktopTheme = {
-  name: 'nous',
-  label: 'Blue',
-  description: 'GitHub chrome, blue accent',
-  ...THEME_PRESET_PALETTES.nous,
-  typography: {
-    fontSans: SYSTEM_SANS,
-    fontMono: SYSTEM_MONO
-  },
-  terminal: {
-    foreground: '#1f2328',
-    black: '#24292f',
-    red: '#cf222e',
-    green: '#116329',
-    yellow: '#4d2d00',
-    blue: '#0969da',
-    magenta: '#8250df',
-    cyan: '#1b7c83',
-    white: '#6e7781',
-    brightBlack: '#57606a',
-    brightRed: '#a40e26',
-    brightGreen: '#1a7f37',
-    brightYellow: '#633c01',
-    brightBlue: '#218bff',
-    brightMagenta: '#a475f9',
-    brightCyan: '#3192aa',
-    brightWhite: '#8c959f'
-  },
-  darkTerminal: {
-    foreground: '#e6edf3',
-    black: '#484f58',
-    red: '#ff7b72',
-    green: '#3fb950',
-    yellow: '#d29922',
-    blue: '#58a6ff',
-    magenta: '#bc8cff',
-    cyan: '#39c5cf',
-    white: '#b1bac4',
-    brightBlack: '#6e7681',
-    brightRed: '#ffa198',
-    brightGreen: '#56d364',
-    brightYellow: '#e3b341',
-    brightBlue: '#79c0ff',
-    brightMagenta: '#d2a8ff',
-    brightCyan: '#56d4dd',
-    brightWhite: '#ffffff'
-  }
-}
 
 /** Catppuccin — Latte in light, Mocha in dark (Catppuccin.catppuccin-vsc). */
 export const catppuccinTheme: DesktopTheme = {
@@ -402,28 +342,13 @@ export const solarizedTheme: DesktopTheme = {
   }
 }
 
-/**
- * Nous Alt — the hand-authored Nous from before the GitHub fork. Light is
- * glass neutrals with brand blue; dark is cream on mission-blue.
- */
-export const nousAltTheme: DesktopTheme = {
-  name: 'nous-alt',
-  label: 'Blue Alt',
-  description: 'Glass neutrals, cream on mission-blue',
-  ...THEME_PRESET_PALETTES['nous-alt'],
-  typography: {
-    fontSans: SYSTEM_SANS,
-    fontMono: SYSTEM_MONO
-  }
-}
-
-// The converter's input: the keys it reads from `hermes_cli/skin_engine.py`'s
+// The converter's input: the keys it reads from `vanta_cli/skin_engine.py`'s
 // `default` skin. Light is that skin's `light_colors` overlay (its goldenrod
 // ladder for white backgrounds; `banner_border` is not overridden there) with
 // one change: the ink. The CLI's `#5C4718` is a single-weight terminal color,
 // but Desktop sets secondary and tertiary text at 74% / 54% of it, which left
 // them at 4.2:1 / 2.7:1. A deeper ink of the same brown gives 6.5:1 / 3.5:1,
-// the levels Nous Light has.
+// the levels Vanta Light has.
 const CLASSIC_DARK_SKIN_COLORS = {
   status_bar_bg: '#1a1a2e',
   banner_text: '#FFF8DC',
@@ -449,7 +374,7 @@ const classicPalette = (colors: Record<string, string>) => skinToDesktopTheme({ 
 /**
  * Classic Vanta — the CLI's stock `default` skin (gold on navy), offered as a
  * Desktop pick under its OWN id. Never `default`: stock config ships
- * `display.skin: default`, and Desktop reads that as "no pick" (→ nous), so a
+ * `display.skin: default`, and Desktop reads that as "no pick" (→ vanta), so a
  * user only ever gets Classic by choosing it (#76579). Both palettes go through
  * the converter a backend skin takes, so each mode paints what the CLI paints
  * in a dark or light terminal.
@@ -519,12 +444,10 @@ export const slateTheme: DesktopTheme = {
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
   vanta: vantaTheme,
-  nous: nousTheme,
   github: githubTheme,
   catppuccin: catppuccinTheme,
   everforest: everforestTheme,
   solarized: solarizedTheme,
-  'nous-alt': nousAltTheme,
   classic: classicTheme,
   midnight: midnightTheme,
   ember: emberTheme,
@@ -542,4 +465,4 @@ export const DEFAULT_SKIN_NAME = 'vanta'
  *  falls back to DEFAULT_SKIN_NAME, and a cached backend theme under one is
  *  dropped (the reverted #130015 build cached the CLI `default` skin as a
  *  second "Classic Vanta"). */
-export const RETIRED_SKINS = new Set(['nous-light', 'default', 'gold'])
+export const RETIRED_SKINS = new Set(['vanta-light', 'default', 'gold'])

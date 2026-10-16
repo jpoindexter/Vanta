@@ -18,9 +18,9 @@ const gatewayMocks = vi.hoisted(() => ({
   setConnection: vi.fn()
 }))
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   setApiRequestConnection: vi.fn(),
-  HermesGateway: class {
+  VantaGateway: class {
     connectionState = 'closed'
     connect = async (wsUrl: string): Promise<void> => {
       await gatewayMocks.connect(wsUrl)
@@ -43,7 +43,7 @@ const { $gateway, closeSecondaryGateways, configureGatewayRegistry, ensureGatewa
 type DesktopStub = { getConnection: ReturnType<typeof vi.fn> }
 
 function installDesktop(stub: DesktopStub): void {
-  ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = stub
+  ;(window as unknown as { desktopBridge: unknown }).desktopBridge = stub
 }
 
 function makePrimary(): { connectionState: string } {
@@ -61,7 +61,7 @@ beforeEach(() => {
 afterEach(() => {
   closeSecondaryGateways()
   vi.clearAllMocks()
-  delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as unknown as { desktopBridge?: unknown }).desktopBridge
 })
 
 describe('ensureGatewayForProfile under a shared global remote', () => {

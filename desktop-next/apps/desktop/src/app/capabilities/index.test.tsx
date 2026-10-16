@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type * as HermesApi from '@/hermes'
+import type * as VantaApi from '@/desktop-api'
 import { queryClient } from '@/lib/query-client'
 import type * as HubActions from '@/store/hub-actions'
 
@@ -31,8 +31,8 @@ const getOfficialSkills = vi.fn()
 // whose import-time subscription calls setApiRequestProfile) and stub only the
 // calls we assert on. Args are forwarded so the per-profile scope arg is
 // observable.
-vi.mock('@/hermes', async importOriginal => ({
-  ...(await importOriginal<typeof HermesApi>()),
+vi.mock('@/desktop-api', async importOriginal => ({
+  ...(await importOriginal<typeof VantaApi>()),
   getSkills: (profile?: null | string) => getSkills(profile),
   getToolsets: (profile?: null | string) => getToolsets(profile),
   setSkillEnabled: (name: string, enabled: boolean, profile?: null | string) => setSkillEnabled(name, enabled, profile),
@@ -113,7 +113,7 @@ beforeEach(() => {
   getSkillContent.mockResolvedValue({
     name: 'web-research',
     path: '/skills/web-research/SKILL.md',
-    content: '---\nname: web-research\nversion: 1.2.0\nauthor: Nous\n---\n\n# Web Research\n\nDeep research steps.'
+    content: '---\nname: web-research\nversion: 1.2.0\nauthor: Vanta\n---\n\n# Web Research\n\nDeep research steps.'
   })
   // Single profile by default → the scope selector stays hidden (>1 gate),
   // so existing tests see unchanged single-profile behavior.
@@ -280,7 +280,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     await act(async () => {
       window.dispatchEvent(
         new MessageEvent('message', {
-          data: { type: 'hermes-skill-pick', name: 'web-research', identifier: 'web-research' },
+          data: { type: 'vanta-skill-pick', name: 'web-research', identifier: 'web-research' },
           origin: 'https://hub.example.test'
         })
       )
@@ -415,7 +415,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       sources: []
     })
 
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = { connections, getAgentRoster }
+    ;(window as { desktopBridge?: unknown }).desktopBridge = { connections, getAgentRoster }
 
     try {
       await renderSkills()
@@ -424,7 +424,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       // The selector paints roster rows labeled profile — device.
       expect(await screen.findByText('default — This device (current)')).toBeTruthy()
     } finally {
-      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+      delete (window as { desktopBridge?: unknown }).desktopBridge
     }
   })
 

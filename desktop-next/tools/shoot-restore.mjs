@@ -31,7 +31,7 @@ async function shot(name, w, h, mode) {
 }
 
 async function setMode(mode) {
-  await page.evaluate((value) => localStorage.setItem("hermes-desktop-mode-v1", value), mode);
+  await page.evaluate((value) => localStorage.setItem("vanta-desktop-mode-v1", value), mode);
   await page.reload();
   await waitForShell(page);
   await settle(2500);

@@ -11,7 +11,7 @@ import { pinSession, SIDEBAR_SESSIONS_PAGE_SIZE, unpinSession } from '@/store/la
 import { notifyError } from '@/store/notifications'
 import { $sessions, sessionPinId } from '@/store/session'
 import { markSessionUnread } from '@/store/session-unread-remote'
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import { type ShellDestination } from './destinations'
 import { GroupLabel } from './group-label'

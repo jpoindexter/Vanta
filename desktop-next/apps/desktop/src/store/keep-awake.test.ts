@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { storedString, writeKey } from '@/lib/storage'
 
-const KEY = 'hermes.desktop.keepAwakeMode.v1'
-const LEGACY_KEY = 'hermes.desktop.keepAwake.v1'
-const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
-const initialHermesDesktop = desktopWindow.hermesDesktop
+const KEY = 'vanta.desktop.keepAwakeMode.v1'
+const LEGACY_KEY = 'vanta.desktop.keepAwake.v1'
+const desktopWindow = window as unknown as { desktopBridge?: Window['desktopBridge'] }
+const initialDesktopBridge = desktopWindow.desktopBridge
 const setKeepAwakeBridge = vi.fn()
 
 /** The atom reads storage at import time, so migration tests need a fresh module. */
@@ -16,14 +16,14 @@ async function loadStore() {
 }
 
 beforeEach(() => {
-  desktopWindow.hermesDesktop = { setKeepAwake: setKeepAwakeBridge } as unknown as Window['hermesDesktop']
+  desktopWindow.desktopBridge = { setKeepAwake: setKeepAwakeBridge } as unknown as Window['desktopBridge']
   writeKey(KEY, null)
   writeKey(LEGACY_KEY, null)
   setKeepAwakeBridge.mockClear()
 })
 
 afterEach(() => {
-  desktopWindow.hermesDesktop = initialHermesDesktop
+  desktopWindow.desktopBridge = initialDesktopBridge
 })
 
 describe('keep-awake store', () => {

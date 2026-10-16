@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { type ResolvedOwner, resolveOwnerNow } from '@/hermes'
+import { type ResolvedOwner, resolveOwnerNow } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { IncrementalSpeechSentenceBuffer } from '@/lib/speech-text'
 import { syncSttLease, VOICE_INPUT_LEASE } from '@/lib/stt-lease'
@@ -383,7 +383,7 @@ export function useVoiceConversation({
 
     try {
       // VAD tuning mirrors `tools.voice_mode` defaults so the browser loop matches the CLI.
-      // `silenceMs` honours `voice.silence_duration` (seeded by useHermesConfig): only a
+      // `silenceMs` honours `voice.silence_duration` (seeded by useVantaConfig): only a
       // user-set value overrides the desktop's tuned 1.25 s hold, which every turn sits
       // through as dead air.
       await handle.start({

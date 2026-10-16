@@ -13,6 +13,8 @@ const RULE: Record<string, string> = {
   'arbitrary-color': 'use a colour token (`text-foreground`, `bg-muted`, `text-(--ui-text-secondary)`), not `bg-[#hex]`',
   'arbitrary-text-size': 'use a step on the type scale (`text-xs`, `text-sm`, `text-base`), not `text-[13px]`',
   'hex-color': 'use a token (`var(--ui-…)`, `var(--dt-…)`), or add the colour to the theme if the system lacks it',
+  'left-accent-stripe':
+    'drop the coloured left bar: say status in a label, a dot or the text colour (a neutral 1px divider or a blockquote rule is fine)',
   'literal-radius': 'use a ramp step (`rounded-lg`, `var(--radius-lg)`) or a role (`rounded-control`, `rounded-surface`, `rounded-pill`)'
 }
 

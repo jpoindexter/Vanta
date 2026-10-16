@@ -22,7 +22,7 @@ import { DecodeText } from '@/components/ui/decode-text'
 import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { registry } from '@/contrib/registry'
-import { getLogs } from '@/hermes'
+import { getLogs } from '@/desktop-api'
 import { normalizeOrLocalPreviewTarget } from '@/lib/local-preview'
 import { cn } from '@/lib/utils'
 import { openPreview } from '@/store/preview'
@@ -87,7 +87,7 @@ export function LogsPane() {
   // pane's only label. Just the tail.
   return (
     <pre
-      className="h-full min-h-0 overflow-auto whitespace-pre-wrap break-words p-2.5 font-mono text-[0.75rem] leading-relaxed text-(--ui-text-secondary)"
+      className="h-full min-h-0 overflow-auto whitespace-pre-wrap break-words p-2.5 font-mono text-meta leading-relaxed text-(--ui-text-secondary)"
       data-selectable-text="true"
       onScroll={handleScroll}
       ref={preRef}

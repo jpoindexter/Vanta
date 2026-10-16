@@ -1,0 +1,53 @@
+id,criterion,result,scope
+P-001,Chat/Code draft and attachment isolation,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-002,Reload restores current mode and draft,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-003,Plan is read-only and does not show an approval to execute,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-004,Exact one-use preview and durable queue,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-005,Execution and verification are distinct; receipt states sample limit,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-006,Stop preserves partial work and does not auto-resume,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-007,Full access cannot be silently selected,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-008,Offline input remains queued on reconnect,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-009,Diff review comment persists,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-010,Sample terminal never executes user commands,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-011,Profiles create and switch with distinct conversation drafts,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-012,Automation drafts persist without creating a live schedule,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-013,Worker ticket view retains evidence state,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-014,Budget view distinguishes estimated and unknown spend,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-015,Nine Vanta integration entries remain reachable,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-016,Saved run reuse prepares a draft rather than replaying effects,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-017,Preservation review includes all 296 feature IDs,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-018,Dark theme switches both readable text and background tokens,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-019,Model download preview transitions from queued to ready,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-020,Each Vanta feature has an explicit retained destination,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-021,Escape closes a native dialog,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-022,Outputs uses an interactive card grid,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-023,A document card opens its contextual preview,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-024,"Canvas card switches among chart, table, and board",executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-025,Memory correction persists in the sample editor,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-026,Skill enable and disable changes visible state,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-027,Skill install is a clear preview with no installation,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-028,Global search filters conversations,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-029,Conversation rename updates title and sidebar,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-030,Today capture creates a visible private sample draft,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-031,Support Off removes recommendations and repeated nudges,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-032,Compact window changes layout and Escape restores it,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-033,Concurrent sample tasks retain their own run state,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-034,Denying one sample action does not stop a different task,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-035,Plan card pointer expansion at desktop reference size,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-036,Card expansion survives a Chat/Code round trip,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-037,Queue reorder/edit and attachment removal,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-038,Sample voice and capture do not request device access,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-039,Pin toggles and branch creates a separate conversation,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-040,Archive retains conversation and library restores it,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-041,Profile search excludes other profiles and shortcuts retain selected profile,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-042,Profile clone retains conversations; selection resets permission to Plan,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-043,Synthetic profile import and metadata export download,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-044,"Schedule pause, workflow cancellation, and missed-wake recovery are explicit",executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-045,Worker pause requires checkpoint acknowledgement and worker creation stays a draft,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-046,Budget draft survives tab navigation without granting spend,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-047,Chat-to-Code handoff prepares scoped draft without starting execution,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-048,"390px mobile mode switch, closeable rail, and navigation drawer",executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-049,889px workbench closes with Escape and plan cards respond to keyboard,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-050,Output download produces a Markdown file,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-051,Opening a captured thought prepares that exact text as a new Chat draft,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance
+P-052,Copy output uses the selected brief rather than a different artifact,executed; observed expected sample behavior,Browser prototype only; does not establish native/runtime acceptance

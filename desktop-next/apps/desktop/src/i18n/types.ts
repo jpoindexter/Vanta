@@ -238,7 +238,7 @@ export interface Translations extends NoticeTranslations {
       turnOffLocal: string
       providedByPlugin: (plugin: string) => string
       openPlugins: string
-      nousLine: string
+      vantaLine: string
       rulesReadOnly: string
       rulesAppOff: (name: string) => string
       rulesSignIn: string
@@ -437,7 +437,7 @@ export interface Translations extends NoticeTranslations {
     desktopOutOfDateMessage: string
     updateDesktopApp: string
     installMethodUnsupportedTitle: string
-    updateHermes: string
+    updateVanta: string
     updateReadyTitle: string
     updateReadyMessage: (count: number) => string
     updateReadyMessageUnknown: string
@@ -466,10 +466,10 @@ export interface Translations extends NoticeTranslations {
       openaiTtsNeedsKey: string
       codeSkewRestartRequired: string
       rpcOutOfSync: string
-      restartHermesFailed: string
+      restartVantaFailed: string
     }
     actions: {
-      restartHermes: string
+      restartVanta: string
       openKeys: string
       openGateways: string
       openMaintenance: string
@@ -1268,9 +1268,9 @@ export interface Translations extends NoticeTranslations {
       sshPortDesc: string
       sshKeyTitle: string
       sshKeyDesc: string
-      sshHermesPathTitle: string
-      sshHermesPathDesc: string
-      sshHermesPathPlaceholder: string
+      sshVantaPathTitle: string
+      sshVantaPathDesc: string
+      sshVantaPathPlaceholder: string
       sshTestConnection: string
       sshConnect: string
       sshButtonsHint: string
@@ -1807,15 +1807,15 @@ export interface Translations extends NoticeTranslations {
       activeBackend: string
       activeBackendHint: string
       useBackend: string
-      nousIncluded: string
-      nousAuthNeededTitle: string
-      nousAuthNeededMessage: (provider: string) => string
-      nousAuthSignIn: string
-      nousAuthDoneTitle: string
-      nousAuthDoneMessage: string
-      nousAuthFailed: string
-      nousAuthFailedMessage: string
-      nousAuthTryAgain: string
+      vantaIncluded: string
+      vantaAuthNeededTitle: string
+      vantaAuthNeededMessage: (provider: string) => string
+      vantaAuthSignIn: string
+      vantaAuthDoneTitle: string
+      vantaAuthDoneMessage: string
+      vantaAuthFailed: string
+      vantaAuthFailedMessage: string
+      vantaAuthTryAgain: string
       noApiKeyRequired: string
       postSetupHint: (step: string) => string
       postSetupInstalledHint: string
@@ -1987,7 +1987,7 @@ export interface Translations extends NoticeTranslations {
       serverStates: {
         connected: string
         app_not_running: string
-        hermes_not_connected: string
+        vanta_not_connected: string
         endpoint_unavailable: string
         no_interactive_session: string
         version_too_old: string
@@ -2253,7 +2253,7 @@ export interface Translations extends NoticeTranslations {
     noSessions: string
     gatewayRunning: string
     gatewayStopped: string
-    hermesActiveSessions: (version: string, count: number) => string
+    vantaActiveSessions: (version: string, count: number) => string
     restartGateway: string
     openBrowser: string
     toggleBrowser: string
@@ -2262,7 +2262,7 @@ export interface Translations extends NoticeTranslations {
     sharedGatewayRestartDescription: (bots: string) => string
     sharedGatewayRestartConfirm: string
     sharedGatewayRestarted: (count: number) => string
-    updateHermes: string
+    updateVanta: string
     reloadWindow: string
     actionRunning: string
     actionDone: string
@@ -3467,7 +3467,7 @@ export interface Translations extends NoticeTranslations {
   onboarding: OnboardingTranslations
 
   freeTier: {
-    /** Settings › Providers row title while the Nous identity is the free tier. */
+    /** Settings › Providers row title while the Vanta identity is the free tier. */
     providerRowTitle: string
     /** The featured row's pitch while the identity is the free tier: what signing in adds. */
     providerRowPitch: string
@@ -3526,7 +3526,7 @@ export interface Translations extends NoticeTranslations {
       notNow: string
     }
     // First-launch set-up failure notice: the free tier could not be created at boot.
-    // One sentence per backend code (`hermes_cli/anon_auth.py::ANON_*`); the copy never says
+    // One sentence per backend code (`vanta_cli/anon_auth.py::ANON_*`); the copy never says
     // the free MODEL is off — what is unavailable is using Vanta without signing in.
     setupFailed: {
       gateClosed: string
@@ -3537,7 +3537,7 @@ export interface Translations extends NoticeTranslations {
       powRequired: string
       locked: string
       generic: string
-      /** The sign-in door, when the account service is reachable: the Nous row sits right below. */
+      /** The sign-in door, when the account service is reachable: the Vanta row sits right below. */
       signInBelow: string
       tryAgain: string
       retrying: string
@@ -4053,8 +4053,8 @@ export interface Translations extends NoticeTranslations {
       errorChooseModel: string
       errorCompressConversation: string
       errorCompressFailed: string
-      errorOpenHermesFolder: string
-      errorOpenHermesFolderFailed: string
+      errorOpenVantaFolder: string
+      errorOpenVantaFolderFailed: string
       errorUpdateApiKey: string
       /** One-click recovery for an expired/revoked OAuth grant: re-runs that
        *  provider's sign-in flow (auth layer, authKind 'oauth'). */

@@ -1,4 +1,4 @@
-import type { InstallPhase } from '@hermes/shared'
+import type { InstallPhase } from '@vanta/shared'
 
 /** Copy for the desktop catalog-install card (`manage_catalog`) and its Advanced dialog. */
 export interface CatalogInstallTranslations {
@@ -22,7 +22,7 @@ export interface CatalogInstallTranslations {
   securityHeading: string
   scan: { passed: string; warnings: string; failed: string }
   requirementsLabel: string
-  requiresHermes: (range: string) => string
+  requiresVanta: (range: string) => string
   envVar: (name: string) => string
   credentialsHeading: string
   phase: Record<InstallPhase, string>

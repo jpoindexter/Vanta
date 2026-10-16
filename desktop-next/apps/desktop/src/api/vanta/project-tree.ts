@@ -1,4 +1,4 @@
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 // The sidebar's project lanes read a ready-made tree (`projects.tree`): project -> repo -> lane -> sessions.
 // Vanta stores named projects (a folder each) and sessions (the folder each started in), so the tree is

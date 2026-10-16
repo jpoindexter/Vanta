@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { HermesGitBaseBranch } from '@/global'
+import type { VantaGitBaseBranch } from '@/global'
 import { $worktreeDialog } from '@/store/projects'
 
 import { BaseBranchPicker } from './base-branch-picker'
@@ -9,13 +9,13 @@ import { WorktreeDialog } from './worktree-dialog'
 
 type ActGlobal = typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 
-const MAIN: HermesGitBaseBranch = { isDefault: true, isRemote: true, name: 'origin/main' }
-const FEAT: HermesGitBaseBranch = { isDefault: false, isRemote: false, name: 'feat-x' }
+const MAIN: VantaGitBaseBranch = { isDefault: true, isRemote: true, name: 'origin/main' }
+const FEAT: VantaGitBaseBranch = { isDefault: false, isRemote: false, name: 'feat-x' }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // The bridge answers after an IPC round trip, as the Electron one does.
-const listing = (answer: () => HermesGitBaseBranch[]) =>
+const listing = (answer: () => VantaGitBaseBranch[]) =>
   vi.fn(async (_repoPath: string) => {
     await sleep(5)
 
@@ -29,7 +29,7 @@ const worktreeAddSpy = () =>
   }))
 
 function installGit(git: Record<string, unknown>) {
-  ;(window as { hermesDesktop?: unknown }).hermesDesktop = { git }
+  ;(window as { desktopBridge?: unknown }).desktopBridge = { git }
 }
 
 async function submitWorktree(name: string) {
@@ -47,7 +47,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   $worktreeDialog.set(null)
-  delete (window as { hermesDesktop?: unknown }).hermesDesktop
+  delete (window as { desktopBridge?: unknown }).desktopBridge
   ;(globalThis as ActGlobal).IS_REACT_ACT_ENVIRONMENT = true
 })
 
@@ -60,7 +60,7 @@ describe('BaseBranchPicker loading', () => {
         throw new Error('404 Not Found')
       }
     ]
-  ])('lists the repo once on %s', async (_case, answer: () => HermesGitBaseBranch[]) => {
+  ])('lists the repo once on %s', async (_case, answer: () => VantaGitBaseBranch[]) => {
     const baseBranchList = listing(answer)
     installGit({ baseBranchList })
 
@@ -71,11 +71,11 @@ describe('BaseBranchPicker loading', () => {
   })
 
   it('a list from the previous repo does not set the base of the next', async () => {
-    const land: Record<string, (list: HermesGitBaseBranch[]) => void> = {}
+    const land: Record<string, (list: VantaGitBaseBranch[]) => void> = {}
 
     const baseBranchList = vi.fn(
       (repoPath: string) =>
-        new Promise<HermesGitBaseBranch[]>(resolve => {
+        new Promise<VantaGitBaseBranch[]>(resolve => {
           land[repoPath] = resolve
         })
     )

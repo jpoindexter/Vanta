@@ -1,5 +1,5 @@
 {
-  "name": "@hermes/shared",
+  "name": "@vanta/shared",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -21,7 +21,8 @@
     "./skin": "./src/skin.ts",
     "./slash": "./src/slash.ts",
     "./theme-presets": "./src/theme-presets.ts",
-    "./vanta": "./src/vanta/index.ts"
+    "./vanta": "./src/vanta/index.ts",
+    "./translucency": "./src/translucency.ts"
   },
   "types": "./src/index.ts",
   "scripts": {

@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import type { HermesConfigRecord } from '@/types/hermes'
+import type { VantaConfigRecord } from '@/types/desktop'
 
 import { voiceFieldVisible } from './helpers'
 
-const cfg = (over: Record<string, unknown> = {}): HermesConfigRecord =>
+const cfg = (over: Record<string, unknown> = {}): VantaConfigRecord =>
   ({
     tts: { provider: 'edge', edge: {}, openai: {} },
     stt: { enabled: true, provider: 'local', local: {}, groq: {} },
     ...over
-  }) as unknown as HermesConfigRecord
+  }) as unknown as VantaConfigRecord
 
 describe('voiceFieldVisible', () => {
   it('always shows top-level + non-provider keys', () => {
@@ -34,7 +34,7 @@ describe('voiceFieldVisible', () => {
   })
 
   it('falls back to backend defaults when provider is unset so model fields stay visible', () => {
-    const unset = { tts: {}, stt: { enabled: true } } as unknown as HermesConfigRecord
+    const unset = { tts: {}, stt: { enabled: true } } as unknown as VantaConfigRecord
     expect(voiceFieldVisible('tts.edge.voice', unset)).toBe(true)
     expect(voiceFieldVisible('tts.openai.voice', unset)).toBe(false)
     expect(voiceFieldVisible('stt.local.model', unset)).toBe(true)

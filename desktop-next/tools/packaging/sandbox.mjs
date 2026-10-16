@@ -32,7 +32,7 @@ export function createSandbox({ modelUrl, hiddenWindow }) {
   fs.mkdirSync(userData, { recursive: true });
   const env = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("HERMES_") && key !== "NODE_OPTIONS") env[key] = value;
+    if (value && !SECRET.test(key) && !key.startsWith("VANTA_") && !key.startsWith("VANTA_") && key !== "NODE_OPTIONS") env[key] = value;
   }
   Object.assign(env, {
     HOME: home,

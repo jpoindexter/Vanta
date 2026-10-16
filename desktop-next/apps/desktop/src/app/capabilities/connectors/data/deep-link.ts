@@ -1,4 +1,4 @@
-import { type ProfileScope, profileScopeKey } from '@/hermes'
+import { type ProfileScope, profileScopeKey } from '@/desktop-api'
 import { activeGatewayConnectionId } from '@/store/gateway'
 
 import { CAPABILITIES_ROUTE } from '../../../routes'

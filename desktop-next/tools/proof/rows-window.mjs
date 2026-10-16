@@ -99,7 +99,7 @@ export async function trayRows(ctx) {
   const { app, page } = ctx;
   const trayFile = path.join(await userData(app), "tray.json");
   const saved = () => (fs.existsSync(trayFile) ? JSON.parse(fs.readFileSync(trayFile, "utf8")).enabled : null);
-  const status = () => page.evaluate(() => window.hermesDesktop.minimizeToTray.get());
+  const status = () => page.evaluate(() => window.desktopBridge.minimizeToTray.get());
   const start = await status();
   await page.getByTestId("titlebar-settings").click();
   await overlay(page).getByRole("button", { name: "Appearance", exact: true }).click();
@@ -125,13 +125,13 @@ export async function quickEntryRows(ctx) {
   const { app, page } = ctx;
   const accelerator = "Control+Alt+Shift+F13";
   const result = await page.evaluate(async (shortcut) => {
-    const quick = window.hermesDesktop.quickEntry;
+    const quick = window.desktopBridge.quickEntry;
     const before = await quick.getSettings();
     const after = await quick.setSettings({ enabled: true, shortcut });
     return { before, after };
   }, accelerator);
   const registered = await waitUntil(() => app.app.evaluate(({ globalShortcut }, key) => globalShortcut.isRegistered(key), accelerator), 4000);
-  await page.evaluate(() => window.hermesDesktop.quickEntry.setSettings({ enabled: false }));
+  await page.evaluate(() => window.desktopBridge.quickEntry.setSettings({ enabled: false }));
   await page.waitForTimeout(500);
   const released = !(await app.app.evaluate(({ globalShortcut }, key) => globalShortcut.isRegistered(key), accelerator));
   verdict("F-202", AREA, "Quick Entry: settings and global shortcut", Boolean(result.after) && registered && released, {
@@ -144,8 +144,8 @@ export async function linkRows(ctx) {
   const { app, page } = ctx;
   await page.evaluate(() => {
     window.__links = [];
-    window.hermesDesktop.onDeepLink((link) => window.__links.push(link));
-    window.hermesDesktop.signalDeepLinkReady();
+    window.desktopBridge.onDeepLink((link) => window.__links.push(link));
+    window.desktopBridge.signalDeepLinkReady();
   });
   await app.app.evaluate(({ app: electronApp }) => electronApp.emit("open-url", { preventDefault() {} }, "vanta://connections/telegram"));
   await page.waitForTimeout(800);
@@ -154,9 +154,9 @@ export async function linkRows(ctx) {
   const links = await page.evaluate(() => window.__links);
   verdict("F-209", AREA, "vanta:// deep links", links.length === 1 && links[0].kind === "connections", { pass: "vanta://connections/telegram reached the renderer; vanta://skill/install was dropped (install links wait for the approval flow)", why: `links=${JSON.stringify(links)}` });
   record("F-205", AREA, "Browser pop-out and per-session windows", "INERT", "openWindow, openBrowserWindow and windowRelay are typed-unsupported: the Vanta shell has one main window (documented in ipc-surface section 5.3)");
-  record("F-206", AREA, "Native notifications with actions", "NOT-RUN", "a real OS notification would appear on the owner's screen in a hidden run; the notification module is the unchanged Hermes one and its click-to-focus path is covered by notification-ipc tests");
-  record("F-210", AREA, "Challenge window (free-tier sign-in)", "DROPPED", "removed with the Nous branding (owner decision); freeTierChallenge is typed-unsupported");
+  record("F-206", AREA, "Native notifications with actions", "NOT-RUN", "a real OS notification would appear on the owner's screen in a hidden run; the notification module is the unchanged Vanta one and its click-to-focus path is covered by notification-ipc tests");
+  record("F-210", AREA, "Challenge window (free-tier sign-in)", "DROPPED", "removed with the Vanta branding (owner decision); freeTierChallenge is typed-unsupported");
   record("F-204", AREA, "Pet overlay and wake-word indicator windows", "DROPPED", "pet overlay removed by owner decision; the wake-word indicator is not mounted in the Vanta shell");
-  const awake = await page.evaluate(() => typeof window.hermesDesktop.setKeepAwake === "function");
+  const awake = await page.evaluate(() => typeof window.desktopBridge.setKeepAwake === "function");
   record("F-211", AREA, "Keep-awake, single instance, About panel", awake ? "PASS" : "FAIL", "setKeepAwake and the About menu role are wired (power-features tests); the About page is checked in the settings rows");
 }

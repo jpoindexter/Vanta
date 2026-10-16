@@ -4,7 +4,7 @@ import { storedBoolean } from '@/lib/storage'
 
 import { $alwaysExternalLinks, setAlwaysExternalLinks } from './external-links'
 
-const KEY = 'hermes.desktop.alwaysExternalLinks.v1'
+const KEY = 'vanta.desktop.alwaysExternalLinks.v1'
 
 afterEach(() => {
   setAlwaysExternalLinks(false)

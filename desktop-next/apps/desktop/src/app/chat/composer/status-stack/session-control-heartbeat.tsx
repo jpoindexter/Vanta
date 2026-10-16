@@ -187,7 +187,7 @@ export const SessionControlHeartbeatSection = memo(function SessionControlHeartb
               label={headerLabel}
             >
               <div>
-                <StatusControlRow className="text-[0.75rem] leading-4 text-foreground/92 break-words" icon="bell">
+                <StatusControlRow className="text-meta leading-4 text-foreground/92 break-words" icon="bell">
                   {heartbeat.prompt}
                 </StatusControlRow>
                 <StatusControlRow icon="history">{ctrl.heartbeatFiredCount(heartbeat.fire_count)}</StatusControlRow>

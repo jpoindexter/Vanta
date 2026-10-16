@@ -759,7 +759,7 @@ describe('closeAllOpenSessionTiles persists Bot Mode Close All (#94137)', () => 
 })
 
 describe('dropTilesForProfile', () => {
-  const TILES_KEY = 'hermes.desktop.sessionTiles.v2'
+  const TILES_KEY = 'vanta.desktop.sessionTiles.v2'
   const BOTS_BUCKET = '__bots_workspace__'
 
   const storedTiles = (): Record<string, unknown> => {
@@ -951,7 +951,7 @@ describe('dropTilesForProfile', () => {
     // no connection id at all. `String(undefined ?? '').trim()` yields '', so a
     // local-delete branch comparing against `=== 'local'` never matches and the
     // tile survives every delete, resurrecting the deleted profile on relaunch
-    // (hermes-agent#94235). The branch must treat a missing id as local.
+    // (vanta-agent#94235). The branch must treat a missing id as local.
     mod.openSessionTile('bot-legacy', 'right', undefined, undefined, {
       ownerRoute: { mode: 'local' as const, profile: 'press-bot' } as unknown as SessionProfileRoute,
       workspaceMode: 'bots' as const,
@@ -1192,7 +1192,7 @@ describe('$focusedStoredSessionId in Bot Mode (#96062)', () => {
   it('a Bots-pane click keeps the main-zone bot tile focused instead of collapsing to a null selection edge', () => {
     // Bot chats open as TILES and never set $selectedStoredSessionId. Clicking
     // a roster row moves the interaction tracker to the sidebar group, whose
-    // active pane is chrome ('hermes-bots:pane'), not a session tile. The old
+    // active pane is chrome ('vanta-bots:pane'), not a session tile. The old
     // derivation then fell back to the null primary selection and published a
     // NULL "focused session" edge — which the Bots plugin read as "the chat
     // lost the center", releasing its open claim and re-asserting the Bots
@@ -1201,7 +1201,7 @@ describe('$focusedStoredSessionId in Bot Mode (#96062)', () => {
     $selectedStoredSessionId.set(null)
     $layoutTree.set(
       split('row', [
-        group(['sessions', 'hermes-bots:pane'], { active: 'hermes-bots:pane', id: 'grp-sessions' }),
+        group(['sessions', 'vanta-bots:pane'], { active: 'vanta-bots:pane', id: 'grp-sessions' }),
         group(['workspace', tilePane('chat-b')], { active: tilePane('chat-b'), id: 'grp-main' })
       ])
     )
@@ -1224,7 +1224,7 @@ describe('$focusedStoredSessionId in Bot Mode (#96062)', () => {
     $selectedStoredSessionId.set(null)
     $layoutTree.set(
       split('row', [
-        group(['sessions', 'hermes-bots:pane'], { active: 'hermes-bots:pane', id: 'grp-sessions' }),
+        group(['sessions', 'vanta-bots:pane'], { active: 'vanta-bots:pane', id: 'grp-sessions' }),
         group(['workspace'], { active: 'workspace', id: 'grp-main' })
       ])
     )

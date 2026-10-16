@@ -27,19 +27,19 @@ export function ConnectElement({ operation, onRetry, onStopWaiting, retrying = f
   }, [link, operation.opId, operation.settled])
 
   if (operation.settled) {
-    return <p className="text-[0.78rem] text-(--ui-text-primary)">{copy.dialog.connectEnded}</p>
+    return <p className="text-meta text-(--ui-text-primary)">{copy.dialog.connectEnded}</p>
   }
 
   return (
     <div className="grid justify-items-start gap-2">
-      <p className="flex items-center gap-2 text-[0.78rem] text-(--ui-text-primary)">
+      <p className="flex items-center gap-2 text-meta text-(--ui-text-primary)">
         <Loader2 aria-hidden className="size-3.5 shrink-0 animate-spin text-primary motion-reduce:animate-none" />
         {copy.card.reason.finishSignIn}
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
         {link ? (
-          <Button onClick={() => void window.hermesDesktop?.openExternal?.(link)} size="xs" variant="secondary">
+          <Button onClick={() => void window.desktopBridge?.openExternal?.(link)} size="xs" variant="secondary">
             {copy.dialog.connectOpenAgain}
           </Button>
         ) : null}

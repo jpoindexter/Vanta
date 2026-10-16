@@ -13,7 +13,7 @@ describe('focused client', () => {
   it('sends the active chat to main when it changes', () => {
     const focusClient = vi.fn()
 
-    vi.stubGlobal('window', { hermesDesktop: { vanta: { focusClient } } })
+    vi.stubGlobal('window', { desktopBridge: { vanta: { focusClient } } })
     $activeSessionId.set('vanta-chat-b')
 
     expect(reportFocusedClient($activeSessionId.get())).toBe(true)
@@ -23,14 +23,14 @@ describe('focused client', () => {
   it('reports null when no chat is in front', () => {
     const focusClient = vi.fn()
 
-    vi.stubGlobal('window', { hermesDesktop: { vanta: { focusClient } } })
+    vi.stubGlobal('window', { desktopBridge: { vanta: { focusClient } } })
 
     expect(reportFocusedClient(null)).toBe(true)
     expect(focusClient).toHaveBeenLastCalledWith(null)
   })
 
   it('does nothing when the bridge has no focus member', () => {
-    vi.stubGlobal('window', { hermesDesktop: { vanta: {} } })
+    vi.stubGlobal('window', { desktopBridge: { vanta: {} } })
 
     expect(reportFocusedClient('vanta-chat-a')).toBe(false)
   })

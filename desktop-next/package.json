@@ -2,7 +2,7 @@
   "name": "vanta-desktop-next",
   "private": true,
   "version": "0.0.0",
-  "description": "Vanta Desktop next-generation shell: imported Hermes desktop (MIT) re-skinned with the Vanta design and wired to Vanta's server.",
+  "description": "Vanta Desktop next-generation shell: Electron shell and React renderer on Vanta's own server, in the Vanta design.",
   "workspaces": [
     "apps/*"
   ],

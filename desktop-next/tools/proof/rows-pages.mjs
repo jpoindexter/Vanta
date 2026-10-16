@@ -44,7 +44,7 @@ export async function capabilityRows(page) {
   await attempt(page, "F-227", AREA, "Capabilities: Connectors", async () => {
     await visit(page, "#/capabilities", /Plugins/);
     const tab = await usable(page.getByText("Connectors", { exact: true }));
-    record("F-227", AREA, "Capabilities > Connectors", tab ? "INERT" : "FAIL", tab ? "the tab is there and opens Connections; the Nous-hosted connector directory is removed, accounts live on Connections" : "no Connectors tab");
+    record("F-227", AREA, "Capabilities > Connectors", tab ? "INERT" : "FAIL", tab ? "the tab is there and opens Connections; the Vanta-hosted connector directory is removed, accounts live on Connections" : "no Connectors tab");
   });
   await attempt(page, "F-228", AREA, "Capabilities: Plugins", async () => {
     await visit(page, "#/capabilities", /Plugins/);
@@ -88,9 +88,9 @@ export async function pageRows(ctx) {
     await page.waitForTimeout(1500);
     const saved = await page.evaluate(async () => {
       // The page edits the default profile, which an earlier row may have moved to another one.
-      const { profiles } = await window.hermesDesktop.api({ method: "GET", path: "/api/profiles" });
+      const { profiles } = await window.desktopBridge.api({ method: "GET", path: "/api/profiles" });
       const name = profiles.find((row) => row.isDefault)?.name ?? "default";
-      return JSON.stringify(await window.hermesDesktop.api({ method: "GET", path: `/api/profiles/soul?name=${name}` }));
+      return JSON.stringify(await window.desktopBridge.api({ method: "GET", path: `/api/profiles/soul?name=${name}` }));
     });
     verdict("F-233", AREA, "Profiles page: list, details, SOUL.md editor", /default/.test(text) && /proof profile/.test(saved), { pass: "lists profiles with model and skills, and Save SOUL.md wrote the file (route /api/profiles/soul)", why: `soul=${saved.slice(0, 120)}` });
   });
@@ -182,7 +182,7 @@ export async function onboardingRows(page) {
   record("F-218", "onboarding", "Free-tier sign-in dialog and notice", /free tier|sign in with/i.test(text) ? "FAIL" : "DROPPED", "removed with the branding");
   record("F-219", "onboarding", "Remote first-run connection setup", "DROPPED", "dropped by owner decision (one local server)");
   record("F-220", "onboarding", "Boot overlays and offline banner", "NOT-RUN", "needs the server to be down; the banner component and its Retry now are in the titlebar tests");
-  record("F-221", "onboarding", "Legal butterbar (Nous terms)", /Terms of Service|Nous/i.test(text) ? "FAIL" : "DROPPED", "removed with the branding");
+  record("F-221", "onboarding", "Legal butterbar (Vanta terms)", /Terms of Service|Vanta/i.test(text) ? "FAIL" : "DROPPED", "removed with the branding");
   record("F-222", "onboarding", "Usage-stats consent strip", /Share usage stats|Share with/i.test(text) ? "FAIL" : "DROPPED", "removed with the branding (telemetry)");
   const tours = await page.locator('[data-tour^="sidebar-nav-"]').count();
   record("F-223", "onboarding", "Tips bubbles and app tour", tours >= 5 ? "PASS" : "FAIL", `${tours} tour anchors on the sidebar rows; Settings > Appearance > General has In-App Tips and Guided Tours switches`);

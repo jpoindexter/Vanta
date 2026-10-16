@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { ProfileInfo, ProfilesResponse } from '@/types/hermes'
+import type { ProfileInfo, ProfilesResponse } from '@/types/desktop'
 
 import { APPROVAL_TIMEOUT_MS, get, post, segment, type ShimRoute, text } from './shim-core'
 

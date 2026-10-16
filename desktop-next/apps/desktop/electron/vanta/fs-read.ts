@@ -13,7 +13,7 @@ export const DIR_PAGE_MAX = 5000;
 const STAT_CONCURRENCY = 16;
 const BINARY_SAMPLE_BYTES = 4096;
 
-/** Always-hidden noise, the same set the Hermes tree hid, so a project without a .gitignore stays readable. */
+/** Always-hidden noise, the same set the Vanta tree hid, so a project without a .gitignore stays readable. */
 const HIDDEN_ENTRIES = new Set([
   ".git",
   ".hg",
@@ -53,7 +53,7 @@ export const pageSchema = z
 
 export type DirPage = z.infer<typeof pageSchema>;
 
-/** The error code the Hermes tree already renders ("Unable to read (ENOENT)"). */
+/** The error code the Vanta tree already renders ("Unable to read (ENOENT)"). */
 const TREE_ERROR: Record<GuardError["code"], string> = {
   denied: "denied",
   invalid: "invalid-path",

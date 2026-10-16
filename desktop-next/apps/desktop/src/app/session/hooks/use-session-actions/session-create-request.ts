@@ -17,7 +17,7 @@ import {
   $currentServiceTier,
   getCurrentModelSource
 } from '@/store/session'
-import type { SessionCreateResponse } from '@/types/hermes'
+import type { SessionCreateResponse } from '@/types/desktop'
 
 type RequestGateway = <T>(method: string, params?: Record<string, unknown>) => Promise<T>
 

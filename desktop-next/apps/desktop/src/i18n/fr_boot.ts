@@ -11,13 +11,13 @@ export const frBoot = {
       loadingSessions: 'Chargement des sessions récentes',
       retryingRemoteBackend: 'Reconnexion au backend Vanta distant…',
       startingDesktopConnection: 'Démarrage de la connexion desktop',
-      startingHermesDesktop: 'Démarrage de Vanta Desktop…'
+      startingDesktopBridge: 'Démarrage de Vanta Desktop…'
     },
     errors: {
       backgroundExited: "Le processus en arrière-plan de Vanta s'est arrêté.",
       backgroundExitedDuringStartup: "Le processus en arrière-plan de Vanta s'est arrêté pendant le démarrage.",
       backendStopped: 'Backend arrêté',
-      restartHermes: 'Redémarrer Vanta',
+      restartVanta: 'Redémarrer Vanta',
       openLogs: 'Ouvrir les journaux',
       desktopBootFailed: 'Échec du démarrage',
       gatewayConnectionLost: 'Connexion au gateway perdue',

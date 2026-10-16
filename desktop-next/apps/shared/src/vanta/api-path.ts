@@ -7,7 +7,7 @@ const CLIENT_ID_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/
 const PROBE_ORIGIN = 'http://vanta.invalid'
 
 /**
- * `desktopBoundaryDecision` answers 405 to every method but GET and POST under /api/. The Hermes
+ * `desktopBoundaryDecision` answers 405 to every method but GET and POST under /api/. The Vanta
  * renderer still issues PUT, PATCH and DELETE (about 40 paths), so they are sent as POST.
  */
 export function remapMethod(method: string | undefined): 'GET' | 'POST' {

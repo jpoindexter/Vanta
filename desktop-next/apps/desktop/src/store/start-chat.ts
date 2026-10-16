@@ -1,4 +1,4 @@
-import type { SessionStartChatResult, StartChatArgs } from '@hermes/shared'
+import type { SessionStartChatResult, StartChatArgs } from '@vanta/shared'
 import { atom } from 'nanostores'
 
 import { parseMaybeObject } from '@/components/assistant-ui/tool/fallback-model/format'

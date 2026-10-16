@@ -203,7 +203,7 @@ const STEPS = [
     for (const kind of ["okr.created", "okr.progress", "company.tick"]) must(kinds.includes(kind), `activity lacks ${kind}: ${[...new Set(kinds)].join(", ")}`);
     const expectedTicks = flag("--fresh-tick") ? 3 : 2;
     must(kinds.filter((k) => k === "company.tick").length === expectedTicks, `expected ${expectedTicks} ticks in the log, saw ${kinds.filter((k) => k === "company.tick").length}`);
-    // "unsupported: <hermes call> is not available in Vanta Desktop yet" is the shell's known, pre-existing stub noise.
+    // "unsupported: <vanta call> is not available in Vanta Desktop yet" is the shell's known, pre-existing stub noise.
     const errors = ctx.cur.errors.filter((e) => !/favicon|ResizeObserver|is not available in Vanta Desktop yet/.test(e));
     must(errors.length === 0, `console errors: ${errors.slice(0, 3).join(" | ")}`);
     return { kinds: [...new Set(kinds)] };

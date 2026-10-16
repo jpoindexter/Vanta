@@ -1,4 +1,4 @@
-import type { ConnectionTargetState } from '@hermes/shared'
+import type { ConnectionTargetState } from '@vanta/shared'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'

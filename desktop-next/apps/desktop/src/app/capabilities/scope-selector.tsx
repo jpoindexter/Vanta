@@ -5,7 +5,7 @@ import { useLocation } from 'react-router'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { DesktopRosterAgent } from '@/global'
-import { getProfiles, type ProfileScope, profileScopeKey } from '@/hermes'
+import { getProfiles, type ProfileScope, profileScopeKey } from '@/desktop-api'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { activeGatewayConnectionId } from '@/store/gateway'
@@ -101,8 +101,8 @@ export function useCapabilityScope({
   // one gateway is registered. Only then is the (heavier) union agent roster
   // fetched to feed the selector — single-connection setups keep the exact
   // legacy profiles list. Both feature-detected for older Electron mains.
-  const registryBridge = window.hermesDesktop?.connections
-  const rosterBridge = window.hermesDesktop?.getAgentRoster
+  const registryBridge = window.desktopBridge?.connections
+  const rosterBridge = window.desktopBridge?.getAgentRoster
 
   const { data: registryData } = useQuery({
     queryKey: ['capabilities-connections-registry'],
@@ -222,7 +222,7 @@ export function CapabilityScopeSelector({
       )}
     >
       {!compact && (
-        <span className="text-[0.75rem] font-medium text-(--ui-text-tertiary)">{t.skills.configuringProfile}</span>
+        <span className="text-meta font-medium text-(--ui-text-tertiary)">{t.skills.configuringProfile}</span>
       )}
       <Select onValueChange={scope.onChange} value={scope.value}>
         <SelectTrigger className={cn('text-xs', compact ? 'h-6 min-w-0 w-full px-2 truncate' : 'h-7 w-56')}>

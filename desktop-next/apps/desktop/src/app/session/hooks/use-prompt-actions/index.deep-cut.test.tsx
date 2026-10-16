@@ -1,4 +1,4 @@
-import { JsonRpcGatewayError } from '@hermes/shared'
+import { JsonRpcGatewayError } from '@vanta/shared'
 import { cleanup } from '@testing-library/react'
 import type { MutableRefObject } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -14,7 +14,7 @@ import { actRender, Harness, type HarnessHandle, RUNTIME_SESSION_ID } from './pr
 
 // Deep-cut confirms (#133716): regenerate/edit that would archive later user turns.
 
-vi.mock('@/hermes', () => ({
+vi.mock('@/desktop-api', () => ({
   getLatestSessionMessages: vi.fn(async () => ({ messages: [], session_id: 'session' })),
   getProfiles: vi.fn(async () => ({ profiles: [] })),
   getSession: vi.fn(),

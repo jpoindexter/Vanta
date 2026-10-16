@@ -1,11 +1,11 @@
-import type { FreeTierClaimNudgeResult } from '@hermes/shared'
+import type { FreeTierClaimNudgeResult } from '@vanta/shared'
 import { atom } from 'nanostores'
 
-import { cancelOAuthSession, listOAuthProviders, pollOAuthSession, startOAuthLogin } from '@/hermes'
+import { cancelOAuthSession, listOAuthProviders, pollOAuthSession, startOAuthLogin } from '@/desktop-api'
 import { gatewayActivationEpoch } from '@/store/gateway'
-import type { FreeTierStatus } from '@/types/hermes'
+import type { FreeTierStatus } from '@/types/desktop'
 
-import { $freeTierStatus, type FreeTierRequester, NOUS_PROVIDER_ID, refreshFreeTierStatus } from './free-tier'
+import { $freeTierStatus, type FreeTierRequester, VANTA_PROVIDER_ID, refreshFreeTierStatus } from './free-tier'
 import { guidedOnboardingActive } from './onboarding-gate'
 import { onboardingSurfaceActive } from './onboarding-presence'
 
@@ -237,7 +237,7 @@ export function closeFreeTierSignIn() {
 
 // The reasons the backend names on a non-approved terminal poll: the transfer's
 // own outcomes, and the account service's `anon_*` verdicts when it was busy,
-// unreachable or refused mid sign-in (`hermes_cli/anon_sign_in.py`). Anything
+// unreachable or refused mid sign-in (`vanta_cli/anon_sign_in.py`). Anything
 // else falls through to the generic error screen, which shows the backend's
 // own message.
 const FAILURE_BY_REASON: Record<string, FreeTierSignInFailure> = {
@@ -265,9 +265,9 @@ export function signInFailureKind(reason: null | string | undefined): FreeTierSi
 // when the bridge isn't there (dev preview, tests) so the flow never strands in
 // a waiting state. Same contract as the onboarding store's opener.
 async function openSignInUrl(url: string) {
-  if (window.hermesDesktop?.openExternal) {
+  if (window.desktopBridge?.openExternal) {
     try {
-      await window.hermesDesktop.openExternal(url)
+      await window.desktopBridge.openExternal(url)
 
       return
     } catch {
@@ -297,7 +297,7 @@ export async function beginFreeTierSignIn(requestGateway: FreeTierRequester) {
 
   const minting = !status?.has_guest
 
-  // No free-tier identity AND a real Nous account already connected: there is
+  // No free-tier identity AND a real Vanta account already connected: there is
   // nothing to transfer. Say so instead of minting a guest the user does not
   // need. A failed provider read is not proof either way — fall through and let
   // the start call be the authority.
@@ -309,9 +309,9 @@ export async function beginFreeTierSignIn(requestGateway: FreeTierRequester) {
         return
       }
 
-      const nous = providers.find(provider => provider.id === NOUS_PROVIDER_ID)
+      const vanta = providers.find(provider => provider.id === VANTA_PROVIDER_ID)
 
-      if (nous?.status.logged_in && nous.status.free_tier !== true) {
+      if (vanta?.status.logged_in && vanta.status.free_tier !== true) {
         set({ status: 'already_signed_in' })
 
         return
@@ -324,7 +324,7 @@ export async function beginFreeTierSignIn(requestGateway: FreeTierRequester) {
   set({ minting, status: 'setting_up' })
 
   try {
-    const start = await startOAuthLogin(NOUS_PROVIDER_ID)
+    const start = await startOAuthLogin(VANTA_PROVIDER_ID)
 
     if (stale()) {
       // The user closed the dialog while the start call was out: do not leave the backend
@@ -378,7 +378,7 @@ async function pollOnce(sessionId: string, requestGateway: FreeTierRequester, mi
   const stale = () => mine !== attempt
 
   try {
-    const result = await pollOAuthSession(NOUS_PROVIDER_ID, sessionId)
+    const result = await pollOAuthSession(VANTA_PROVIDER_ID, sessionId)
 
     if (stale() || result.status === 'pending') {
       return

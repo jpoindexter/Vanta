@@ -28,7 +28,7 @@ function config(overrides: Partial<DesktopConnectionConfig> = {}): DesktopConnec
     sshUser: '',
     sshPort: null,
     sshKeyPath: '',
-    sshRemoteHermesPath: '',
+    sshRemoteVantaPath: '',
     sshRemoteProfile: '',
     ...overrides
   }
@@ -151,20 +151,20 @@ describe('deriveProviderShape', () => {
   })
 
   it('OAuth shape when the provider is a redirect IDP', () => {
-    expect(deriveProviderShape([{ name: 'nous', displayName: 'Nous Research', supportsPassword: false }])).toEqual({
+    expect(deriveProviderShape([{ name: 'vanta', displayName: 'Theft Studio', supportsPassword: false }])).toEqual({
       isPassword: false,
-      providerLabel: 'Nous Research'
+      providerLabel: 'Theft Studio'
     })
   })
 
   it('mixed deployment keeps generic OAuth copy (not every provider is password)', () => {
     const shape = deriveProviderShape([
       { name: 'basic', displayName: 'Username & Password', supportsPassword: true },
-      { name: 'nous', displayName: 'Nous Research', supportsPassword: false }
+      { name: 'vanta', displayName: 'Theft Studio', supportsPassword: false }
     ])
 
     expect(shape.isPassword).toBe(false)
-    expect(shape.providerLabel).toBe('Username & Password / Nous Research')
+    expect(shape.providerLabel).toBe('Username & Password / Theft Studio')
   })
 
   it('falls back to name when displayName is empty', () => {

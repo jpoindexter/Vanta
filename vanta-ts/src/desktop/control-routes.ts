@@ -7,13 +7,14 @@ import { projectsGet, projectsPost } from "./projects-api.js";
 import { toolsGet, toolsPostPatterns } from "./tools-api.js";
 import { learningGet } from "./learning-api.js";
 import { skillsGet, skillsPost } from "./skills-api.js";
+import { learningWritePost } from "./learning-write-api.js";
 import { skillsHubPost } from "./skills-hub-api.js";
 import { sessionsControlGet, sessionsControlPost } from "./sessions-control-api.js";
 import { scheduleControlPost } from "./schedule-control-api.js";
 import { scheduleRunsGetPatterns, scheduleTriggerPost } from "./schedule-trigger.js";
 
 const GET: ControlTable = { ...configGet, ...profilesGet, ...scheduleBlueprintsGet, ...sessionsControlGet, ...skillsGet, ...learningGet, ...toolsGet, ...projectsGet };
-const POST: ControlTable = { ...configPost, ...profilesPost, ...scheduleControlPost, ...scheduleTriggerPost, ...scheduleBlueprintsPost, ...sessionsControlPost, ...skillsPost, ...skillsHubPost, ...projectsPost };
+const POST: ControlTable = { ...configPost, ...profilesPost, ...scheduleControlPost, ...scheduleTriggerPost, ...scheduleBlueprintsPost, ...sessionsControlPost, ...skillsPost, ...skillsHubPost, ...learningWritePost, ...projectsPost };
 const GET_PATTERNS: ControlPattern[] = [...scheduleRunsGetPatterns];
 const POST_PATTERNS: ControlPattern[] = [...toolsPostPatterns];
 

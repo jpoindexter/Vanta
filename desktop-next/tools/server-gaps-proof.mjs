@@ -40,7 +40,7 @@ function seed({ project, root, vantaHome }) {
 // A made-up key lets the session switch to a provider whose models offer reasoning levels; no request is sent with it.
 const app = await launchVanta({ hidden: true, seed, extraEnv: { ANTHROPIC_API_KEY: "sk-ant-proof-placeholder-not-real" } });
 const page = app.page;
-const api = (request) => page.evaluate((r) => window.hermesDesktop.api(r), request);
+const api = (request) => page.evaluate((r) => window.desktopBridge.api(r), request);
 const side = page.locator('[data-tour="sessions-sidebar"]').first();
 
 async function filters() {
@@ -187,7 +187,7 @@ try {
 <a id="blank" target="_blank" href="http://127.0.0.1:__PORT__/other">new window</a>
 <script>
 const out = {};
-out.bridge = typeof window.hermesDesktop + "/" + typeof window.vantaDesktop + "/" + typeof window.require + "/" + typeof window.process;
+out.bridge = typeof window.desktopBridge + "/" + typeof window.vantaDesktop + "/" + typeof window.require + "/" + typeof window.process;
 Promise.all([
   Notification.requestPermission().then((p) => (out.notify = p)),
   new Promise((done) => navigator.geolocation.getCurrentPosition(() => { out.geo = "granted"; done(); }, (e) => { out.geo = "denied:" + e.code; done(); }, { timeout: 3000 })),
@@ -225,7 +225,7 @@ Promise.all([
     say("F-105", Boolean(info) && info.url === url, `the Browser pane loaded the local page: url=${info?.url} title=${info?.title?.slice(0, 40)}`);
     const probed = info ? JSON.parse(info.title.slice(7)) : {};
     say("F-105s", info?.persistent === false && info?.nodeIntegration === false && info?.contextIsolation === true && info?.sandbox === true && info?.preload === null && info?.webSecurity !== false, `guest posture: persistent=${info?.persistent} nodeIntegration=${info?.nodeIntegration} contextIsolation=${info?.contextIsolation} sandbox=${info?.sandbox} preload=${info?.preload}`);
-    say("F-105b", probed.bridge === "undefined/undefined/undefined/undefined", `the page cannot see the bridge or Node: hermesDesktop/vantaDesktop/require/process = ${probed.bridge}`);
+    say("F-105b", probed.bridge === "undefined/undefined/undefined/undefined", `the page cannot see the bridge or Node: desktopBridge/vantaDesktop/require/process = ${probed.bridge}`);
     say("F-105p", probed.notify === "denied" && String(probed.geo).startsWith("denied") && String(probed.mic).startsWith("denied"), `permissions: notifications=${probed.notify} geolocation=${probed.geo} microphone=${probed.mic}`);
     say("F-105n", probed.fetch === "pong", "an ordinary http fetch from the page still works");
     // New-window links go to the system browser (stubbed shell.openExternal), never a popup.

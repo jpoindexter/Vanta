@@ -1,5 +1,5 @@
 import { jobState, jobTitle, nextRunOverdueMs } from '@/app/cron/job-state'
-import type { CronJob } from '@/types/hermes'
+import type { CronJob } from '@/types/desktop'
 
 import type { ListRowItem } from '../types'
 

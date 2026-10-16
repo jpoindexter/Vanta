@@ -127,7 +127,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
     } finally {
       rect.mockRestore()
       document.body.replaceChildren()
-      delete (window as unknown as { __hermesActHolder?: unknown }).__hermesActHolder
+      delete (window as unknown as { __vantaActHolder?: unknown }).__vantaActHolder
     }
   })
 
@@ -145,7 +145,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
 
     cleanups.push(
       registerPreviewScriptRunner(tabId, async code => {
-        if (code.includes('hermes-focus-probe')) {
+        if (code.includes('vanta-focus-probe')) {
           return JSON.stringify({ focused: true, success: true, tag: 'INPUT' })
         }
 
@@ -191,7 +191,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
 
     cleanups.push(
       registerPreviewScriptRunner(tabId, async code => {
-        if (code.includes('hermes-focus-probe')) {
+        if (code.includes('vanta-focus-probe')) {
           return JSON.stringify({ focused: focus.focused, success: true, tag: focus.tag ?? 'BODY' })
         }
 
@@ -352,7 +352,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
 
     cleanups.push(
       registerPreviewScriptRunner(tabId, async code =>
-        code.includes('hermes-focus-probe')
+        code.includes('vanta-focus-probe')
           ? JSON.stringify({ focused: true, success: true, tag: 'INPUT' })
           : code.includes('document.activeElement')
             ? JSON.stringify({ success: true, field: true, len: fieldLen })
@@ -448,7 +448,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
       registerPreviewScriptRunner(
         tabId,
         async code =>
-          code.includes('hermes-focus-probe')
+          code.includes('vanta-focus-probe')
             ? JSON.stringify({ focused: true, success: true, tag: 'INPUT' })
             : code.includes('"kind":"locate"')
               ? JSON.stringify({
@@ -457,9 +457,9 @@ describe('actOnActivePreview (drive_preview tool)', () => {
                   success: true,
                   typable: true
                 })
-              : !code.includes('__hermesAct') && code.includes('getOwnPropertyDescriptor')
+              : !code.includes('__vantaAct') && code.includes('getOwnPropertyDescriptor')
                 ? JSON.stringify({ success: true }) // the direct-set fallback succeeded (no preamble)
-                : !code.includes('__hermesAct') && code.includes('document.activeElement')
+                : !code.includes('__vantaAct') && code.includes('document.activeElement')
                   ? JSON.stringify({ success: true, field: true, len: 4 }) // field-state read
                   : JSON.stringify({ elements: [], hit: { tag: 'INPUT', trusted: true }, success: true }) // finish trip
       )
@@ -600,7 +600,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
       registerPreviewScriptRunner(tabId, async code =>
         code.includes('"kind":"locate"')
           ? JSON.stringify({ acted: 'looking at button "Save"', point: { x: 12, y: 8 }, success: true })
-          : JSON.stringify({ elements: [], hit: { tag: 'HERMES-WATCH', trusted: true }, success: true })
+          : JSON.stringify({ elements: [], hit: { tag: 'VANTA-WATCH', trusted: true }, success: true })
       )
     )
     cleanups.push(registerPreviewInput(tabId, { focus: vi.fn(), send: vi.fn() }))
@@ -686,7 +686,7 @@ describe('actOnActivePreview (drive_preview tool)', () => {
       raf.mockRestore()
       rect.mockRestore()
       document.body.replaceChildren()
-      delete (window as unknown as { __hermesActHolder?: unknown }).__hermesActHolder
+      delete (window as unknown as { __vantaActHolder?: unknown }).__vantaActHolder
     }
   })
 

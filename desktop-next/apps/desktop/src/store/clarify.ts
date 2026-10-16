@@ -1,4 +1,4 @@
-import type { SetupChooseKind, SetupChooseOption } from '@hermes/shared'
+import type { SetupChooseKind, SetupChooseOption } from '@vanta/shared'
 import { atom, computed } from 'nanostores'
 
 import { translateNow } from '@/i18n'

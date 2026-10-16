@@ -1,4 +1,4 @@
-import type { SessionInfo } from '@/types/hermes'
+import type { SessionInfo } from '@/types/desktop'
 
 import type { SessionMeta } from './schemas'
 
@@ -10,7 +10,7 @@ export const isoToSeconds = (iso: string | undefined): number => {
   return Number.isNaN(ms) ? 0 : ms / SECONDS
 }
 
-/** A Hermes session row for something Vanta stores as a session; unknown counters stay zero. */
+/** A Vanta session row for something Vanta stores as a session; unknown counters stay zero. */
 export function sessionRow(fields: Partial<SessionInfo> & Pick<SessionInfo, 'id'>): SessionInfo {
   return {
     archived: false,
@@ -35,7 +35,7 @@ export function sessionRow(fields: Partial<SessionInfo> & Pick<SessionInfo, 'id'
 }
 
 /**
- * A Hermes sidebar row for one stored session. `cwd` is the folder the session was started in, as the
+ * A Vanta sidebar row for one stored session. `cwd` is the folder the session was started in, as the
  * server recorded it; a session saved before that was kept has none and files under Home, never under a guess.
  */
 export function sessionInfoFromMeta(meta: SessionMeta): SessionInfo {

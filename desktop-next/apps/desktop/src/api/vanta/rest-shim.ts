@@ -1,11 +1,11 @@
-import type { HermesApiRequest } from '@/global'
-import type { PaginatedSessions, SessionInfo } from '@/types/hermes'
+import type { VantaApiRequest } from '@/global'
+import type { PaginatedSessions, SessionInfo } from '@/types/desktop'
 
 import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
 import { configRoutes } from './shim-config'
 import { cronRoutes } from './shim-cron'
-import { hermesOnlyRoutes } from './shim-hermes-only'
+import { vantaOnlyRoutes } from './shim-desktop-only'
 import { localEndpointRoutes } from './shim-local-endpoint'
 import { mcpRoutes } from './shim-mcp'
 import { messagingRoutes } from './shim-messaging'
@@ -23,14 +23,14 @@ const ROUTES: readonly ShimRoute[] = [
   ...localEndpointRoutes,
   ...messagingRoutes,
   ...mcpRoutes,
-  ...hermesOnlyRoutes,
+  ...vantaOnlyRoutes,
   ...profileRoutes,
   ...cronRoutes,
   ...sessionRoutes,
   ...skillRoutes
 ]
 
-// The Hermes sidebar reads sessions and profiles over REST paths the Vanta server does not have
+// The Vanta sidebar reads sessions and profiles over REST paths the Vanta server does not have
 // (`/api/profiles/sessions`, `/api/profiles`). The shim answers them from what Vanta does serve
 // (`/api/sessions`) so the restored list, pins and rename work; every other path passes through.
 
@@ -74,7 +74,7 @@ function sidebarSlices(rows: SessionInfo[], query: URLSearchParams) {
 }
 
 /** Returns the answer for a REST call Vanta serves differently, or null to let the call through. */
-export function vantaRestShim(request: HermesApiRequest, send: Send): null | Promise<unknown> {
+export function vantaRestShim(request: VantaApiRequest, send: Send): null | Promise<unknown> {
   const [path = '', search = ''] = request.path.split('?')
   const method = (request.method ?? 'GET').toUpperCase()
   const query = new URLSearchParams(search)

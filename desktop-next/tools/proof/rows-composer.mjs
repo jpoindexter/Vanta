@@ -35,7 +35,7 @@ export async function inputRows(page) {
     const text = await page.locator('[role="listbox"], [cmdk-list]').last().innerText();
     const count = (text.match(/\n\//g) ?? []).length;
     await page.keyboard.press("Backspace");
-    verdict("F-136", AREA, "Slash popover '/'", /\/new/.test(text) && /\/stop/.test(text), { pass: `lists Vanta's commands (${text.replace(/\n+/g, " ").slice(0, 120)}); the Hermes catalog is not carried over, only commands Vanta backs`, why: text.slice(0, 160) });
+    verdict("F-136", AREA, "Slash popover '/'", /\/new/.test(text) && /\/stop/.test(text), { pass: `lists Vanta's commands (${text.replace(/\n+/g, " ").slice(0, 120)}); the Vanta catalog is not carried over, only commands Vanta backs`, why: text.slice(0, 160) });
     void count;
   });
   await attempt(page, "F-137", AREA, "@ popover", async () => {

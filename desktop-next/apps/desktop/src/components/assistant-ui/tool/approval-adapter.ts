@@ -36,7 +36,7 @@ function serverPayload(request: ApprovalRequest, canRemember: boolean): Approval
   }
 }
 
-/** A Hermes-shaped prompt: only a command and a description, so a command is treated as shell. */
+/** A Vanta-shaped prompt: only a command and a description, so a command is treated as shell. */
 function legacyPayload(request: ApprovalRequest, canRemember: boolean): ApprovalPayload {
   const command = request.command.trim()
   const description = request.description.trim()
