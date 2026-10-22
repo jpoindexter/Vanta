@@ -12,7 +12,7 @@ Done in desktop-next (uncommitted, not yet rebuilt):
 - Removed `simple-git` (2 criticals). Declared in `apps/desktop/package.json` but never imported anywhere. The lock lost 20 packages (its tree), added none.
 - `dompurify` 3.4.13 to 3.4.17 (patch). The advisories cover `IN_PLACE` mode and `afterSanitize` hooks; the app uses neither (grep), so exposure was low, but the bump is free.
 - After: 20 total, 0 critical. The lock was regenerated in a clean temp copy because `npm audit fix` crashes on the symlinked `node_modules`.
-- Not verified: a build with these two changes. The installed build 6 still has the old versions. Needs a rebuild and a done-path run before it counts.
+- Verified 2026-10-22 (after replacing the symlinked `node_modules` with a real `npm ci`, 1,086 packages): `node_modules` holds dompurify 3.4.17 and no simple-git; a packaged build's `app.asar` contains 3.4.17 (not 3.4.13) and no `simple-git`; the done-path passes 13 of 13 steps and 7 of 7 probes on that built app. That build is signed but not notarized and NOT installed: the installed build 6 still has the old versions.
 
 Left alone:
 - `get-windows` (high, optional native, no fix exists): used only for the read-window-below tool. Accept.
@@ -57,3 +57,12 @@ Installed build 6, 70 Tab presses on the main shell (scripted model so the first
 - First-run picker: focus stays inside the modal for all 70 presses (correct), cycling after 68.
 - Defect found: 2 status-bar buttons (one at each footer edge) were icon-only with no accessible name. Fixed in `app/shell/statusbar-controls.tsx` (icon-only items take `aria-label` from their title) with 3 new tests; 13 status-bar tests pass. Uncommitted: the file is 379 lines, so the size gate blocks the commit (see the ratchet proposal above).
 - Not covered: Shift+Tab order, Escape on every overlay, screen-reader output, the right pane and settings pages, and composer-to-thread navigation. This is a Tab-order and naming walk, not a full a11y audit.
+
+## Size ratchet (2026-10-22, owner yes)
+
+- `vanta lint --write-baseline` records every existing violation in `.size-baseline.json` (870 files, 2,750 violations). `--baseline[=path]` blocks only what is new or worse; `--staged` (the commit hook) does this automatically when the file exists, `--strict` opts out.
+- "Worse": a file with no baseline entry (any violation blocks); a baselined file whose function, params or complexity violation count rises; an oversized file that grows by more than 20 lines.
+- Exempt as data: locale tables (`src/i18n/<lang>[_part].ts`) and `*.generated.ts(x)`.
+- The active hook is a symlink into `~/.vanta/app/scripts/pre-commit` (the main checkout), which this worktree cannot edit, so the ratchet is on by default for `--staged` instead of by a hook flag. `scripts/pre-commit` in this worktree also passes `--baseline`.
+- Proof: 29 lint tests including the staged path with a real temp git repo; the fixes the old gate blocked (`sidebar.tsx` 676 lines and others) then committed through the real hook with "no new or worse violations than the baseline (15 existing)".
+- Limits: function/params/complexity compare by count, not identity, so a function that grows while the file's count stays the same passes. The baseline only loosens when regenerated; regenerate after clean-ups.
