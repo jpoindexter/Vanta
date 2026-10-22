@@ -233,6 +233,9 @@ const StatusbarItemView = memo(function StatusbarItemView({
 
   const tooltipLabel = item.actionId ? <TipKeybindLabel actionId={item.actionId} text={item.title} /> : item.title
 
+  // An icon-only item has no text of its own, so its title is the accessible name.
+  const ariaLabel = !item.label && !item.detail && typeof item.title === 'string' ? item.title : undefined
+
   const content = (
     <>
       {item.icon}
@@ -250,6 +253,7 @@ const StatusbarItemView = memo(function StatusbarItemView({
     const trigger = (
       <DropdownMenuTrigger asChild>
         <button
+          aria-label={ariaLabel}
           className={cn(STATUSBAR_ACTION_CLASS, item.className)}
           data-testid={`statusbar-${item.id}`}
           disabled={item.disabled}
@@ -339,6 +343,7 @@ const StatusbarItemView = memo(function StatusbarItemView({
     return (
       <Tip label={tooltipLabel}>
         <a
+          aria-label={ariaLabel}
           className={cn(STATUSBAR_ACTION_CLASS, item.className)}
           data-testid={`statusbar-${item.id}`}
           href={item.href}
@@ -354,6 +359,7 @@ const StatusbarItemView = memo(function StatusbarItemView({
   return (
     <Tip label={tooltipLabel}>
       <button
+        aria-label={ariaLabel}
         className={cn(STATUSBAR_ACTION_CLASS, item.className)}
         data-testid={`statusbar-${item.id}`}
         disabled={item.disabled}

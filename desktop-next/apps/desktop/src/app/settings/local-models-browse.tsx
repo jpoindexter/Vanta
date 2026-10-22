@@ -244,7 +244,7 @@ export function LocalModelsBrowseSection(): ReactElement {
               />
 
               {openRepo === hit.repo && (
-                <div className="ml-4 grid grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] gap-1.5 border-l border-(--ui-border) py-1 pl-3">
+                <div className="ml-4 grid grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] gap-1.5 py-1 pl-3">
                   {listing && (
                     <p className="col-span-full flex items-center gap-2 py-1 text-meta text-muted-foreground">
                       <Loader2 className="size-3 animate-spin" />
