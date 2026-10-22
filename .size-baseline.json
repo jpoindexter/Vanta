@@ -1,0 +1,3377 @@
+{
+ "desktop-next/apps/desktop/electron/find-in-page.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/electron/hud-hyprland.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/electron/hud-ipc.ts": {
+  "lines": 303,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/electron/notification-ipc.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/electron/notification-linux.ts": {
+  "lines": 339,
+  "function": 5,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/electron/quick-entry.ts": {
+  "lines": 501,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/electron/updater/channel-protocol.ts": {
+  "lines": 489,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/electron/updater/channel.ts": {
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/electron/vanta/agent-dot-window.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/electron/vanta/agent-dot.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/electron/vanta/shell-extras.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/electron/window-below.ts": {
+  "lines": 336,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/electron/window-controls.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/electron/zoom.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/api/client.ts": {
+  "lines": 339,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/api/config.ts": {
+  "lines": 373
+ },
+ "desktop-next/apps/desktop/src/api/plugins.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/api/sessions.ts": {
+  "lines": 753,
+  "params": 1,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/api/system.ts": {
+  "lines": 323
+ },
+ "desktop-next/apps/desktop/src/api/vanta/event-mapper.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/agents/index.tsx": {
+  "lines": 438,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/artifacts/artifact-utils.ts": {
+  "lines": 587,
+  "complexity": 3,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/artifacts/index.tsx": {
+  "lines": 746,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/artifacts/runs-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/artifacts/workflow-section.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/accounts-section.tsx": {
+  "lines": 341,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/add-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/add-server-form.tsx": {
+  "lines": 326
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/category-picker.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/connector-dialog.tsx": {
+  "lines": 437,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/connector-row-card.tsx": {
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/connectors-directory.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/connectors-tab.tsx": {
+  "lines": 330,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/data/account-operations.ts": {
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/data/hosted-actions.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/data/join.ts": {
+  "lines": 331
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/data/mutations.ts": {
+  "lines": 326,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/data/persist.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/data/queries.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/derive-tools.ts": {
+  "lines": 312
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/derive.ts": {
+  "lines": 420,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/hosted-dialog.tsx": {
+  "function": 2,
+  "complexity": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/local-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/plugin-tools-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/tool-row.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/tools-filter-bar.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/tools-list.tsx": {
+  "lines": 533,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/tools-panel.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/tools-summary.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/use-tools-editor.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/connectors/ways-section.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/index.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/mcp/mcp-status.ts": {
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/mcp/use-mcp-draft.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/mcp/use-mcp-probes.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/mcp/use-mcp-servers.ts": {
+  "lines": 428,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/plugins/plugin-packages.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/plugins/plugins-tab.tsx": {
+  "lines": 892,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/scope-selector.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/skills/embedded-hub-picker.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/skills/official-skill-detail.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/skills/skill-detail.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/skills/skills-tab.tsx": {
+  "lines": 393,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/toolsets/toolset-detail.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/capabilities/toolsets/toolsets-tab.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/attachments.tsx": {
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/context-menu.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/controls.tsx": {
+  "lines": 379,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/directive-actions.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/floating-surface.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/floating-target.ts": {
+  "lines": 307,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/focus.ts": {
+  "lines": 781,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-at-completions.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-auto-speak-replies.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-branch.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-draft.ts": {
+  "lines": 652,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-drop.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-esc-cancel.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-metrics.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-popout.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-queue.ts": {
+  "lines": 748,
+  "function": 6,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-screenshot.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-submit.ts": {
+  "lines": 464,
+  "function": 5,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-trigger.ts": {
+  "lines": 478,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-undo.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-composer-voice.ts": {
+  "lines": 457,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-live-completion-adapter.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-mic-recorder.ts": {
+  "lines": 399,
+  "complexity": 2,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-popout-drag.ts": {
+  "lines": 374,
+  "params": 2,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-slash-completions.ts": {
+  "lines": 340,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-status-drawer.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-voice-conversation.ts": {
+  "lines": 1130,
+  "function": 9,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-voice-live-conversation.ts": {
+  "lines": 494,
+  "function": 4,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/hooks/use-voice-recorder.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/index.tsx": {
+  "lines": 1653,
+  "function": 3,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/inline-refs.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/model-pill.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/path-refs.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/reasoning-pill.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/rich-editor.ts": {
+  "lines": 916,
+  "function": 5,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/slash-refs.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/start-voice-button.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/coding-row.tsx": {
+  "lines": 332,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/index.tsx": {
+  "lines": 376,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/preview-row.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/session-control-goal.tsx": {
+  "lines": 643,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/session-control-heartbeat.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/session-control-loop.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/session-control.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/status-row.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/subagent-controls.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/subagent-section.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/subagent-transcript.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/status-stack/use-subagent-snapshot.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/suggestion-pills.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/text-utils.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/trigger-popover.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/undo-history.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/url-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/url-refs.ts": {
+  "lines": 359,
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/voice-activity.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/voice-fan.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/composer/voice-menu.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/history-window.ts": {
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/hooks/use-composer-actions.ts": {
+  "lines": 929,
+  "function": 3,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/hooks/use-file-drop-zone.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/index.tsx": {
+  "lines": 876,
+  "function": 4,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/new-session-drag.ts": {
+  "lines": 325,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/pane-mirror.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/perf-probe.tsx": {
+  "lines": 464,
+  "params": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/preview-tile.tsx": {
+  "lines": 376,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-act.ts": {
+  "lines": 848,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-annotate-card.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-artifact.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-browser-bar.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-console-state.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-console.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-file.tsx": {
+  "lines": 1301,
+  "function": 6,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-pane.tsx": {
+  "lines": 1606,
+  "function": 7,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-popout-bridge.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/preview-reader.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/right-rail/real-profile-consent-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/runtime-repository.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/scroll-to-bottom-button.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/session-drag.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/session-tile-actions.ts": {
+  "lines": 836,
+  "function": 6,
+  "params": 1,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/session-tile.tsx": {
+  "lines": 1004,
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/short-session-hang-repro.tsx": {
+  "lines": 388,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/chrome.tsx": {
+  "lines": 384,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/connection-switcher.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/cron-jobs-section.tsx": {
+  "lines": 507,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/filter-menu.tsx": {
+  "lines": 457,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/fleet-rail.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/gateway-groups.tsx": {
+  "lines": 350,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/index.tsx": {
+  "lines": 2133,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/local-device-switch.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/order.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/profile-dropdown-switcher.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/profile-remote-override-dialog.tsx": {
+  "lines": 310,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/profile-switcher.tsx": {
+  "lines": 1625,
+  "function": 7,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/project-dialog.tsx": {
+  "lines": 359,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/base-branch-picker.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/entered-content.tsx": {
+  "lines": 310,
+  "function": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/model.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/overview-row.tsx": {
+  "lines": 314,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/project-menu.tsx": {
+  "lines": 366,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/workspace-group.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/workspace-groups.ts": {
+  "lines": 1004,
+  "function": 3,
+  "complexity": 4,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/projects/worktree-dialog.tsx": {
+  "lines": 396,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/search-merge.ts": {
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/session-actions-menu.tsx": {
+  "lines": 820,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/session-row.tsx": {
+  "lines": 715,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/sessions-section.tsx": {
+  "lines": 668,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/use-entered-project-sessions.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/vanta/session-groups.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/vanta/sidebar-footer.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/vanta/vanta-sidebar.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/chat/sidebar/virtual-session-list.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/transcript-backfill.ts": {
+  "lines": 632,
+  "function": 7,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/chat/use-chat-bar-state.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/command-center/index.tsx": {
+  "lines": 769,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/command-center/maintenance.tsx": {
+  "lines": 420,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/command-palette/index.tsx": {
+  "lines": 1646,
+  "function": 5,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/command-palette/marketplace-theme-page.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/context-menu/app-context-menu.tsx": {
+  "lines": 663,
+  "function": 5,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/context-menu/shell-menu-items.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/controller.tsx": {
+  "lines": 870,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/hooks/use-background-sync.ts": {
+  "lines": 1502,
+  "function": 9,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/app/contrib/hooks/use-desktop-integrations.ts": {
+  "lines": 565,
+  "function": 4,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/contrib/hooks/use-quick-entry-bridge.ts": {
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/hooks/use-session-tile-delegate.ts": {
+  "lines": 551,
+  "function": 4,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/contrib/mcp-install-deeplink-dialog.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/onboarding-kickoff-machine.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/onboarding-kickoff.ts": {
+  "params": 1,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/panes.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/session-rpc-dispatcher.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/surfaces.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/contrib/wiring.tsx": {
+  "lines": 1425,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/cron/index.tsx": {
+  "lines": 1634,
+  "function": 7,
+  "complexity": 7
+ },
+ "desktop-next/apps/desktop/src/app/gateway/gateway-event-dedupe.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/gateway/hooks/use-connections-registry.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/gateway/hooks/use-gateway-boot.ts": {
+  "lines": 1755,
+  "function": 8,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/app/gateway/hooks/use-gateway-request.ts": {
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/hooks/use-config-record.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/hooks/use-keybinds.ts": {
+  "lines": 678,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/hooks/use-refresh-hotkey.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/hud/click-through.ts": {
+  "complexity": 1,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/hud/composer-drag.ts": {
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/hud/glass.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/hud/handoff.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/hud/hud-shell.tsx": {
+  "lines": 369,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/hud/resize-handle.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/hud/transcript-band.ts": {
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/master-detail.tsx": {
+  "lines": 510,
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/messaging/allowlist-field.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/messaging/index.tsx": {
+  "lines": 1174,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/messaging/telegram-qr-setup.tsx": {
+  "lines": 390,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/model-picker-overlay.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/open-session.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/overlays/overlay-split-layout.tsx": {
+  "lines": 351,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/overlays/overlay-view.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/overlays/panel.tsx": {
+  "lines": 433,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/page-search-shell.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/profiles/create-profile-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/profiles/delete-profile-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/profiles/index.tsx": {
+  "lines": 369,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/profiles/rename-profile-dialog.tsx": {
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/quick-entry/quick-entry-app.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/file-actions.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/files/remote-picker.tsx": {
+  "lines": 310,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/files/tree.tsx": {
+  "lines": 397,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/files/use-project-tree.ts": {
+  "lines": 627,
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/index.tsx": {
+  "lines": 385,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/review/file-tree.tsx": {
+  "lines": 533,
+  "function": 4
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/review/index.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/review/ship-bar.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/review/tree-data.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/active-resize.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/agent-terminal-stream.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/clipboard.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/instance.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/persistent.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/rail.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/terminals.ts": {
+  "lines": 496,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/use-agent-terminal.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/right-sidebar/terminal/use-terminal-session.ts": {
+  "lines": 1204,
+  "complexity": 1,
+  "function": 5
+ },
+ "desktop-next/apps/desktop/src/app/routes.ts": {
+  "lines": 322
+ },
+ "desktop-next/apps/desktop/src/app/session-import/index.tsx": {
+  "lines": 320,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session-switcher.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/session-context-drift.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-background-queue-drain.ts": {
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-cwd-actions.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/collapse-duplicate-final.ts": {
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/desktop-bridge.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/index.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/input-requests.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/lifecycle.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/message-stream.ts": {
+  "lines": 446,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/server-requests.ts": {
+  "lines": 796,
+  "complexity": 1,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/session-info.ts": {
+  "lines": 542,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/status.ts": {
+  "lines": 368,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/gateway-event/tools.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/index.ts": {
+  "lines": 1257,
+  "function": 12,
+  "params": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/test-harness.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-message-stream/utils.ts": {
+  "complexity": 4,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-model-controls.ts": {
+  "lines": 420,
+  "function": 3,
+  "params": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-preview-routing.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/index.ts": {
+  "lines": 1452,
+  "function": 10,
+  "complexity": 6,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/prompt-actions-harness.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/resolve-target-session.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/rewind.ts": {
+  "lines": 874,
+  "complexity": 5,
+  "function": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/slash.ts": {
+  "lines": 1421,
+  "function": 7,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/steering-session.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/submit.ts": {
+  "lines": 1105,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-prompt-actions/utils.ts": {
+  "lines": 764,
+  "function": 2,
+  "params": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-route-resume.ts": {
+  "lines": 355,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/display-hydration.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/index.ts": {
+  "lines": 3464,
+  "function": 11,
+  "complexity": 11,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/live-turn-remainder.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/pending-turn-identity.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/persisted-live-turn.ts": {
+  "lines": 330,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/restore-pending-clarify.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/restore-pending-connection.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/session-create-request.ts": {
+  "function": 1,
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-actions/utils.ts": {
+  "lines": 2609,
+  "function": 12,
+  "complexity": 12,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-list-actions.ts": {
+  "lines": 565,
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-session-state-cache.ts": {
+  "lines": 485,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-transcript-peer-sync.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/hooks/use-vanta-config.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/session-state-cache.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/session/workspace-session-target.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/appearance-settings.tsx": {
+  "lines": 913,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/aux-task-rows.tsx": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/browser-real-profile-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/chat-font-setting.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/combobox-input.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/computer-use-panel.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/config-field.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/config-settings.tsx": {
+  "lines": 604,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/connections-registry.tsx": {
+  "lines": 948,
+  "function": 3,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/app/settings/constants.ts": {
+  "lines": 873
+ },
+ "desktop-next/apps/desktop/src/app/settings/credential-key-ui.tsx": {
+  "lines": 410,
+  "function": 3,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/settings/custom-endpoints-settings.tsx": {
+  "lines": 529,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/env-credentials.tsx": {
+  "params": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/env-var-actions-menu.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/fallback-models-field.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/gateway-settings.tsx": {
+  "lines": 1536,
+  "function": 5,
+  "complexity": 6
+ },
+ "desktop-next/apps/desktop/src/app/settings/helpers.ts": {
+  "lines": 437,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/hud-modifier-settings.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/index.tsx": {
+  "lines": 562,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/keybind-settings.tsx": {
+  "lines": 330,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/keys-settings.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/local-model-download-progress.tsx": {
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/local-models-browse.tsx": {
+  "lines": 327,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/settings/local-models-model-rows.tsx": {
+  "lines": 338,
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/local-models-quickstart.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/local-models-runtime-section.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/local-models-settings.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/managed-updates-section.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/memory/connect.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/memory/field-control.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/memory/provider-config-modal.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/memory/provider-config-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/minimize-to-tray-setting.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/model-select.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/model-settings.tsx": {
+  "lines": 1582,
+  "params": 2,
+  "function": 4,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/app/settings/notifications-settings.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/plugin-install-modal.tsx": {
+  "lines": 635,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/plugin-settings-form.tsx": {
+  "lines": 422,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/plugin-settings.tsx": {
+  "lines": 445,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/settings/pool-limits-setting.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/primitives.tsx": {
+  "lines": 327
+ },
+ "desktop-next/apps/desktop/src/app/settings/profile-scope.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/providers-settings.tsx": {
+  "lines": 637,
+  "function": 4,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/app/settings/quick-entry-settings.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/screenshot-settings.tsx": {
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/searchable-select.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/sessions-settings.tsx": {
+  "lines": 436,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/app/settings/settings-manifest.ts": {
+  "lines": 325
+ },
+ "desktop-next/apps/desktop/src/app/settings/terminal-backend-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/terminal-font-setting.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/toolset-config-panel.tsx": {
+  "lines": 966,
+  "function": 7,
+  "complexity": 7
+ },
+ "desktop-next/apps/desktop/src/app/settings/uninstall-section.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/update-channel-row.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/use-deep-link-highlight.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/use-settings-search.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/settings/vault-settings.tsx": {
+  "lines": 836,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/settings/voice-provider-fields.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/approval-mode-menu.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/butterbar.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/context-usage-panel.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/gateway-menu-panel.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/hooks/use-context-breakdown.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/shell/hooks/use-overlay-routing.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/hooks/use-status-snapshot.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/shell/hooks/use-statusbar-items.tsx": {
+  "lines": 732,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/shell/model-catalog-menu.tsx": {
+  "lines": 1404,
+  "complexity": 5,
+  "function": 5,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/model-edit-submenu.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/model-menu-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/statusbar-controls.tsx": {
+  "lines": 379,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/system-resources-statusbar.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/titlebar-controls.tsx": {
+  "lines": 422,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/use-model-menu-controller.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/app/shell/vanta/use-titlebar-model.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/shell/wslg-window-controls.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/color.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/geometry.ts": {
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/app/starmap/node-context-menu.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/render.ts": {
+  "lines": 864,
+  "params": 2,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/starmap/share-code.ts": {
+  "params": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/share-controls.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/simulation.ts": {
+  "function": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/star-map.tsx": {
+  "lines": 993,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/app/starmap/time-axis.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/app/starmap/timeline.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/updates-overlay.tsx": {
+  "lines": 609,
+  "function": 4,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/app/vanta/home/home-surface.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/vanta/home/use-today.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/vanta/lists/list-page.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/vanta/palette/command-palette.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/vanta/settings/choice-row.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/vanta/settings/permissions-panel.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/app/webhooks/index.tsx": {
+  "lines": 687,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/artifact-card.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/catalog-advanced-dialog.tsx": {
+  "lines": 371,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/catalog-install-tool.tsx": {
+  "lines": 433,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/core/question-block.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/core/use-clarify-keys.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/index.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/pending.tsx": {
+  "lines": 332,
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/setup-pending.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/setup-pickers.tsx": {
+  "lines": 330,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/clarify/submit-shortcut.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/connector-directory-card.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/connector-tool.tsx": {
+  "lines": 536,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/directive-text.tsx": {
+  "lines": 634,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/embeds/listing-embed.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/embeds/mermaid-embed.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/embeds/mermaid-render-cache.ts": {
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/embeds/providers/maps.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/embeds/providers/youtube.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/inline-preview-directive.tsx": {
+  "lines": 539,
+  "complexity": 2,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/markdown-table.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/markdown-text.tsx": {
+  "lines": 852,
+  "function": 5,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/mcp-setup-tool.tsx": {
+  "lines": 433,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/start-chat-tool.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/agent-delivery.tsx": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/assistant-actions.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/assistant-message.tsx": {
+  "lines": 974,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/index.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/list.tsx": {
+  "lines": 1634,
+  "function": 4,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/message-parts.tsx": {
+  "lines": 461,
+  "complexity": 2,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/message-reactions.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/response-group.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/status.tsx": {
+  "lines": 458,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/system-message.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/timeline-index.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/timeline-position.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/timeline-rail.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/timeline-timestamp.tsx": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/timeline.tsx": {
+  "lines": 332,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/use-message-reactions.ts": {
+  "params": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/use-messages-below.ts": {
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/use-sticky-prompt-clip.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/use-timeline-history.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/use-timeline-reveal.ts": {
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/user-edit-composer.tsx": {
+  "lines": 964,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/thread/user-message.tsx": {
+  "lines": 619,
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/tool/approval-adapter.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/tool/approval.tsx": {
+  "lines": 321,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/tool/delegate.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/tool/fallback-model/index.ts": {
+  "lines": 1592,
+  "complexity": 10,
+  "function": 6
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/tool/fallback.tsx": {
+  "lines": 1212,
+  "function": 4,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/assistant-ui/tool/skill-activity.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/boot-failure-overlay.tsx": {
+  "lines": 549,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/boot-failure-reauth.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/code-editor.tsx": {
+  "lines": 392,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/chat/diff-lines.tsx": {
+  "lines": 692,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/chat/expandable-block.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/fixed-row-window.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/generated-image-result.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/image-generation-placeholder.tsx": {
+  "lines": 341,
+  "function": 2,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/json-document-editor.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/log-search.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/log-tail.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/preview-attachment.tsx": {
+  "complexity": 2,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/chat/shiki-block.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/status-row.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/transcript-video.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/vanta/approval-card.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/vanta/canvas-card.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/vanta/canvas-model.ts": {
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/chat/vanta/diff-summary-card.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/vanta/output-card.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/vanta/output-files.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/chat/zoomable-image.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/desktop-install-overlay.tsx": {
+  "lines": 792,
+  "function": 3,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/error-boundary.tsx": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/find-bar.tsx": {
+  "lines": 369,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/gateway-connecting-overlay.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/language-switcher.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/model-picker.tsx": {
+  "lines": 626,
+  "function": 5,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/components/model-visibility-dialog.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/notifications.tsx": {
+  "lines": 405,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/onboarding-chat/gate.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/onboarding-chat/intro-copy.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/onboarding-chat/options.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/onboarding/flow.tsx": {
+  "lines": 381,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/onboarding/glyph.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/onboarding/index.tsx": {
+  "lines": 953,
+  "function": 5,
+  "complexity": 3,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/geometry.ts": {
+  "lines": 308,
+  "complexity": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/grid-model.ts": {
+  "lines": 624,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/grid-to-tree.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/model.ts": {
+  "lines": 663,
+  "function": 4,
+  "params": 1,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/presets.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/drag-session.ts": {
+  "lines": 624,
+  "function": 3,
+  "params": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/edit-bar.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/floating-panes.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/index.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/keep-alive-panes.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/layout-picker.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/narrow-overlays.tsx": {
+  "lines": 314,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/panel-titlebar.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/track-model.ts": {
+  "lines": 383,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/tree-group.tsx": {
+  "lines": 1078,
+  "function": 6,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/renderer/tree-split.tsx": {
+  "lines": 852,
+  "function": 6,
+  "complexity": 6
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/store.ts": {
+  "lines": 2309,
+  "complexity": 6,
+  "function": 4,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/zone-editor.tsx": {
+  "lines": 594,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/tree/zones-engine.ts": {
+  "lines": 367,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/pane-shell/workspace-scope.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/particles/particle-field.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/prompt-overlays.tsx": {
+  "lines": 591,
+  "function": 5
+ },
+ "desktop-next/apps/desktop/src/components/provider-status-chip.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/remote-setup/fields.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/remote-setup/first-run.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/remote-setup/use-remote-connection-test.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/remote-setup/use-remote-oauth.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/remote-setup/use-remote-probe.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/remote-setup/use-remote-setup.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/send-diagnostics-dialog.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/session-picker.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/sync-status-card.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/sync-status.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/tips/index.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/tips/local-runtime-update-offer.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/tips/tip-bubble.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/tips/use-tip-rotation.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/ui/card-stack.tsx": {
+  "lines": 321,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/components/ui/confirm-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/copy-button.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/decode-text.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/dialog.tsx": {
+  "lines": 333,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/dropdown-menu.tsx": {
+  "lines": 552,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/ui/fan-menu.tsx": {
+  "lines": 402,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/ui/favicon.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/input.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/pane-tab.tsx": {
+  "lines": 383,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/popover.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/search-field.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/setup-form-dialog.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/sidebar.tsx": {
+  "lines": 676,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/ui/split-button.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/ui/tooltip.tsx": {
+  "lines": 422,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/ui/use-zoom-pan.ts": {
+  "lines": 355,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/components/ui/zoomable.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/components/update-hold-overlay.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/components/update-status.tsx": {
+  "lines": 401,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/components/version-details.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/contrib/plugin.ts": {
+  "lines": 375,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/contrib/plugins.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/contrib/runtime-loader.ts": {
+  "lines": 1119,
+  "complexity": 4,
+  "function": 5,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/contrib/settings-pages.ts": {
+  "lines": 330,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/debug/perf-live.ts": {
+  "lines": 306,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/debug/render-counter.ts": {
+  "lines": 308,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/dev/chat-fixtures/fixtures.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/dev/chat-fixtures/scene.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/hooks/use-media-image.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/hooks/use-resize-observer.ts": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/i18n/backend-packs.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/i18n/context.tsx": {
+  "lines": 303,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/i18n/types.ts": {
+  "lines": 4407
+ },
+ "desktop-next/apps/desktop/src/lib/ansi.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/artifact-detect.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/brand-icon.ts": {
+  "lines": 429
+ },
+ "desktop-next/apps/desktop/src/lib/budgeted-loop.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/chat-messages/coverage.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/chat-messages/hydration.ts": {
+  "lines": 631,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/chat-messages/parts.ts": {
+  "lines": 647,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/chat-messages/reconciliation.ts": {
+  "lines": 580,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/chat-messages/tool-parts.ts": {
+  "lines": 1011,
+  "function": 3,
+  "params": 1,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/lib/chat-runtime.ts": {
+  "lines": 609,
+  "function": 4,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/lib/commit-changelog.ts": {
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/completion-sound.ts": {
+  "lines": 500
+ },
+ "desktop-next/apps/desktop/src/lib/deeplink-routes.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/desktop-fs.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/desktop-git.ts": {
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/lib/desktop-slash-commands.ts": {
+  "lines": 931,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/display-path.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/distribution-label.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/error-surface.ts": {
+  "lines": 357,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/external-link.tsx": {
+  "lines": 476,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/find-in-page-scope.ts": {
+  "lines": 639,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/find-in-page.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/gateway-events.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/gateway-health-pill.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/incremental-external-store-runtime.ts": {
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/inflight-turn-journal.ts": {
+  "lines": 1174,
+  "complexity": 9,
+  "function": 4
+ },
+ "desktop-next/apps/desktop/src/lib/katex-memo.ts": {
+  "function": 5,
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/keybinds/actions.ts": {
+  "lines": 382
+ },
+ "desktop-next/apps/desktop/src/lib/keybinds/approval-keys.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/keybinds/combo.ts": {
+  "lines": 327,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/layout-persistence.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/listing-embed.ts": {
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/loadout.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/local-preview.ts": {
+  "lines": 341,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/markdown-blocks.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/markdown-code.ts": {
+  "lines": 407,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/markdown-html-depth.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/markdown-preprocess.ts": {
+  "lines": 1191,
+  "function": 3,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/lib/mcp-dashboard-oauth.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/mcp-deeplink.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/mcp-import.ts": {
+  "lines": 550,
+  "complexity": 5,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/media.ts": {
+  "lines": 448,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/model-options.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/model-status-label.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/open-target.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/plugin-source-urls.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/preview-act/act-in-page.ts": {
+  "lines": 678,
+  "function": 3,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/lib/preview-act/identity.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/preview-act/naming.ts": {
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/preview-act/visibility.ts": {
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/preview-act/watch-in-page.ts": {
+  "lines": 1062,
+  "function": 5,
+  "complexity": 6
+ },
+ "desktop-next/apps/desktop/src/lib/preview-annotate/group.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/preview-annotate/handoff.ts": {
+  "lines": 524,
+  "complexity": 1,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/lib/preview-annotate/identity.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/preview-annotate/in-page.ts": {
+  "lines": 893,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/lib/preview-targets.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/quick-entry-submission.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/render-weight.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/runtime-readiness.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/selection-copy-colors.ts": {
+  "lines": 332,
+  "complexity": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/session-branch-tree.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/session-date-groups.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/session-signatures.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/sibling-ws-url.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/speech-text.ts": {
+  "lines": 355,
+  "complexity": 2,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/lib/spoken-reply.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/summarize-command.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/svg-image.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/todos.ts": {
+  "lines": 322
+ },
+ "desktop-next/apps/desktop/src/lib/tool-result-summary.ts": {
+  "lines": 478,
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/tour/collect-targets.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/tour/engine.ts": {
+  "lines": 400,
+  "function": 2,
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/tour/spotlight-blur.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/version-status.ts": {
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/voice-barge-in.ts": {
+  "lines": 371,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/voice-client-direct.ts": {
+  "lines": 453,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/voice-live.ts": {
+  "lines": 542,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/lib/voice-playback.ts": {
+  "lines": 847,
+  "function": 8,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/lib/voice-stream.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/lib/voice-tts-echo.ts": {
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/wake-client-capture.ts": {
+  "lines": 385,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/lib/wake-sound.ts": {
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/avatar-picker.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/avatar.tsx": {
+  "lines": 1157,
+  "function": 6,
+  "complexity": 4,
+  "params": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/bot-row.tsx": {
+  "lines": 684,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/canonical-chat.ts": {
+  "lines": 709,
+  "function": 4,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/chat-empty.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/create-dialog.tsx": {
+  "lines": 1370,
+  "function": 8,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/cron.tsx": {
+  "lines": 1345,
+  "function": 7,
+  "complexity": 7
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/data.ts": {
+  "lines": 1676,
+  "complexity": 10,
+  "function": 5
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/edit-profile-dialog.tsx": {
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-activity.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-chat-parts.tsx": {
+  "lines": 587,
+  "function": 5,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-chat-view-members.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-chat-view.tsx": {
+  "lines": 1663,
+  "function": 8,
+  "complexity": 6
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-chat.ts": {
+  "lines": 1902,
+  "complexity": 10,
+  "function": 7,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-compress.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-external-writes.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-membership.ts": {
+  "lines": 483,
+  "function": 4,
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-round-members.ts": {
+  "lines": 390,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-rounds.ts": {
+  "lines": 1026,
+  "function": 7,
+  "complexity": 6,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-test-utils.ts": {
+  "lines": 522,
+  "function": 2,
+  "complexity": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/group-turns.ts": {
+  "lines": 1435,
+  "complexity": 7,
+  "function": 7,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/i18n.ts": {
+  "lines": 2273
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/labels.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/mcp-setup.tsx": {
+  "lines": 370,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/model-picker.tsx": {
+  "lines": 312,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/pet.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/plugin.tsx": {
+  "lines": 892,
+  "function": 4,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/profile-config.tsx": {
+  "lines": 638,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/profile-ops.ts": {
+  "lines": 505,
+  "function": 5,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/relay.ts": {
+  "lines": 783,
+  "complexity": 4,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-actions.ts": {
+  "lines": 401,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane-content.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane-derivation.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane-dialogs.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane-groups.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane-sections.tsx": {
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane-toolbar.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-pane.tsx": {
+  "lines": 548,
+  "params": 1,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/roster-sections.tsx": {
+  "lines": 324,
+  "params": 1,
+  "complexity": 2,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/routing.ts": {
+  "lines": 485,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/row-helpers.ts": {
+  "params": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/screen-autoraise.ts": {
+  "complexity": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/screen-hero.tsx": {
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/screen-install.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/screen-pane.tsx": {
+  "lines": 569,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/screen-portal.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/session-sweep.ts": {
+  "lines": 352,
+  "function": 3,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/skills-hub.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/types.ts": {
+  "lines": 376
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/user-sections-ui.tsx": {
+  "lines": 345,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/plugins/bots/user-sections.ts": {
+  "lines": 426,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/api.ts": {
+  "lines": 518,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/board-switcher.tsx": {
+  "lines": 431,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/board.tsx": {
+  "lines": 1444,
+  "function": 7,
+  "complexity": 5
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/completion-notify.ts": {
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/drawer.tsx": {
+  "lines": 1184,
+  "function": 7,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/i18n.ts": {
+  "lines": 1172
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/model-override.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/orchestration.tsx": {
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/plugin.tsx": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/plugins/kanban/ui.tsx": {
+  "lines": 302
+ },
+ "desktop-next/apps/desktop/src/sdk/index.ts": {
+  "lines": 2097,
+  "function": 7,
+  "params": 2,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/store/agent-plugins.ts": {
+  "lines": 512,
+  "params": 2,
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/store/artifacts.ts": {
+  "lines": 386,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/store/clarify.ts": {
+  "lines": 595,
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/coding-status.ts": {
+  "lines": 551
+ },
+ "desktop-next/apps/desktop/src/store/composer-queue.ts": {
+  "lines": 694,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/composer-status.ts": {
+  "lines": 533,
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/composer-suggestions.ts": {
+  "lines": 306
+ },
+ "desktop-next/apps/desktop/src/store/composer.ts": {
+  "lines": 915,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/connection-request.ts": {
+  "lines": 532,
+  "complexity": 4
+ },
+ "desktop-next/apps/desktop/src/store/connections.ts": {
+  "lines": 587,
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/store/dead-session-prune.ts": {
+  "lines": 303
+ },
+ "desktop-next/apps/desktop/src/store/desktop-metrics.ts": {
+  "lines": 333
+ },
+ "desktop-next/apps/desktop/src/store/free-tier-sign-in.ts": {
+  "lines": 454,
+  "function": 1,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/store/gateway-switch.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/gateway.ts": {
+  "lines": 2624,
+  "function": 14,
+  "complexity": 12,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/store/goals.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/hub-actions.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/layout.ts": {
+  "lines": 1065,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/store/local-runtime-jobs.ts": {
+  "lines": 520,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/store/managed-updates.ts": {
+  "complexity": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/mcp-health.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/model-assignment.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/model-presets.ts": {
+  "function": 2,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/store/model-visibility.ts": {
+  "lines": 375,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/store/native-notifications.ts": {
+  "lines": 441,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/store/notifications.ts": {
+  "lines": 363
+ },
+ "desktop-next/apps/desktop/src/store/onboarding.ts": {
+  "lines": 1413,
+  "function": 6,
+  "complexity": 4,
+  "params": 2
+ },
+ "desktop-next/apps/desktop/src/store/pet-gallery.ts": {
+  "lines": 532,
+  "function": 3
+ },
+ "desktop-next/apps/desktop/src/store/pet-generate.ts": {
+  "lines": 646,
+  "function": 2,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/store/pet-overlay.ts": {
+  "lines": 311
+ },
+ "desktop-next/apps/desktop/src/store/pet-plugin-messages.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/preview-status.ts": {
+  "lines": 413,
+  "complexity": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/store/preview.ts": {
+  "lines": 1316,
+  "params": 1,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/profile-dot-state.ts": {
+  "function": 1,
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/profile-share.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/profile.ts": {
+  "lines": 1205,
+  "function": 3,
+  "complexity": 2
+ },
+ "desktop-next/apps/desktop/src/store/projects.ts": {
+  "lines": 1717,
+  "complexity": 5,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/store/prompts.ts": {
+  "lines": 561,
+  "function": 1,
+  "complexity": 1,
+  "params": 3
+ },
+ "desktop-next/apps/desktop/src/store/pull-requests.ts": {
+  "complexity": 1,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/quick-entry.ts": {
+  "lines": 538,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/reactions.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/review.ts": {
+  "lines": 791,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/send-diagnostics.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/session-control.ts": {
+  "lines": 884,
+  "complexity": 6,
+  "function": 4
+ },
+ "desktop-next/apps/desktop/src/store/session-dot-state.ts": {
+  "function": 1,
+  "params": 1
+ },
+ "desktop-next/apps/desktop/src/store/session-focus.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/session-pin-sync.ts": {
+  "lines": 430,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/session-request-router.ts": {
+  "params": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/session-states.ts": {
+  "lines": 3180,
+  "function": 9,
+  "complexity": 12,
+  "params": 3
+ },
+ "desktop-next/apps/desktop/src/store/session-unread.ts": {
+  "lines": 596,
+  "complexity": 2,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/session.ts": {
+  "lines": 1871,
+  "complexity": 3,
+  "function": 2
+ },
+ "desktop-next/apps/desktop/src/store/skill-deeplink-install.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/subagents.ts": {
+  "lines": 472,
+  "complexity": 3,
+  "function": 1
+ },
+ "desktop-next/apps/desktop/src/store/suggestion-providers/skill.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/store/thread-scroll.ts": {
+  "lines": 399
+ },
+ "desktop-next/apps/desktop/src/store/transcript-tail-cache.ts": {
+  "lines": 417,
+  "function": 1,
+  "complexity": 3
+ },
+ "desktop-next/apps/desktop/src/store/transcript-tail.ts": {
+  "lines": 320
+ },
+ "desktop-next/apps/desktop/src/store/translucency.ts": {
+  "lines": 411
+ },
+ "desktop-next/apps/desktop/src/store/updates.ts": {
+  "lines": 1427,
+  "function": 6,
+  "complexity": 6
+ },
+ "desktop-next/apps/desktop/src/store/wake-word.ts": {
+  "lines": 425,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/themes/backend-sync.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/themes/color.ts": {
+  "lines": 331,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/themes/context.tsx": {
+  "lines": 651,
+  "function": 2,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/themes/presets.ts": {
+  "lines": 468
+ },
+ "desktop-next/apps/desktop/src/themes/skin.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/themes/vscode.ts": {
+  "lines": 372,
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/desktop/src/types/desktop.ts": {
+  "lines": 1885
+ },
+ "desktop-next/apps/desktop/vite.config.ts": {
+  "function": 1
+ },
+ "desktop-next/apps/shared/src/billing-types.ts": {
+  "lines": 356
+ },
+ "desktop-next/apps/shared/src/charge-settlement.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/color.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/fuzzy.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/i18n.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/json-rpc-channel.ts": {
+  "lines": 613,
+  "function": 5,
+  "params": 1,
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/json-rpc-gateway.ts": {
+  "lines": 741,
+  "complexity": 2,
+  "function": 3
+ },
+ "desktop-next/apps/shared/src/slash.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/theme-presets.ts": {
+  "lines": 494
+ },
+ "desktop-next/apps/shared/src/translucency.ts": {
+  "lines": 497
+ },
+ "desktop-next/apps/shared/src/update-debt.ts": {
+  "complexity": 1
+ },
+ "desktop-next/apps/shared/src/websocket-url.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "examples/spreadsheet-sidecar/excel-custom-functions.ts": {
+  "params": 1
+ },
+ "vanta-ts/desktop-app/src/long-session-navigation.tsx": {
+  "function": 2,
+  "complexity": 1
+ },
+ "vanta-ts/desktop-app/src/operator-views.tsx": {
+  "lines": 303,
+  "complexity": 3
+ },
+ "vanta-ts/desktop-app/src/queued-turns.tsx": {
+  "complexity": 1
+ },
+ "vanta-ts/desktop-app/src/runtime-strip.tsx": {
+  "complexity": 1
+ },
+ "vanta-ts/desktop-app/src/session-safe-ops.tsx": {
+  "function": 1
+ },
+ "vanta-ts/desktop-app/src/session-view-state.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/agent/effect-persistence.ts": {
+  "lines": 539,
+  "complexity": 3,
+  "function": 5,
+  "params": 3
+ },
+ "vanta-ts/src/agent/stream-dispatch.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/cli/deep-plan-cmd.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/cli/modal-gateway-cmd.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/cli/modal-gateway-status.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/cli/ops.ts": {
+  "function": 1
+ },
+ "vanta-ts/src/cli/plugin-cmd.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/cli/trajectory-cmd.ts": {
+  "params": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/continuity/store.ts": {
+  "params": 2
+ },
+ "vanta-ts/src/desktop/gateway-control.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/desktop/learning-api.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/desktop/learning-write-api.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/effects/execute-effect.ts": {
+  "params": 1,
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/effects/gate-context.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/eval/schema-ablation.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/first-inference/download.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/first-inference/wizard.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/gateway/effect-send.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/gateway/platform-webhook.ts": {
+  "function": 1
+ },
+ "vanta-ts/src/gateway/platforms/teams-auth.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/gateway/run-session.ts": {
+  "lines": 303,
+  "params": 1
+ },
+ "vanta-ts/src/gateway/run.ts": {
+  "lines": 329,
+  "function": 1,
+  "complexity": 2
+ },
+ "vanta-ts/src/harness/thickness.ts": {
+  "function": 1
+ },
+ "vanta-ts/src/hooks/hook-spawn.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/interactive-post-turn.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/interactive-turn.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/interactive.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/memory/msa-client.ts": {
+  "complexity": 1,
+  "params": 1
+ },
+ "vanta-ts/src/modes/permission-mode.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/net/ipv4-fetch.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/payments/authorization.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/payments/readiness.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/payments/service.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/payments/visa-tap.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/permissions/reply-bus.ts": {
+  "function": 1
+ },
+ "vanta-ts/src/plugins/worker.ts": {
+  "lines": 321,
+  "function": 2,
+  "params": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/providers/fallback.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/providers/index.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/providers/model-settings.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/providers/openai.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/public-api/readiness.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/public-api/routes.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/repl/model-cmd.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/repl/prompt-cmd.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/repl/speed-cmd.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/run-anywhere/readiness.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/runs/store.ts": {
+  "lines": 372
+ },
+ "vanta-ts/src/runtime-controller/adapter.ts": {
+  "function": 2,
+  "complexity": 1
+ },
+ "vanta-ts/src/runtime-engine/profile-store.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/sandbox/profile.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/schedule/commands.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/schedule/cron.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/schema/backtest.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/schema/controlled-commit.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/counterexample.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/mechanism-library.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/model-planner.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/model-sandbox.ts": {
+  "function": 3,
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/quality-ledger.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/task-model.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/schema/timeline.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/schema/workspace.ts": {
+  "function": 2,
+  "complexity": 2
+ },
+ "vanta-ts/src/settings/store.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/settings/trust-gate.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/setup-messaging.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/setup.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/setup/telegram-intent.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/setup/telegram-status.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/skills/library.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/term/ansi-png.ts": {
+  "complexity": 1,
+  "params": 2
+ },
+ "vanta-ts/src/tools/browser-act-run.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/tools/browser-act.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/tools/calendar-write.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/tools/delegate.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/tools/drive-write.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/tools/msa-memory.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/tools/self-repair.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/tools/shell-mkdir-scope.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/tools/shell-output.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/tools/sparge-attention.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/tools/v2ex-read.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/training/trajectory.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/tts/clause-splitter.ts": {
+  "complexity": 2
+ },
+ "vanta-ts/src/tts/streaming.ts": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/app-regions.tsx": {
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/ask-user-prompt.tsx": {
+  "function": 1,
+  "complexity": 2
+ },
+ "vanta-ts/src/ui/composer-selection.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/hooks-panel.tsx": {
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/message-actions-panel.tsx": {
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/model-pick-panel.tsx": {
+  "params": 1,
+  "complexity": 2,
+  "function": 1
+ },
+ "vanta-ts/src/ui/team-rows.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/transcript-selection.ts": {
+  "complexity": 1
+ },
+ "vanta-ts/src/ui/use-overlay.ts": {
+  "complexity": 1,
+  "function": 1
+ },
+ "vanta-ts/src/ui/workflow-select-panel.tsx": {
+  "function": 1,
+  "complexity": 1
+ },
+ "vanta-ts/src/vision/look-capture.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/voice/loop.ts": {
+  "params": 1
+ },
+ "vanta-ts/src/workflow/completion.ts": {
+  "params": 2,
+  "complexity": 1
+ },
+ "vanta-website/src/pages/index.tsx": {
+  "function": 1
+ }
+}
