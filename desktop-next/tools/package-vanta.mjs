@@ -53,7 +53,7 @@ function buildInputs() {
 }
 
 const noticeFiles = (electronDist) => [
-  [path.join(next, "LICENSE-VANTA-MIT"), "LICENSE-VANTA-MIT"],
+  [path.join(next, "LICENSE-THIRD-PARTY-MIT"), "LICENSE-THIRD-PARTY-MIT"],
   [path.join(next, "NOTICE.md"), "NOTICE.md"],
   [path.join(repo, "LICENSE"), "LICENSE"],
   [path.join(electronDist, "LICENSE"), "LICENSE.electron"],

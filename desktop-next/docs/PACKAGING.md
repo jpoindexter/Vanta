@@ -24,7 +24,7 @@ if missing it is built with `cargo build --release --locked --offline` (no depen
 - `Resources/app.asar`: built renderer, Electron main and preload, tray/dock assets (the identity comes from `product-identity.cjs` and `electron-builder.config.cjs`, read by `tools/package-vanta.mjs`).
 - `Resources/vanta-runtime/`: precompiled runtime (`dist-runtime/cli.mjs`), `src/` (assets the bundle reads), legacy server-served renderer, `package.json`, and production `node_modules` as real files (247 packages, includes the tsx fallback). No symlinks.
 - `Resources/kernel/vanta-kernel` (release build, executable).
-- `Resources/LICENSE`, `LICENSE-HERMES-MIT`, `NOTICE.md` (MIT attribution), `LICENSE.electron`, `LICENSES.chromium.html`.
+- `Resources/LICENSE`, `LICENSE-THIRD-PARTY-MIT`, `NOTICE.md` (MIT attribution), `LICENSE.electron`, `LICENSES.chromium.html`.
 - The runtime runs under the app's own binary with `ELECTRON_RUN_AS_NODE`, so the RunAsNode fuse stays on. Runtime lookup: `VANTA_RUNTIME_ROOT`, else `Resources/vanta-runtime` (`electron/vanta/runtime-root.ts`).
 - Updates: no feed; the app reports updates as not configured.
 

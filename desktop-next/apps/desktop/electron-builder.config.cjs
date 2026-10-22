@@ -68,7 +68,7 @@ module.exports = {
   appId,
   productName: displayName,
   executableName: displayName,
-  copyright: 'Copyright © 2026 Theft Studio. Portions © 2025 Theft Studio (MIT), see LICENSE-VANTA-MIT.',
+  copyright: 'Copyright © 2026 Theft Studio. Includes third-party MIT-licensed code, see LICENSE-THIRD-PARTY-MIT and NOTICE.md.',
   protocols: [
     {
       name: `${displayName} Protocol`,
