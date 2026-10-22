@@ -105,7 +105,7 @@ const USAGE_LINES = [
       "       vanta release-proofs status [--json] | capture codex|google-workspace|telegram|all --yes [--json]  bind required live accounts to the current commit",
       "       vanta roadmap serve                start drag-and-drop board at http://localhost:7789/roadmap/board",
       "       vanta now [--apply]                propose/fill the next 1-2 Now cards without exceeding WIP",
-      "       vanta desktop [port] [--companion]  start desktop; opt into token-paired LAN companion access",
+      "       vanta desktop                      open the Vanta app (bare call); with [port] [--companion] or --classic, serve the classic desktop in the browser",
       "       vanta audit                        npm + cargo dependency security scan",
       "       vanta lint [files|--staged]        code-size gate: file≤300 fn≤50 params≤4 complexity≤10",
       "       vanta model [list | <provider> [<model>]]  show or switch the active provider/model",

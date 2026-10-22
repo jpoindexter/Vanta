@@ -177,3 +177,20 @@ The V-006 and V-008 rows above describe the state before this branch; their "Des
 - **Differences from the old renderer, on purpose or by limit**: (1) a saved message with attachments stays in the window's own queue (the server queue carries text only); (2) Steer on a saved message means "run next, after the running instruction", because the server never interrupts a running instruction to reach the queue; (3) a run the user stopped keeps the existing stop display and shows no failure card.
 - **Gaps**: see PARKED.md (live thread does not show queued user messages until the chat is reopened; schema-trace explorer V-009 not ported; a conflict while arrow-stepping through edits loses the typed words).
 - Evidence: `docs/proofs/receipts-queue/` (real Electron app, sandbox VANTA_HOME, scripted model). Re-run: `node tools/receipts-queue-proof/run.mjs --out <dir>`; repeated: `node tools/receipts-queue-proof/flake.mjs --runs N`.
+
+## Update 2026-10-22: default switched (DN-14), old renderer kept
+
+Plan: `CUTOVER-PLAN-2026-10-22.md`.
+
+- Done: bare `vanta desktop` opens the installed Vanta app (`vanta-ts/src/cli/desktop-next-launch.ts`, `desktop-entry.ts`). `vanta desktop --classic`, `VANTA_DESKTOP_CLASSIC=1`, any argument (port, `--companion`, `--no-open`), or a missing app keeps the classic browser desktop. A failed open falls back to classic with a message.
+- Proof: 7 unit tests; lint within limits; typecheck clean; live run: with the app quit, `vanta desktop` started a new Vanta process and exited 0 without starting a server; `vanta desktop --classic 17999 --no-open` still served the classic desktop.
+- Not deleted: nothing under `vanta-ts/desktop-app`. Deleting is blocked on two counts, independent of any decision: (1) the new shell imports `process-tree`, `project-root`, `runtime-env`, `runtime-launch`, `runtime-paths`, `project-switch`, `project-folder-picker` and `dropped-paths` from `desktop-app/electron`; (2) the server serves `/` and `/companion` from `desktop-app/dist`, and the companion and iOS shell consume that bundle.
+- Row V-050 (packaging, signing, notarization): signing, notarization and stapling are done (builds 4 to 6, Developer ID). Still no update feed.
+- Rollback: `vanta desktop --classic`.
+- The state column above lags the code (several rows were ported after 2026-10-14: look capture, canvas, run library and workflow ledger, project handoff, Home Today). A row-by-row re-verification has not been done.
+
+Owner decisions still needed before the old renderer can be removed (the cutover itself does not need them):
+1. V-038 companion (LAN pairing, mobile web): port it, or drop the companion. It keeps the old bundle alive.
+2. V-009 schema-trace explorer: later or drop.
+3. V-007 long-session navigation, V-047 tray extras, V-042 runtime profiles: later or drop each.
+4. V-036 Google Workspace connect: still parked on the OAuth decision.
