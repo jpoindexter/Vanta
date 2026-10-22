@@ -41,3 +41,19 @@ Proposal (needs owner OK, it changes a guard): a ratchet like the design scan. A
 ## Build 6 on the real profile
 
 First launch of the installed app on the real profile: the process started and the storage-key migration ran. `vanta.*` key occurrences went from 2 to 52; checked individually: composer model, theme, onboarding and active profile now exist under `vanta.*`. Old `hermes.*` keys are still present (the migration copies; it does not delete). Not seen: the UI itself (chats visible, settings intact) since this was read from disk, not looked at.
+
+## Real model turns through the installed app (2026-10-22)
+
+Installed build 6, packaged, sandbox `VANTA_HOME` and project, real `HOME` (the Codex login file rotates tokens; a copy would risk the owner's lineage), no tools, prompt "Reply with exactly the word: ok".
+- Codex: reply "ok", status Done, 2 s.
+- Claude: reply "ok", status Done, 3 s.
+- A scripted mock would have answered "Scripted turn finished", so these are live models. The model id was not shown in the UI text, so it is not recorded here.
+- Console errors in both runs: `unsupported: desktopPluginsRoot` and `getRemoteDisplayReason` (shim stubs, already in the done-path output). Not investigated.
+
+## DN-13 keyboard walk (2026-10-22)
+
+Installed build 6, 70 Tab presses on the main shell (scripted model so the first-run picker does not hold focus), plus 70 on the first-run provider picker.
+- Main shell: 43 distinct stops, order runs sidebar controls, nav, then onward; focus cycles after 42 (no trap, nothing lost to the body); every stop shows a focus ring or `:focus-visible`; nothing off screen.
+- First-run picker: focus stays inside the modal for all 70 presses (correct), cycling after 68.
+- Defect found: 2 status-bar buttons (one at each footer edge) were icon-only with no accessible name. Fixed in `app/shell/statusbar-controls.tsx` (icon-only items take `aria-label` from their title) with 3 new tests; 13 status-bar tests pass. Uncommitted: the file is 379 lines, so the size gate blocks the commit (see the ratchet proposal above).
+- Not covered: Shift+Tab order, Escape on every overlay, screen-reader output, the right pane and settings pages, and composer-to-thread navigation. This is a Tab-order and naming walk, not a full a11y audit.
