@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { workflowFingerprint } from "./diff.js";
 import type { WorkflowGraph, WorkflowNode } from "./schema.js";
 import { GraphEvidenceKindSchema } from "./completion-contract.js";
 import { WorkflowPortTypeSchema } from "./node-schema.js";
@@ -30,6 +31,7 @@ export const GraphRunStateSchema = z.object({
   runId: z.string().min(1),
   graphId: z.string().min(1),
   graphRevision: z.number().int().positive(),
+  graphHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   revision: z.number().int().nonnegative(),
   status: z.enum(["running", "done", "paused", "blocked", "error", "exhausted", "cancelled"]),
   createdAt: z.string(),
@@ -72,7 +74,7 @@ export type GraphAgentOutcome = {
 
 export function newGraphRunState(graph: WorkflowGraph, runId: string, at: string, limitUsd?: number): GraphRunState {
   return GraphRunStateSchema.parse({
-    version: 1, runId, graphId: graph.id, graphRevision: graph.revision ?? 1, revision: 0,
+    version: 1, runId, graphId: graph.id, graphRevision: graph.revision ?? 1, graphHash: workflowFingerprint(graph), revision: 0,
     status: "running", createdAt: at, updatedAt: at, values: initialValues(graph), fieldRevisions: {},
     results: {}, transcript: [], attempts: [], artifacts: [], evidence: [], decisions: [],
     budget: { limitUsd, usedUsd: 0, usedTokens: 0, noProgressSteps: 0 }, approvals: [], mutations: [],

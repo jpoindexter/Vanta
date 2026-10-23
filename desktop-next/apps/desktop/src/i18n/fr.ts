@@ -3572,6 +3572,20 @@ export const frOverrides = {
     }
   },
   artifacts: {
+    pastWork: {
+      title: "Travail précédent",
+      search: "Rechercher un travail précédent…",
+      empty: "Aucun travail précédent. Les conversations terminées apparaîtront ici pour être réutilisées.",
+      emptySearch: "Aucun travail ne correspond à cette recherche.",
+      error: "Impossible de charger le travail précédent.",
+      loading: "Chargement du travail précédent",
+      hint: "Relisez et modifiez une demande précédente dans une nouvelle conversation. Rien ne démarre avant votre envoi.",
+      reuse: "Utiliser dans un nouveau chat",
+      save: "Enregistrer",
+      saved: "Enregistré",
+      saveError: "Impossible d’enregistrer ce travail.",
+      retry: "Réessayer"
+    },
     search: 'Rechercher des artefacts...',
     refresh: 'Actualiser les artefacts',
     refreshing: 'Actualisation des artefacts',
@@ -3679,18 +3693,18 @@ export const frOverrides = {
       artifacts: 'Artefacts',
       cron: 'Tâches planifiées'
     },
-    searchAria: 'Rechercher des sessions',
-    searchPlaceholder: 'Rechercher des sessions…',
+    searchAria: 'Rechercher des discussions',
+    searchPlaceholder: 'Rechercher des discussions…',
     clearSearch: 'Effacer la recherche',
     noMatch: query => `Aucune session ne correspond à « ${query} ».`,
     results: 'Résultats',
     pinned: 'Épinglées',
-    sessions: 'Sessions',
+    sessions: 'Discussions',
     terminal: 'Terminal',
     files: 'Fichiers',
     review: 'Revue',
     logs: 'Journaux',
-    cronJobs: 'Tâches cron',
+    cronJobs: 'Programmations',
     groupAriaGrouped: 'Afficher les sessions en une seule liste',
     groupAriaUngrouped: 'Grouper les sessions par espace de travail',
     showProjects: 'Afficher les projets',
@@ -3702,7 +3716,7 @@ export const frOverrides = {
     noWorkspace: 'Aucun espace de travail',
     projectEmpty: 'Aucune session pour le moment',
     projectLoadFailed: 'Impossible de charger les sessions',
-    noSessions: 'Aucune session pour le moment',
+    noSessions: 'Aucune discussion',
     storageCorrupt: {
       title: 'La base de données des sessions est endommagée',
       body: (profiles: string) =>

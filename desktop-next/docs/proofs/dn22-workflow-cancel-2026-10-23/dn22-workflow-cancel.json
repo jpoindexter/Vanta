@@ -1,0 +1,118 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-tCezuw",
+  "checks": [
+    "The actual workflow tool reaches its first executing action",
+    "The workflow was requested by the local model from chat",
+    "The real run is active before Cancel",
+    "Past work retains the earlier completed turn",
+    "The active turn is absent from the completed-run API",
+    "The active workflow has no misleading Past work row",
+    "Workflow rows have no card outline",
+    "Workflow summary and actions fit the narrow window",
+    "Cancel is reachable by keyboard",
+    "The pending request is shown without claiming Cancelled",
+    "The real executor stops at the next checkpoint",
+    "The first action completed once and the second never ran",
+    "Cancellation does not tell the agent to retry",
+    "Cancelled work has no automatic Resume action",
+    "Cancellation is not presented as successful Done",
+    "The first effect was neither killed nor duplicated",
+    "Existing Refresh lists the chat only after its final receipt"
+  ],
+  "run": {
+    "runId": "dn22-live-pause",
+    "graphId": "prepare-next-week-review",
+    "status": "cancelled",
+    "revision": 3,
+    "updatedAt": "2026-10-23T21:45:12.183Z",
+    "nodes": [
+      {
+        "id": "wait",
+        "type": "action",
+        "status": "ok",
+        "attempts": 1
+      }
+    ],
+    "timeline": [
+      {
+        "at": "2026-10-23T21:44:53.755Z",
+        "kind": "control",
+        "label": "cancel at revision 0",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:45:12.180Z",
+        "kind": "side_effect",
+        "label": "wait ok",
+        "nodeId": "wait",
+        "replay": "never_by_default"
+      },
+      {
+        "at": "2026-10-23T21:45:12.182Z",
+        "kind": "decision",
+        "label": "wait → write (next)",
+        "nodeId": "wait",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:45:12.183Z",
+        "kind": "stop",
+        "label": "cancelled: operator cancellation requested",
+        "replay": "recorded"
+      }
+    ],
+    "artifacts": [],
+    "budget": {
+      "usedUsd": 0,
+      "usedTokens": 0,
+      "noProgressSteps": 0
+    },
+    "terminal": {
+      "state": "cancelled",
+      "reason": "operator cancellation requested",
+      "recoveryAction": "Review completed steps before starting a new workflow.",
+      "at": "2026-10-23T21:45:12.183Z"
+    },
+    "controls": [],
+    "replayPolicy": "Recorded decisions may be inspected; model calls and side effects are never replayed by default."
+  },
+  "modelRequests": [
+    {
+      "at": 1792791891554,
+      "stream": true,
+      "toolCall": null,
+      "prompt": "Earlier finished request",
+      "promptLength": 24,
+      "hasImage": false,
+      "toolResult": "",
+      "lastRole": "user",
+      "messageCount": 2
+    },
+    {
+      "at": 1792791891969,
+      "stream": true,
+      "toolCall": "compose_workflow",
+      "prompt": "Run this private checkpoint check [[call compose_workflow {\"spec\":{\"id\":\"prepare-next-week-review\",\"title\":\"Prepare next week review\",\"start\":\"wait\",\"nodes\":[{\"",
+      "promptLength": 562,
+      "hasImage": false,
+      "toolResult": "",
+      "lastRole": "user",
+      "messageCount": 4
+    },
+    {
+      "at": 1792791912272,
+      "stream": true,
+      "toolCall": null,
+      "prompt": "Run this private checkpoint check [[call compose_workflow {\"spec\":{\"id\":\"prepare-next-week-review\",\"title\":\"Prepare next week review\",\"start\":\"wait\",\"nodes\":[{\"",
+      "promptLength": 562,
+      "hasImage": false,
+      "toolResult": "{\n  \"ok\": false,\n  \"status\": \"cancelled\",\n  \"terminalState\": \"cancelled\",\n  \"reason\": \"operator cancellation requested\",\n  \"recoveryAction\": \"Review completed steps before starting a new workflow.\",\n ",
+      "lastRole": "tool",
+      "messageCount": 6
+    }
+  ],
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

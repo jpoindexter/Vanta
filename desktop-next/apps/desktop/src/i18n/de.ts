@@ -3564,6 +3564,20 @@ export const deOverrides = {
     }
   },
   artifacts: {
+    pastWork: {
+      title: "Bisherige Arbeit",
+      search: "Bisherige Arbeit durchsuchen…",
+      empty: "Noch keine bisherige Arbeit. Abgeschlossene Chats erscheinen hier zur Wiederverwendung.",
+      emptySearch: "Keine bisherige Arbeit passt zur Suche.",
+      error: "Bisherige Arbeit konnte nicht geladen werden.",
+      loading: "Bisherige Arbeit wird geladen",
+      hint: "Prüfe und bearbeite eine frühere Anfrage in einem neuen Chat. Erst beim Senden wird etwas ausgeführt.",
+      reuse: "In neuem Chat verwenden",
+      save: "Speichern",
+      saved: "Gespeichert",
+      saveError: "Diese Arbeit konnte nicht gespeichert werden.",
+      retry: "Erneut versuchen"
+    },
     search: 'Nach Artifacts suchen...',
     refresh: 'Artifacts aktualisieren',
     refreshing: 'Artifacts werden aktualisiert',
@@ -3670,18 +3684,18 @@ export const deOverrides = {
       artifacts: 'Artefakte',
       cron: 'Geplante Jobs'
     },
-    searchAria: 'Sessions durchsuchen',
-    searchPlaceholder: 'Sessions durchsuchen…',
+    searchAria: 'Chats durchsuchen',
+    searchPlaceholder: 'Chats durchsuchen…',
     clearSearch: 'Suche löschen',
     noMatch: query => `Keine Sessions passen zu “${query}”.`,
     results: 'Ergebnisse',
     pinned: 'Angepinnt',
-    sessions: 'Sessions',
+    sessions: 'Chats',
     terminal: 'Terminal',
     files: 'Dateien',
     review: 'Review',
     logs: 'Logs',
-    cronJobs: 'Cron-Jobs',
+    cronJobs: 'Zeitpläne',
     groupAriaGrouped: 'Sessions als einzelne Liste anzeigen',
     groupAriaUngrouped: 'Sessions nach Workspace gruppieren',
     showProjects: 'Projekte anzeigen',
@@ -3693,7 +3707,7 @@ export const deOverrides = {
     noWorkspace: 'Kein Workspace',
     projectEmpty: 'Noch keine Sessions',
     projectLoadFailed: 'Sessions konnten nicht geladen werden',
-    noSessions: 'Noch keine Sessions',
+    noSessions: 'Noch keine Chats',
     storageCorrupt: {
       title: 'Die Session-Datenbank ist beschädigt',
       body: (profiles: string) =>

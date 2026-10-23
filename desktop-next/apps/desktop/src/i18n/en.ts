@@ -3174,6 +3174,20 @@ export const en: Translations = {
   },
 
   artifacts: {
+    pastWork: {
+      title: "Past work",
+      search: "Search past work…",
+      empty: "No past work yet. Finished chats appear here for reuse.",
+      emptySearch: "No past work matches that search.",
+      error: "Couldn’t load past work.",
+      loading: "Loading past work",
+      hint: "Review and edit a previous request in a new chat. Nothing runs until you send it.",
+      reuse: "Use in new chat",
+      save: "Save",
+      saved: "Saved",
+      saveError: "Couldn’t save this work.",
+      retry: "Try again"
+    },
     search: 'Search artifacts...',
     refresh: 'Refresh artifacts',
     refreshing: 'Refreshing artifacts',
@@ -3279,18 +3293,18 @@ export const en: Translations = {
       artifacts: 'Artifacts',
       cron: 'Scheduled jobs'
     },
-    searchAria: 'Search sessions',
-    searchPlaceholder: 'Search sessions…',
+    searchAria: 'Search chats',
+    searchPlaceholder: 'Search chats…',
     clearSearch: 'Clear search',
     noMatch: query => `No sessions match “${query}”.`,
     results: 'Results',
     pinned: 'Pinned',
-    sessions: 'Sessions',
+    sessions: 'Chats',
     terminal: 'Terminal',
     files: 'Files',
     review: 'Review',
     logs: 'Logs',
-    cronJobs: 'Cron jobs',
+    cronJobs: 'Schedules',
     groupAriaGrouped: 'Show sessions as a single list',
     groupAriaUngrouped: 'Group sessions by workspace',
     showProjects: 'Show projects',
@@ -3302,7 +3316,7 @@ export const en: Translations = {
     noWorkspace: 'No workspace',
     projectEmpty: 'No sessions yet',
     projectLoadFailed: 'Could not load sessions',
-    noSessions: 'No sessions yet',
+    noSessions: 'No chats yet',
     storageCorrupt: {
       title: 'Session database is damaged',
       body: (profiles: string) =>

@@ -1,5 +1,41 @@
 # Cutover parity: Vanta-only features of the current desktop vs desktop-next
 
+Current bounded V-029 Cancel evidence, 2026-10-23: actual chat-started running
+action → keyboard Cancel → Cancel requested → checkpoint Cancelled. First effect
+completes once; second never runs; no automatic Resume or false workflow Done.
+The stale retry recovery instruction is corrected. 17 actual candidate checks,
+55 focused tests; see [DN-22-WORKFLOW-CANCEL-2026-10-23.md](DN-22-WORKFLOW-CANCEL-2026-10-23.md).
+Earlier Cancel-unverified notes below are historical. Installed and whole-card
+acceptance remain open.
+
+Current bounded V-029 Resume evidence, 2026-10-23: chat-started workflow →
+checkpoint Pause → keyboard Resume → real done/succeeded, first effect once and
+second effect once. Exact source pin and ordinary approval/effect safeguards
+remain required; old/missing source and uncertain results are not blindly
+replayed. 19 real source checks and 45 focused tests pass. Evidence:
+[DN-22-WORKFLOW-RESUME-2026-10-23.md](DN-22-WORKFLOW-RESUME-2026-10-23.md).
+Earlier Retry-unverified notes below are historical. Cancel, installed acceptance
+and whole DN-22 are not closed.
+
+Current bounded V-029/V-030 correction, 2026-10-23: active chat turns are excluded
+from finished history, earlier turns remain, and Refresh admits the finished
+reply only after settlement. Real source app: 14 checks; 31 focused tests pass.
+Evidence: [DN-22-PAST-WORK-STATUS-2026-10-23.md](DN-22-PAST-WORK-STATUS-2026-10-23.md).
+This does not equate a finished reply with successful workflow completion.
+
+Current bounded V-029 evidence, 2026-10-23: an actual chat-started workflow has
+executed source proof of keyboard Pause reaching its next safe checkpoint before
+a second action. Flat rows retain request-vs-stopped truth. Evidence:
+[DN-22-WORKFLOW-PAUSE-2026-10-23.md](DN-22-WORKFLOW-PAUSE-2026-10-23.md).
+Retry/cancel execution, installed acceptance and whole DN-22 remain unverified.
+
+Current bounded correction, 2026-10-23: the V-015/F-048 missing-cwd failure
+below is historical, superseded by executed source-app project membership,
+entry isolation and return-to-all checks. F-050 source project creation also
+passes with its existing + visible at rest. Evidence:
+[DN-22-PROJECT-LANES-2026-10-23.md](DN-22-PROJECT-LANES-2026-10-23.md).
+This does not recertify other rows or authorize old-renderer retirement.
+
 Generated 2026-10-14 by a read-only inventory (code and docs only; nothing was run). Owner uses this to decide what to port before retiring the old renderer (card DN-14). Dispositions: PORT-NOW / PORT-LATER / MERGE (into an existing Hermes feature) / DROP-NEEDS-OWNER-OK / DONE.
 
 Nothing was run and no files were modified; every line below is from reading code and docs. Items I could not confirm are marked "unverified".

@@ -2,6 +2,20 @@ import type { TranslationOverrides } from './define-locale'
 
 export const zhHantArtifacts = {
   artifacts: {
+    pastWork: {
+      title: "過往工作",
+      search: "搜尋過往工作…",
+      empty: "尚無過往工作。已完成的聊天將顯示在這裡，以供重用。",
+      emptySearch: "沒有符合搜尋條件的過往工作。",
+      error: "無法載入過往工作。",
+      loading: "正在載入過往工作",
+      hint: "在新聊天中檢查並編輯先前的請求。送出前不會執行任何操作。",
+      reuse: "在新聊天中使用",
+      save: "儲存",
+      saved: "已儲存",
+      saveError: "無法儲存此工作。",
+      retry: "重試"
+    },
     search: '搜尋成品…',
     refresh: '重新整理成品',
     refreshing: '正在重新整理成品',

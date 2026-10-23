@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { workflowFingerprint } from "./diff.js";
 import type { WorkflowGraph } from "./schema.js";
 import type { AdaptiveReceipt } from "./adaptive-contract.js";
 import { newGraphRunState, type GraphRunState, type GraphTerminal } from "./run-state.js";
@@ -98,4 +99,5 @@ function adoptLatest(runtime: WorkflowRuntime, next: GraphRunState): void {
 function assertGraphRevision(graph: WorkflowGraph, run: GraphRunState): void {
   if (run.graphId !== graph.id) throw new Error(`graph run ${run.runId} belongs to ${run.graphId}, not ${graph.id}`);
   if (run.graphRevision !== (graph.revision ?? 1)) throw new Error(`graph revision changed for run ${run.runId}`);
+  if (run.graphHash && run.graphHash !== workflowFingerprint(graph)) throw new Error(`graph content changed for run ${run.runId}`);
 }

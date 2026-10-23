@@ -16,7 +16,9 @@ vi.mock('@/api/workflow-runs', () => ({
   exportWorkflowHandoff: (id: string) => exportWorkflowHandoff(id),
   listWorkflowRuns: () => listWorkflowRuns()
 }))
-vi.mock('@/store/notifications', () => ({ notifyError: (...args: unknown[]) => notifyError(...args) }))
+vi.mock('@/store/notifications', () => ({
+  notifyError: (...args: unknown[]) => notifyError(...args)
+}))
 
 const wf = (over: Partial<WorkflowRun> = {}): WorkflowRun => ({
   budget: { usedTokens: 10, usedUsd: 0.01 },
@@ -45,7 +47,10 @@ afterEach(cleanup)
 describe('workflow helpers', () => {
   it('names status, steps and the stop reason', () => {
     const text = workflowDetail(
-      wf({ status: 'exhausted', terminal: { reason: 'budget used up', state: 'exhausted' } })
+      wf({
+        status: 'exhausted',
+        terminal: { reason: 'budget used up', state: 'exhausted' }
+      })
     )
 
     expect(text).toMatch(/^Out of budget · 2 steps · /)
@@ -53,11 +58,26 @@ describe('workflow helpers', () => {
   })
 
   it('does not repeat a reason for a finished run', () => {
-    expect(workflowDetail(wf({ status: 'done', terminal: { reason: 'completed', state: 'done' } }))).not.toMatch(/completed$/)
+    expect(
+      workflowDetail(
+        wf({
+          status: 'done',
+          terminal: { reason: 'completed', state: 'done' }
+        })
+      )
+    ).not.toMatch(/completed$/)
   })
 
   it('shows a recorded pause request as pending while the run still says running', () => {
-    const run = wf({ timeline: [{ at: '2026-10-15T10:01:00.000Z', kind: 'control', label: 'pause at revision 3' }] })
+    const run = wf({
+      timeline: [
+        {
+          at: '2026-10-15T10:01:00.000Z',
+          kind: 'control',
+          label: 'pause at revision 3'
+        }
+      ]
+    })
 
     expect(workflowDetail(run)).toMatch(/^Pause requested · /)
     expect(workflowDetail(wf({ status: 'paused', timeline: run.timeline }))).toMatch(/^Paused · /)
@@ -99,19 +119,63 @@ describe('WorkflowSection', () => {
     expect(await screen.findByRole('button', { name: 'Cancel: weekly-pricing' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Pause: weekly-pricing' }))
 
-    expect(await screen.findByRole('button', { name: 'Retry: weekly-pricing' })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: 'Resume: weekly-pricing' })).toBeTruthy()
     expect(controlWorkflowRun).toHaveBeenCalledWith('weekly-pricing-1', 'pause')
     expect(screen.queryByRole('button', { name: 'Pause: weekly-pricing' })).toBeNull()
   })
 
   it('disables the controls while a request is pending', async () => {
     listWorkflowRuns.mockResolvedValue([
-      wf({ timeline: [{ at: '2026-10-15T10:01:00.000Z', kind: 'control', label: 'cancel at revision 3' }] })
+      wf({
+        timeline: [
+          {
+            at: '2026-10-15T10:01:00.000Z',
+            kind: 'control',
+            label: 'cancel at revision 3'
+          }
+        ]
+      })
     ])
     render(<WorkflowSection query="" />)
 
-    expect(((await screen.findByRole('button', { name: 'Pause: weekly-pricing' })) as HTMLButtonElement).disabled).toBe(true)
+    expect(
+      (
+        (await screen.findByRole('button', {
+          name: 'Pause: weekly-pricing'
+        })) as HTMLButtonElement
+      ).disabled
+    ).toBe(true)
     expect(screen.getByText(/Cancel requested/)).toBeTruthy()
+  })
+
+  it('locks controls immediately until the server answers, then recovers on failure', async () => {
+    listWorkflowRuns.mockResolvedValue([wf()])
+    let rejectControl!: (error: Error) => void
+    controlWorkflowRun.mockReturnValue(
+      new Promise((_resolve, reject) => {
+        rejectControl = reject
+      })
+    )
+    render(<WorkflowSection query="" />)
+
+    const pause = await screen.findByRole('button', {
+      name: 'Pause: weekly-pricing'
+    })
+    const cancel = screen.getByRole('button', {
+      name: 'Cancel: weekly-pricing'
+    })
+    fireEvent.click(pause)
+
+    expect((pause as HTMLButtonElement).disabled).toBe(true)
+    expect((cancel as HTMLButtonElement).disabled).toBe(true)
+    expect(pause.getAttribute('aria-busy')).toBe('true')
+    fireEvent.click(cancel)
+    expect(controlWorkflowRun).toHaveBeenCalledTimes(1)
+    rejectControl(new Error('offline'))
+
+    await waitFor(() => expect((pause as HTMLButtonElement).disabled).toBe(false))
+    expect(notifyError).toHaveBeenCalled()
+    expect(screen.queryByText(/Pause requested/)).toBeNull()
   })
 
   it('says so when a control fails and leaves the run as it was', async () => {
@@ -127,12 +191,21 @@ describe('WorkflowSection', () => {
 
   it('copies the handoff text', async () => {
     listWorkflowRuns.mockResolvedValue([wf({ controls: [], status: 'done' })])
-    exportWorkflowHandoff.mockResolvedValue({ handoff: 'Graph run weekly-pricing-1' })
+    exportWorkflowHandoff.mockResolvedValue({
+      handoff: 'Graph run weekly-pricing-1'
+    })
     const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText }
+    })
     render(<WorkflowSection query="" />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Copy handoff: weekly-pricing' }))
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Copy handoff: weekly-pricing'
+      })
+    )
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith('Graph run weekly-pricing-1'))
     expect(await screen.findByText('Copied')).toBeTruthy()

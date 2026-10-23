@@ -84,5 +84,5 @@ function replayTimeline(run: GraphRunState): ReplayEvent[] {
 
 function availableControls(run: GraphRunState): Array<"pause" | "cancel" | "retry"> {
   if (run.status === "running") return ["pause", "cancel"];
-  return run.status === "done" ? [] : ["retry"];
+  return run.status === "paused" ? ["retry"] : [];
 }

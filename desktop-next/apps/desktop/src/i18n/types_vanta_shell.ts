@@ -5,6 +5,7 @@ export interface VantaShellTranslations {
     label: string
     newChat: string
     search: string
+    tools: string
     nav: { home: string; schedules: string; connections: string; skills: string; outputs: string; company: string }
     groups: { needsYou: string; pinned: string; recent: string }
     newChatIn: (project: string) => string

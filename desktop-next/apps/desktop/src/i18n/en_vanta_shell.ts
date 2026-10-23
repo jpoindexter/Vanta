@@ -6,6 +6,7 @@ export const enVantaShell = {
     label: 'Sidebar',
     newChat: 'New chat',
     search: 'Search',
+    tools: 'Tools & connections',
     nav: {
       home: 'Home',
       schedules: 'Schedules',

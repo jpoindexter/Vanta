@@ -21,6 +21,10 @@ function filesFromMessages(messages: Message[]): RunInput[] {
   }));
 }
 
+function legacyReplyStatus(assistant: Extract<Message, { role: "assistant" }> | undefined): RunRecord["status"] {
+  return assistant?.content.trim() && !assistant.toolCalls?.length ? "done" : "interrupted";
+}
+
 export function deriveLegacyRuns(session: Session, projectRoot: string): RunRecord[] {
   const userIndexes = session.messages.flatMap((message, index) => message.role === "user" ? [index] : []);
   return userIndexes.map((start, turnIndex) => {
@@ -43,7 +47,7 @@ export function deriveLegacyRuns(session: Session, projectRoot: string): RunReco
       modelId: session.modelId,
       startedAt: turnIndex === 0 ? session.started : session.updated,
       completedAt: session.updated,
-      status: receipt?.status ?? (assistant ? "done" : "interrupted"),
+      status: receipt?.status ?? legacyReplyStatus(assistant),
       saved: false,
       tags: [],
       provenance: "derived",

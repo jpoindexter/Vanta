@@ -2,6 +2,20 @@ import type { TranslationOverrides } from './define-locale'
 
 export const arArtifacts = {
   artifacts: {
+    pastWork: {
+      title: "الأعمال السابقة",
+      search: "البحث في الأعمال السابقة…",
+      empty: "لا توجد أعمال سابقة بعد. ستظهر المحادثات المكتملة هنا لإعادة استخدامها.",
+      emptySearch: "لا توجد أعمال سابقة تطابق البحث.",
+      error: "تعذّر تحميل الأعمال السابقة.",
+      loading: "جارٍ تحميل الأعمال السابقة",
+      hint: "راجع طلبًا سابقًا وعدّله في محادثة جديدة. لن يُنفّذ شيء حتى ترسله.",
+      reuse: "استخدام في محادثة جديدة",
+      save: "حفظ",
+      saved: "محفوظ",
+      saveError: "تعذّر حفظ هذا العمل.",
+      retry: "المحاولة مجددًا"
+    },
     search: 'بحث',
     refresh: 'تحديث',
     refreshing: 'جار التحديث...',

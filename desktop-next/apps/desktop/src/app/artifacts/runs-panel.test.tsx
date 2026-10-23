@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { RunSummary } from '@/api/runs'
+import { TRANSLATIONS } from '@/i18n'
 
 import { runDetail, visibleRuns } from './runs-model'
 import { RunsPanel } from './runs-panel'
@@ -79,11 +80,29 @@ describe('runDetail', () => {
 })
 
 describe('RunsPanel', () => {
+  it('refreshes settled past work through the existing page refresh', async () => {
+    listRuns.mockResolvedValueOnce([]).mockResolvedValueOnce([run()])
+    const { rerender } = render(<RunsPanel onReuse={vi.fn()} query="" refreshRevision={0} />)
+    expect(await screen.findByText(/No past work yet/)).toBeTruthy()
+
+    rerender(<RunsPanel onReuse={vi.fn()} query="" refreshRevision={1} />)
+    expect(await screen.findByText('Billing tests')).toBeTruthy()
+    expect(listRuns).toHaveBeenCalledTimes(2)
+  })
+
+  it('supplies the past-work labels in every bundled language', () => {
+    const keys = Object.keys(TRANSLATIONS.en.artifacts.pastWork)
+    for (const catalog of Object.values(TRANSLATIONS)) {
+      expect(Object.keys(catalog.artifacts.pastWork)).toEqual(keys)
+      expect(Object.values(catalog.artifacts.pastWork).every(text => typeof text === 'string' && text.trim())).toBe(true)
+    }
+  })
+
   it('shows the empty state when there are no runs', async () => {
     listRuns.mockResolvedValue([])
     render(<RunsPanel onReuse={vi.fn()} query="" />)
 
-    expect(await screen.findByText(/No past runs yet/)).toBeTruthy()
+    expect(await screen.findByText(/No past work yet/)).toBeTruthy()
   })
 
   it('shows an error with a retry when loading fails, then recovers', async () => {
@@ -95,14 +114,19 @@ describe('RunsPanel', () => {
     expect(await screen.findByText('Billing tests')).toBeTruthy()
   })
 
-  it('hands the old prompt to onReuse', async () => {
+  it('only hands the old prompt to the draft callback after an explicit click', async () => {
     listRuns.mockResolvedValue([run()])
     const onReuse = vi.fn()
     render(<RunsPanel onReuse={onReuse} query="" />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Use as new task: Billing tests' }))
+    const reuse = await screen.findByRole('button', { name: 'Use in new chat: Billing tests' })
+    expect(onReuse).not.toHaveBeenCalled()
+    expect(screen.getByText(/Nothing runs until you send it/)).toBeTruthy()
+    fireEvent.click(reuse)
 
     expect(onReuse).toHaveBeenCalledWith('Summarise the billing tests')
+    expect(onReuse).toHaveBeenCalledTimes(1)
+    expect(setRunSaved).not.toHaveBeenCalled()
   })
 
   it('saves a run and keeps it saved', async () => {
@@ -131,6 +155,6 @@ describe('RunsPanel', () => {
     listRuns.mockResolvedValue([run()])
     render(<RunsPanel onReuse={vi.fn()} query="zzz" />)
 
-    expect(await screen.findByText('No runs match that search.')).toBeTruthy()
+    expect(await screen.findByText('No past work matches that search.')).toBeTruthy()
   })
 })

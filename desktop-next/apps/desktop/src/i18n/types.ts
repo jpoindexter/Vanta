@@ -2758,6 +2758,20 @@ export interface Translations extends NoticeTranslations {
   }
 
   artifacts: {
+    pastWork: {
+      title: string
+      search: string
+      empty: string
+      emptySearch: string
+      error: string
+      loading: string
+      hint: string
+      reuse: string
+      save: string
+      saved: string
+      saveError: string
+      retry: string
+    }
     search: string
     refresh: string
     refreshing: string

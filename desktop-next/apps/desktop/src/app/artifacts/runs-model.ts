@@ -4,19 +4,9 @@ import { relativeTime } from '@/lib/time'
 
 export const RUNS_COPY = {
   controls: { cancel: 'Cancel', pause: 'Pause', retry: 'Retry' } satisfies Record<WorkflowControl, string>,
-  empty: 'No past runs yet. A finished task shows up here so you can run it again.',
-  emptySearch: 'No runs match that search.',
-  error: "Couldn't load past runs.",
   export: 'Copy handoff',
   exported: 'Copied',
-  pastTasks: 'Past tasks',
   requested: { cancel: 'Cancel requested', pause: 'Pause requested' } satisfies Record<'cancel' | 'pause', string>,
-  retry: 'Try again',
-  reuse: 'Use as new task',
-  save: 'Save',
-  saved: 'Saved',
-  search: 'Search runs...',
-  tab: 'Runs',
   workflows: 'Workflows'
 } as const
 

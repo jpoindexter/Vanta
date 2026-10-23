@@ -3559,6 +3559,20 @@ export const esOverrides = {
     }
   },
   artifacts: {
+    pastWork: {
+      title: "Trabajo anterior",
+      search: "Buscar trabajo anterior…",
+      empty: "Aún no hay trabajo anterior. Aquí aparecerán los chats terminados para reutilizarlos.",
+      emptySearch: "No hay trabajo anterior que coincida con la búsqueda.",
+      error: "No se pudo cargar el trabajo anterior.",
+      loading: "Cargando trabajo anterior",
+      hint: "Revisa y edita una solicitud anterior en un chat nuevo. Nada se ejecuta hasta que la envíes.",
+      reuse: "Usar en un chat nuevo",
+      save: "Guardar",
+      saved: "Guardado",
+      saveError: "No se pudo guardar este trabajo.",
+      retry: "Reintentar"
+    },
     search: 'Buscar artefactos...',
     refresh: 'Actualizar artefactos',
     refreshing: 'Actualizando artefactos',
@@ -3666,18 +3680,18 @@ export const esOverrides = {
       artifacts: 'Artefactos',
       cron: 'Tareas programadas'
     },
-    searchAria: 'Buscar sesiones',
-    searchPlaceholder: 'Buscar sesiones…',
+    searchAria: 'Buscar chats',
+    searchPlaceholder: 'Buscar chats…',
     clearSearch: 'Limpiar búsqueda',
     noMatch: query => `Ninguna sesión coincide con “${query}”.`,
     results: 'Resultados',
     pinned: 'Fijadas',
-    sessions: 'Sesiones',
+    sessions: 'Chats',
     terminal: 'Terminal',
     files: 'Archivos',
     review: 'Revisión',
     logs: 'Registros',
-    cronJobs: 'Tareas cron',
+    cronJobs: 'Programaciones',
     groupAriaGrouped: 'Mostrar sesiones como una sola lista',
     groupAriaUngrouped: 'Agrupar sesiones por espacio de trabajo',
     showProjects: 'Mostrar proyectos',
@@ -3689,7 +3703,7 @@ export const esOverrides = {
     noWorkspace: 'Sin espacio de trabajo',
     projectEmpty: 'Aún no hay sesiones',
     projectLoadFailed: 'No se pudieron cargar las sesiones',
-    noSessions: 'Aún no hay sesiones',
+    noSessions: 'Aún no hay chats',
     storageCorrupt: {
       title: 'La base de datos de sesiones está dañada',
       body: (profiles: string) =>

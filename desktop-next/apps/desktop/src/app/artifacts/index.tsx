@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router'
 
 import { requestComposerFocus, requestComposerInsert } from '@/app/chat/composer/focus'
 import { TitlebarIcon } from '@/app/shell/titlebar-icon'
+import { prepareDefaultNewSession } from '@/app/session/new-session-route'
+import { setWorkspaceScope } from '@/components/pane-shell/workspace-scope'
 import { ZoomableImage } from '@/components/chat/zoomable-image'
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
@@ -36,12 +38,13 @@ import { normalize } from '@/lib/text'
 import { fmtDayTime } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
+import { closeHome } from '@/store/home-view'
+import { requestFreshSession } from '@/store/profile'
 
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { openSessionFromPicker } from '../open-session'
 import { PageSearchShell } from '../page-search-shell'
-import { NEW_CHAT_ROUTE } from '../routes'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import {
@@ -51,7 +54,6 @@ import {
   type ArtifactRecord,
   loadArtifactsForSessions
 } from './artifact-utils'
-import { RUNS_COPY } from './runs-model'
 import { RunsPanel } from './runs-panel'
 
 // Past tasks live beside the file filters: same search box, same tab strip.
@@ -133,6 +135,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   const [filePage, setFilePage] = useState(1)
 
   const [refreshing, setRefreshing] = useState(false)
+  const [refreshRevision, setRefreshRevision] = useState(0)
   const refreshInFlightRef = useRef(false)
 
   const refreshArtifacts = useCallback(async () => {
@@ -185,6 +188,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
     } finally {
       refreshInFlightRef.current = false
       setRefreshing(false)
+      setRefreshRevision(current => current + 1)
     }
   }, [a])
 
@@ -327,14 +331,17 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   // A past prompt becomes a draft in a fresh chat; the person edits and sends it.
   const reuseRun = useCallback(
     (prompt: string) => {
-      navigate(NEW_CHAT_ROUTE)
+      closeHome()
+      prepareDefaultNewSession()
+      setWorkspaceScope('sessions')
+      requestFreshSession()
       // The new chat's composer mounts after the route change; insert once it is there.
       window.setTimeout(() => {
         requestComposerInsert(prompt)
         requestComposerFocus()
       }, NEW_CHAT_MOUNT_MS)
     },
-    [navigate]
+    []
   )
   const cellCtx: CellCtx = useMemo(() => ({ onOpen: openArtifact, onOpenChat: openChat }), [openArtifact, openChat])
 
@@ -346,7 +353,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
       onTabChange={id => setKindFilter(id as typeof kindFilter)}
       searchHidden={counts.all === 0 && kindFilter !== 'runs'}
       searchHints={searchHints}
-      searchPlaceholder={kindFilter === 'runs' ? RUNS_COPY.search : a.search}
+      searchPlaceholder={kindFilter === 'runs' ? a.pastWork.search : a.search}
       searchTrailingAction={
         <Tip label={refreshing ? a.refreshing : a.refresh}>
           <Button
@@ -367,11 +374,11 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
         { id: 'image', label: a.tabImages, meta: artifacts ? counts.image : null },
         { id: 'file', label: a.tabFiles, meta: artifacts ? counts.file : null },
         { id: 'link', label: a.tabLinks, meta: artifacts ? counts.link : null },
-        { id: 'runs', label: RUNS_COPY.tab }
+        { id: 'runs', label: a.pastWork.title }
       ]}
     >
       {kindFilter === 'runs' ? (
-        <RunsPanel onReuse={reuseRun} query={query} />
+        <RunsPanel onReuse={reuseRun} query={query} refreshRevision={refreshRevision} />
       ) : !artifacts ? (
         <PageLoader label={a.indexing} />
       ) : visibleArtifacts.length === 0 ? (

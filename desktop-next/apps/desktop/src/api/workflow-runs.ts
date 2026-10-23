@@ -1,4 +1,5 @@
 import { rawApi } from './client'
+import { APPROVAL_TIMEOUT_MS, post } from './vanta/shim-core'
 
 export type WorkflowControl = 'cancel' | 'pause' | 'retry'
 
@@ -22,11 +23,8 @@ export function listWorkflowRuns(): Promise<WorkflowRun[]> {
 
 /** Asks the run to pause, cancel or retry. The server answers with the updated run. */
 export function controlWorkflowRun(runId: string, action: WorkflowControl): Promise<WorkflowRun> {
-  return rawApi<WorkflowRun>({
-    body: { action },
-    method: 'POST',
-    path: `/api/workflow-runs/${encodeURIComponent(runId)}`
-  })
+  return post(rawApi, `/api/workflow-runs/${encodeURIComponent(runId)}`, { action },
+    action === 'retry' ? APPROVAL_TIMEOUT_MS : undefined) as Promise<WorkflowRun>
 }
 
 /** A plain-text summary of the run, for pasting into a chat or a ticket. */

@@ -24,7 +24,7 @@ export function operatorTerminal(run: GraphRunState, control: WorkflowControlSta
     return { state: "paused", reason: "operator pause requested", recoveryAction: "Retry from this safe checkpoint when ready.", at };
   }
   if (control === "cancelled" && run.operatorControl?.action === "cancel") {
-    return { state: "cancelled", reason: "operator cancellation requested", recoveryAction: "Retry from the last confirmed checkpoint when ready.", at };
+    return { state: "cancelled", reason: "operator cancellation requested", recoveryAction: "Review completed steps before starting a new workflow.", at };
   }
   return null;
 }

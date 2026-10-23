@@ -186,10 +186,45 @@ dark mode. `--dt-primary-solid` (tooltips, solid badges) follows the same pair t
 
 `src/styles/vanta.css` is the one place the skin leaves the palette seeds: it zeroes the
 accent-into-fill mixes that `styles.css` applies at 3-24%, reads the surfaces straight
-from the seeds, drops resting shadows (shadows are for popovers and dialogs only), sets
+from the seeds, keeps resting controls flat, sets
 the 14/20 UI and 15/24 chat body sizes, and lifts light-mode tertiary/quaternary text to
 clear AA at 12px. Do not re-add accent mixes to resting fills or borders; `composerRing`
 in the preset is deliberately neutral because `styles.css` mixes it into resting borders.
+
+DN-29 sidebar/composer review candidate (2026-10-23): the composer uses its own
+`--radius-composer` role (22px, matching the approved wireframe) and quiet layered
+`--shadow-composer` elevation. The sidebar uses `--shadow-sidebar` inset edge
+depth so the pane shell cannot clip it. Composer utility/model/permission controls
+are borderless, retaining their existing focus/disabled/menu behavior. Typing
+focus uses the visible caret and a quiet neutral edge, while buttons retain their
+keyboard rings. No global
+surface-radius, menu, titlebar, approval or permission-policy redesign is implied.
+
+DN-29 titlebar/transcript continuation (2026-10-23, source preview): keep the
+44px native drag strip and direct workbench pane controls. Advanced window
+controls use the existing More menu instead of a second row of competing icons.
+Chrome is transparent at rest, with hover, pressed and keyboard-focus states;
+status remains a shape and a word. Conversation turns use a 24px gap inside the
+existing 720px reading column, with right-aligned user messages capped at 85%
+and unframed assistant text. Tool disclosures, formatted content, copy and
+exact-action approvals keep their existing behavior. This is not DN-33's new
+plan/output-card feature, nor a runtime-strip or permission-policy change.
+
+DN-29 navigation/status continuation (2026-10-23, source preview): New chat,
+Home, Outputs and contributed navigation stay direct; supporting built-ins use
+one Tools & connections disclosure, automatically revealed for their active
+route and still explicitly collapsible. The 28px bottom strip keeps health,
+project/profile and urgent state; routine controls move to Details without
+rewriting saved show/hide choices. Details uses visible labels, not autofocus
+tooltips that can compete with nested-menu Escape. Keep original action/menu
+handlers and shortcut registration. No permission or restart-policy change.
+
+Project-chat continuation (2026-10-23): pane/search/list copy says Chats; the
+schedule section says Schedules, in sentence case across bundled locales.
+These are display strings, never new stored IDs. Home's picker, chips and
+submission share one effective project selection even when the list arrives
+late. Resolve its folder from existing loaded project data; do not ignore a
+visible choice because the independent sidebar tree has not loaded.
 
 Focus: one 2px outline in the ring colour on `:focus-visible` (unlayered rule in
 `styles.css`); Tailwind `focus-visible:ring-*` is neutralised so a control never paints
@@ -604,6 +639,49 @@ The detailed state contract lives in the scoped
 - One keyboard focus ring (2px, ring colour, `:focus-visible` only); titlebar actions have no active-background state.
 - `Esc` closes every dismissable overlay/dialog (install/onboarding excluded);
   close is an x-icon, not the word "Close".
+
+## Project creation (DN-22, 2026-10-23)
+
+Project creation: the existing Projects-section + remains visible at rest,
+with the existing tooltip, keyboard and drag behaviors. Chat-header actions
+can still reveal on hover/focus. Do not create a second project dialog or
+hide the only project-creation entry behind hover discovery. Source proof:
+docs/DN-22-PROJECT-LANES-2026-10-23.md.
+
+## Past work (DN-22, 2026-10-23)
+
+Outputs' existing runs filter is labelled Past work. Rows are flat with quiet
+hover/focus surfaces, not bordered cards. Save persists through the server;
+Use in new chat opens the normal fresh chat lifecycle with an editable draft,
+never replays tools/approvals or sends automatically. Explain that boundary
+above the list. Labels use all nine bundled catalogs. Workflow controls retain
+their existing semantics. Source evidence: docs/DN-22-PAST-WORK-2026-10-23.md.
+
+Workflow rows use the same flat list, heading alignment and shared ghost Buttons.
+Summary and action cluster wrap rather than clip at narrow widths. A control's
+in-flight request disables sibling controls with aria-busy; failure restores
+them. Pause requested is not Paused: only the backend checkpoint proves the latter.
+Source evidence: docs/DN-22-WORKFLOW-PAUSE-2026-10-23.md. No executor retry or
+permission-policy change is implied by the presentation.
+
+Past work is settled chat history, not a second live-work list. Exclude the exact
+executing turn rather than showing Done or Stopped prematurely; keep earlier
+completed turns. The existing Outputs refresh also refreshes this history and
+workflow state. A finished chat reply does not certify its workflow's outcome.
+Source evidence: docs/DN-22-PAST-WORK-STATUS-2026-10-23.md.
+
+Paused workflows offer Resume (existing localized label), not a vague Retry.
+Resume continues the same pinned checkpoint through normal approval and effect
+policy, never replays confirmed effects. Running is admission, not success;
+only the final checkpoint can show Done. Error/uncertain outcomes do not offer
+blind retry. Keep flat rows and shared ghost Buttons; do not add a new dialog
+or supervisor page. Source evidence: docs/DN-22-WORKFLOW-RESUME-2026-10-23.md.
+
+Cancel means stop after the current action's safe checkpoint, not kill or undo
+that action. Show Cancel requested until the backend reports Cancelled. Never
+label that workflow Done or offer automatic Resume; its receipt asks the user
+to review completed steps before new work. Keep the same quiet row/actions.
+Source evidence: docs/DN-22-WORKFLOW-CANCEL-2026-10-23.md.
 
 ## Before you add something — checklist
 

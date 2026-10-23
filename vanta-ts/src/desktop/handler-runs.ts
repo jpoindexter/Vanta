@@ -9,7 +9,7 @@ import { readJson,sendJson } from "./handler-http.js";
 import { type DesktopState } from "./handler-state.js";
 import { saveDesktopSessionDraft } from "./session-draft-store.js";
 
-export async function allRunsWithLegacy(root: string): Promise<RunRecord[]> {
+export async function allRunsWithLegacy(root: string, state?: DesktopState): Promise<RunRecord[]> {
   const captured = await listRuns({}, process.env);
   const capturedTurns = new Set(captured.map((run) => `${run.sessionId}:${run.turnIndex}`));
   const legacy: RunRecord[] = [];
@@ -18,20 +18,28 @@ export async function allRunsWithLegacy(root: string): Promise<RunRecord[]> {
     if (!session) continue;
     legacy.push(...deriveLegacyRuns(session, root).filter((run) => !capturedTurns.has(`${run.sessionId}:${run.turnIndex}`)));
   }
-  return [...captured, ...legacy].sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const active = activeTurnKeys(state);
+  return [...captured, ...legacy].filter((run) => !active.has(`${run.sessionId}:${run.turnIndex}`))
+    .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
 }
 
-export async function resolveLibraryRun(id: string, root: string): Promise<RunRecord | null> {
+function activeTurnKeys(state?: DesktopState): Set<string> {
+  const sessions = state?._sessions?.values() ?? (state ? [state] : []);
+  return new Set([...sessions].flatMap((session) => session._chatActive && session.sessionId && session.activeRunCapture
+    ? [`${session.sessionId}:${session.activeRunCapture.turnIndex}`] : []));
+}
+
+export async function resolveLibraryRun(id: string, root: string, state?: DesktopState): Promise<RunRecord | null> {
   const stored = await loadRun(id, process.env);
-  if (stored) return stored;
-  return (await allRunsWithLegacy(root)).find((run) => run.id === id) ?? null;
+  if (stored) return activeTurnKeys(state).has(`${stored.sessionId}:${stored.turnIndex}`) ? null : stored;
+  return (await allRunsWithLegacy(root, state)).find((run) => run.id === id) ?? null;
 }
 
 export async function handleRuns(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const url = new URL(req.url ?? "/api/runs", "http://localhost");
   const query = url.searchParams.get("q")?.trim().toLowerCase() ?? "";
   const savedOnly = url.searchParams.get("saved") === "1";
-  const runs = (await allRunsWithLegacy(state.root))
+  const runs = (await allRunsWithLegacy(state.root, state))
     .filter((run) => !savedOnly || run.saved)
     .filter((run) => !query || `${run.title}\n${run.prompt}\n${run.inputs.map((input) => input.path).join("\n")}`.toLowerCase().includes(query));
   sendJson(res, 200, runs);
@@ -50,7 +58,7 @@ export async function handleRunAction(state: DesktopState, req: http.IncomingMes
   const body = await readJson(req) as RunActionBody;
   const action = typeof body.action === "string" ? body.action : "get";
   const id = typeof body.id === "string" ? body.id : "";
-  const run = id ? await resolveLibraryRun(id, state.root) : null;
+  const run = id ? await resolveLibraryRun(id, state.root, state) : null;
   if (!run) return sendJson(res, 404, { error: "run not found" });
   if (action === "get") return sendJson(res, 200, run);
   if (action === "save") {

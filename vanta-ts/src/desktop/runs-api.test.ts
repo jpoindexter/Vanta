@@ -56,6 +56,37 @@ describe("desktop run library API", () => {
     });
   }
 
+  it("keeps an active turn out of past work across clients without hiding earlier turns", async () => {
+    const messages = [
+      { role: "user" as const, content: "Earlier task" },
+      { role: "assistant" as const, content: "Earlier reply" },
+      { role: "user" as const, content: "Running workflow" },
+      { role: "assistant" as const, content: "", toolCalls: [{ id: "wf-1", name: "compose_workflow", arguments: {} }] },
+    ];
+    await saveSession(state.sessionId!, messages, { env: process.env });
+    state._chatActive = true;
+    state.activeRunCapture = {
+      id: "active-capture", turnIndex: 1, instruction: "Running workflow",
+      startedAt: "2026-10-23T10:00:00.000Z", inputs: [], lineage: { mode: "original" },
+    };
+    const pendingId = `legacy-${state.sessionId}-1`;
+    const list = async () => (await fetch(`${base}/api/runs`, { headers: { "x-session-id": "library-viewer" } })).json() as Promise<RunRecord[]>;
+
+    expect((await list()).map(run => run.prompt)).toEqual(["Earlier task"]);
+    expect((await post({ action: "get", id: pendingId })).status).toBe(404);
+    expect((await post({ action: "save", id: pendingId, saved: true })).status).toBe(404);
+    expect(await loadRun(pendingId, process.env)).toBeNull();
+
+    state._chatActive = false;
+    state.activeRunCapture = undefined;
+    await saveSession(state.sessionId!, [...messages, { role: "tool", toolCallId: "wf-1", name: "compose_workflow", content: "finished" },
+      { role: "assistant", content: "Finished reply", desktopRun: { status: "done", events: [], actions: [] } }], { env: process.env });
+    expect(await list()).toEqual(expect.arrayContaining([
+      expect.objectContaining({ prompt: "Earlier task", status: "done" }),
+      expect.objectContaining({ prompt: "Running workflow", status: "done", finalOutput: "Finished reply" }),
+    ]));
+  });
+
   it("lists captured and explicitly incomplete legacy runs, then saves either one", async () => {
     await saveSession("legacy-session", [
       { role: "user", content: "Summarize the guide" },
