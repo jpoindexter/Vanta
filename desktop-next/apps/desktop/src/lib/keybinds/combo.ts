@@ -249,11 +249,11 @@ export function isFocusWithin(selector: string): boolean {
 }
 
 // Overlays that cover the whole window (portaled to the body, or the overlay
-// shell itself): dialogs, menus, listboxes, every Radix popper layer. One
+// shell itself): dialogs, menus, listboxes, interactive Radix popper layers. One
 // anywhere means the composer is behind it — its keys, and any focus the
-// user has inside it, are the overlay's own.
+// user has inside it, are the overlay's own. Passive tooltips never own keys.
 export const OVERLAY_SURFACE =
-  '[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[data-radix-popper-content-wrapper],[data-overlay-surface]'
+  '[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[data-radix-popper-content-wrapper]:not(:has([role="tooltip"])),[data-overlay-surface]'
 
 // True when focus is in a text-entry surface, so bare-key shortcuts don't fire
 // while the user is typing.

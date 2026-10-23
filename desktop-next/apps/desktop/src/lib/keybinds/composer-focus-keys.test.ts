@@ -82,6 +82,19 @@ describe('composerFocusBlockedBySurface', () => {
     expect(composerFocusBlockedBySurface()).toBe(true)
   })
 
+  it('ignores passive tooltips but retains bare and interactive popper ownership', () => {
+    const wrapper = document.createElement('div')
+    wrapper.setAttribute('data-radix-popper-content-wrapper', '')
+    document.body.append(wrapper)
+    expect(composerFocusBlockedBySurface()).toBe(true)
+    const content = document.createElement('div')
+    content.setAttribute('role', 'tooltip')
+    wrapper.append(content)
+    expect(composerFocusBlockedBySurface()).toBe(false)
+    content.setAttribute('role', 'menu')
+    expect(composerFocusBlockedBySurface()).toBe(true)
+  })
+
   it('ignores a clarify card — it yields only its own keys, per-key', () => {
     const card = document.createElement('div')
     card.setAttribute('data-clarify-choices', '2')

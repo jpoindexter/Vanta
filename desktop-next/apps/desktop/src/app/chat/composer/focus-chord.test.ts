@@ -33,6 +33,19 @@ afterEach(() => {
 })
 
 describe('handleComposerFocusChord', () => {
+  it('focuses through a passive tooltip without stealing an interactive popper chord', async () => {
+    const wrapper = document.createElement('div')
+    wrapper.setAttribute('data-radix-popper-content-wrapper', '')
+    const content = document.createElement('div')
+    content.setAttribute('role', 'tooltip')
+    wrapper.append(content)
+    document.body.append(wrapper)
+    expect(await focusRequests(chordEvent())).toEqual(['main'])
+    content.setAttribute('role', 'menu')
+    const event = chordEvent()
+    expect(await focusRequests(event)).toEqual([])
+    expect(event.defaultPrevented).toBe(false)
+  })
   it('focuses the active composer on the bare chord and swallows the key', async () => {
     const event = chordEvent()
 

@@ -600,6 +600,8 @@ long transcript or a busy terminal.
 
 - Keyboard ownership follows focus. The focused surface wins its keys; shell
   shortcuts must not steal a terminal's or editor's bindings.
+  Passive tooltips never own composer-focus shortcuts; their Radix wrappers
+  cannot block Cmd/Ctrl+L. Interactive poppers/dialogs retain their keys.
 - Focusing the Sessions sidebar preserves the last active chat's visual emphasis.
   Dimming still distinguishes session panes; sidebar navigation must not desaturate
   the chat or transfer its active highlight to a hidden primary tab.
