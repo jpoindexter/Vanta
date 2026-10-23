@@ -664,7 +664,7 @@ export const PluginsTab = memo(function PluginsTab({
             >
               {d.installModal.installFromGit}
             </Button>
-            <Tip label={d.openFolder}>
+            {window.desktopBridge?.desktopPluginsRoot ? <Tip label={d.openFolder}>
               <Button
                 aria-label={d.openFolder}
                 onClick={() => void revealPluginsDir()}
@@ -674,7 +674,7 @@ export const PluginsTab = memo(function PluginsTab({
               >
                 <FolderOpen className="size-3.5" />
               </Button>
-            </Tip>
+            </Tip> : null}
             <Tip label={d.rescan}>
               <Button
                 aria-label={d.rescan}

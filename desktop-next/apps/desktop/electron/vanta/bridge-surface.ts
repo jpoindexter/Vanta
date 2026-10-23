@@ -229,7 +229,11 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
 
 /** `window.desktopBridge`: the Vanta member names the renderer already calls, real where slice 1 needs them, typed-unsupported elsewhere. */
 export function buildDesktopBridge(env: BridgeEnv): Record<string, unknown> {
-  return mergeSurface(stubsFrom(SURFACE_MANIFEST), buildImplemented(env))
+  // Optional startup probes must be absent until this shell implements them.
+  return mergeSurface(
+    stubsFrom({ ...SURFACE_MANIFEST, desktopPluginsRoot: 'omit', getRemoteDisplayReason: 'omit' }),
+    buildImplemented(env)
+  )
 }
 
 /** `window.vantaDesktop`: Vanta-only members. The boundary token is deliberately absent; main holds it. */

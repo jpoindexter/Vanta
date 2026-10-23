@@ -71,6 +71,22 @@ describe('PluginsTab', () => {
     cleanup()
     $connection.set(null)
     queryClient.clear()
+    vi.unstubAllGlobals()
+  })
+
+  it('omits the plugin folder control when the shell has no local plugin root', () => {
+    vi.stubGlobal('desktopBridge', {})
+    render(<PluginsTab profile="workbot" />)
+    expect(screen.queryByRole('button', { name: 'Open Desktop plugins folder' })).toBeNull()
+  })
+
+  it('retains the plugin folder action when the shell implements it', async () => {
+    const desktopPluginsRoot = vi.fn(async () => '/app/desktop-plugins')
+    const openDir = vi.fn(async () => ({ ok: true }))
+    vi.stubGlobal('desktopBridge', { desktopPluginsRoot, openDir })
+    render(<PluginsTab profile="workbot" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open Desktop plugins folder' }))
+    await waitFor(() => expect(openDir).toHaveBeenCalledWith('/app/desktop-plugins'))
   })
 
   it('renders declared server pills and the unavailable sentence under the description', () => {

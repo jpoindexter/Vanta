@@ -685,6 +685,12 @@ Source evidence: docs/DN-22-WORKFLOW-CANCEL-2026-10-23.md.
 
 ## Before you add something — checklist
 
+Optional native controls follow actual bridge availability. An unavailable
+optional read is absent, not a callable rejecting stub; omit its dead control
+rather than opening an error or inventing success. Explicit operation failures
+must remain visible. Startup/Plugins source evidence:
+docs/STARTUP-CAPABILITIES-2026-10-23.md.
+
 - [ ] Reuse a primitive (`Button`, `SearchField`, `SegmentedControl`,
       `ListRow`, `Loader`, `ErrorState`, `LogView`, `ConfirmDialog`) instead of
       forking one?
