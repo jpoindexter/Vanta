@@ -20,7 +20,7 @@ export function TimelineRail({ activeIndex, entries, loadingId, onJump }: Timeli
   const hover = useRef<number | null>(null)
   const pointerY = useRef<number | null>(null)
   const frame = useRef(0)
-  const focused = useRef(false)
+  const [focusIndex, setFocusIndex] = useState<number | null>(null)
   const pendingFocus = useRef<number | null>(null)
   const [pitch, setPitch] = useState(7)
 
@@ -35,6 +35,7 @@ export function TimelineRail({ activeIndex, entries, loadingId, onJump }: Timeli
 
   const items = virtualizer.getVirtualItems()
   const visibleKey = `${items[0]?.index}:${items.at(-1)?.index}`
+  const tabStop = (items.find(item => item.index === (focusIndex ?? activeIndex)) ?? items[0])?.index
 
   useLayoutEffect(() => {
     const element = root.current
@@ -100,10 +101,10 @@ export function TimelineRail({ activeIndex, entries, loadingId, onJump }: Timeli
   }, [paint, visibleKey])
 
   useEffect(() => {
-    if (hover.current === null && !focused.current) {
+    if (hover.current === null && focusIndex === null) {
       virtualizer.scrollToIndex(activeIndex, { align: 'auto' })
     }
-  }, [activeIndex, virtualizer])
+  }, [activeIndex, focusIndex, virtualizer])
 
   const updatePointer = useCallback(() => {
     const scroller = root.current
@@ -123,7 +124,7 @@ export function TimelineRail({ activeIndex, entries, loadingId, onJump }: Timeli
       data-slot="thread-timeline-ticks"
       onBlur={event => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
-          focused.current = false
+          setFocusIndex(null)
           hover.current = null
           schedule()
         }
@@ -179,11 +180,12 @@ export function TimelineRail({ activeIndex, entries, loadingId, onJump }: Timeli
                 data-timeline-index={item.index}
                 onClick={() => onJump(entry.id)}
                 onFocus={() => {
-                  focused.current = true
+                  setFocusIndex(item.index)
                   hover.current = item.index
                   schedule()
                 }}
                 style={{ top: item.start, height: pitch }}
+                tabIndex={item.index === tabStop ? 0 : -1}
                 type="button"
               >
                 <span aria-hidden data-index={item.index} data-slot="timeline-bar" />

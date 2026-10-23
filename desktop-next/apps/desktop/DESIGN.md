@@ -135,6 +135,9 @@ just as pointer entry does. A completed decision restores that focus only if
 the user has not moved elsewhere. Arrival never steals focus. Composer
 focus-follow must respect restored controls, not redirect them into typing;
 buttons retain their token-based focus-visible ring even inside the composer.
+The transcript timeline is one Tab stop: arrows/Home/End move within it,
+Enter jumps, and Tab leaves. Its compact focus indicator uses an inset 2px
+ring token; virtualized-away active prompts must not remove keyboard access.
 
 ## Window background behavior
 

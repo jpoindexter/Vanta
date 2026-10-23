@@ -47,7 +47,7 @@
 }
 
 .thread-timeline-tick:focus-visible {
-  box-shadow: inset 0 0 0 1px var(--ui-stroke-secondary);
+  box-shadow: inset 0 0 0 2px var(--dt-ring);
   border-radius: var(--radius-sm);
 }
 

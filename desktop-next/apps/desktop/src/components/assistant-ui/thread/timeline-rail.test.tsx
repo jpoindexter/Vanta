@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -38,6 +38,12 @@ describe('TimelineRail', () => {
     expect(view.container.querySelectorAll('button').length).toBeLessThan(60)
   })
 
+  it('keeps one visible Tab stop when the active prompt is outside the rendered slice', () => {
+    const { container } = render(<TimelineRail activeIndex={4900} entries={entries} loadingId={null} onJump={vi.fn()} />)
+
+    expect([...container.querySelectorAll('button')].filter(button => button.tabIndex === 0)).toHaveLength(1)
+  })
+
   it('keeps the active bar compact without hover and routes selection by stable ID', () => {
     const onJump = vi.fn()
     render(<TimelineRail activeIndex={0} entries={entries} loadingId={null} onJump={onJump} />)
@@ -47,5 +53,22 @@ describe('TimelineRail', () => {
     expect(active.getAttribute('aria-current')).toBe('location')
     fireEvent.click(active)
     expect(onJump).toHaveBeenCalledWith('message-0')
+  })
+
+  it('uses one Tab stop while arrows move focus without jumping the transcript', () => {
+    const onJump = vi.fn()
+    const { container } = render(<TimelineRail activeIndex={2} entries={entries} loadingId={null} onJump={onJump} />)
+    const stops = () => [...container.querySelectorAll('button')].filter(button => button.tabIndex === 0)
+    const current = screen.getByRole('button', { name: 'Message 2' })
+
+    expect(stops()).toEqual([current])
+    act(() => current.focus())
+    fireEvent.keyDown(current, { key: 'ArrowUp' })
+    const previous = screen.getByRole('button', { name: 'Message 1' })
+    expect(document.activeElement).toBe(previous)
+    expect(stops()).toEqual([previous])
+    expect(onJump).not.toHaveBeenCalled()
+    fireEvent.blur(previous, { relatedTarget: document.body })
+    expect(stops()).toEqual([current])
   })
 })
