@@ -35,6 +35,19 @@ if (!only.length || only.includes("empty")) {
   }
 }
 
+/** An earlier section can leave the sidebar in a project lane or a non-default grouping; each section starts from the default list. */
+async function resetSidebar(page) {
+  const back = page.getByText("All projects", { exact: true }).first();
+  if (await back.isVisible().catch(() => false)) await back.click().catch(() => undefined);
+  await page.waitForTimeout(300);
+  const filters = page.locator('[data-tour="sessions-sidebar"]').first().getByRole("button", { name: /^Filters$/ }).first();
+  if (!(await filters.isVisible().catch(() => false))) return;
+  await filters.click().catch(() => undefined);
+  await page.getByRole("menuitem", { name: /^Reset to defaults/ }).first().click().catch(() => undefined);
+  await page.keyboard.press("Escape").catch(() => undefined);
+  await page.waitForTimeout(300);
+}
+
 const app = await launchVanta({ hidden: true, seed: seedSessions });
 let failure = null;
 try {
@@ -46,6 +59,7 @@ try {
   const ctx = { app, page: app.page, project: app.project, second, root: app.root };
   for (const group of GROUPS) {
     if (only.length && !only.includes(group.name)) continue;
+    await resetSidebar(app.page);
     await section(group.name, group.ids ?? [], () => group.run(ctx), app.page);
   }
 } catch (error) {
