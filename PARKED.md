@@ -149,3 +149,11 @@ Cost to revisit: extend `turn-queue-images.ts` to files (paths relative to the p
 **Captured:** 2026-10-14. Audited statically (MIT, v2.2.3, no install-time scripts, no obfuscation, hooks write locally, no injection or exfiltration text found; not every skill read line by line). Not installed: it duplicates what the owner already has (feature and debug orchestrators, learning loop, secret and size gates, cost tracking), and adds 311 skills and 71 agents to every session. Worth reading, not installing: `mcp-dependency-review` (static review of MCP config for mutable package references; extends the local package guard), `loop-design-check` (failure modes of agent loops: spinning, gaming the verifier; relevant to the company tick and heartbeats), `agent-security-hardening` (checklist for agents that process untrusted content), `skill-comply` (shows whether skills and rules are actually followed).
 **Why parked:** none of it blocks a v0 criterion; the current work is Desktop Next parity and the startup and offline fixes.
 **Cost to revisit:** small (read three skill files, turn the useful checks into Vanta tests); clone is at ~/Documents/GitHub/_vendor/ECC.
+
+## Reachability proof leaks sidebar state between sections (2026-10-23)
+
+Captured: a full `node tools/reachability.mjs` run on build 7 code aborted five sections (chrome, seeded, right, window, thread) with 100 PASS, 15 FAIL of 175 rows (2026-10-14: 177 PASS, 3 FAIL of 269). A failure screenshot shows a healthy app (nav, pinned chat, "Backend ready") but the sidebar left in a project lane ("BETA-NOTES > All projects") by an earlier step, so later steps cannot find "Say hello" or "Filters". A re-run of just chrome and seeded went through with one FAIL (F-050, "New project button missing in Project grouping", which also failed on 2026-10-14).
+
+Why parked: it is the proof's state handling, not an app defect I can show; the card evidence for DN-04/05/09/15-17 therefore still rests on the 2026-10-14 run.
+
+Cost to revisit: small. Reset the sidebar to the default list (Sessions tab, grouping Updated, no lane) at the start of each section in `tools/proof/groups.mjs`; then re-run once and refresh the report. F-050 is a separate real item.
