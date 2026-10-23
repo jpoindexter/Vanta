@@ -73,4 +73,19 @@ describe('floating composer focus-follow vs a focused transcript text field', ()
     movePointerOver(b.surface, 200)
     expect(document.activeElement).toBe(b.editor)
   })
+
+  it('preserves restored button focus and lets focusin reach the approval handler', () => {
+    const { editor, surface } = mountPane('surface-1')
+    const action = document.createElement('button')
+    surface.appendChild(action)
+    unregister.push(registerFloatingComposer('surface-1', { groupId: 'g1', target: 'main' }))
+    editor.focus()
+    const focusin = vi.fn()
+    surface.addEventListener('focusin', focusin)
+
+    action.focus()
+
+    expect(document.activeElement).toBe(action)
+    expect(focusin).toHaveBeenCalledTimes(1)
+  })
 })

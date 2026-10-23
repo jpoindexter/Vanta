@@ -130,6 +130,12 @@ rows must not insert their full height before the outgoing stack can settle.
 No completion callback may clear the measurement of a newly arrived card.
 Reduced motion settles immediately without retaining empty clearance.
 
+Keyboard entry into an approval remembers the preceding connected control,
+just as pointer entry does. A completed decision restores that focus only if
+the user has not moved elsewhere. Arrival never steals focus. Composer
+focus-follow must respect restored controls, not redirect them into typing;
+buttons retain their token-based focus-visible ring even inside the composer.
+
 ## Window background behavior
 
 Settings → Appearance → Window layout offers **Minimize to tray**, off by default and

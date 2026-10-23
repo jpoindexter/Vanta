@@ -233,7 +233,7 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
   const submittingRef = useRef(false)
 
   const present = stack.active
-  // Answering with the pointer moves focus onto the card, and the card then
+  // Entering by pointer or keyboard moves focus onto the card, and the card then
   // unmounts, which parks focus on <body> — where type-to-focus routes the next
   // keystrokes into the chat composer. For a computer_use flow the agent may
   // have just aimed its input at another pane (terminal, preview), so the
@@ -241,9 +241,7 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
   const focusOrigin = useRef<HTMLElement | null>(null)
   const cardRef = useRef<HTMLElement | null>(null)
 
-  const rememberFocusOrigin = useCallback(() => {
-    const active = document.activeElement
-
+  const rememberFocusOrigin = useCallback((active: EventTarget | null) => {
     if (active instanceof HTMLElement && active !== document.body && !cardRef.current?.contains(active)) {
       focusOrigin.current = active
     }
@@ -306,7 +304,8 @@ const ApprovalCard: FC<ApprovalCardProps> = ({ request, total, position, stack }
       data-request-id={request.requestId}
       data-slot="tool-approval-card"
       inert={!present || stack.busy}
-      onPointerDownCapture={rememberFocusOrigin}
+      onFocusCapture={event => rememberFocusOrigin(event.relatedTarget)}
+      onPointerDownCapture={() => rememberFocusOrigin(document.activeElement)}
       ref={cardRef}
     >
       <VantaApprovalCard

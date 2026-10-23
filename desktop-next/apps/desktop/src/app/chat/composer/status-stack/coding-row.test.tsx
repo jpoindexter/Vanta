@@ -44,6 +44,9 @@ describe('CodingStatusRow', () => {
 
     fireEvent.click(screen.getByText('12'))
     expect(onOpen).toHaveBeenCalledTimes(2)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Review' }))
+    expect(onOpen).toHaveBeenCalledTimes(3)
   })
 
   it('copies the absolute cwd inline — checkmark feedback, no toast', async () => {

@@ -145,7 +145,11 @@ describe('PendingApprovalStack', () => {
     expect($approvalRequest.get()).toBeNull()
   })
 
-  it('hands focus back to the surface the user was in before clicking Allow once', async () => {
+  it.each([
+    ['pointer', 'Allow once'],
+    ['keyboard', 'Allow once'],
+    ['keyboard', 'Reject']
+  ])('returns focus after a %s decision on %s', async (input, label) => {
     mockGateway()
     liveApproval()
     setRequest('computer_use type', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
@@ -160,10 +164,10 @@ describe('PendingApprovalStack', () => {
 
     try {
       render(<PendingApprovalStack />)
-      const run = screen.getByRole('button', { name: /Allow once/ })
+      const run = screen.getByRole('button', { name: label })
 
       // Chromium moves focus onto the pressed button before `click` fires.
-      fireEvent.pointerDown(run)
+      if (input === 'pointer') fireEvent.pointerDown(run)
       run.focus()
       fireEvent.click(run)
 
@@ -178,7 +182,7 @@ describe('PendingApprovalStack', () => {
     }
   })
 
-  it('leaves focus alone when the user moved on before the approval settled', async () => {
+  it.each(['pointer', 'keyboard'])('leaves focus alone after %s when the user moved on', async input => {
     mockGateway()
     liveApproval()
     setRequest('computer_use type', undefined, { requestId: 'apr-1', serverRequestId: 'srq-approval' })
@@ -192,7 +196,7 @@ describe('PendingApprovalStack', () => {
       render(<PendingApprovalStack />)
       const run = screen.getByRole('button', { name: /Allow once/ })
 
-      fireEvent.pointerDown(run)
+      if (input === 'pointer') fireEvent.pointerDown(run)
       run.focus()
       fireEvent.click(run)
       elsewhere.focus()

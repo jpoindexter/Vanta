@@ -71,6 +71,12 @@
   margin: 0 0 8px;
 }
 
+/* The legacy composer blanket suppresses child outlines; quiet buttons need their own ring. */
+:root[data-vanta-theme='vanta'] [data-slot='composer-root'] button:focus-visible {
+  outline: 2px solid var(--dt-ring);
+  outline-offset: 2px;
+}
+
 /* Wireframe list pages set h3 {font-size:18px} on the UA bold weight. */
 .vp-page-title {
   font-size: 18px;

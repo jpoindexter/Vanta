@@ -1,0 +1,181 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-AhadVQ",
+  "checks": [
+    "Real edit waits for its exact approval",
+    "Approval arrival leaves typing focus in the composer",
+    "Composer stop Dictate is named and has a keyboard ring",
+    "Composer stop Attach is named and has a keyboard ring",
+    "Composer stop New branch is named and has a keyboard ring",
+    "Composer stop Copy path is named and has a keyboard ring",
+    "Composer stop Review is named and has a keyboard ring",
+    "Composer stop Hide status stack is named and has a keyboard ring",
+    "Shift+Tab reaches Reject without programmatic focus",
+    "Shift+Tab reaches Always allow edit_file in this project with a visible keyboard ring",
+    "Shift+Tab reaches Allow once with a visible keyboard ring",
+    "Tab reaches Always allow edit_file in this project with a visible keyboard ring",
+    "Tab reaches Reject with a visible keyboard ring",
+    "Navigation alone does not approve or edit",
+    "Tab can leave the inline approval; it is not a modal trap",
+    "Shift+Tab returns to Reject",
+    "Reject completes the waiting turn",
+    "Decision returns focus to the exact preceding surface",
+    "Rejected edit has no filesystem effect",
+    "Real edit waits for its exact approval",
+    "Approval arrival leaves typing focus in the composer",
+    "Composer stop Dictate is named and has a keyboard ring",
+    "Composer stop Attach is named and has a keyboard ring",
+    "Composer stop New branch is named and has a keyboard ring",
+    "Composer stop Copy path is named and has a keyboard ring",
+    "Composer stop Review is named and has a keyboard ring",
+    "Composer stop Hide status stack is named and has a keyboard ring",
+    "Shift+Tab reaches Reject without programmatic focus",
+    "Allow once has keyboard focus before activation",
+    "Space activates Allow once and the turn finishes",
+    "Decision returns focus to the exact preceding surface",
+    "Allowed edit is actually written",
+    "Allow once creates no saved Always rule",
+    "The real turn performs exactly one approved edit",
+    "Real edit waits for its exact approval",
+    "Approval arrival leaves typing focus in the composer",
+    "Escape rejects the waiting approval and settles the turn",
+    "Escape does not apply the rejected edit",
+    "Escape keeps the composer focused",
+    "No renderer errors during navigation and both decisions"
+  ],
+  "walks": [
+    [
+      {
+        "name": "Dictate",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Attach",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "New branch",
+        "tag": "BUTTON",
+        "slot": "dropdown-menu-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Copy path",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Review",
+        "tag": "BUTTON",
+        "slot": null,
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Hide status stack",
+        "tag": "BUTTON",
+        "slot": "status-drawer-toggle",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "keyboard [[call edit_file {\"path\":\"brief.md\",\"old_string\":\"# Local brief\",\"new_string\":\"# Approved edit\"}]]",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": false,
+        "ring": false
+      },
+      {
+        "name": "Reject",
+        "tag": "BUTTON",
+        "slot": "button",
+        "card": true,
+        "composer": false,
+        "ring": true
+      }
+    ],
+    [
+      {
+        "name": "Dictate",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Attach",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "New branch",
+        "tag": "BUTTON",
+        "slot": "dropdown-menu-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Copy path",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Review",
+        "tag": "BUTTON",
+        "slot": null,
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "Hide status stack",
+        "tag": "BUTTON",
+        "slot": "status-drawer-toggle",
+        "card": false,
+        "composer": true,
+        "ring": true
+      },
+      {
+        "name": "keyboard [[call edit_file {\"path\":\"brief.md\",\"old_string\":\"# Local brief\",\"new_string\":\"# Approved edit\"}]]",
+        "tag": "BUTTON",
+        "slot": "tooltip-trigger",
+        "card": false,
+        "composer": false,
+        "ring": false
+      },
+      {
+        "name": "Reject",
+        "tag": "BUTTON",
+        "slot": "button",
+        "card": true,
+        "composer": false,
+        "ring": true
+      }
+    ]
+  ],
+  "rendererErrors": [],
+  "modelRequests": 6
+}
