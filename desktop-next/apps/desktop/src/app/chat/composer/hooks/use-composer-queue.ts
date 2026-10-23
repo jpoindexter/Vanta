@@ -345,7 +345,7 @@ export function useComposerQueue({
 
     // Plain text queues on the server, which keeps it across an app restart. Attachments and frozen terminal
     // selections cannot ride the server queue, so those stay in this window's queue.
-    if (!offline && remote && sessionId && attachments.length === 0 && !frozen.frozenTransport) {
+    if (!offline && remote && sessionId && attachments.length === 0 && !frozen.frozenTransport && getQueuedPrompts(activeQueueSessionKey).length === 0) {
       const queued = frozen.text
       clearDraft()
       triggerHaptic('selection')

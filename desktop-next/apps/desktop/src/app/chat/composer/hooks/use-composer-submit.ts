@@ -14,7 +14,7 @@ import {
   isFreshDraftScope
 } from '@/store/composer'
 import { resetBrowseState } from '@/store/composer-input-history'
-import { enqueueQueuedPrompt, type QueuedPromptEntry } from '@/store/composer-queue'
+import { enqueueQueuedPrompt, getQueuedPrompts, type QueuedPromptEntry } from '@/store/composer-queue'
 import { hasConnectionRequest, skipConnectionRequest } from '@/store/connection-request'
 import { notify } from '@/store/notifications'
 import { answerParkedCard } from '@/store/parked-card-answers'
@@ -156,8 +156,8 @@ export function useComposerSubmit({
   // if the turn has already ended, or a steer is not possible, queue it so it
   // runs next. This holds for hidden setup notes and for visible messages a
   // button sends on the user's behalf alike.
-  const externalSubmitRef = useRef({ busy, dispatchSubmit, onSteer, onSteerHidden })
-  externalSubmitRef.current = { busy, dispatchSubmit, onSteer, onSteerHidden }
+  const externalSubmitRef = useRef({ busy, dispatchSubmit, onSteer, onSteerHidden, queuedPrompts })
+  externalSubmitRef.current = { busy, dispatchSubmit, onSteer, onSteerHidden, queuedPrompts }
 
   useLayoutEffect(
     () =>
@@ -170,18 +170,24 @@ export function useComposerSubmit({
           !inputDisabled
         ) {
           const current = externalSubmitRef.current
+          const queueKey = activeQueueSessionKeyRef.current
+          const waiting = current.queuedPrompts.length > 0 || getQueuedPrompts(queueKey).length > 0
 
-          if (!current.busy) {
+          if (!current.busy && !waiting) {
             current.dispatchSubmit(text, undefined, displayKind)
 
             return
           }
 
-          const queueKey = activeQueueSessionKeyRef.current
-
           // External requests contain only text; the unsent draft and its attachments stay in the composer.
           const enqueue = () =>
             void enqueueQueuedPrompt(queueKey, { text, attachments: [], ...(displayKind ? { displayKind } : {}) })
+
+          if (waiting) {
+            enqueue()
+
+            return
+          }
 
           // A hidden note never becomes a user turn: it rides session.steer into
           // the model's next tool result, and keeps its kind if it has to queue.
@@ -374,6 +380,13 @@ export function useComposerSubmit({
 
     if (queueEdit) {
       exitQueuedEdit('save')
+    } else if (
+      payloadPresent &&
+      !isSlashCommandText(text) &&
+      (queuedPrompts.length > 0 || getQueuedPrompts(activeQueueSessionKey).length > 0)
+    ) {
+      // A fresh send must not overtake a redirect that fell back to the queue.
+      queueCurrentDraft()
     } else if (busy) {
       if (!submitWhileBusy(text, payloadPresent, blockingPrompt)) {
         return

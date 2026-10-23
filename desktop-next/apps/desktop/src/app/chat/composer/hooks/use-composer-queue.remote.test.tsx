@@ -1,7 +1,7 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { $parkedQueueSessions, $queuedPromptsBySession, getQueuedPrompts } from '@/store/composer-queue'
+import { $parkedQueueSessions, $queuedPromptsBySession, enqueueQueuedPrompt, getQueuedPrompts } from '@/store/composer-queue'
 import { clearNotifications } from '@/store/notifications'
 import { setSessionsLoading } from '@/store/session'
 
@@ -94,6 +94,17 @@ afterEach(() => {
 })
 
 describe('queueing a message', () => {
+  it('appends behind a local fallback instead of bypassing it through the server', () => {
+    enqueueQueuedPrompt(KEY, { text: 'First', attachments: [] })
+    const remote = fakeQueue()
+    const { hook, draftRef, onSubmit } = setup(remote, { draft: 'Second' })
+    act(() => void hook.result.current.queueCurrentDraft())
+    expect(getQueuedPrompts(KEY).map(entry => entry.text)).toEqual(['First', 'Second'])
+    expect(draftRef.current).toBe('')
+    expect(remote.enqueue).not.toHaveBeenCalled()
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
   it('keeps plain text in this window while the backend is down, and never asks the server', () => {
     const remote = fakeQueue()
     const { draftRef, hook } = setup(remote, { draft: 'Wait for the backend', offline: true })

@@ -10,7 +10,7 @@ import {
   type ComposerAttachment,
   setComposerTerminalSelection
 } from '@/store/composer'
-import { clearQueuedPrompts, getQueuedPrompts } from '@/store/composer-queue'
+import { clearQueuedPrompts, enqueueQueuedPrompt, getQueuedPrompts } from '@/store/composer-queue'
 import { $connectionRequests, type ConnectionRequest } from '@/store/connection-request'
 import { $gateway } from '@/store/gateway'
 import {
@@ -370,6 +370,35 @@ describe('useComposerSubmit busy-turn routing', () => {
     cleanup()
     vi.restoreAllMocks()
     clearComposerTerminalSelections()
+    clearQueuedPrompts('stored-session')
+  })
+
+  it('keeps a requested message behind the existing local queue', async () => {
+    enqueueQueuedPrompt('stored-session', { text: 'First', attachments: [] })
+    const { onSubmit, onSteer } = renderSubmitHook()
+    act(() => requestComposerSubmit('Second', { target: 'main' }))
+    await waitFor(() => expect(getQueuedPrompts('stored-session').map(entry => entry.text)).toEqual(['First', 'Second']))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(onSteer).not.toHaveBeenCalled()
+  })
+
+  it.each([false, true])('keeps a new message behind a waiting prompt when busy=%s', busy => {
+    enqueueQueuedPrompt('stored-session', { text: 'First', attachments: [] })
+    const { hook, onSubmit, onSteer, queueCurrentDraft } = renderSubmitHook({ busy, text: 'Second' })
+
+    act(() => hook.result.current.submitDraft())
+
+    expect(queueCurrentDraft).toHaveBeenCalledTimes(1)
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(onSteer).not.toHaveBeenCalled()
+  })
+
+  it('keeps slash commands immediate even when an earlier prompt is queued', async () => {
+    enqueueQueuedPrompt('stored-session', { text: 'First', attachments: [] })
+    const { hook, onSubmit, queueCurrentDraft } = renderSubmitHook({ text: '/help' })
+    act(() => hook.result.current.submitDraft())
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith('/help', expect.anything()))
+    expect(queueCurrentDraft).not.toHaveBeenCalled()
   })
 
   it('treats a payload mid-turn as send (steer), not stop', async () => {
