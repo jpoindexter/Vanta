@@ -12,7 +12,7 @@ Done in desktop-next (uncommitted, not yet rebuilt):
 - Removed `simple-git` (2 criticals). Declared in `apps/desktop/package.json` but never imported anywhere. The lock lost 20 packages (its tree), added none.
 - `dompurify` 3.4.13 to 3.4.17 (patch). The advisories cover `IN_PLACE` mode and `afterSanitize` hooks; the app uses neither (grep), so exposure was low, but the bump is free.
 - After: 20 total, 0 critical. The lock was regenerated in a clean temp copy because `npm audit fix` crashes on the symlinked `node_modules`.
-- Verified 2026-10-22 (after replacing the symlinked `node_modules` with a real `npm ci`, 1,086 packages): `node_modules` holds dompurify 3.4.17 and no simple-git; a packaged build's `app.asar` contains 3.4.17 (not 3.4.13) and no `simple-git`; the done-path passes 13 of 13 steps and 7 of 7 probes on that built app. That build is signed but not notarized and NOT installed: the installed build 6 still has the old versions.
+- Verified 2026-10-22 (after replacing the symlinked `node_modules` with a real `npm ci`, 1,086 packages): `node_modules` holds dompurify 3.4.17 and no simple-git; a packaged build's `app.asar` contains 3.4.17 (not 3.4.13) and no `simple-git`; the done-path passes 13 of 13 steps and 7 of 7 probes on that built app. That build was then notarized (accepted, stapled) and installed as build 7 on 2026-10-23: `spctl` accepted, `codesign` ok, installed `app.asar` has 3.4.17 and no `simple-git`, and the done-path passes 13 of 13 steps and 7 of 7 probes on the installed app. The running app was idle (0.1% CPU) and quit gracefully before the install, then relaunched.
 
 Left alone:
 - `get-windows` (high, optional native, no fix exists): used only for the read-window-below tool. Accept.
