@@ -205,7 +205,7 @@ export async function bots(page) {
   await tab.click();
   await page.waitForTimeout(700);
   const body = await page.locator('[data-zone-body="grp-sessions"]').innerText().catch(() => "");
-  record("F-070", "bots tab", "Roster toolbar (search, New…)", /new|search|bot/i.test(body) ? "INERT" : "FAIL", "roster needs the profiles list (not served); toolbar renders");
+  record("F-070", "bots tab", "Roster toolbar (search, New…)", /new|search|bot/i.test(body) ? "INERT" : "FAIL", "toolbar renders; the roster itself is checked with a seeded profile in the profiles group (F-070/F-071)");
   notRun("F-071", "bots tab", "Bot row", "roster is empty without a profiles route");
   record("F-072", "bots tab", "New Bot dialog", "INERT", "reachable from the roster toolbar and palette; saving needs POST /api/profiles");
   record("F-073", "bots tab", "Group chats", "NOT-RUN", "kept in the tree and hidden until server support exists (owner decision)");

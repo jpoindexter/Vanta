@@ -85,9 +85,9 @@ export async function botsRows(ctx) {
     await page.getByText("Bots", { exact: true }).first().click();
     await page.waitForTimeout(1500);
     const body = await page.locator('[data-zone-body="grp-sessions"]').innerText();
-    const cause = "the roster is empty although /api/profiles lists research: the Bots plugin asks the gateway for the profiles.list RPC, which src/api/vanta/dispatch.ts does not map yet (R3). The union half, getAgentRoster, is wired in the bridge and returns research";
-    verdict("F-070", "bots tab", "Roster toolbar and list", /research/.test(body), { pass: "the roster lists the research profile as a bot", why: cause });
-    verdict("F-071", "bots tab", "Bot row", /research/.test(body), { pass: "bot row present", why: cause });
+    const cause = "the Bots tab roster does not list the research profile although /api/profiles does; the roster hydrates from the profiles.list handler (src/api/vanta/handlers-profiles.ts)";
+    verdict("F-070", "bots tab", "Roster toolbar and list", /research/i.test(body), { pass: "the roster lists the research profile as a bot", why: cause });
+    verdict("F-071", "bots tab", "Bot row", /research/i.test(body), { pass: "bot row present", why: cause });
   });
   await attempt(page, "F-072", "bots tab", "New Bot dialog", async () => {
     const add = page.getByRole("button", { name: /New bot or group chat/i }).first();
