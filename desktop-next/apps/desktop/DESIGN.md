@@ -354,6 +354,8 @@ blurred backdrop.
 - **`SearchField`** — borderless, underline-on-focus, auto-width. The only
   search input. Don't build boxed search bars; don't wrap it in a bordered tile.
   Empty lists hide their search field.
+  Clear returns focus to that field's input, so continued typing stays in search
+  instead of being handed to the chat composer when the clear button disappears.
 - **`SegmentedControl`** — the choice control for small mutually-exclusive sets
   (color mode, tool-call display, usage period). Replaces radio piles and
   pill rows.

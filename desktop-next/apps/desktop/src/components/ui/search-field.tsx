@@ -1,4 +1,4 @@
-import { type KeyboardEventHandler, type ReactNode, type RefObject, useState } from 'react'
+import { type KeyboardEventHandler, type ReactNode, type RefObject, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
@@ -49,6 +49,8 @@ export function SearchField({
 }: SearchFieldProps) {
   const { t } = useI18n()
   const clear = onClear ?? (() => onChange(''))
+  const localInputRef = useRef<HTMLInputElement>(null)
+  const fieldRef = inputRef ?? localInputRef
 
   // One hint per mount, picked at random — fresh nudge every visit, no
   // mid-page carousel.
@@ -85,7 +87,7 @@ export function SearchField({
         onChange={event => onChange(event.target.value)}
         onKeyDown={onKeyDown}
         placeholder={effectivePlaceholder}
-        ref={inputRef}
+        ref={fieldRef}
         type="text"
         value={value}
       />
@@ -97,7 +99,10 @@ export function SearchField({
           <Button
             aria-label={t.ui.search.clear}
             className="shrink-0 text-muted-foreground/85 hover:bg-accent/60 hover:text-foreground"
-            onClick={clear}
+            onClick={() => {
+              clear()
+              fieldRef.current?.focus({ preventScroll: true })
+            }}
             size="icon-xs"
             variant="ghost"
           >

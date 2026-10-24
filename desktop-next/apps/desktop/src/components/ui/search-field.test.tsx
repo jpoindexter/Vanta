@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render } from '@testing-library/react'
+import { createRef, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { SearchField } from './search-field'
@@ -6,6 +7,22 @@ import { SearchField } from './search-field'
 afterEach(cleanup)
 
 describe('SearchField', () => {
+  it.each([false, true])('returns clear-button focus to its input (external ref=%s)', external => {
+    const inputRef = createRef<HTMLInputElement>()
+    function Field() {
+      const [query, setQuery] = useState('query')
+      return <SearchField inputRef={external ? inputRef : undefined} onChange={setQuery} placeholder="Search" value={query} />
+    }
+    const { getByRole, queryByRole } = render(<Field />)
+    const clear = getByRole('button', { name: /clear/i })
+    clear.focus()
+    fireEvent.click(clear)
+    expect(queryByRole('button', { name: /clear/i })).toBeNull()
+    expect(document.activeElement).toBe(getByRole('textbox'))
+    expect((getByRole('textbox') as HTMLInputElement).value).toBe('')
+    if (external) expect(inputRef.current).toBe(document.activeElement)
+  })
+
   it('lays the input out as a flex child so the clear button pins to the row edge', () => {
     // The row is an inline-flex container. The input stays content-sized
     // (`field-sizing: content`) so width-less callers keep compact rows, but
@@ -35,6 +52,18 @@ describe('SearchField', () => {
     fireEvent.click(getByRole('button', { name: /clear/i }))
 
     expect(onChange).toHaveBeenCalledWith('')
+  })
+
+  it('keeps a custom clear callback and restores input focus', () => {
+    const onClear = vi.fn()
+    const onChange = vi.fn()
+    const { getByRole } = render(<SearchField onChange={onChange} onClear={onClear} placeholder="Search" value="query" />)
+    const clear = getByRole('button', { name: /clear/i })
+    clear.focus()
+    fireEvent.click(clear)
+    expect(onClear).toHaveBeenCalledTimes(1)
+    expect(onChange).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(getByRole('textbox'))
   })
 
   it('renders no clear button while empty or loading', () => {
