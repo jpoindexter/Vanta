@@ -615,6 +615,9 @@ long transcript or a busy terminal.
   action on Enter. Chat-opening and modifier intents stay unchanged.
 - One cancel gesture does one thing: cancel the active interaction, or close the
   topmost dismissable surface — never both, never the control underneath.
+- Dismissing Find returns focus and the rich-editor caret to its opener. A
+  repeated Cmd+F preserves that origin; dismissal never steals from another
+  selected control or restores a hidden pane. Route teardown does not restore.
 - Cancellation is synchronous in the UI even if cleanup is async: overlays,
   cursors, and pending gesture state clear at once.
 - Flows that deliberately cannot be dismissed (install/onboarding, destructive

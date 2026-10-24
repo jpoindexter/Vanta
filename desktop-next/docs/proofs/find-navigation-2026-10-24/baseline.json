@@ -1,0 +1,58 @@
+{
+  "checks": [
+    "Local reply arrives",
+    "Cmd+F focuses the find field",
+    "Find shows transcript matches",
+    "Enter moves to the next match",
+    "Shift+Enter moves to the previous match",
+    "Cmd+G advances without toggling another surface"
+  ],
+  "states": [
+    {
+      "name": "before-close",
+      "focus": "Find in page",
+      "focusedDraft": "",
+      "route": "#/20261024-133825-65d436b8-2929-4b06-a887-ba60f52cff7f",
+      "highlights": [
+        {
+          "text": "amber",
+          "visible": false,
+          "parent": "<span class=\"min-w-0 flex-1 truncate text-meta font-medium leading-none\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": false,
+          "parent": "<span class=\"min-w-0 flex-1 truncate text-meta font-medium leading-none\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": false,
+          "parent": "<span class=\"min-w-0 flex-1 truncate text-meta font-medium leading-none\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        }
+      ]
+    },
+    {
+      "name": "after-close",
+      "focus": "BODY",
+      "focusedDraft": "\n    Searchable amber, amber, amber.alphaDone\n        [data-tree-group] :is(aside, [data-slot=sidebar]) {\n          border-left-width: 0;\n          border-right-width: 0;\n          box-shadow: none;\n        }\n        /* Old-shell titlebar BANDS (chat's session header et al size to\n           --titlebar-height, which is 0 inside zones): a zero-height band is\n           non-functional but still paints its border-b — a stray hairline\n           doubling the zone's top seam. Remove the band entirely. */\n        [data-tree-group] header[class*=\"h-(--titlebar-height)\"] {\n          display: none;\n        }\n      ChatsBotsNew session⌘NHomeSchedulesConnectionsSkills & toolsOutputsCompanyPinnedShift-click a chat to pinChatsSearchable amber, amber, amber.nowSearchable amber, amber, amber.Searchable amber, amber, amber.CopyEdit13:38Scripted turn finished.1sCopyRetryScripted turn finished.Response completeScroll to bottomWaking up …main/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-DGqhrC/project/alphaUnsent find navigation draftUnsent find navigation draftDone PathAsk each timeEnter to send · Shift Enter for a new lineVANTAVANTATerminalBackendreadyalphaAgentsCron~1.4k/1M[░░░░░░░░░░] ~0%Focused for0:01Smartv0.0.0\n  \n\n",
+      "route": "#/20261024-133825-65d436b8-2929-4b06-a887-ba60f52cff7f",
+      "highlights": []
+    }
+  ],
+  "errors": []
+}

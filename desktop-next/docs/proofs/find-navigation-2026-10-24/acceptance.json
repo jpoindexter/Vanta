@@ -1,0 +1,71 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zxmZCr",
+  "checks": [
+    "Local reply arrives",
+    "Cmd+F focuses the find field",
+    "Find shows transcript matches",
+    "Enter moves to the next match",
+    "Shift+Enter moves to the previous match",
+    "Cmd+G advances without toggling another surface",
+    "Escape returns focus to the unsent draft",
+    "Typing continues the same draft",
+    "Find does not change the route",
+    "Find never submits or retries",
+    "Repeated Cmd+F keeps and selects the query",
+    "No-match Enter stays in Find",
+    "Pointer Close returns focus to the original draft",
+    "Escape does not steal focus from another selected control",
+    "Every dismissal preserves the draft",
+    "All navigation still uses exactly one model request",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "before-close",
+      "focus": "Find in page",
+      "focusedDraft": null,
+      "route": "#/20261024-134530-30c91e81-7b5e-4b5d-b880-e19927e5b621",
+      "highlights": [
+        {
+          "text": "amber",
+          "visible": false,
+          "parent": "<span class=\"min-w-0 flex-1 truncate text-meta font-medium leading-none\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": false,
+          "parent": "<span class=\"min-w-0 flex-1 truncate text-meta font-medium leading-none\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": false,
+          "parent": "<span class=\"min-w-0 flex-1 truncate text-meta font-medium leading-none\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        }
+      ]
+    },
+    {
+      "name": "after-close",
+      "focus": "Message Vanta",
+      "focusedDraft": "Unsent find navigation draft",
+      "route": "#/20261024-134530-30c91e81-7b5e-4b5d-b880-e19927e5b621",
+      "highlights": []
+    }
+  ],
+  "modelRequests": 1,
+  "rendererErrors": []
+}

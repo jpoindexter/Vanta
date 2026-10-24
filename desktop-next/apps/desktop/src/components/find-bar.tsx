@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router'
 
 import { appViewForPath, isOverlayView } from '@/app/routes'
+import { useFindBarFocus } from '@/components/find-bar-focus'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { findBarKeyAction, formatMatchLabel } from '@/lib/find-in-page'
@@ -37,7 +38,7 @@ import {
 export function FindBar() {
   const { t } = useI18n()
   const { active, query, matchOrdinal, matchCount, focusRequest } = useStore($findInPage)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { inputRef, barRef, dismissFindBar } = useFindBarFocus(active, focusRequest)
   const nativeSearchRequestRef = useRef(0)
   const [localQuery, setLocalQuery] = useState('')
   const [filesPaneRight, setFilesPaneRight] = useState<number | null>(null)
@@ -57,32 +58,10 @@ export function FindBar() {
     return () => closeFindBar()
   }, [pathname])
 
-  // Focus the input when the bar opens, and again when ⌘F repeats while it is
-  // already visible. focusRequest is the only thing that changes on a repeat
-  // open; active stays true, so it cannot be the sole dependency.
   useEffect(() => {
-    if (active) {
-      // A repeat open must keep the typed query. Clearing here would wipe the
-      // input the store just preserved.
-      if (focusRequest === 0) {
-        setLocalQuery('')
-      }
-
-      // Small delay so the DOM paints the input before we focus.
-      const id = requestAnimationFrame(() => {
-        inputRef.current?.focus()
-
-        // Select the existing query so the next keystroke replaces it, matching
-        // Chrome / Safari / VS Code. A first open has nothing to select.
-        if (focusRequest > 0) {
-          inputRef.current?.select()
-        }
-      })
-
-      return () => cancelAnimationFrame(id)
+    if (active && focusRequest === 0) {
+      setLocalQuery('')
     }
-
-    return undefined
   }, [active, focusRequest])
 
   // The files pane (right sidebar, `aside[aria-label="Right sidebar"]`) is a
@@ -245,7 +224,7 @@ export function FindBar() {
       event.stopPropagation()
 
       if (action === 'close') {
-        closeFindBar()
+        dismissFindBar()
       } else if (action === 'next') {
         findNext()
       } else {
@@ -256,7 +235,7 @@ export function FindBar() {
     window.addEventListener('keydown', onKeyDown, { capture: true })
 
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
-  }, [active])
+  }, [active, dismissFindBar])
 
   if (!active || isOverlayView(appViewForPath(pathname))) {
     return null
@@ -308,6 +287,7 @@ export function FindBar() {
         'flex items-center gap-2 rounded-lg border border-(--ui-stroke-tertiary) bg-(--ui-surface-background) px-2 py-1.5 shadow-md'
       )}
       role="search"
+      ref={barRef}
       style={barStyle}
     >
       <input
@@ -357,7 +337,7 @@ export function FindBar() {
       <button
         aria-label={t.common.close}
         className="flex h-7 w-7 items-center justify-center rounded text-(--ui-text-secondary) hover:bg-(--ui-control-hover-background)"
-        onClick={closeFindBar}
+        onClick={dismissFindBar}
         type="button"
       >
         <svg height="12" viewBox="0 0 12 12" width="12">
