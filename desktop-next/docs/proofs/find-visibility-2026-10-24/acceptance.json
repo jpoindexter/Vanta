@@ -1,0 +1,57 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-WzWKE8",
+  "checks": [
+    "Local reply arrives",
+    "Cmd+F focuses the find field",
+    "Only the three visible transcript occurrences match",
+    "Every match is visible, not a hidden header duplicate",
+    "Enter moves to the next match",
+    "Shift+Enter moves to the previous match",
+    "Cmd+G advances without toggling another surface",
+    "Escape returns focus to the unsent draft",
+    "Typing continues the same draft",
+    "Find does not change the route",
+    "Find never submits or retries",
+    "Repeated Cmd+F keeps and selects the query",
+    "No-match Enter stays in Find",
+    "Pointer Close returns focus to the original draft",
+    "Escape does not steal focus from another selected control",
+    "Every dismissal preserves the draft",
+    "All navigation still uses exactly one model request",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "before-close",
+      "focus": "Find in page",
+      "focusedDraft": null,
+      "route": "#/20261024-134835-88900ef2-1e18-4567-aefd-1b414bb8b861",
+      "highlights": [
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        },
+        {
+          "text": "amber",
+          "visible": true,
+          "parent": "<span class=\"whitespace-pre-line\" data-slot=\"aui_directive-text\">Searchable <mark class=\"find-hit\">amber</mark>, <mark class=\"find-hit\" data-find-active=\"\">amber</mark>, <mark class=\"find-hit\">amber</mark>.</span>"
+        }
+      ]
+    },
+    {
+      "name": "after-close",
+      "focus": "Message Vanta",
+      "focusedDraft": "Unsent find navigation draft",
+      "route": "#/20261024-134835-88900ef2-1e18-4567-aefd-1b414bb8b861",
+      "highlights": []
+    }
+  ],
+  "modelRequests": 1,
+  "rendererErrors": []
+}

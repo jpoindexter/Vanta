@@ -48,5 +48,6 @@ Rust/factory changes, merge, PR edit, tag, release or Actions enabling.
 The actual replay also found six matches for three visible occurrences:
 three matches were in a hidden legacy session header. This is a separate
 search-walker defect, not certified by the focus fix, and is the next slice.
+Follow-up: FIND-VISIBILITY-2026-10-24.md records the separately executed fix.
 Installed app, VoiceOver, all split/nested navigation and complete Codex-style
 redesign are not certified. DN-13/22/29 remain open.

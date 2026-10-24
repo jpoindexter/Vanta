@@ -329,8 +329,7 @@ function highlightMatches(root: Element, query: string): HTMLElement[] {
   return marks
 }
 
-/** Elements we never want to descend into during a search. Mirrors the
- *  filter the TreeWalker applied in the original design. */
+// display:contents has no box, but its visible children must still be searchable.
 function shouldSkipElement(el: Element): boolean {
   const tag = el.tagName
 
@@ -346,7 +345,7 @@ function shouldSkipElement(el: Element): boolean {
     return true
   }
 
-  return false
+  return el.checkVisibility?.({ visibilityProperty: true }) === false && getComputedStyle(el).display !== 'contents'
 }
 
 /**

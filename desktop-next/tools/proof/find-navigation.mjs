@@ -39,9 +39,10 @@ try {
   await ctx.page.waitForFunction(() => document.activeElement.matches('[role="search"] input'));
   check("Cmd+F focuses the find field", true);
   await ctx.page.keyboard.type("amber");
-  await counter.getByText(/^1\/[1-9]\d*$/).waitFor();
+  await counter.getByText("1/3", { exact: true }).waitFor();
   const count = (await counter.textContent()).split("/")[1];
-  check("Find shows transcript matches", Number(count) >= 3);
+  check("Only the three visible transcript occurrences match", count === "3");
+  check("Every match is visible, not a hidden header duplicate", await ctx.page.locator("mark.find-hit").evaluateAll(els => els.length === 3 && els.every(el => el.checkVisibility({ visibilityProperty: true }))));
   await ctx.page.keyboard.press("Enter");
   await counter.getByText(`2/${count}`, { exact: true }).waitFor();
   check("Enter moves to the next match", true);
