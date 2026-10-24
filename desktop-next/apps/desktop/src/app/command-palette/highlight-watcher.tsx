@@ -1,14 +1,20 @@
 /**
  * Reports the cmdk highlight to the palette.
  *
- * cmdk calls the root `onValueChange` only in controlled mode (when the
- * `value` prop is set). This palette is uncontrolled, so that prop never
- * fires. This watcher subscribes to the cmdk store with `useCommandState`,
- * which works in both modes, and reports each highlight change.
+ * Observe resolved highlights, including initial/fallback selection, through
+ * the cmdk store in both controlled and uncontrolled mode.
  */
 
 import { useCommandState } from 'cmdk'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+/** Keep selection in the rows actually committed by the deferred result list. */
+export function usePaletteSelection(items: ReadonlyMap<string, unknown>, pending = false) {
+  const [selected, onValueChange] = useState('')
+  const value = items.has(selected) ? selected : (items.keys().next().value ?? '')
+
+  return { value: pending ? '' : value, onValueChange }
+}
 
 interface HighlightWatcherProps {
   /** Receives the cmdk value of each newly highlighted row. */

@@ -610,6 +610,9 @@ long transcript or a busy terminal.
 - Focused and hovered chat panes both retain full color and opacity. Only panes
   that are neither focused nor hovered recede, with 20% desaturation.
 - Register global shortcuts through the shared layer, not ad-hoc listeners.
+  Cmd+K selection follows the displayed deferred rows: keep a valid choice,
+  otherwise select the first match. Pending or empty results cannot run a stale
+  action on Enter. Chat-opening and modifier intents stay unchanged.
 - One cancel gesture does one thing: cancel the active interaction, or close the
   topmost dismissable surface — never both, never the control underneath.
 - Cancellation is synchronous in the UI even if cleanup is async: overlays,

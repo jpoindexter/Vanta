@@ -112,7 +112,7 @@ import { type SettingsSearchEntry, settingsSearchTargetQuery } from '../settings
 import { useSettingsSearchCatalog } from '../settings/use-settings-search'
 
 import { usePaletteContributions } from './contrib'
-import { HighlightWatcher } from './highlight-watcher'
+import { HighlightWatcher, usePaletteSelection } from './highlight-watcher'
 
 interface PaletteItem {
   /** Keybind action id — its live combo renders as a hotkey hint. */
@@ -268,8 +268,8 @@ const EXIT_FALLBACK_MS = 1000
 
 /**
  * The palette's row list, split out so an OPENING palette paints before it
- * renders rows. This component mounts with the portal, so `useDeferredValue`'s
- * initial value applies per open: the first commit is the frame + input
+ * renders rows. The parent defers rows and their selection together per open:
+ * the first commit is the frame + input
  * (instant), and the several-hundred-row list arrives in an interruptible
  * follow-up render. Opening ⌘K must never wait on building the list.
  */
@@ -280,6 +280,7 @@ const PaletteGroups = memo(function PaletteGroups({
   noResultsLabel,
   onSelectItem,
   onSelectMods,
+  pending,
   search
 }: {
   bindings: Record<string, string[]>
@@ -288,21 +289,17 @@ const PaletteGroups = memo(function PaletteGroups({
   noResultsLabel: string
   onSelectItem: (item: PaletteItem) => void
   onSelectMods: (event: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void
+  pending: boolean
   search: string
 }) {
-  const deferred = useDeferredValue(groups, EMPTY_GROUPS)
-  // While the rows are still catching up, an empty list means "not rendered
-  // yet", not "nothing matched" — don't flash the empty state on open.
-  const pending = deferred !== groups
-
   return (
     <>
       {/* Filtering happens in rankGroups, so cmdk's own CommandEmpty
           (keyed to its internal filter count) would never fire. */}
-      {deferred.length === 0 && !pending && (
+      {groups.length === 0 && !pending && (
         <div className="py-6 text-center text-sm text-muted-foreground">{noResultsLabel}</div>
       )}
-      {deferred.map((group, index) => (
+      {groups.map((group, index) => (
         <CommandGroup className={HUD_HEADING} heading={group.heading} key={group.heading ?? `palette-group-${index}`}>
           {group.items.map(item => (
             <PaletteRow
@@ -1481,7 +1478,8 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
 
   const activePage = page ? subPages[page] : null
   const unrankedGroups = activePage ? activePage.groups : groups
-  const visibleGroups = useMemo(() => rankGroups(unrankedGroups, search), [unrankedGroups, search])
+  const rankedGroups = useMemo(() => rankGroups(unrankedGroups, search), [unrankedGroups, search])
+  const visibleGroups = useDeferredValue(rankedGroups, EMPTY_GROUPS)
   const placeholder = activePage ? activePage.placeholder : t.commandCenter.searchPlaceholder
 
   // The HighlightWatcher inside <Command> reports the highlighted row (arrows
@@ -1499,6 +1497,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
 
     return map
   }, [visibleGroups])
+  const selection = usePaletteSelection(itemByValue, visibleGroups !== rankedGroups)
 
   const handleHighlight = useCallback(
     (value: string) => {
@@ -1588,7 +1587,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
         }}
       >
         <DialogPrimitive.Title className="sr-only">{t.commandCenter.paletteTitle}</DialogPrimitive.Title>
-        <Command className="bg-transparent" loop shouldFilter={false}>
+        <Command {...selection} className="bg-transparent" loop shouldFilter={false}>
           <HighlightWatcher onValue={handleHighlight} />
           {activePage && (
             <button
@@ -1636,6 +1635,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
               noResultsLabel={t.commandCenter.noResults}
               onSelectItem={handleSelect}
               onSelectMods={noteSelectMods}
+              pending={visibleGroups !== rankedGroups}
               search={search}
             />
           </CommandList>
