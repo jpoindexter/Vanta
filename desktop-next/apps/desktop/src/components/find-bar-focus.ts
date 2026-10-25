@@ -33,8 +33,10 @@ function useFindPaneIntent(active: boolean, rememberOrigin: () => void) {
     if (!active) return undefined
     let frame = 0
     const onIntent = (event: Event) => {
+      if (!$findInPage.get().active) return
       const target = event.target
       if (!(target instanceof Element) || !target.closest(INTENT_SELECTOR)) return
+      if (event.type === 'focusin') rememberOrigin()
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
         if (!target.isConnected || isElementInHiddenPane(target)) return

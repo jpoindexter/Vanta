@@ -38,6 +38,16 @@ failure claim. No test loops or relaxed assertions were used for acceptance.
 
 ## Limit
 
+Independent follow-on review found dismissal origin could still retain the old
+pane when sidebar focus preceded the queued frame. The same regression now
+also presses Escape and asserts second-editor focus; it fails before recording
+focusin origin synchronously. This follow-on is tracked separately from the
+earlier27-check/101-test evidence above, not retroactively claimed installed.
+The final101-test Find set passes with that dismissal assertion. Ignore late
+focus events once Find is closed so restoring a rich-editor focus does not
+overwrite its saved caret; the existing caret regression caught this during
+the narrow check and passes after that guard. No assertion was removed.
+
 This correction is source accepted, not yet packaged/installed. The installed
 security candidate remains f94c5025 until a later combined replacement passes
 its exact installed journey. No owner visual, audible VoiceOver, normal-profile

@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
-import { serverLaunchArgs } from "./runtime-launch.mjs";
+import { serverLaunchArgs } from "../../desktop-native/runtime-launch.mjs";
+import { serverLaunchArgs as legacyServerLaunchArgs } from "./runtime-launch.mjs";
 
 const paths = resolveRuntimePaths({ appPath: "/app/vanta-ts", packaged: false, resourcesPath: "", platform: "darwin" });
 
-test("runtime paths expose the precompiled bundle next to src", () => {
+test("shared launcher preserves the classic import and bundle path", () => {
+  assert.equal(serverLaunchArgs, legacyServerLaunchArgs);
   assert.equal(paths.bundle, "/app/vanta-ts/dist-runtime/cli.mjs");
 });
 

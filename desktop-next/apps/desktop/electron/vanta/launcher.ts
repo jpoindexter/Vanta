@@ -7,7 +7,7 @@ import { createHttpTransport } from '../../../shared/src/vanta'
 import { stopProcessTree } from '../../../../../vanta-ts/desktop-app/electron/process-tree.mjs'
 import { findAvailablePort } from '../../../../../vanta-ts/desktop-app/electron/project-root.mjs'
 import { desktopRuntimeEnv } from '../../../../../vanta-ts/desktop-app/electron/runtime-env.mjs'
-import { serverLaunchArgs } from '../../../../../vanta-ts/desktop-app/electron/runtime-launch.mjs'
+import { serverLaunchArgs } from '../../../../../vanta-ts/desktop-native/runtime-launch.mjs'
 import {
   resolveRuntimePaths,
   type VantaRuntimePaths

@@ -167,6 +167,7 @@
       "desktop-app/dist/**/*",
       "dist-runtime/**/*",
       "desktop-app/electron/**/*.mjs",
+      "desktop-native/runtime-launch.mjs",
       "desktop-app/electron/**/*.cjs",
       "desktop-app/electron/avatar.html",
       "desktop-app/electron/avatar.js",

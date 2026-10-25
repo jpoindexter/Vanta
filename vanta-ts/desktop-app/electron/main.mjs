@@ -11,7 +11,7 @@ import { createDesktopPresence } from "./desktop-presence.mjs";
 import { resolveDroppedPaths } from "./dropped-paths.mjs";
 import { findAvailablePort, resolveProjectRoot, saveProjectSetting } from "./project-root.mjs";
 import { resolveRuntimePaths } from "./runtime-paths.mjs";
-import { serverLaunchArgs } from "./runtime-launch.mjs";
+import { serverLaunchArgs } from "../../desktop-native/runtime-launch.mjs";
 import { desktopRuntimeEnv } from "./runtime-env.mjs";
 import { showProjectFolderPicker } from "./project-folder-picker.mjs";
 import { createPendingProjectTaskStore, prepareProjectSwitch } from "./project-switch.mjs";

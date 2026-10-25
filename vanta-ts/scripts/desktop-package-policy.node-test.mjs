@@ -21,8 +21,9 @@ test("desktop package excludes the unused optional winnow ML dependency chain", 
   }
 });
 
-test("desktop package ships the precompiled runtime bundle next to the tsx fallback sources", () => {
+test("desktop package ships the shared launcher, runtime bundle and tsx fallback sources", () => {
   const files = new Set(manifest.build?.files ?? []);
+  assert.ok(files.has("desktop-native/runtime-launch.mjs"), "the shared native launcher must be packaged");
   assert.ok(files.has("dist-runtime/**/*"), "dist-runtime must be packaged so the server skips tsx");
   assert.ok(files.has("src/**/*"), "src stays packaged for the tsx fallback and runtime assets");
   assert.match(manifest.scripts["desktop:pack"], /desktop:runtime/, "desktop:pack must build the runtime bundle");

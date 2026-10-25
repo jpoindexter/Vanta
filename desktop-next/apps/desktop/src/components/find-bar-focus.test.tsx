@@ -162,6 +162,9 @@ describe('FindBar dismissal focus', () => {
       act(() => frames.forEach(callback => callback(performance.now())))
       expect(other.hasAttribute('data-find-root')).toBe(true)
       expect($findInPage.get().matchCount).toBe(1)
+      query.focus()
+      fireEvent.keyDown(query, { key: 'Escape' })
+      expect(document.activeElement).toBe(other.querySelector('input'))
     } finally {
       other.remove()
       sidebar.remove()
