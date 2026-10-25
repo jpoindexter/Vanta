@@ -67,6 +67,34 @@ Paths below are repository-relative and were read-only verified to exist. Integr
 
 ## Files and proof
 
+### Recheck and implementation priorities — 2026-10-25
+
+The current installed reference still matches the artifact SHA above. A read-only
+check re-read all 375 CSS entry hashes with zero mismatches and no file writes.
+The earlier REA parent was no longer retained by the analysis session; its ID
+alone could not be replayed. A fresh inert analysis of the same four exact JS
+entries returned parent `ev_2543d47c73d2ce2d2de9c9693d8852c70d4c1edd9947495053fdbf50ebd6c128`
+and summary `ev_a5c4c0406b2d3def0d25365fd2d3d8937874bf61ea125e6296bdc94e4290f58f`:
+four parsed files, 7,917 source bytes, zero parse failures. The same seven native
+integrity contradictions and unselected-source limits remain. Its complete
+589,731,726-byte Evidence bundle is retained outside Git in the private
+`shell-first-delivery-20261025-5pSjjH` backup as
+`rea-design-recheck-20261025.json`; it is not app code or a shipped asset.
+
+The highest-impact remaining detail gaps are specific to Vanta, not evidence
+that a static Codex declaration is its active runtime appearance:
+
+| Priority | Current Vanta declarations | Smallest proposed visual slice | Acceptance before adoption |
+| --- | --- | --- | --- |
+| 1. Home/chat composer consistency | Home (`src/app/vanta/home/home-composer.tsx`) uses the surface radius role, visible border, 10px vertical padding and an outlined attachment control. Chat (`src/styles/vanta-composer.css`) uses the composer radius role, transparent border, three-layer shadow, 12px padding and quiet footer controls. Home and chat column caps are 860px and 720px respectively. | Preview one shared surface/control treatment; preserve each screen's routing, state, project selection and placement. Column width is a separate decision, not an automatic 860→720 replacement. | Owner reviews the first surface. Then check empty/typed/attachment/error/focus/disabled states, keyboard entry, send, light/dark, narrow width and 200% zoom on that surface. |
+| 2. Text-control density | Shared `src/components/ui/button.tsx` declares 12px/16px text with approximately 28px default height; refined menu rows use 14px/20px and minimum 32px. These are default scalar declarations, not measured computed dimensions. | Preview the existing 14px semantic text role with 20px line height and 32px default text controls. Retain micro, xs, icon and titlebar variants. | Check clipping, wrapping, long labels, focus rings and disabled affordances in actual caller layouts. No forced fixed height where content needs to grow. |
+| 3. Surface elevation | Shared Vanta menus declare a hairline plus `0 8px 16px -4px` at 16% black; the composer ambient layer uses a 40px blur. Static Codex card reference is `0 4px 16px` at 5.1% black; its composer has distinct 80px/default and 40px/narrow branches. | Preview quieter menu elevation and separate composer depth through existing semantic tokens, not per-component literals or a global shadow replacement. The Codex card rule is not proven to be its active menu rule. | Compare resting/open/hover/focus states at the same viewport and zoom. Check legibility and focus contrast; do not simulate or claim the native outer-window shadow from CSS. |
+
+These are DN-29 refinements, not new roadmap cards or completed design work.
+Stages 2/3 retain the owner-review boundary in `PARKED.md` and the October 23
+handoff. This recheck changes reference documentation only: no shared token
+migration, app redesign, installation, legacy deletion or visual sign-off.
+
 Compact distribution candidates: `DESIGN-REFERENCE.md`, `tokens-normalized.json`, `theme-reference.json`, `contrast-reference.json`, `css-inventory.json`, `verification.json`, `all-css-verification.json`, `rea-summary.json`. **Keep both `design-reference.json` and `all-css-private-reference.json` private**: they contain source-specific declaration/selector reference evidence. Do not transplant those selectors or implementation into Vanta.
 
 `verify.cjs` re-read every CSS entry hash and verified 5,847 curated source offsets (2,388 token, 3,069 component, 390 state). `expand-all-css.cjs` additionally parsed all 375 CSS entries and verified **77,399 source offsets**: every declaration, selector and at-rule location; all 375 source hashes matched. These checks validate reference identity/locations, not visual reproduction. `normalize.cjs` ran the literal contrast checks; its normalized core remains unchanged by the broad expansion. No app launch, code execution from the target, credentials, owner profile, shared source edits, commits or pushes occurred.
