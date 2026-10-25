@@ -1,5 +1,20 @@
 # Run the Vanta desktop
 
+## Current setup — 2026-10-25
+
+Use the app's declared supported Node engine (Electron itself requires22.12+),
+install desktop-next and vanta-ts dependencies, and run `npm run vanta:build`
+from desktop-next. It explicitly installs a missing verified Electron binary
+and works with either nested or hoisted workspace dependencies. Keep an
+approved existing kernel binary; do not rebuild protected Rust without owner
+authority. `npm run vanta:app` opens an isolated scripted-model source app,
+not the owner's installed profile. For real installed/package identity and
+remaining gates, use the newest dated delivery evidence linked from STATUS.
+
+The inventory below is an older snapshot, not a current capability audit.
+
+## Historical launch and capability snapshot
+
 1. Prerequisites: Node 22+, `desktop-next` dependencies installed (`npm install` in `desktop-next`), the Electron binary downloaded, and a Vanta kernel binary at `<repo>/target/debug/vanta-kernel` (`cargo build` in the repo root).
 2. Command, from `desktop-next`: `npm run vanta:app` (it builds the renderer and the Electron main first when `apps/desktop/dist` is missing; `--rebuild` forces it, `--hidden` keeps the window off screen).
 3. It opens the real shell with the real Vanta server in a sandbox: its own `VANTA_HOME`, `HOME`, Electron user data and a throwaway git project (`acme-site`). Nothing under `~/.vanta` or the installed apps is touched.

@@ -14,6 +14,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
+import { electronBinary } from "./electron-dependency.mjs";
 
 const here = import.meta.dirname;
 export const desktopRoot = path.resolve(here, "..", "apps", "desktop");
@@ -48,7 +49,7 @@ export async function launchMockApp({ devServer = "", width = 1440, height = 900
   const { _electron } = require("playwright-core");
   const { startMockServer } = await importVanta("mock-server.ts");
   const { writeMockProviderConfig, writeEnvFile } = await importVanta("mock-provider-config.ts");
-  const electronBin = path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
+  const electronBin = electronBinary();
 
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-shell-proof-"));
   const vantaHome = path.join(root, "vanta-home");

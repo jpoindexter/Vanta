@@ -2,12 +2,14 @@
 //   npm run vanta:package            (from desktop-next)
 // Builds the renderer + Electron main, the precompiled Vanta runtime and (if missing) the release kernel,
 // assembles the app from the Electron already in node_modules, signs it (ad hoc, or with Developer ID when
-// VANTA_SIGN_IDENTITY is set) and zips it. Nothing is downloaded, notarized, uploaded or installed here:
+// VANTA_SIGN_IDENTITY is set) and zips it. The build installs a missing Electron binary;
+// nothing is notarized, uploaded or installed into Applications here:
 // notarizing is tools/notarize-app.mjs.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { electronPackageRoot } from "./electron-dependency.mjs";
 
 import { assembleApp } from "./packaging/assemble-app.mjs";
 import { legacyBrandFacts, sizeFacts, symlinkFacts } from "./packaging/bundle-report.mjs";
@@ -90,7 +92,7 @@ async function main() {
   console.log("[package] stage runtime");
   const { packages } = stageRuntime({ vantaTs, dest: path.join(scratch, "vanta-runtime") });
   console.log("[package] assemble app");
-  const electronDist = path.join(desktop, "node_modules", "electron", "dist");
+  const electronDist = path.join(electronPackageRoot(), "dist");
   const paths = { desktop, electronDist, kernel: kernel.file, runtime: path.join(scratch, "vanta-runtime"), work: path.join(scratch, "asar"), notices: noticeFiles(electronDist) };
   await assembleApp({ out: app, config, identity, build, paths });
   sealAndReport({ app, outDir, build, kernel, packages, name: identity.displayName });

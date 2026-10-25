@@ -12,6 +12,7 @@ import { createRequire } from "node:module";
 import net from "node:net";
 
 import { PIXEL, startMockOpenAI } from "./mock-openai.mjs";
+import { electronBinary as dependencyBinary } from "./electron-dependency.mjs";
 
 const here = import.meta.dirname;
 export const desktopRoot = path.resolve(here, "..", "apps", "desktop");
@@ -20,7 +21,7 @@ const require = createRequire(import.meta.url);
 const SECRET = /(_API_KEY|_TOKEN|_SECRET|_PASSWORD|_CREDENTIALS|_ACCESS_KEY|_PRIVATE_KEY|_KEY)$/;
 
 function electronBinary() {
-  const bin = path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
+  const bin = dependencyBinary();
   for (const file of [bin, path.join(desktopRoot, "dist", "electron-main.mjs"), path.join(desktopRoot, "dist", "index.html")]) {
     if (!fs.existsSync(file)) {
       throw new Error(`Missing ${file}. Run: npm run vanta:build (see docs/RUN.md).`);

@@ -11,6 +11,7 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
+import { electronBinary } from "./electron-dependency.mjs";
 
 const here = import.meta.dirname;
 const desktopRoot = path.resolve(here, "..", "apps", "desktop");
@@ -27,9 +28,7 @@ const importVanta = (rel) => import(pathToFileURL(path.join(vantaRepo, "tests-js
 const { startMockServer } = await importVanta("mock-server.ts");
 const { writeMockProviderConfig, writeEnvFile } = await importVanta("mock-provider-config.ts");
 
-const electronBin = path.join(
-  desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron",
-);
+const electronBin = electronBinary();
 for (const f of [electronBin, path.join(desktopRoot, "dist", "electron-main.mjs"), path.join(desktopRoot, "dist", "index.html")]) {
   if (!fs.existsSync(f)) throw new Error(`Missing ${f}. Build apps/desktop and run node_modules/electron/install.js first.`);
 }

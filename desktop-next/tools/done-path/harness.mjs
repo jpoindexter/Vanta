@@ -9,6 +9,7 @@ import { createRequire } from "node:module";
 import net from "node:net";
 
 import { desktopRoot } from "../vanta-app.mjs";
+import { electronBinary } from "../electron-dependency.mjs";
 
 const here = import.meta.dirname;
 const repoRoot = path.resolve(here, "..", "..", "..");
@@ -102,7 +103,7 @@ export async function launchApp({ box, project, modelUrl, extraEnv, width = 1440
     packaged
       ? { executablePath: path.join(packaged, "Contents", "MacOS", "Vanta"), args: [`--user-data-dir=${box.userData}`, ...flags], env, cwd: box.root }
       : {
-          executablePath: path.join(desktopRoot, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron"),
+          executablePath: electronBinary(),
           args: [desktopRoot, `--user-data-dir=${box.userData}`, ...flags],
           env,
           cwd: desktopRoot,

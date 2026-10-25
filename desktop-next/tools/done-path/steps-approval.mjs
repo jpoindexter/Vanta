@@ -13,6 +13,9 @@ const shot = (ctx, name) => ctx.shot(name);
 
 export async function openApp(ctx, project) {
   ctx.cur = await launchApp({ box: ctx.box, project, modelUrl: ctx.model.url });
+  ctx.evidence("runtime-versions", await ctx.cur.app.evaluate(({ app }) => ({
+    electron: process.versions.electron, node: process.versions.node, packaged: app.isPackaged,
+  })));
   await waitForShell(ctx.cur.page);
   await settle(ctx.cur.page, 1500);
   await watchApprovals(ctx.cur.page);

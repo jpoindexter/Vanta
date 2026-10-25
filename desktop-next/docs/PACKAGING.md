@@ -1,4 +1,34 @@
-# Packaging Vanta Next (local, unsigned)
+# Packaging Vanta (local candidate)
+
+## Current path — 2026-10-25
+
+From `desktop-next`, install dependencies with Node22.12+ (the app's supported
+Node engines still apply), then run `npm run vanta:package`. The build resolves
+Electron through the prepared workspace whether nested or hoisted, and runs
+its checksum-verified `install.js` when the platform binary is missing.
+Electron42+ does not download its binary in postinstall. No symlink workaround
+or hard-coded apps/desktop/node_modules/electron directory is required.
+
+For Developer ID signing, set `VANTA_SIGN_IDENTITY` to an existing signing
+identity. Set `VANTA_KERNEL_BIN` to the approved existing release kernel to
+avoid an unrequested Rust rebuild. Packaging writes Vanta.app, a ZIP and
+bundle-report.json under apps/desktop/release/mac-arm64; it does not replace
+the installed app, notarize, upload a public release or change runtime state.
+
+Notarize separately with `node tools/notarize-app.mjs` and the existing Keychain
+profile. Generate the deliverable ZIP after stapling so it carries the ticket.
+Before replacing /Applications/Vanta.app: preserve source/previous app/private
+state, verify signature/ticket/build identity, and refuse to interrupt active
+work. Check the exact installed path afterward, not just the source bundle.
+
+Current executed delivery and remaining gates are recorded in
+[INSTALLED-DELIVERY-2026-10-25.md](INSTALLED-DELIVERY-2026-10-25.md).
+Dependency changes require their own dated proof; Apple acceptance does not
+certify dependency security. No public release, legacy removal or data deletion
+is implied. Original packaging notes below are historical, not current setup,
+uninstall or security-bypass instructions.
+
+## Historical unsigned prototype notes (superseded)
 
 Produces `Vanta Next.app` (arm64): ad-hoc signed, not notarized, not published, not installed.
 

@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { electronBinary } from "./electron-dependency.mjs";
 
 import { artLayer, dmgBackground, fullBleed, glyph, plate } from "./icons/marks.mjs";
 
@@ -12,7 +13,7 @@ const here = import.meta.dirname;
 const next = path.resolve(here, "..");
 const desktop = path.join(next, "apps", "desktop");
 const SVG = path.resolve(next, "..", "vanta-ts", "desktop-app", "build", "vanta-brand-icon.svg");
-const electron = path.join(desktop, "node_modules", "electron", "dist", "Electron.app", "Contents", "MacOS", "Electron");
+const electron = electronBinary();
 const out = (...parts) => path.join(desktop, ...parts);
 
 const work = fs.mkdtempSync(path.join(os.tmpdir(), "vanta-icons-"));

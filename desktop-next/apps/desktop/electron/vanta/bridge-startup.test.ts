@@ -5,7 +5,7 @@ import { buildDesktopBridge, type BridgeEnv } from "./bridge-surface";
 const env = (): BridgeEnv => ({
   customWindowControls: false,
   ipc: {
-    invoke: vi.fn(async <T>() => undefined as T),
+    invoke: async <T>() => undefined as T,
     on: vi.fn(),
     removeListener: vi.fn(),
     send: vi.fn(),
