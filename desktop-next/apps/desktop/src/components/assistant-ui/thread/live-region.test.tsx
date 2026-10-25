@@ -52,4 +52,18 @@ describe('ThreadLiveRegion', () => {
 
     expect(screen.queryByText(RESPONSE_COMPLETE)).toBeNull()
   })
+
+  it('adds fresh DOM announcements for identical replies after the log reaches its limit', async () => {
+    const { rerender } = render(view(reply('', true)))
+    const region = document.querySelector('[data-slot="aui_live-region"]')!
+    let previous: Element | null = null
+    for (let index = 0; index < 4; index++) {
+      await act(async () => rerender(view({ ...reply('', true), id: `repeat-${index}` })))
+      await act(async () => rerender(view({ ...reply('Same reply.', false), id: `repeat-${index}` })))
+      expect(region.children.length).toBeLessThanOrEqual(6)
+      expect(region.lastElementChild?.textContent).toBe(RESPONSE_COMPLETE)
+      expect(region.lastElementChild).not.toBe(previous)
+      previous = region.lastElementChild
+    }
+  })
 })

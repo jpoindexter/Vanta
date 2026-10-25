@@ -139,6 +139,9 @@ The transcript timeline is one Tab stop: arrows/Home/End move within it,
 Enter jumps, and Tab leaves. Its compact focus indicator uses an inset 2px
 ring token; virtualized-away active prompts must not remove keyboard access.
 
+The bounded polite reply log keys each queued announcement by its own identity,
+not position/text, so identical replies still add fresh live-region nodes.
+
 ## Window background behavior
 
 Settings → Appearance → Window layout offers **Minimize to tray**, off by default and

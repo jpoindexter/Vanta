@@ -35,7 +35,8 @@ function useLastReply(): { isRunning: boolean; messageId: string; text: string }
  */
 export const ThreadLiveRegion: FC = () => {
   const reply = useLastReply()
-  const [lines, setLines] = useState<string[]>([])
+  const [lines, setLines] = useState<{ id: number; text: string }[]>([])
+  const nextLine = useRef(0)
   const tracked = useRef<AnnounceState | null>(null)
   const seenRunning = useRef(false)
 
@@ -64,7 +65,8 @@ export const ThreadLiveRegion: FC = () => {
     tracked.current = step.state
 
     if (step.lines.length > 0) {
-      setLines(current => [...current, ...step.lines].slice(-KEEP_LINES))
+      const added = step.lines.map(text => ({ id: nextLine.current++, text }))
+      setLines(current => [...current, ...added].slice(-KEEP_LINES))
     }
 
     if (!isRunning) {
@@ -74,8 +76,8 @@ export const ThreadLiveRegion: FC = () => {
 
   return (
     <div aria-atomic="false" aria-live="polite" className="sr-only" data-slot="aui_live-region" role="log">
-      {lines.map((line, index) => (
-        <p key={`${index}:${line}`}>{line}</p>
+      {lines.map(line => (
+        <p key={line.id}>{line.text}</p>
       ))}
     </div>
   )

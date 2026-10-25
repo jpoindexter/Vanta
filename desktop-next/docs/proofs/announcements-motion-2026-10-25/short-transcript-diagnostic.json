@@ -1,0 +1,44 @@
+{
+  "checks": [
+    "Reduced motion is enabled only for this test window",
+    "A polite empty log exists before the first reply",
+    "Local reply 1 finishes",
+    "Reply 1 adds one completion announcement",
+    "Local reply 2 finishes",
+    "Reply 2 adds one completion announcement",
+    "Native Shift+Tab reaches the timeline"
+  ],
+  "states": [
+    {
+      "name": "announcement-1",
+      "lines": [
+        "Scripted turn finished.",
+        "Response complete"
+      ]
+    },
+    {
+      "name": "announcement-2",
+      "lines": [
+        "Scripted turn finished.",
+        "Response complete",
+        "Scripted turn finished.",
+        "Response complete"
+      ]
+    },
+    {
+      "name": "Timeline Enter",
+      "values": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "finalLog": [
+    "Scripted turn finished.",
+    "Response complete",
+    "Scripted turn finished.",
+    "Response complete"
+  ],
+  "errors": []
+}
