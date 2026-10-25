@@ -7,6 +7,7 @@
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
+import { noteActiveTreeGroup } from '@/components/pane-shell/tree/store'
 
 import {
   captureFindScope,
@@ -33,10 +34,30 @@ function plantSurface(id: string, html: string, hidden = false): HTMLElement {
 }
 
 afterEach(() => {
+  noteActiveTreeGroup(null)
   document.body.innerHTML = ''
 })
 
 describe('resolveCurrentFindScope', () => {
+  it('searches the active rendered document instead of a visible chat', () => {
+    plantSurface('chat', 'chat-only text').dataset.treeGroup = 'chat-zone'
+    const preview = document.createElement('section')
+    preview.dataset.treeGroup = 'document-zone'
+    preview.innerHTML = '<article data-preview-markdown><h1>Local brief</h1></article>'
+    document.body.append(preview)
+    noteActiveTreeGroup('document-zone')
+    expect(resolveCurrentFindScope()).toBe(preview.querySelector('[data-preview-markdown]'))
+  })
+
+  it('does not search a document inside an inactive keep-alive pane', () => {
+    const preview = document.createElement('section')
+    preview.dataset.paneHidden = ''
+    preview.innerHTML = '<article data-preview-markdown>Hidden document</article>'
+    document.body.append(preview)
+    const chat = plantSurface('chat', 'foreground chat')
+    expect(resolveCurrentFindScope()).toBe(chat)
+  })
+
   it('returns the foreground chat surface and skips hidden ones', () => {
     plantSurface('background', 'hidden chat', true)
     const foreground = plantSurface('foreground', 'visible chat')

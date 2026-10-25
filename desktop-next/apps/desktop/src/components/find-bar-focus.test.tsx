@@ -36,6 +36,28 @@ async function openFromDraft(editable = false) {
 }
 
 describe('FindBar dismissal focus', () => {
+  it('carries an open query into a rendered document and back without losing the chat draft', async () => {
+    const { draft, query } = await openFromDraft()
+    const preview = document.createElement('article')
+    preview.dataset.previewMarkdown = ''
+    preview.innerHTML = '<p>needle needle</p><button type="button">Document control</button>'
+    document.body.append(preview)
+    const control = preview.querySelector('button')!
+    fireEvent.change(query, { target: { value: 'needle' } })
+    await waitFor(() => expect($findInPage.get().query).toBe('needle'))
+    fireEvent.pointerOver(control)
+    expect(preview.hasAttribute('data-find-root')).toBe(false)
+    act(() => control.focus())
+    await waitFor(() => expect(preview.hasAttribute('data-find-root')).toBe(true))
+    expect($findInPage.get().matchCount).toBe(2)
+    expect($findInPage.get().query).toBe('needle')
+    act(() => draft.focus())
+    await waitFor(() => expect(draft.closest('section')!.hasAttribute('data-find-root')).toBe(true))
+    expect(preview.querySelectorAll('mark')).toHaveLength(0)
+    expect((draft as HTMLTextAreaElement).value).toBe('Unsent draft')
+    preview.remove()
+  })
+
   it.each(['menu', 'dialog', 'listbox'])('lets an overlaid %s own Escape before Find', async role => {
     const { query } = await openFromDraft()
     const overlay = document.createElement('div')

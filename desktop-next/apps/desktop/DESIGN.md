@@ -628,6 +628,8 @@ long transcript or a busy terminal.
   keep-alive pane can never claim that search.
 - While Find stays open, an explicit pane focus/click carries its query and
   dismissal target to that pane and clears old highlights. Hover does not.
+  Read-only rendered Markdown previews participate alongside chat surfaces.
+  Composer hover handoff pauses while Find is active; explicit clicks remain available.
 - Find yields Escape to a focused menu/dialog/list. Returning from window
   chrome and editing the query preserves the captured chat; only explicit
   pane intent or hidden-tab re-targeting changes it.

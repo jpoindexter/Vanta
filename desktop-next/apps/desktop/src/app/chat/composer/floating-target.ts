@@ -4,6 +4,7 @@ import { $activeTreeGroup, $hoveredTreeGroup, noteActiveTreeGroup } from '@/comp
 import { isEditableTarget, OVERLAY_SURFACE } from '@/lib/keybinds/combo'
 import { isActivateOnEnterTarget } from '@/lib/keybinds/composer-focus-keys'
 import { $composerPopout } from '@/store/composer-popout'
+import { $findInPage } from '@/store/find-in-page'
 
 import { $floatingComposerOwner, type FloatingComposerOwner } from './floating-state'
 import { EDIT_COMPOSER_ROOT, focusComposerInput, markActiveComposer } from './focus'
@@ -156,6 +157,9 @@ function trackPointer(event: PointerEvent) {
   if (!target || (event.type === 'pointermove' && event.buttons !== 0)) {
     return
   }
+
+  // An open search follows explicit pane intent, not hover-only caret handoff.
+  if (event.type === 'pointermove' && $findInPage.get().active) return
 
   const id = surfaceAt(target)
 

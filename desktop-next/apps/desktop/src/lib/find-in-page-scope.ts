@@ -1,6 +1,6 @@
 /**
  * Renderer-side find-in-page that scopes matches to the CURRENT VIEW — the
- * active chat surface — instead of the whole document.
+ * active chat or rendered document surface — instead of the whole window.
  *
  * Background. Electron's `webContents.findInPage` searches the renderer's
  * entire DOM. The desktop chat shell mounts every ever-active chat surface
@@ -20,7 +20,7 @@
  * the scope re-resolves to the new foreground surface — "find wherever the
  * user is reading" holds across a flip, not just at open time (#81726).
  *
- * "Current view" is the foreground `[data-chat-surface]` element after
+ * "Current view" is a foreground chat or read-only Markdown preview after
  * filtering out inactive keep-alive tabs. That is the same policy every
  * other document-wide lookup obeys (see pane-visibility.ts), so this can be
  * reasoned about as "find wherever the user is reading".
@@ -56,7 +56,7 @@
 import { queryAllVisible } from '@/components/pane-shell/pane-visibility'
 import { $activeTreeGroup } from '@/components/pane-shell/tree/store'
 
-const SCOPE_SELECTOR = '[data-chat-surface]'
+export const FIND_SURFACE_SELECTOR = '[data-chat-surface],[data-preview-markdown]'
 const HIGHLIGHT_CLASS = 'find-hit'
 const ACTIVE_ATTR = 'data-find-active'
 const ROOT_ATTR = 'data-find-root'
@@ -89,9 +89,9 @@ let scheduled = false
  * route-change cleanup in FindBar closes the bar first).
  */
 export function resolveCurrentFindScope(): HTMLElement | null {
-  const surfaces = queryAllVisible<HTMLElement>(SCOPE_SELECTOR)
+  const surfaces = queryAllVisible<HTMLElement>(FIND_SURFACE_SELECTOR)
   const focused = document.activeElement
-  const focusedSurface = focused?.closest(SCOPE_SELECTOR)
+  const focusedSurface = focused?.closest(FIND_SURFACE_SELECTOR)
   const owner = focused?.closest<HTMLElement>('[data-composer-owner]')?.dataset.composerOwner
   const group = $activeTreeGroup.get()
 

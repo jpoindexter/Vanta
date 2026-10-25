@@ -1,0 +1,71 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-1bEs48",
+  "checks": [
+    "The real local document is visible and clicked",
+    "Find searches the selected document, not the chat",
+    "Clicking the chat carries the open search back to the chat",
+    "Leaving the document clears its old highlights",
+    "Clicking the document carries the still-open query back",
+    "Hovering the chat does not move document search",
+    "Repeated Cmd+F edits the query within the document scope",
+    "The unsent chat draft is unchanged",
+    "Searching never writes to the document",
+    "No accidental send",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "document",
+      "focus": "<input aria-label=\"Find in page\" autocomplete=\"off\" class=\"h-6 w-40 bg-transparent text-xs text-(--ui-text-primary) outline-none placeholder:text-(--ui-text-tertiary)\" placeholder=\"Find in page\" type=\"search\" value=\"Local brief\">",
+      "roots": [
+        {
+          "html": "<div class=\"preview-markdown mx-auto max-w-3xl px-4 py-3 text-sm text-foreground\" data-preview-markdown=\"\" data-selectable-text=\"true\" data-find-root=\"\"><div class=\"space-y-4 whitespace-normal [&amp;&gt;*:first-child]:mt-0 [&amp;&gt;*:last-child]:mb-0\"><h1 class=\"mb-3 mt-6 text-3xl font-bold leading",
+          "text": "Local brief\nNo operator data.",
+          "marks": [
+            "Local brief"
+          ]
+        }
+      ],
+      "body": "Chat-only navigation test\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nChat-only navigation test\nnow\nChat-only navigation test\nCopy\nEdit\n12:14\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-1bEs48/project/alpha\nUnsent preview-navigation draft\n\nEnter to send · Shift Enter for a new line\n\nbrief.md\nPREVIEW\nSOURCE\nEdit\nLocal brief\n\nNo operator data.\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\n1/1",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent preview-navigation draft"
+        }
+      ]
+    },
+    {
+      "name": "document-return",
+      "focus": "<input aria-label=\"Find in page\" autocomplete=\"off\" class=\"h-6 w-40 bg-transparent text-xs text-(--ui-text-primary) outline-none placeholder:text-(--ui-text-tertiary)\" placeholder=\"Find in page\" type=\"search\" value=\"No operator data.\">",
+      "roots": [
+        {
+          "html": "<div class=\"preview-markdown mx-auto max-w-3xl px-4 py-3 text-sm text-foreground\" data-preview-markdown=\"\" data-selectable-text=\"true\" data-find-root=\"\"><div class=\"space-y-4 whitespace-normal [&amp;&gt;*:first-child]:mt-0 [&amp;&gt;*:last-child]:mb-0\"><h1 class=\"mb-3 mt-6 text-3xl font-bold leading",
+          "text": "Local brief\nNo operator data.",
+          "marks": [
+            "No operator data."
+          ]
+        }
+      ],
+      "body": "Chat-only navigation test\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nChat-only navigation test\nnow\nChat-only navigation test\nCopy\nEdit\n12:14\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-1bEs48/project/alpha\nUnsent preview-navigation draft\n\nEnter to send · Shift Enter for a new line\n\nbrief.md\nPREVIEW\nSOURCE\nEdit\nLocal brief\n\nNo operator data.\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n2\nSmart\nv0.0.0\n1/1",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent preview-navigation draft"
+        }
+      ]
+    }
+  ],
+  "state": {
+    "focus": "<body>\n    <div id=\"root\" class=\"scrollbar-dt\"><div class=\"group/sidebar-wrapper flex w-full has-data-[variant=inset]:bg-sidebar h-screen min-h-0 flex-col bg-background\" data-slot=\"sidebar-wrapper\" style=\"--sidebar-width: 100%; --sidebar-width-icon: 3rem;\"><div class=\"contents\" style=\"--titlebar-controls-left: 98px; --titlebar-controls-top: 10px; --titlebar-controls-width: calc(1 * var(--titlebar-control-size)); --titlebar-controls-y-nudge: calc(var(--spacing) * 0.9); --titlebar-tools-right: 0.75rem; --titlebar-tools-width: calc(5 * var(--titlebar-control-size)); --shell-preview-toolbar-gap: c",
+    "roots": [],
+    "body": "Chat-only navigation test\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nChat-only navigation test\nnow\nChat-only navigation test\nCopy\nEdit\n12:14\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-1bEs48/project/alpha\nUnsent preview-navigation draft\n\nEnter to send · Shift Enter for a new line\n\nbrief.md\nPREVIEW\nSOURCE\nEdit\nLocal brief\n\nNo operator data.\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n2\nSmart\nv0.0.0",
+    "drafts": [
+      {
+        "visible": true,
+        "text": "Unsent preview-navigation draft"
+      }
+    ]
+  },
+  "modelRequests": 1,
+  "rendererErrors": []
+}

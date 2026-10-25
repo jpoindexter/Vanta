@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { closeFindBar, openFindBar } from '@/store/find-in-page'
 
 import { registerFloatingComposer } from './floating-target'
 
@@ -36,6 +37,7 @@ describe('floating composer focus-follow vs a focused transcript text field', ()
   const unregister: Array<() => void> = []
 
   afterEach(() => {
+    closeFindBar()
     unregister.splice(0).forEach(fn => fn())
     document.body.innerHTML = ''
   })
@@ -71,6 +73,29 @@ describe('floating composer focus-follow vs a focused transcript text field', ()
     expect(document.activeElement).toBe(a.editor)
 
     movePointerOver(b.surface, 200)
+    expect(document.activeElement).toBe(b.editor)
+  })
+
+  it('does not let hover take document focus while Find is open, but preserves explicit clicks and later hover', () => {
+    const a = mountPane('find-a')
+    const b = mountPane('find-b')
+    unregister.push(registerFloatingComposer('find-a', { groupId: 'ga', target: 'main' }))
+    unregister.push(registerFloatingComposer('find-b', { groupId: 'gb', target: 'main' }))
+    a.editor.focus()
+    const preview = document.createElement('article')
+    preview.dataset.previewMarkdown = ''
+    preview.tabIndex = -1
+    document.body.append(preview)
+    preview.focus()
+    openFindBar()
+    movePointerOver(b.surface, 311)
+    expect(document.activeElement).toBe(preview)
+    b.editor.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+    b.editor.focus()
+    expect(document.activeElement).toBe(b.editor)
+    closeFindBar()
+    preview.focus()
+    movePointerOver(b.surface, 312)
     expect(document.activeElement).toBe(b.editor)
   })
 

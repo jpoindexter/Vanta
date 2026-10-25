@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
-import { captureFindScope } from '@/lib/find-in-page-scope'
+import { captureFindScope, FIND_SURFACE_SELECTOR } from '@/lib/find-in-page-scope'
 import { $findInPage, closeFindBar, setFindQuery } from '@/store/find-in-page'
+
+const INTENT_SELECTOR = `${FIND_SURFACE_SELECTOR},[data-composer-owner]`
 
 function useFindOrigin() {
   const originRef = useRef<HTMLElement | null>(null)
@@ -22,10 +24,10 @@ function useFindPaneIntent(active: boolean, rememberOrigin: () => void) {
     if (!active) return undefined
     let frame = 0
     const onIntent = (event: Event) => {
-      if (!(event.target instanceof Element) || !event.target.closest('[data-chat-surface],[data-composer-owner]')) return
+      if (!(event.target instanceof Element) || !event.target.closest(INTENT_SELECTOR)) return
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
-        if (document.activeElement === document.body || document.activeElement?.closest('[data-chat-surface],[data-composer-owner]')) rememberOrigin()
+        if (document.activeElement === document.body || document.activeElement?.closest(INTENT_SELECTOR)) rememberOrigin()
         captureFindScope()
         void setFindQuery($findInPage.get().query)
       })
