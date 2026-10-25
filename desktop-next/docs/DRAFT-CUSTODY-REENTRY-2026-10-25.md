@@ -1,6 +1,15 @@
 # Unsent image continuity — engineering re-entry
 
-## Current behavior and scope
+## Latest parent review
+
+[Parent application review](DRAFT-CUSTODY-PARENT-REVIEW-2026-10-25.md) records a
+fresh installed `71cf90cf` image-loss reproduction and an isolated current-base
+candidate with direct/queued image restart proof. Three real application
+integration defects were corrected there. The full patch remains external:
+34 new/worse size findings and further continuity review block promotion.
+The installed app is unchanged and this card remains open.
+
+## Earlier behavior and scope (historical)
 
 The retained actual packaged `4a2f4ab8` continuity run passes ten checks, then
 loses image attachment chips on cold restart. Text/model remain and no model
