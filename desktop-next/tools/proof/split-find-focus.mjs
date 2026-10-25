@@ -34,7 +34,8 @@ try {
     await ctx.page.keyboard.insertText(`Unsent ${name} draft`);
   }
   await ctx.page.locator('[data-tour="sidebar-nav-new-session"]').click({ button: "right" });
-  await ctx.page.getByRole("menuitem", { name: /open in split/i }).hover();
+  await ctx.page.getByRole("menuitem", { name: /open in split/i }).focus();
+  await ctx.page.keyboard.press("ArrowRight");
   await ctx.page.getByRole("menuitem", { name: "Right", exact: true }).click();
   await ctx.page.waitForFunction(() => [...document.querySelectorAll('[data-chat-surface]')].filter(el => el.checkVisibility()).length === 2);
   const alpha = composer.last();

@@ -1,0 +1,261 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i",
+  "checks": [
+    "Bravo local reply arrives",
+    "Alpha split receives its local reply",
+    "Two real chats are visible side by side",
+    "Find searches the focused Bravo chat",
+    "Escape returns to Bravo's own draft",
+    "Bravo's unsent text is retained",
+    "Find searches the focused Alpha chat",
+    "Escape returns to Alpha's own draft",
+    "Alpha's unsent text is retained",
+    "Hover alone does not move the search",
+    "Switching panes keeps Find open",
+    "Switching panes keeps the query",
+    "Open Find follows the newly focused chat",
+    "Old chat highlights are cleared",
+    "Repeated Cmd+F selects the retained query in the new pane",
+    "Escape restores the new pane draft, not the old pane",
+    "Typing continues only the new draft",
+    "A transcript click also moves the open search",
+    "Transcript navigation does not restore the old pane's editor",
+    "First Escape leaves Find and its query intact",
+    "First Escape closes only the navigation menu",
+    "Typing after a sidebar menu keeps the captured chat",
+    "Second Escape closes Find without submitting a draft",
+    "Palette Escape leaves Find and its query intact",
+    "A subsequent Escape closes Find, not the chat",
+    "Navigation never submits or retries",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "find-Bravo",
+      "focus": "Find in page",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew chat\n⌘N\nHome\nOutputs\nTools & connections\nPinned\nShift-click a chat to pin\nChats\nSplitpane Alpha\nnow\nSplitpane Bravo\nnow"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "find-Alpha",
+      "focus": "Find in page",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew chat\n⌘N\nHome\nOutputs\nTools & connections\nPinned\nShift-click a chat to pin\nChats\nSplitpane Alpha\nnow\nSplitpane Bravo\nnow"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "switch-while-open",
+      "focus": "Message Vanta",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew chat\n⌘N\nHome\nOutputs\nTools & connections\nPinned\nShift-click a chat to pin\nChats\nSplitpane Alpha\nnow\nSplitpane Bravo\nnow"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "retargeted",
+      "focus": "Message Vanta",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew chat\n⌘N\nHome\nOutputs\nTools & connections\nPinned\nShift-click a chat to pin\nChats\nSplitpane Alpha\nnow\nSplitpane Bravo\nnow"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "escape-over-menu",
+      "focus": null,
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew chat\n⌘N\nHome\nOutputs\nTools & connections\nPinned\nShift-click a chat to pin\nChats\nSplitpane Alpha\nnow\nSplitpane Bravo\nnow"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnwqd6x-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-NMpv3i/project/alpha\nUnsent Alpha draft continued\n\nEnter to send · Shift Enter for "
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Alpha\nCopy\nEdit\n15:12\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft continued"
+      ]
+    }
+  ],
+  "modelRequests": 2,
+  "rendererErrors": []
+}

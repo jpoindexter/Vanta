@@ -2,9 +2,11 @@
 
 ## Gap first
 
-Source acceptance until the combined Electron/runtime candidate is packaged
-and installed. Other security/trust/modularization work remains; no whole-card
-closure, external mail test or native iOS-device acceptance is claimed.
+Combined candidate is now installed; see
+[exact security delivery](SECURITY-DELIVERY-2026-10-25.md). Other security/trust/
+modularization work remains; no whole-card closure, external mail test or native
+iOS-device acceptance is claimed. Dated source-stage notes below retain their
+original evidence and are superseded for installation identity.
 
 ## Reproduced and changed
 

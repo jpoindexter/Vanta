@@ -33,11 +33,13 @@ function useFindPaneIntent(active: boolean, rememberOrigin: () => void) {
     if (!active) return undefined
     let frame = 0
     const onIntent = (event: Event) => {
-      if (!(event.target instanceof Element) || !event.target.closest(INTENT_SELECTOR)) return
+      const target = event.target
+      if (!(target instanceof Element) || !target.closest(INTENT_SELECTOR)) return
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
+        if (!target.isConnected || isElementInHiddenPane(target)) return
         if (document.activeElement === document.body || document.activeElement?.closest(INTENT_SELECTOR)) rememberOrigin()
-        captureFindScope()
+        captureFindScope(target)
         void setFindQuery($findInPage.get().query)
       })
     }

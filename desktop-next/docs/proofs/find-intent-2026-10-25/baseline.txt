@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop
+
+ ❯ |ui| src/components/find-bar-focus.test.tsx (13 tests | 1 failed | 12 skipped) 152ms
+     × keeps pane intent when a sidebar menu takes focus before the queued frame 151ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |ui| src/components/find-bar-focus.test.tsx > FindBar dismissal focus > keeps pane intent when a sidebar menu takes focus before the queued frame
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/components/find-bar-focus.test.tsx:162:52
+    160|       sidebar.focus()
+    161|       act(() => frames.forEach(callback => callback(performance.now())…
+    162|       expect(other.hasAttribute('data-find-root')).toBe(true)
+       |                                                    ^
+    163|       expect($findInPage.get().matchCount).toBe(1)
+    164|     } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 skipped (13)
+   Start at  15:15:29
+   Duration  2.36s (transform 1.30s, setup 195ms, import 1.59s, tests 152ms, environment 340ms)

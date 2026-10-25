@@ -142,6 +142,32 @@ describe('FindBar dismissal focus', () => {
     other.remove()
   })
 
+  it('keeps pane intent when a sidebar menu takes focus before the queued frame', async () => {
+    const { query } = await openFromDraft()
+    const other = document.createElement('section')
+    other.dataset.chatSurface = ''
+    other.innerHTML = '<p>needle</p><input aria-label="Second draft">'
+    const sidebar = document.createElement('button')
+    document.body.append(other, sidebar)
+    try {
+      fireEvent.change(query, { target: { value: 'needle' } })
+      await waitFor(() => expect($findInPage.get().query).toBe('needle'))
+      const frames: FrameRequestCallback[] = []
+      vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(callback => {
+        frames.push(callback)
+        return frames.length
+      })
+      act(() => other.querySelector('input')!.focus())
+      sidebar.focus()
+      act(() => frames.forEach(callback => callback(performance.now())))
+      expect(other.hasAttribute('data-find-root')).toBe(true)
+      expect($findInPage.get().matchCount).toBe(1)
+    } finally {
+      other.remove()
+      sidebar.remove()
+    }
+  })
+
   it('restores the rich-editor caret, not just focus', async () => {
     const { draft, query } = await openFromDraft(true)
     window.getSelection()!.collapse(query.parentElement, 0)

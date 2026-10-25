@@ -88,9 +88,8 @@ let scheduled = false
  * chat B before the user finishes typing (a typed query still targets A;
  * route-change cleanup in FindBar closes the bar first).
  */
-export function resolveCurrentFindScope(): HTMLElement | null {
+export function resolveCurrentFindScope(focused: Element | null = document.activeElement): HTMLElement | null {
   const surfaces = queryAllVisible<HTMLElement>(FIND_SURFACE_SELECTOR)
-  const focused = document.activeElement
   const focusedSurface = focused?.closest(FIND_SURFACE_SELECTOR)
   const owner = focused?.closest<HTMLElement>('[data-composer-owner]')?.dataset.composerOwner
   const group = $activeTreeGroup.get()
@@ -102,8 +101,8 @@ export function resolveCurrentFindScope(): HTMLElement | null {
 }
 
 /** Capture the current view as the find scope. Called when the bar opens. */
-export function captureFindScope(): HTMLElement | null {
-  const root = resolveCurrentFindScope()
+export function captureFindScope(origin: Element | null = document.activeElement): HTMLElement | null {
+  const root = resolveCurrentFindScope(origin)
   releaseFindScope()
 
   if (root) {
