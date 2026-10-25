@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { FindBar } from '@/components/find-bar'
 import { I18nProvider } from '@/i18n'
-import { closeFindBar, openFindBar } from '@/store/find-in-page'
+import { $findInPage, closeFindBar, openFindBar } from '@/store/find-in-page'
 
 afterEach(() => {
   act(closeFindBar)
@@ -36,6 +36,29 @@ async function openFromDraft(editable = false) {
 }
 
 describe('FindBar dismissal focus', () => {
+  it('keeps the query but moves highlights and dismissal to the newly focused pane', async () => {
+    const { draft, query } = await openFromDraft()
+    const other = document.createElement('section')
+    other.setAttribute('data-chat-surface', '')
+    other.innerHTML = '<p>needle needle</p><input aria-label="Second draft" value="Unsent second draft">'
+    document.body.append(other)
+    const second = other.querySelector('input')!
+    fireEvent.change(query, { target: { value: 'needle' } })
+    await waitFor(() => expect($findInPage.get().query).toBe('needle'))
+    fireEvent.pointerOver(second)
+    expect(other.hasAttribute('data-find-root')).toBe(false)
+    act(() => second.focus())
+    await waitFor(() => expect($findInPage.get().matchCount).toBe(2))
+    expect(other.hasAttribute('data-find-root')).toBe(true)
+    expect(draft.closest('section')!.querySelectorAll('mark')).toHaveLength(0)
+    expect((query as HTMLInputElement).value).toBe('needle')
+    act(openFindBar)
+    await waitFor(() => expect(document.activeElement).toBe(query))
+    fireEvent.keyDown(query, { key: 'Escape' })
+    expect(document.activeElement).toBe(second)
+    other.remove()
+  })
+
   it('restores the rich-editor caret, not just focus', async () => {
     const { draft, query } = await openFromDraft(true)
     window.getSelection()!.collapse(query.parentElement, 0)

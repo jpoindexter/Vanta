@@ -1,24 +1,56 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
-import { closeFindBar } from '@/store/find-in-page'
+import { $findInPage, closeFindBar, setFindQuery } from '@/store/find-in-page'
+
+function useFindOrigin() {
+  const originRef = useRef<HTMLElement | null>(null)
+  const rangeRef = useRef<Range | null>(null)
+  const rememberOrigin = useCallback(() => {
+    const origin = document.activeElement
+    originRef.current = origin instanceof HTMLElement && origin !== document.body ? origin : null
+    const selection = window.getSelection()
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null
+    rangeRef.current = range && origin?.contains(range.commonAncestorContainer) ? range.cloneRange() : null
+  }, [])
+  return { originRef, rangeRef, rememberOrigin }
+}
+
+function useFindPaneIntent(active: boolean, rememberOrigin: () => void) {
+  useEffect(() => {
+    if (!active) return undefined
+    let frame = 0
+    const onIntent = (event: Event) => {
+      if (!(event.target instanceof Element) || !event.target.closest('[data-chat-surface],[data-composer-owner]')) return
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        if (document.activeElement === document.body || document.activeElement?.closest('[data-chat-surface],[data-composer-owner]')) rememberOrigin()
+        void setFindQuery($findInPage.get().query)
+      })
+    }
+    window.addEventListener('focusin', onIntent, true)
+    window.addEventListener('pointerdown', onIntent, true)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('focusin', onIntent, true)
+      window.removeEventListener('pointerdown', onIntent, true)
+    }
+  }, [active, rememberOrigin])
+}
 
 export function useFindBarFocus(active: boolean, focusRequest: number) {
   const inputRef = useRef<HTMLInputElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
-  const originRef = useRef<HTMLElement | null>(null)
-  const rangeRef = useRef<Range | null>(null)
+  const { originRef, rangeRef, rememberOrigin } = useFindOrigin()
+  useFindPaneIntent(active, rememberOrigin)
 
   useEffect(() => {
     if (!active) return undefined
 
-    // Repeated Cmd+F selects the query but keeps the first opener and caret.
-    if (focusRequest === 0) {
-      const origin = document.activeElement
-      originRef.current = origin instanceof HTMLElement && origin !== document.body ? origin : null
-      const selection = window.getSelection()
-      const range = selection?.rangeCount ? selection.getRangeAt(0) : null
-      rangeRef.current = range && origin?.contains(range.commonAncestorContainer) ? range.cloneRange() : null
+    // Repeating in Find preserves its opener; repeating from another pane adopts it.
+    if (focusRequest === 0 || !barRef.current?.contains(document.activeElement)) {
+      rememberOrigin()
+      void setFindQuery($findInPage.get().query)
     }
 
     const id = requestAnimationFrame(() => {
@@ -26,7 +58,7 @@ export function useFindBarFocus(active: boolean, focusRequest: number) {
       if (focusRequest > 0) inputRef.current?.select()
     })
     return () => cancelAnimationFrame(id)
-  }, [active, focusRequest])
+  }, [active, focusRequest, rememberOrigin])
 
   const dismissFindBar = useCallback(() => {
     const origin = originRef.current
@@ -42,7 +74,7 @@ export function useFindBarFocus(active: boolean, focusRequest: number) {
         selection.addRange(range)
       }
     }
-  }, [])
+  }, [originRef, rangeRef])
 
   return { inputRef, barRef, dismissFindBar }
 }

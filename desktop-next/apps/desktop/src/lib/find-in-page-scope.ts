@@ -142,7 +142,7 @@ export function currentFindScope(): HTMLElement | null {
 
   for (const root of roots) {
     if (!isElementInHiddenPane(root)) {
-      return root
+      return root === resolveCurrentFindScope() ? root : retargetFindScope(roots)
     }
   }
 

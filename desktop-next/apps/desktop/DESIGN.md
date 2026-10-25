@@ -616,11 +616,13 @@ long transcript or a busy terminal.
 - One cancel gesture does one thing: cancel the active interaction, or close the
   topmost dismissable surface — never both, never the control underneath.
 - Dismissing Find returns focus and the rich-editor caret to its opener. A
-  repeated Cmd+F preserves that origin; dismissal never steals from another
+  repeated Cmd+F inside Find preserves that origin; dismissal never steals from another
   selected control or restores a hidden pane. Route teardown does not restore.
 - Opening Find prefers the focused chat or floating composer's surface identity,
   then the interacted layout group, then the first visible chat. A hidden
   keep-alive pane can never claim that search.
+- While Find stays open, an explicit pane focus/click carries its query and
+  dismissal target to that pane and clears old highlights. Hover does not.
 - Find counts and steps visible content, not CSS-hidden legacy headers. A
   display:contents wrapper must not exclude its visible children.
 - Cancellation is synchronous in the UI even if cleanup is async: overlays,

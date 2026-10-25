@@ -31,9 +31,7 @@ export function openFindBar(): void {
   const prev = $findInPage.get()
 
   if (prev.active) {
-    // Already visible: keep the typed query and the captured scope. A fresh
-    // EMPTY write would clear the query, and captureFindScope() would tear
-    // down the highlight observer.
+    // Keep the query; the focus hook refreshes scope only on explicit pane intent.
     $findInPage.set({ ...prev, focusRequest: prev.focusRequest + 1 })
 
     return
