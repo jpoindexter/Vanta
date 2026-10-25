@@ -39,6 +39,14 @@ allowlist, account configuration or permission change.
   still passes. The earlier Electron-only package was Apple Accepted and its
   packaged criterion passed13steps/seven probes, but it is not installed: the
   combined candidate must include these runtime fixes before replacement.
+- Combined signed package f94c5025, version0.1.0-local.20261025.security, contains
+  Electron43.8.1, Nodemailer10.2.1 and Capacitor core/iOS8.5.3. Running the
+  package's own executable in RunAsNode mode, with createRequire pointed at
+  Resources/vanta-runtime/package.json, generates only the intended recipient.
+  This executes shipped modules, not the working tree dependency copy. It is
+  still an in-memory stream, not live email. Receipt:
+  proofs/runtime-patches-2026-10-25/shipped-recipient.json.
+  Apple submission is currently in progress; installation not yet claimed.
 
 Whole-runtime and classic-renderer typechecks exit0. Exact combined build
 identity is added after packaging/installation. Keep original work and rollback

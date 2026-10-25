@@ -2,6 +2,13 @@
 
 ## Gap first
 
+Follow-on: the Electron-only b8946f12 signed package was Apple Accepted and
+passes the packaged13-step/seven-probe criterion, recording packaged=true and
+Electron43.8.1. It was deliberately not installed, so the next replacement can
+also include the compatible runtime patches in RUNTIME-PATCHES-2026-10-25.md.
+Combined f94c5025 package is built and submitted; its installed-path proof is
+still pending. This supersedes the earlier "until packaged" source-stage note.
+
 Source acceptance only until a matching package is signed, notarized, installed
 and exercised. The installed f5b12a97 candidate predates this dependency batch.
 Other dependency advisories and the full Desktop/whole-goal gates remain open.
