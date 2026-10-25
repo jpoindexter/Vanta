@@ -1,5 +1,10 @@
 # Unsent image custody — parent application review
 
+Later [refactor and queued-edit evidence](DRAFT-CUSTODY-REFACTOR-2026-10-25.md)
+resolves this review's 34-finding size blocker in a separate frozen candidate.
+The original evidence below is retained as historical context. Further
+continuity review and installed acceptance still block application promotion.
+
 ## Status: source experiment advances; not promoted or installed
 
 The installed `71cf90cf` recovery build still loses unsent image attachments

@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Refactor and queued-edit proof](DRAFT-CUSTODY-REFACTOR-2026-10-25.md) supersedes
+the earlier 34-finding size blocker: the isolated candidate now passes the
+unchanged ratchet across 47 production files. Direct and queued restart replays
+pass again, and the actual queued Edit/Cancel/Save journey now preserves a
+separate unsent draft plus the original queue ID and exact PNG. Further
+legacy/owner/surface/unknown-send review and packaged/installed proof remain;
+the application patch is still external and the card stays open.
+
+## Earlier parent review (historical)
+
 [Parent application review](DRAFT-CUSTODY-PARENT-REVIEW-2026-10-25.md) records a
 fresh installed `71cf90cf` image-loss reproduction and an isolated current-base
 candidate with direct/queued image restart proof. Three real application
