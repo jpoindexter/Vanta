@@ -36,6 +36,24 @@ async function openFromDraft(editable = false) {
 }
 
 describe('FindBar dismissal focus', () => {
+  it.each(['menu', 'dialog', 'listbox'])('lets an overlaid %s own Escape before Find', async role => {
+    const { query } = await openFromDraft()
+    const overlay = document.createElement('div')
+    overlay.setAttribute('role', role)
+    overlay.innerHTML = '<button type="button">Overlay action</button>'
+    document.body.append(overlay)
+    const button = overlay.querySelector('button')!
+    button.focus()
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    button.dispatchEvent(escape)
+    expect($findInPage.get().active).toBe(true)
+    expect(escape.defaultPrevented).toBe(false)
+    overlay.remove()
+    query.focus()
+    fireEvent.keyDown(query, { key: 'Escape' })
+    expect($findInPage.get().active).toBe(false)
+  })
+
   it('keeps the query but moves highlights and dismissal to the newly focused pane', async () => {
     const { draft, query } = await openFromDraft()
     const other = document.createElement('section')
@@ -54,6 +72,10 @@ describe('FindBar dismissal focus', () => {
     expect((query as HTMLInputElement).value).toBe('needle')
     act(openFindBar)
     await waitFor(() => expect(document.activeElement).toBe(query))
+    fireEvent.change(query, { target: { value: 'need' } })
+    await waitFor(() => expect($findInPage.get().query).toBe('need'))
+    expect(other.hasAttribute('data-find-root')).toBe(true)
+    expect($findInPage.get().matchCount).toBe(2)
     fireEvent.keyDown(query, { key: 'Escape' })
     expect(document.activeElement).toBe(second)
     other.remove()

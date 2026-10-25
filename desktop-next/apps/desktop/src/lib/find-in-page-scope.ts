@@ -104,12 +104,12 @@ export function resolveCurrentFindScope(): HTMLElement | null {
 /** Capture the current view as the find scope. Called when the bar opens. */
 export function captureFindScope(): HTMLElement | null {
   const root = resolveCurrentFindScope()
+  releaseFindScope()
 
   if (root) {
     root.setAttribute(ROOT_ATTR, '')
   }
 
-  resetScopeState()
   scopeRoot = root
 
   return root
@@ -142,7 +142,7 @@ export function currentFindScope(): HTMLElement | null {
 
   for (const root of roots) {
     if (!isElementInHiddenPane(root)) {
-      return root === resolveCurrentFindScope() ? root : retargetFindScope(roots)
+      return root
     }
   }
 

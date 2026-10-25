@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
+import { captureFindScope } from '@/lib/find-in-page-scope'
 import { $findInPage, closeFindBar, setFindQuery } from '@/store/find-in-page'
 
 function useFindOrigin() {
@@ -25,6 +26,7 @@ function useFindPaneIntent(active: boolean, rememberOrigin: () => void) {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
         if (document.activeElement === document.body || document.activeElement?.closest('[data-chat-surface],[data-composer-owner]')) rememberOrigin()
+        captureFindScope()
         void setFindQuery($findInPage.get().query)
       })
     }
@@ -50,6 +52,7 @@ export function useFindBarFocus(active: boolean, focusRequest: number) {
     // Repeating in Find preserves its opener; repeating from another pane adopts it.
     if (focusRequest === 0 || !barRef.current?.contains(document.activeElement)) {
       rememberOrigin()
+      if (focusRequest > 0) captureFindScope()
       void setFindQuery($findInPage.get().query)
     }
 

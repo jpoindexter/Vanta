@@ -7,6 +7,7 @@ import { useFindBarFocus } from '@/components/find-bar-focus'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { findBarKeyAction, formatMatchLabel } from '@/lib/find-in-page'
+import { OVERLAY_SURFACE } from '@/lib/keybinds/combo'
 import { cn } from '@/lib/utils'
 import {
   $findInPage,
@@ -219,6 +220,8 @@ export function FindBar() {
       if (!action) {
         return
       }
+
+      if (event.defaultPrevented || (action === 'close' && event.target instanceof Element && event.target.closest(OVERLAY_SURFACE))) return
 
       event.preventDefault()
       event.stopPropagation()
