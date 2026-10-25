@@ -2,6 +2,13 @@
 
 ## Latest parent review
 
+[Draft-text recovery](DRAFT-TEXT-RECOVERY-2026-10-25.md) records a reproduced
+bare-session profile collision (still unresolved) and an isolated correction
+for corrupt shared reads erasing known drafts. Nine actual Electron checks
+retain exact text/PNG through failure, Retry, valid recovery, restart and a
+deliberate one-send. The combined patch remains external pending owner-key and
+other continuity closure; the installed app is unchanged.
+
 [Refactor and queued-edit proof](DRAFT-CUSTODY-REFACTOR-2026-10-25.md) supersedes
 the earlier 34-finding size blocker: the isolated candidate now passes the
 unchanged ratchet across 47 production files. Direct and queued restart replays
