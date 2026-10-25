@@ -11,6 +11,25 @@ The target is **Codex-like workflow and restraint, Vanta identity, one shared
 design foundation**. Astryx is a candidate component foundation, not a second
 theme layered over the app, another shell, or a replacement agent engine.
 
+Whole-window review: [unified desktop proposal](design-proposals/unified-desktop-2026-10-25.html)
+carries the approved composer decisions across a proposed sidebar, titlebar,
+conversation, Today/Inbox/Projects, contextual work panel and settings dialog.
+It is a local, non-persistent interactive proposal, not a replacement application
+or additional production theme. All content is illustrative; nothing is sent,
+recorded, uploaded or read from an account. Wider-surface visual acceptance and
+production interaction proof remain open.
+
+Executed proposal proof: `node desktop-next/tools/proof/unified-design-proposal.mjs`
+passes 15 checks in an isolated headless Chrome profile: navigation, retained
+local draft, no-effect send preview, settings Escape/focus return, work-panel
+focus return, filtering, shared dark surfaces, and horizontal reflow at 1100,
+800 and 400px with reachable collapsed navigation. No page exceptions or HTTP
+requests were observed. Light/dark, conversation, New chat, settings and work
+panel captures were inspected. Exact source, captures, result JSON and the two
+corrected prototype-ID failures are retained outside Git in
+`Vanta-backups/unified-design-review-20261025-rqt3VX/`. This is not full contrast,
+assistive-technology, installed-app, data-continuity or owner visual acceptance.
+
 ## Verified upstream fit
 
 Reviewed upstream HEAD `85e48a0e5d96fdd2492598ac8085ff8148460cb5`:
