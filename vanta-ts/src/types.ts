@@ -36,6 +36,7 @@ export type DesktopSchemaTrace = {
 };
 export type DesktopRunReceipt = {
   status: "done" | "failed" | "interrupted";
+  stoppedReason?: import("./agent/agent-types.js").StoppedReason;
   failureKind?: DesktopRunFailureKind;
   events: { label: string; ok?: boolean }[];
   actions: ("retry_failed_step" | "edit_request" | "start_from_checkpoint")[];

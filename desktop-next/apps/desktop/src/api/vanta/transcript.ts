@@ -1,5 +1,6 @@
 import type { TranscriptEntry } from './client-registry'
 import type { VantaMessage } from './schemas'
+import { savedRunFailure } from './saved-run-failure'
 
 function textOf(content: unknown): string {
   if (typeof content === 'string') {
@@ -54,6 +55,19 @@ function orphanToolResult(message: VantaMessage): TranscriptEntry {
   }
 }
 
+function messageRow(message: VantaMessage, text: string): TranscriptEntry {
+  return {
+    content: text,
+    role: message.role,
+    text,
+    ...(message.role === 'assistant' ? savedRunFailure(message.desktopRun) : {})
+  }
+}
+
+function hasVisibleMessage(message: VantaMessage, row: TranscriptEntry): boolean {
+  return Boolean(row.text || !message.toolCalls?.length || row.display_kind === 'failed_run')
+}
+
 /**
  * Vanta stores assistant tool calls inside the assistant message and the result as a separate `tool`
  * message. The Vanta transcript projects each call as ONE `tool` row carrying args and result.
@@ -76,9 +90,10 @@ export function toTranscript(messages: readonly VantaMessage[]): TranscriptEntry
     }
 
     const text = textOf(message.content)
+    const row = messageRow(message, text)
 
-    if (text || !message.toolCalls?.length) {
-      rows.push({ content: text, role: message.role, text })
+    if (hasVisibleMessage(message, row)) {
+      rows.push(row)
     }
 
     for (const call of message.toolCalls ?? []) {

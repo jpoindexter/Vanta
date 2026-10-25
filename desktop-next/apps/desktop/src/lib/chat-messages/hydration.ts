@@ -2,7 +2,6 @@ import { skillInvocationText } from '@vanta/shared'
 
 import { splitLeadingAttachmentRefs } from '@/components/assistant-ui/reference-kinds'
 import { extractImageRefs } from '@/lib/embedded-images'
-import { parseErrorSurface } from '@/lib/error-surface'
 import { dedupeGeneratedImageEchoesInParts } from '@/lib/generated-images'
 import { isTodoToolName } from '@/lib/todos'
 import type { MessageReaction, SessionMessage } from '@/types/desktop'
@@ -25,6 +24,7 @@ import {
   withUniqueToolCallIds
 } from './tool-parts'
 import type { ChatMessage, ChatMessagePart } from './types'
+import { appendFailedTurn, canFoldAssistant, isToolOnlyAssistant, parseDisplayMetadata, savedMessageFailure } from './hydration-errors'
 
 const ATTACHED_CONTEXT_MARKER_RE = /(?:^|\n)--- Attached Context ---\s*\n/
 // A background-process heartbeat wake persisted by a backend older than the
@@ -174,39 +174,6 @@ function isMachineNotice(displayKind: SessionMessage['display_kind']): boolean {
   return displayKind !== undefined && (NOTICE_DISPLAY_KINDS as readonly string[]).includes(displayKind)
 }
 
-// A remote backend older than this app serves display_metadata as raw JSON text,
-// and `in` throws on a primitive — which used to fail the whole session resume.
-function parseDisplayMetadata(metadata: SessionMessage['display_metadata']): null | Record<string, unknown> {
-  let parsed: unknown = metadata
-
-  if (typeof parsed === 'string') {
-    try {
-      parsed = JSON.parse(parsed)
-    } catch {
-      return null
-    }
-  }
-
-  return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null
-}
-
-// `agent/conversation_loop.py::_failed_turn_display_metadata`: the failed turn's error card,
-// kept on its boundary row so a reopened session shows it after the live frame is gone.
-function failedTurnError(
-  metadata: SessionMessage['display_metadata']
-): null | Pick<ChatMessage, 'error' | 'errorSurface'> {
-  const parsed = parseDisplayMetadata(metadata)
-  const errorSurface = parseErrorSurface(parsed?.error_surface)
-
-  if (!errorSurface) {
-    return null
-  }
-
-  const error = typeof parsed?.error === 'string' && parsed.error.trim() ? parsed.error : errorSurface.code
-
-  return { error, errorSurface }
-}
-
 function timelineTaskCount(metadata: SessionMessage['display_metadata']): number | undefined {
   const count = parseDisplayMetadata(metadata)?.task_count
 
@@ -300,6 +267,12 @@ function timelineDisplayContent(message: SessionMessage, content: string): strin
   return content
 }
 
+const earliestTimestamp = (...values: (number | undefined)[]) => {
+  const timestamps = values.filter((value): value is number => value !== undefined)
+
+  return timestamps.length ? Math.min(...timestamps) : undefined
+}
+
 export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
   const result: ChatMessage[] = []
   let pendingToolParts: ChatMessagePart[] = []
@@ -353,12 +326,6 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
     if (message && rows > 0) {
       message.serverRowSpan = (message.serverRowSpan ?? 1) + rows
     }
-  }
-
-  const earliestTimestamp = (...values: (number | undefined)[]) => {
-    const timestamps = values.filter((value): value is number => value !== undefined)
-
-    return timestamps.length ? Math.min(...timestamps) : undefined
   }
 
   const appendPartsToActiveAssistant = (parts: ChatMessagePart[], timestamp?: number): boolean => {
@@ -450,6 +417,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
     )
 
     const displayRole = isMachineNotice(message.display_kind) ? 'system' : message.role
+    const savedFailure = savedMessageFailure(message)
 
     // Persisted user turns carry `@image:<path>` directive lines inline in
     // the text (see tui_gateway/server.py's persist-time rewrite). The
@@ -520,7 +488,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
       }
     }
 
-    if (!parts.length && !extractedAttachmentRefs?.length) {
+    if (!parts.length && !extractedAttachmentRefs?.length && !savedFailure) {
       if (message.role !== 'assistant') {
         flushPendingTools(index)
         activeAssistantIndex = null
@@ -529,10 +497,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
       return
     }
 
-    const isToolOnlyAssistant =
-      message.role === 'assistant' && parts.length > 0 && parts.every(part => part.type === 'tool-call')
-
-    if (isToolOnlyAssistant) {
+    if (isToolOnlyAssistant(message, parts, savedFailure)) {
       pendingToolParts = [...pendingToolParts, ...parts]
       pendingToolTimestamp ??= message.timestamp
       pendingToolRows += 1
@@ -557,10 +522,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
           ? result[activeAssistantIndex]
           : null
 
-      const currentHasToolCall = parts.some(part => part.type === 'tool-call')
-      const activeHasToolCall = Boolean(activeAssistant?.parts.some(part => part.type === 'tool-call'))
-
-      if (activeAssistant && (currentHasToolCall || activeHasToolCall)) {
+      if (canFoldAssistant(activeAssistant, parts, savedFailure)) {
         activeAssistant.parts = [...activeAssistant.parts, ...parts]
         activeAssistant.durableComplete = durableComplete
         activeAssistant.timestamp = earliestTimestamp(
@@ -576,20 +538,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
       flushPendingTools(index)
     }
 
-    const failure = message.display_kind === 'failed_turn' ? failedTurnError(message.display_metadata) : null
-
-    if (failure) {
-      // Stands for no backend row of its own; the boundary row below counts itself.
-      result.push({
-        id: `${message.timestamp || Date.now()}-${index}-failed-turn-error`,
-        role: 'assistant',
-        parts: [],
-        pending: false,
-        serverRowSpan: 0,
-        ...failure,
-        ...(message.timestamp ? { timestamp: message.timestamp } : {})
-      })
-    }
+    appendFailedTurn(result, message, index)
 
     const reactions = messageReactions(message.display_metadata)
     // Gateway resume names the durable row id `row_id`; the REST transcript
@@ -599,6 +548,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
       id: `${message.timestamp || Date.now()}-${index}-${displayRole}`,
       role: displayRole,
       parts,
+      ...(savedFailure ?? {}),
       ...(message.role === 'assistant' && durableComplete !== undefined ? { durableComplete } : {}),
       ...(message.display_kind === 'async_delegation_complete' || message.display_kind === 'process_complete'
         ? { asyncResult: asyncResultBody(displayContentForMessage(message.role, message.content || content)) }

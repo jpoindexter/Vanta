@@ -35,7 +35,7 @@ async function settleInstruction(context: LiveExecution, instruction: string, ou
   const { state, live, events } = context;
   await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText, completionState: outcome.completionState });
   events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done", kind: "summary" });
-  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText });
+  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText, messages: live.convo.messages });
   attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
   await finishRunCapture(state, receipt.status, outcome.finalText, outcome.usage);
   emitUsage(state, live, outcome.usage);
@@ -93,6 +93,6 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
   }
   await persistActiveSession(context.state);
   pushTurnComplete(context.state, { finalText: outcome.finalText, usage: outcome.usage, stoppedReason: outcome.stoppedReason });
-  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events: context.events, instruction, partialText: outcome.finalText });
+  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events: context.events, instruction, partialText: outcome.finalText, messages: liveContext.live.convo.messages });
   sendJson(res, 200, { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, stoppedReason: outcome.stoppedReason, receipt });
 }

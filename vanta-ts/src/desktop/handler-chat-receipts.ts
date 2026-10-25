@@ -1,6 +1,6 @@
-import type { Conversation } from "../agent.js";
+import type { Conversation,StoppedReason } from "../agent.js";
 import { classifyProviderError } from "../providers/error-taxonomy.js";
-import type { DesktopRunFailureKind,DesktopRunReceipt } from "../types.js";
+import type { DesktopRunFailureKind,DesktopRunReceipt,Message } from "../types.js";
 import { type DesktopEvent } from "./handler-state.js";
 
 export function interrupted(error: unknown, controller: AbortController): boolean {
@@ -28,10 +28,10 @@ export function recoveryActions(status: DesktopRunReceipt["status"]): DesktopRun
   return status === "done" ? [] : ["retry_failed_step", "edit_request", "start_from_checkpoint"];
 }
 
-export function receiptStatusForStoppedReason(stoppedReason: string): Pick<DesktopRunReceipt, "status" | "failureKind"> {
-  if (stoppedReason === "done") return { status: "done" };
-  if (stoppedReason === "interrupted") return { status: "interrupted", failureKind: "interrupted" };
-  return { status: "failed", failureKind: "unknown" };
+export function receiptStatusForStoppedReason(stoppedReason: StoppedReason): Pick<DesktopRunReceipt, "status" | "failureKind" | "stoppedReason"> {
+  if (stoppedReason === "done") return { status: "done", stoppedReason };
+  if (stoppedReason === "interrupted") return { status: "interrupted", failureKind: "interrupted", stoppedReason };
+  return { status: "failed", failureKind: "unknown", stoppedReason };
 }
 
 export function queuedTurnFailureReason(stoppedReason: string): string {
@@ -53,19 +53,31 @@ export function queuedTurnExceptionReason(failureKind: DesktopRunFailureKind, wa
   return "Task failed before completion.";
 }
 
+function currentTurnText(messages: readonly Message[]): string | undefined {
+  const user = messages.findLastIndex((message) => message.role === "user");
+  if (user < 0) return undefined;
+  return messages.slice(user + 1)
+    .filter((message) => message.role === "assistant" && message.content.trim())
+    .map((message) => message.content).join("\n\n") || undefined;
+}
+
 export function buildRunReceipt(opts: {
   status: DesktopRunReceipt["status"];
   events: DesktopEvent[];
   instruction: string;
   partialText?: string;
   failureKind?: DesktopRunFailureKind;
+  stoppedReason?: StoppedReason;
+  messages?: readonly Message[];
 }): DesktopRunReceipt {
+  const partialText = opts.messages ? currentTurnText(opts.messages) ?? opts.partialText : opts.partialText;
   return {
     status: opts.status,
+    ...(opts.stoppedReason ? { stoppedReason: opts.stoppedReason } : {}),
     ...(opts.failureKind ? { failureKind: opts.failureKind } : {}),
     events: opts.events.map((event) => ({ ...event })),
     actions: recoveryActions(opts.status),
-    checkpoint: opts.status === "done" ? undefined : { instruction: opts.instruction, ...(opts.partialText ? { partialText: opts.partialText } : {}) },
+    checkpoint: opts.status === "done" ? undefined : { instruction: opts.instruction, ...(partialText ? { partialText } : {}) },
   };
 }
 

@@ -17,6 +17,7 @@ const MessageSchema: z.ZodType<Message> =
         .optional(),
       desktopRun: z.object({
         status: z.enum(["done", "failed", "interrupted"]),
+        stoppedReason: z.enum(["done", "blocked", "max_iterations", "repeated_failure", "interrupted", "soft_stopped", "tool_budget"]).optional(),
         failureKind: z.enum(["setup", "tool", "model", "model_mismatch", "provider_auth", "user_denied", "interrupted", "unknown"]).optional(),
         events: z.array(z.object({ label: z.string(), ok: z.boolean().optional() })),
         actions: z.array(z.enum(["retry_failed_step", "edit_request", "start_from_checkpoint"])),
