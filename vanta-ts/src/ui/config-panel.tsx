@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { HEALTH, FOCUS } from "../term/palette.js";
+import { SettingsChangeError } from "./settings-recovery.js";
 import {
   configGroups, configRows, actionAt, configSummary,
   type ConfigState, type ConfigAction, type ConfigGroup, type ConfigRow,
@@ -14,6 +15,7 @@ import {
 
 export function ConfigPanel(props: {
   state: ConfigState;
+  error?: string;
   onAction: (action: ConfigAction) => void;
   onClose: () => void;
 }): ReactElement {
@@ -30,6 +32,7 @@ export function ConfigPanel(props: {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Text bold>Config <Text color={FOCUS}>· {configSummary(props.state)}</Text></Text>
+      <SettingsChangeError error={props.error} command="/config" />
       <Text> </Text>
       <Groups groups={configGroups(props.state)} sel={sel} />
       <Text> </Text>

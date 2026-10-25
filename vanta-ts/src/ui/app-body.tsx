@@ -17,6 +17,7 @@ import { ContextPanel } from "./context-panel.js";
 import { McpPanel } from "./mcp-panel.js";
 import { SandboxPanel } from "./sandbox-panel.js";
 import { ConfigPanel } from "./config-panel.js";
+import { SettingsRecoveryPanel } from "./settings-recovery.js";
 import { HooksPanel } from "./hooks-panel.js";
 import { TasksPanel } from "./tasks-panel.js";
 import { AgentEditorPanel } from "./agent-editor-panel.js";
@@ -137,6 +138,7 @@ function BottomRegion(props: {
  * the complexity gate; the switch is append-only (one branch per overlay kind). */
 function OverlayPanel(props: { overlay: OverlayView; focused: FocusTarget; onSelect: (row: OverlayRow) => void; onApplyModelPick: (choice: { providerId: string; model: string; effort?: string; speed?: string; scope: "global" | "session" }) => void; onSwitchProvider: () => void; onClose: () => void; onSubmit: (text: string) => void }): ReactElement | null {
   const { overlay, onClose } = props;
+  if (overlay.kind === "settingsRecovery") return <SettingsRecoveryPanel {...overlay} onClose={onClose} />;
   if (overlay.kind === "list") return <OverlayList focused={props.focused === "overlay-list"} title={overlay.title} rows={overlay.rows} onSelect={props.onSelect} onClose={onClose} />;
   if (overlay.kind === "modelPick") return <ModelPickPanel focused={props.focused === "overlay-list"} providerId={overlay.providerId} providerLabel={overlay.providerLabel} models={overlay.models} currentModel={overlay.currentModel} currentEffort={overlay.currentEffort} currentSpeed={overlay.currentSpeed} onApply={props.onApplyModelPick} onSwitchProvider={props.onSwitchProvider} onClose={onClose} />;
   if (overlay.kind === "cockpit") return <CockpitPanel data={overlay.data} onClose={onClose} />;
@@ -152,8 +154,8 @@ function OverlayPanelMore(props: { overlay: OverlayView; onClose: () => void; on
   const { overlay, onClose } = props;
   if (overlay.kind === "context") return <ContextPanel categories={overlay.categories} total={overlay.total} contextWindow={overlay.contextWindow} onClose={onClose} />;
   if (overlay.kind === "mcp") return <McpPanel servers={overlay.servers} elicitation={overlay.elicitation} onReconnect={overlay.reconnect} onElicitationDone={overlay.onElicitationDone} onClose={onClose} />;
-  if (overlay.kind === "sandbox") return <SandboxPanel state={overlay.state} doctor={overlay.doctor} onToggle={overlay.onToggle} onCycleOverride={overlay.onCycleOverride} onClose={onClose} />;
-  if (overlay.kind === "config") return <ConfigPanel state={overlay.state} onAction={overlay.onAction} onClose={onClose} />;
+  if (overlay.kind === "sandbox") return <SandboxPanel state={overlay.state} error={overlay.error} doctor={overlay.doctor} onToggle={overlay.onToggle} onCycleOverride={overlay.onCycleOverride} onClose={onClose} />;
+  if (overlay.kind === "config") return <ConfigPanel state={overlay.state} error={overlay.error} onAction={overlay.onAction} onClose={onClose} />;
   if (overlay.kind === "hooks") return <HooksPanel config={overlay.config} onAction={overlay.onAction} onClose={onClose} />;
   if (overlay.kind === "tasks") return <TasksPanel tasks={overlay.tasks} onClose={onClose} />;
   if (overlay.kind === "agentEditor") return <AgentEditorPanel repoRoot={overlay.repoRoot} data={overlay.data} onClose={onClose} />;

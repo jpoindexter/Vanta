@@ -17,6 +17,7 @@ import type { McpServerView } from "./mcp-view.js";
 import { reloadTasks } from "./tasks-actions.js";
 import { buildSandboxOverlay, type SandboxOverlayState } from "./sandbox-actions.js";
 import { buildConfigOverlay, type ConfigOverlayState } from "./config-actions.js";
+import { openSettingsView, type SettingsRecoveryView } from "./settings-recovery.js";
 import { buildHooksOverlay, type HooksOverlayState } from "./hooks-actions.js";
 import { reloadTeams, type TeamsData } from "./teams-actions.js";
 import { loadMemoryOverlayData, type MemoryOverlayData } from "./memory-actions.js";
@@ -36,6 +37,7 @@ export type CtxSnapshot = { messages: import("../types.js").Message[]; contextWi
 // TUI's use-overlays, but renders inline instead of fullscreen.
 
 export type OverlayView =
+  | SettingsRecoveryView
   | { kind: "list"; title: string; rows: OverlayRow[]; modelProviderId?: string }
   | { kind: "modelPick"; providerId: string; providerLabel: string; models: string[]; currentModel?: string; currentEffort?: import("../providers/model-settings.js").ProviderEffortLevel; currentSpeed?: import("../providers/model-settings.js").ProviderSpeed }
   | { kind: "cockpit"; data: CockpitData }
@@ -228,16 +230,14 @@ export function useOverlay(deps: { setup: RunSetup; repoRoot: string; runSlash: 
     if (kind === "model") return showProviderModels(activeProviderId());
     if (kind === "mcp") return void buildMcpOverlay(deps.repoRoot, setOverlay).then(setOverlay).catch(() => {});
     if (kind === "sandbox") {
-      const host = { publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "sandbox" ? v : prev)), isOpen: () => true };
-      return void buildSandboxOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
+      return openSettingsView("/sandbox", (publish) => buildSandboxOverlay(deps.repoRoot, { publish, isOpen: () => true }), setOverlay);
     }
     if (kind === "config") {
-      const host = {
-        publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "config" ? v : prev)),
+      return openSettingsView("/config", (publish) => buildConfigOverlay(deps.repoRoot, {
+        publish,
         isOpen: () => true,
         openCommand: (line: string) => { setOverlay(null); reopenAsPicker(line, openOverlay, deps.runSlash); },
-      };
-      return void buildConfigOverlay(deps.repoRoot, host).then(setOverlay).catch(() => {});
+      }), setOverlay);
     }
     if (kind === "hooks") {
       const host = { publish: (v: OverlayView) => setOverlay((prev) => (prev?.kind === "hooks" ? v : prev)), isOpen: () => true };
