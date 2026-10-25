@@ -1,9 +1,10 @@
-import { act, cleanup, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { $desktopBoot } from '@/store/boot'
 import { $gatewaySwitching } from '@/store/gateway-switch'
 import { $desktopOnboarding } from '@/store/onboarding'
+import { $introStartExit, $introView } from '@/store/onboarding-intro'
 import { setGatewayState } from '@/store/session'
 
 import { BootFailureOverlay } from './boot-failure-overlay'
@@ -23,6 +24,8 @@ import { GatewayConnectingOverlay } from './gateway-connecting-overlay'
 // reconnects, leaving chat/settings usable while the reconnect loop runs.
 
 function resetStores() {
+  $introView.set('off')
+  $introStartExit.set(null)
   setGatewayState('idle')
   $gatewaySwitching.set(false)
   $desktopBoot.set({
@@ -49,19 +52,74 @@ function resetStores() {
   })
 }
 
+const originalDesktopBridge = window.desktopBridge
 beforeEach(resetStores)
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  Object.defineProperty(window, 'desktopBridge', { configurable: true, value: originalDesktopBridge })
+})
 
-// The connecting overlay renders "CONN" + a scrambled tail inside one
-// uppercase span; match that node specifically so the recovery overlay's
-// "Lost connection…" copy doesn't read as a false positive.
-const isConnectingShown = () =>
-  screen.queryAllByText((_, el) => /^CONN[/\\|\-_=+<>~:*A-Z]*$/.test(el?.textContent?.trim() ?? '')).length > 0
+// Routine connection feedback is a compact status, not a blocking screen.
+const isConnectingShown = () => Boolean(screen.queryByTestId('gateway-connecting-status'))
 
 const isRecoveryShown = () =>
   Boolean(screen.queryByText(/use local gateway/i) || screen.queryByText(/retry/i) || screen.queryByText(/sign in/i))
 
 describe('connecting overlay vs recovery surface', () => {
+  it('cold startup keeps the chat shell usable instead of masking it', () => {
+    $desktopBoot.set({ ...$desktopBoot.get(), running: true, visible: true, progress: 2 })
+    setGatewayState('connecting')
+    const { container } = render(<><textarea aria-label="Unsent draft" /><GatewayConnectingOverlay /></>)
+    const input = screen.getByRole('textbox', { name: 'Unsent draft' })
+    input.focus()
+    fireEvent.change(input, { target: { value: 'Keep this private draft' } })
+    expect(document.activeElement).toBe(input)
+    expect((input as HTMLTextAreaElement).value).toBe('Keep this private draft')
+    expect(container.querySelector('[data-glass-opaque], [aria-modal="true"], [role="dialog"]')).toBeNull()
+    expect(container.querySelector('.inset-0')).toBeNull()
+    expect(screen.getByRole('status').getAttribute('aria-live')).toBe('polite')
+  })
+
+  it('removes routine connection status immediately when connected, without exit choreography', async () => {
+    $desktopBoot.set({ ...$desktopBoot.get(), running: true, visible: true, progress: 2 })
+    setGatewayState('connecting')
+    render(<GatewayConnectingOverlay />)
+    await act(async () => setGatewayState('open'))
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('keeps the real Open logs action accessible while connecting', () => {
+    const revealLogs = vi.fn().mockResolvedValue({ ok: true })
+    Object.defineProperty(window, 'desktopBridge', { configurable: true, value: { revealLogs } })
+    $desktopBoot.set({ ...$desktopBoot.get(), running: true, visible: true, progress: 2 })
+    setGatewayState('connecting')
+    render(<GatewayConnectingOverlay />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open logs' }))
+    expect(revealLogs).toHaveBeenCalledOnce()
+  })
+
+  it('keeps slow first-run Continue without setup actionable without masking the shell', () => {
+    const exit = vi.fn()
+    Object.defineProperty(window, 'desktopBridge', { configurable: true, value: { guestOnboardingEnabled: true } })
+    $introView.set('starting')
+    $introStartExit.set(exit)
+    setGatewayState('open')
+    const { container } = render(<GatewayConnectingOverlay />)
+    fireEvent.click(screen.getByRole('button', { name: /continue without setup/i }))
+    expect(exit).toHaveBeenCalledOnce()
+    expect(container.querySelector('[data-glass-opaque], [aria-modal="true"]')).toBeNull()
+  })
+
+  it('leaves a genuine update hold to its existing blocking recovery surface', () => {
+    $desktopBoot.set({ ...$desktopBoot.get(), running: true, visible: true, progress: 2, updateHold: {
+      holdId: 'a1b2c3d4e5f60718', verdict: 'held', ownerPid: 4242,
+      since: 1, checkedAt: 2, logPath: '/fixture/update.log'
+    } })
+    setGatewayState('connecting')
+    render(<GatewayConnectingOverlay />)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
   it('post-boot socket drops do not re-cover the app with the initial CONNECTING overlay', async () => {
     // 1. Initial boot succeeded: gateway opened, boot completed (no error).
     setGatewayState('open')

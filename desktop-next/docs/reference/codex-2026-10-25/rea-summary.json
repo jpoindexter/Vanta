@@ -1,0 +1,193 @@
+{
+  "evidence_id": "ev_fcec967a7cb27a1e87a826da192be0803e7dc046b5fde58ef0679b969e793de7",
+  "parent_evidence_id": "ev_25f2437d6ae1b9c81c04580a04e617ad5d975e97b12149a459c2c38662e84394",
+  "subject": {
+    "name": "app.asar",
+    "digest": {
+      "sha256": "130145706a912db74e4d260ad7538f10f1e05e88af955f9afba42cdf01e64606"
+    },
+    "local_path": "/Applications/ChatGPT.app/Contents/Resources/app.asar",
+    "format": "asar",
+    "architecture": null
+  },
+  "summary": {
+    "input_path": "/Applications/ChatGPT.app/Contents/Resources/app.asar",
+    "format": "asar",
+    "root_artifact_sha256": "130145706a912db74e4d260ad7538f10f1e05e88af955f9afba42cdf01e64606",
+    "source_selection": {
+      "requested_paths": [
+        ".vite/build/early-bootstrap.js",
+        "webview/assets/app-theme-c4609c25be6b.js",
+        "webview/assets/floating-navigation-rail-2eba3d8c9b07.js",
+        "webview/assets/home-thread-app-shell-chrome-content-c0b7463033ac.js"
+      ],
+      "unselected_files": 16946
+    },
+    "statistics": {
+      "relevant_files": 16950,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 7917,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 4,
+      "visited_ast_nodes": 2257,
+      "findings": 61,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "electron": {
+      "browser_windows": 0,
+      "explicit_web_preferences": 0,
+      "preload_entrypoints": 0,
+      "context_bridge_apis": 0,
+      "exposed_api_members": 0,
+      "ipc": {
+        "operations": 0,
+        "literal_channels": 0,
+        "dynamic_channel_operations": 0,
+        "renderer_transmissions": 0,
+        "renderer_listeners": 0,
+        "main_handlers": 0,
+        "paired_renderer_transmissions": 0,
+        "ambiguous_renderer_transmissions": 0,
+        "unpaired_literal_renderer_transmissions": 0
+      },
+      "sender_validation_observations": 0,
+      "utility_processes": 0,
+      "resolved_utility_entrypoints": 0,
+      "native_addon_bindings": 0,
+      "resolved_native_addon_bindings": 0
+    },
+    "coverage": {
+      "application": {
+        "status": "partial",
+        "truncated": false,
+        "omitted_count": null,
+        "limits": []
+      },
+      "semantic": {
+        "status": "partial",
+        "truncated": false,
+        "omitted_nodes": null,
+        "omitted_relations": null,
+        "limits": [],
+        "families": [
+          {
+            "family": "boundary",
+            "status": "partial",
+            "retained_relations": 1,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "call-flow",
+            "status": "partial",
+            "retained_relations": 58,
+            "omitted_relations": null,
+            "unknown_count": 16043
+          },
+          {
+            "family": "child-process",
+            "status": "partial",
+            "retained_relations": 0,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "closure",
+            "status": "partial",
+            "retained_relations": 86,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "configuration",
+            "status": "partial",
+            "retained_relations": 0,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "data-flow",
+            "status": "partial",
+            "retained_relations": 948,
+            "omitted_relations": null,
+            "unknown_count": 16049
+          },
+          {
+            "family": "event",
+            "status": "partial",
+            "retained_relations": 0,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "object-flow",
+            "status": "partial",
+            "retained_relations": 213,
+            "omitted_relations": null,
+            "unknown_count": 16157
+          },
+          {
+            "family": "promise-ownership",
+            "status": "partial",
+            "retained_relations": 20,
+            "omitted_relations": null,
+            "unknown_count": 15922
+          },
+          {
+            "family": "request",
+            "status": "partial",
+            "retained_relations": 0,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "resource-lifecycle",
+            "status": "partial",
+            "retained_relations": 0,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          },
+          {
+            "family": "timer",
+            "status": "partial",
+            "retained_relations": 0,
+            "omitted_relations": null,
+            "unknown_count": 15918
+          }
+        ]
+      },
+      "application_unknowns": 16946,
+      "semantic_unknowns": 191515
+    },
+    "limitation_count": 15
+  },
+  "limitations": [
+    "Artifact integrity metadata contradicts observed bytes at node_modules/@worklouder/device-kit-oai/node_modules/@worklouder/wl-device-kit/dist/native/darwin/permissions.node; the observed bytes are untrusted.",
+    "Artifact integrity metadata contradicts observed bytes at node_modules/@worklouder/device-kit-oai/node_modules/@worklouder/wl-device-kit/node_modules/node-hid/prebuilds/HID-darwin-arm64/node-napi-v4.node; the observed bytes are untrusted.",
+    "Artifact integrity metadata contradicts observed bytes at node_modules/@worklouder/device-kit-oai/node_modules/@worklouder/wl-device-kit/node_modules/serialport/node_modules/@serialport/bindings-cpp/prebuilds/darwin-x64+arm64/node.napi.node; the observed bytes are untrusted.",
+    "Artifact integrity metadata contradicts observed bytes at node_modules/better-sqlite3/build/Release/better_sqlite3.node; the observed bytes are untrusted.",
+    "Artifact integrity metadata contradicts observed bytes at node_modules/node-pty/build/Release/pty.node; the observed bytes are untrusted.",
+    "Artifact integrity metadata contradicts observed bytes at node_modules/node-pty/build/Release/spawn-helper; the observed bytes are untrusted.",
+    "Artifact integrity metadata contradicts observed bytes at node_modules/objc-js/prebuilds/darwin-arm64/node.napi.armv8.node; the observed bytes are untrusted.",
+    "Boundary extraction covers unshadowed JSON/global coercions plus parse and validation method candidates.",
+    "Caller-selected source analysis leaves 16946 inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.",
+    "Child-process extraction covers asynchronous node:child_process creation, literal argv/env/stdio options, exit/error listeners, and kill signals.",
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "Configuration extraction covers process.env, process.argv, node:fs reads, and direct logical defaults.",
+    "Electron API identity follows proven lexical module aliases and structurally verified module-namespace interop. Other reassignments, dynamic selections, and visibly overwritten namespace members are unresolved; missing findings do not establish absence. Arbitrary call side effects and runtime registration are not evaluated.",
+    "Event extraction covers EventEmitter-style literal registrations, removals, and dispatch candidates; dynamic names remain unknown.",
+    "Function fingerprints are static candidates; equal digests can remain ambiguous and do not prove behavioral equivalence.",
+    "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Local data flow does not claim control-flow-sensitive reaching definitions or arbitrary dynamic property resolution.",
+    "Promise ownership covers explicit unshadowed Promise construction, static factories, aggregation, chaining, and await syntax only.",
+    "Request extraction covers fetch, WebSocket, node:http/node:https construction, direct option fields, and exact local response consumers.",
+    "Resource extraction covers built-in filesystem/network acquisition and exact local close/destroy/end handles.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "The semantic graph contains static syntax observations and conservative relationship candidates; it does not claim runtime execution.",
+    "Timer extraction covers global or node:timers scheduling and exact local-handle cancellation.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ]
+}

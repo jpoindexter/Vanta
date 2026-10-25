@@ -18,6 +18,7 @@ import { $freeTierStatus, FREE_TIER_MODEL, freeTierSetupFailure } from '@/store/
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { $setupReadyTick } from '@/store/live-sync'
 import { $localModelsEnabled } from '@/store/local-models-flag'
+import { notifyError } from '@/store/notifications'
 import {
   $desktopOnboarding,
   ackFreeTierIntro,
@@ -40,7 +41,6 @@ import { $onboardingSurfaces, onboardingSurfaceActive } from '@/store/onboarding
 import type { OAuthProvider } from '@/types/desktop'
 
 import { DocsLink, FlowPanel, Status } from './flow'
-import { DecodedLabel } from './glyph'
 import {
   FeaturedProviderRow,
   FireworksProviderRow,
@@ -192,11 +192,6 @@ function useApiKeyCatalog(scope: OnboardingContext['scope']): ApiKeyOption[] {
   }, [rows])
 }
 
-// Exit choreography, mirroring the gateway "connecting" overlay's timing:
-// text-out (360ms: CONNECTED fades down, rest scrambles+fades) → hold (300ms)
-// → surface-out (520ms, held back by [transition-delay:660ms]). Finalize after.
-const ONBOARDING_EXIT_MS = 1180
-
 export function DesktopOnboardingOverlay({
   enabled,
   onCompleted,
@@ -231,59 +226,33 @@ export function DesktopOnboardingOverlay({
     [onboarding.targetScope, scope, requestGateway]
   )
 
-  // Cinematic exit on "Begin": dissolve the panel + overlay (revealing the chat
-  // behind), THEN finalize so the unmount lands after the fade — mirrors the
-  // connecting overlay's exit choreography instead of cutting instantly.
-  const [leaving, setLeaving] = useState(false)
-
-  const finalizeOnboarding = () => {
-    if (leaving) {
+  // Wait only for actual confirmation/acknowledgement, not visual dwell. The
+  // ref guards duplicate input synchronously, before React paints disabled.
+  const finishingRef = useRef(false)
+  const [finishing, setFinishing] = useState(false)
+  const runCompletion = async (operation: () => Promise<void>) => {
+    if (finishingRef.current) {
       return
     }
-
-    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-
-    if (reduce) {
-      void confirmOnboardingModel(ctx)
-
-      return
+    finishingRef.current = true
+    setFinishing(true)
+    try {
+      await operation()
+    } catch (error) {
+      notifyError(error, t.onboarding.couldNotSave)
+    } finally {
+      finishingRef.current = false
+      setFinishing(false)
     }
-
-    setLeaving(true)
-    window.setTimeout(() => void confirmOnboardingModel(ctx), ONBOARDING_EXIT_MS)
   }
-
-  // The free-tier intro's three doors share one exit: consume the notice, play
-  // the same dissolve, then run whatever the door opens onto. `after` runs at
-  // the END so a sign-in dialog or provider picker never appears behind a
-  // still-fading overlay.
-  const dismissFreeTierIntro = async (after?: () => void) => {
-    if (leaving) {
-      return
-    }
-
-    // The screen is keyed on the backend's notice flag: only a recorded ack takes it down.
-    // A failed ack leaves it in place for another try rather than hiding the only notice.
-    if (!(await ackFreeTierIntro(ctx))) {
-      return
-    }
-
-    const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-
-    if (reduce) {
+  const finalizeOnboarding = () => void runCompletion(() => confirmOnboardingModel(ctx))
+  const dismissFreeTierIntro = (after?: () => void) =>
+    runCompletion(async () => {
+      // An unacknowledged notice stays visible and retryable on failure.
+      if (!(await ackFreeTierIntro(ctx))) return
       clearFreeTierIntro()
       after?.()
-
-      return
-    }
-
-    setLeaving(true)
-    window.setTimeout(() => {
-      setLeaving(false)
-      clearFreeTierIntro()
-      after?.()
-    }, ONBOARDING_EXIT_MS)
-  }
+    })
 
   useEffect(() => {
     if (enabled || onboarding.requested) {
@@ -409,19 +378,20 @@ export function DesktopOnboardingOverlay({
   const freeTierIntro = onboarding.freeTierReady && !onboarding.manual && flow.status === 'idle'
   const ready = freeTierIntro || onboarding.manual || (enabled && onboarding.configured === false)
   const showPicker = !freeTierIntro && (flow.status === 'idle' || flow.status === 'success')
-  // The final "you're in" screen drops the card chrome and floats centered on
-  // the surface — same bare, cinematic treatment as the connecting overlay.
+
+  // A passive readiness check is not a setup decision. Keep the ordinary
+  // shell visible while it resolves; explicit credential requests and active
+  // setup/error flows retain their existing recovery surface.
+  if (!ready && !onboarding.requested && flow.status === 'idle') {
+    return null
+  }
+
+  // Confirmation keeps its compact presentation without a timed exit.
   const bare = ready && (freeTierIntro || (!showPicker && flow.status === 'confirming_model'))
 
   return (
     <div
-      className={cn(
-        'fixed inset-0 z-(--z-onboarding) flex items-center justify-center bg-(--ui-chat-surface-background) p-6 transition-opacity duration-[520ms] ease-out',
-        // On the bare confirm screen, hold the surface (text-out + hold) so the
-        // per-element exit plays before it dissolves.
-        bare && leaving ? '[transition-delay:660ms]' : '',
-        leaving ? 'pointer-events-none opacity-0' : 'opacity-100'
-      )}
+      className="fixed inset-0 z-(--z-onboarding) flex items-center justify-center bg-(--ui-chat-surface-background) p-6"
       // Masks the whole app until onboarding finishes — must stay filled under
       // window glass or the shell shows through. Contract:
       // `[data-glass-opaque]` in styles.css.
@@ -429,15 +399,10 @@ export function DesktopOnboardingOverlay({
     >
       <div
         className={cn(
-          'relative w-full max-w-[45rem] transition-all duration-500 ease-out',
+          'relative w-full max-w-[45rem]',
           bare
             ? ''
-            : 'overflow-hidden rounded-xl border border-(--stroke-vanta) bg-(--ui-chat-bubble-background) shadow-vanta',
-          // Bare confirm screen orchestrates its own per-element exit; the
-          // carded states use the simple lift/blur dissolve.
-          leaving && !bare
-            ? '-translate-y-1 scale-[0.985] opacity-0 blur-[2px]'
-            : 'translate-y-0 scale-100 opacity-100 blur-0'
+            : 'overflow-hidden rounded-xl border border-(--stroke-vanta) bg-(--ui-chat-bubble-background) shadow-vanta'
         )}
       >
         {showPicker || !ready ? <Header /> : null}
@@ -456,11 +421,11 @@ export function DesktopOnboardingOverlay({
           {reason ? <ReasonNotice reason={reason} /> : null}
           {ready ? (
             freeTierIntro ? (
-              <FreeTierReadyPanel leaving={leaving} onDismiss={dismissFreeTierIntro} />
+              <FreeTierReadyPanel finishing={finishing} onDismiss={dismissFreeTierIntro} />
             ) : showPicker ? (
               <Picker ctx={ctx} />
             ) : (
-              <FlowPanel ctx={ctx} flow={flow} leaving={leaving} onBegin={finalizeOnboarding} />
+              <FlowPanel ctx={ctx} finishing={finishing} flow={flow} onBegin={finalizeOnboarding} />
             )
           ) : (
             <Preparing boot={boot} />
@@ -479,10 +444,10 @@ export function DesktopOnboardingOverlay({
  * own) without making either the default.
  */
 function FreeTierReadyPanel({
-  leaving,
+  finishing,
   onDismiss
 }: {
-  leaving: boolean
+  finishing: boolean
   onDismiss: (after?: () => void) => Promise<void>
 }) {
   const { t } = useI18n()
@@ -490,14 +455,9 @@ function FreeTierReadyPanel({
 
   return (
     <div className="grid place-items-center gap-7 py-6 text-center">
-      <DecodedLabel leaving={leaving} text={copy.readyTitle} />
+      <p className="text-sm font-medium">{copy.readyTitle}</p>
 
-      <div
-        className={cn(
-          'grid justify-items-center gap-1.5 transition duration-[360ms] ease-out',
-          leaving ? 'opacity-0 saturate-0' : 'opacity-100 saturate-100'
-        )}
-      >
+      <div className="grid justify-items-center gap-1.5">
         <div className="flex items-center gap-2">
           <span className="font-mono text-meta uppercase tracking-[0.2em] text-muted-foreground">
             {t.onboarding.defaultModel}
@@ -510,19 +470,15 @@ function FreeTierReadyPanel({
         <p className="font-mono text-xs text-muted-foreground">{copy.readyCaption}</p>
       </div>
 
-      <div
-        className={cn(
-          'grid justify-items-center gap-2 transition duration-[360ms] ease-out',
-          leaving ? 'opacity-0 saturate-0' : 'opacity-100 saturate-100'
-        )}
-      >
-        <Button onClick={() => void onDismiss()} type="button">
+      <div aria-busy={finishing} className="grid justify-items-center gap-2">
+        <Button disabled={finishing} onClick={() => void onDismiss()} type="button">
           {copy.begin}
         </Button>
-        <Button onClick={() => void onDismiss(() => openFreeTierSignIn())} size="xs" type="button" variant="text">
+        <Button disabled={finishing} onClick={() => void onDismiss(() => openFreeTierSignIn())} size="xs" type="button" variant="text">
           {copy.signInInstead}
         </Button>
         <Button
+          disabled={finishing}
           onClick={() => void onDismiss(() => startManualOnboarding(null))}
           size="xs"
           type="button"

@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-10-08 with open-card execution and current-host reconciliation. Historical release
+Updated 2026-10-25 with source, delivery and continuity boundaries. Historical release
 receipts below retain their original version/date and are not current security attestations.
 This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
@@ -9,13 +9,26 @@ evidence only for its exact version, environment, path, and marker.
 The bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and `OP-01` contracts
 now have retained executed receipts and are `shipped` in canonical
 `roadmap.json` for their documented local and signed macOS boundaries. The
-integrated source stack is still a draft repository change, not the public
-release. Cross-platform packages, live external accounts, external
+integrated source stack is committed and pushed on an unmerged integration branch,
+not a public release. Cross-platform packages, live external accounts, external
 participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
-The [October 8 execution record](open-card-execution-2026-10-08.md) is the current
+The [Desktop status](../desktop-next/docs/STATUS-2026-10-15.md) is the current
+entry point; its dated receipts distinguish source from the installed build.
+Source `4a2f4ab8` is pushed and present in a signed, Apple Accepted/stapled local
+candidate. Its packaged 13-step/seven-probe chat/approval path passes; its broader
+continuity run stops after ten passing assertions because unsent image attachments
+are lost on cold restart. Later queue/unread assertions were not reached.
+Installed source remains `745629c6`; do not attribute later fixes to it.
+The [shell-first startup record](../desktop-next/docs/STARTUP-SHELL-FIRST-2026-10-25.md)
+tracks the owner's removal of passive loading takeovers and the measured Codex
+design reference. These are not whole Desktop or security acceptance.
+
+### Historical October 8 checkpoint
+
+The [October 8 execution record](open-card-execution-2026-10-08.md) is the historical
 entry point. The capability-grounded prompt card completed its stated fixture
 contract; eleven cards remain open. Git isolation, session persistence and
 ordinary-conversation attention repairs have executed scoped checks, not whole
@@ -241,14 +254,18 @@ binding, review, and explicit reauthorization.
    quarantine), and `TRUST-06` (factory/self-repair production boundary) remain
    dependency-ordered Horizon work; shipped cards do not promote them.
 5. `UX-04` remains the broader cross-host accessibility and first-run contract.
-6. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` is the sole Next card. It permits one
-   voluntary, uncompensated fresh non-developer usability run against an exact
-   packaged candidate. `GROW-01` is Horizon work after that proof. No paid
-   participant, recruiting, research-platform, CI, hosting, outreach, or other
-   new service spend is authorized.
-7. The documentation toolchain retains two upstream `image-size` advisories with
-   no patched npm release. It is build-time on self-authored content and remains
-   visible until upstream ships a fix.
+6. Four engineering cards remain Next: `BROWSER-WORKFLOW-ACTION-BOUNDARY`,
+   `REPOSITORY-GIT-PROBE-EXECUTION-ISOLATION`,
+   `CONTROL-PLANE-INSTRUCTION-WRITE-BOUNDARY` and
+   `LOCAL-STATE-ATOMIC-RECOVERY-BOUNDARY`. `DESKTOP-COLD-OPERATOR-RELEASE-PROOF`
+   and `GROW-01` are parked by the owner. The unfamiliar-person run requires an
+   owner-supplied voluntary participant and exact candidate. No recruitment,
+   outreach, paid services or CI activation is authorized.
+7. Dependency security is not green. The retained runtime production graph has
+   six findings and the Desktop graph has 26; these are different graphs, not
+   an additive total or a refreshed GitHub alert count. See the
+   [runtime re-entry](../desktop-next/docs/RUNTIME-SECURITY-REENTRY-2026-10-25.md)
+   and [Desktop Vitest record](../desktop-next/docs/VITEST-SECURITY-2026-10-25.md).
 
 No unattended high-consequence effect is accepted until exact authority,
 transaction integrity, verification, receipts, reversal or compensation,

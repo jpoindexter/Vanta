@@ -1,0 +1,668 @@
+{
+  "$description": "Isolated DTCG-like reference, not importable Vanta theme; source-specific scopes are preserved in design-reference.json.",
+  "$extensions": {
+    "artifact": {
+      "path": "/Applications/ChatGPT.app/Contents/Resources/app.asar",
+      "sha256": "130145706a912db74e4d260ad7538f10f1e05e88af955f9afba42cdf01e64606",
+      "packageName": "openai-codex-electron",
+      "packageVersion": "26.1021.31345",
+      "product": "Codex",
+      "note": "Bundle installed at ChatGPT.app path identifies itself as Codex. Not separate ChatGPT-product evidence."
+    },
+    "normalization": "Exact literal root dimensions retained; no screenshot quantization. No cascade, rem-root or platform resolution claimed."
+  },
+  "color": {
+    "desktopLight": {
+      "surface": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/defaults-930c9f21f410.js",
+              "sha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+              "utf16Offset": 93,
+              "objectPath": "light.surface"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "#1a1c1f",
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/defaults-930c9f21f410.js",
+              "sha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+              "utf16Offset": 93,
+              "objectPath": "light.ink"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "#339cff",
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/defaults-930c9f21f410.js",
+              "sha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+              "utf16Offset": 93,
+              "objectPath": "light.accent"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    },
+    "desktopDark": {
+      "surface": {
+        "$type": "color",
+        "$value": "#181818",
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/defaults-930c9f21f410.js",
+              "sha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+              "utf16Offset": 93,
+              "objectPath": "dark.surface"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "ink": {
+        "$type": "color",
+        "$value": "#ffffff",
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/defaults-930c9f21f410.js",
+              "sha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+              "utf16Offset": 93,
+              "objectPath": "dark.ink"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "#339cff",
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/defaults-930c9f21f410.js",
+              "sha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+              "utf16Offset": 93,
+              "objectPath": "dark.accent"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    },
+    "semanticReference": {
+      "surface": {
+        "$type": "color",
+        "$value": "{color.desktopLight.surface}",
+        "$extensions": {
+          "reference": {
+            "confidence": "inferred-semantic-reference-only",
+            "source": {
+              "objectPath": "light.surface"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "primaryText": {
+        "$type": "color",
+        "$value": "{color.desktopLight.ink}",
+        "$extensions": {
+          "reference": {
+            "confidence": "inferred-semantic-reference-only",
+            "source": {
+              "objectPath": "light.ink"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    }
+  },
+  "dimension": {
+    "space": {
+      "base": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.25,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 134373,
+              "selector": ":root,:host",
+              "rawValue": ".25rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    },
+    "type": {
+      "xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 11,
+          "unit": "px"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 134760,
+              "selector": ":root,:host",
+              "rawValue": "11px"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 12,
+          "unit": "px"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 134812,
+              "selector": ":root,:host",
+              "rawValue": "12px"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "base": {
+        "$type": "dimension",
+        "$value": {
+          "value": 14,
+          "unit": "px"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 134868,
+              "selector": ":root,:host",
+              "rawValue": "14px"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 134924,
+              "selector": ":root,:host",
+              "rawValue": "16px"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 28,
+          "unit": "px"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 134981,
+              "selector": ":root,:host",
+              "rawValue": "28px"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    },
+    "radius": {
+      "xs": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.25,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140120,
+              "selector": ":root,:host",
+              "rawValue": ".25rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.375,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140144,
+              "selector": ":root,:host",
+              "rawValue": ".375rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.5,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140169,
+              "selector": ":root,:host",
+              "rawValue": ".5rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.625,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140192,
+              "selector": ":root,:host",
+              "rawValue": ".625rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0.75,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140217,
+              "selector": ":root,:host",
+              "rawValue": ".75rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "2xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140241,
+              "selector": ":root,:host",
+              "rawValue": "1rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "3xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1.25,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140264,
+              "selector": ":root,:host",
+              "rawValue": "1.25rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      },
+      "4xl": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1.5,
+          "unit": "rem"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140290,
+              "selector": ":root,:host",
+              "rawValue": "1.5rem"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    },
+    "chrome": {
+      "toolbar": {
+        "$type": "dimension",
+        "$value": {
+          "value": 46,
+          "unit": "px"
+        },
+        "$extensions": {
+          "reference": {
+            "confidence": "observed-static",
+            "source": {
+              "file": "webview/assets/app-shared-bd3e4e649b69.css",
+              "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+              "utf16Offset": 140999,
+              "selector": ":root,:host",
+              "rawValue": "46px"
+            },
+            "runtimeComputed": "unknown"
+          }
+        }
+      }
+    }
+  },
+  "elevation": {
+    "near": {
+      "$type": "shadow",
+      "$value": {
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 2,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 4,
+          "unit": "px"
+        },
+        "spread": {
+          "value": -1,
+          "unit": "px"
+        },
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0.0784313725490196
+        }
+      },
+      "$extensions": {
+        "reference": {
+          "confidence": "observed-static",
+          "source": {
+            "file": "webview/assets/app-shared-bd3e4e649b69.css",
+            "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+            "utf16Offset": 136319,
+            "selector": ":root,:host",
+            "rawValue": "0px 2px 4px -1px #00000014"
+          },
+          "runtimeComputed": "unknown"
+        }
+      }
+    },
+    "card": {
+      "$type": "shadow",
+      "$value": {
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 4,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 16,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        },
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0,
+            0,
+            0
+          ],
+          "alpha": 0.050980392156862744
+        }
+      },
+      "$extensions": {
+        "reference": {
+          "confidence": "observed-static",
+          "source": {
+            "file": "webview/assets/app-shared-bd3e4e649b69.css",
+            "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+            "utf16Offset": 183852,
+            "selector": ":where(:root),:where([data-theme])",
+            "rawValue": "0px 4px 16px 0px #0000000d"
+          },
+          "runtimeComputed": "unknown"
+        }
+      }
+    },
+    "composerDefault": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 0,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 0,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 1,
+            "unit": "px"
+          },
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0,
+              0,
+              0
+            ],
+            "alpha": 0.0392156862745098
+          }
+        },
+        {
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 2,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 8,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          },
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0,
+              0,
+              0
+            ],
+            "alpha": 0.0392156862745098
+          }
+        },
+        {
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 4,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 80,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 8,
+            "unit": "px"
+          },
+          "color": {
+            "colorSpace": "srgb",
+            "components": [
+              0,
+              0,
+              0
+            ],
+            "alpha": 0.023529411764705882
+          }
+        }
+      ],
+      "$extensions": {
+        "reference": {
+          "confidence": "observed-static",
+          "source": {
+            "file": "webview/assets/app-shared-bd3e4e649b69.css",
+            "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+            "utf16Offset": 1339852,
+            "selector": ":root",
+            "contexts": [
+              ":root"
+            ],
+            "rawValue": "0 0 0 1px #0000000a, 0 2px 8px 0 #0000000a, 0 4px 80px 8px #00000006"
+          },
+          "runtimeComputed": "unknown"
+        }
+      }
+    }
+  },
+  "font": {
+    "sans": {
+      "$type": "fontFamily",
+      "$value": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "sans-serif"
+      ],
+      "$extensions": {
+        "reference": {
+          "confidence": "observed-static",
+          "source": {
+            "file": "webview/assets/app-shared-bd3e4e649b69.css",
+            "sha256": "af8636f03c49c5c7676116af7e972b499a5928ea354822e5977d6caa90ed3acb",
+            "utf16Offset": 138385,
+            "selector": ":root,:host",
+            "rawValue": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+          },
+          "runtimeComputed": "unknown"
+        }
+      }
+    }
+  }
+}

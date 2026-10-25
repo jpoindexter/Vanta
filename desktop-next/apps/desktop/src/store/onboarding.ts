@@ -878,8 +878,7 @@ export async function ackFreeTierIntro(ctx: OnboardingContext): Promise<boolean>
   return ackFreeTierNotice(ctx.requestGateway)
 }
 
-/** Take the ready screen down. Separate from the ack because the overlay plays
- *  its exit BEFORE unmounting — clearing the flag up front would cut the fade. */
+/** Dismiss only after the backend acknowledges the notice; all exit choices share this state. */
 export function clearFreeTierIntro() {
   patch({ freeTierReady: false })
 }
@@ -1389,11 +1388,7 @@ export async function confirmOnboardingModel(ctx: OnboardingContext) {
   }
 
   if (manual) {
-    // Best-effort: the overlay is already on its way out (cinematic exit
-    // choreography in the caller isn't gated on this), so a failure here is
-    // reported and swallowed rather than left blocking — same as the rest of
-    // this file's non-blocking gateway calls. The alternative (silently
-    // keeping the previous default) is still safer than the bug this fixes.
+    // Preserve the existing best-effort save: report failure and keep the previous default.
     try {
       const res = await setMainModelAssignment({ provider: flow.providerSlug, model: flow.currentModel }, undefined, {
         skipConfirmPrompt: true

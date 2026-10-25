@@ -1,5 +1,24 @@
 # Cutover parity: Vanta-only features of the current desktop vs desktop-next
 
+## Latest evidence index — 2026-10-25
+
+The October 14 matrix and counts below are historical inventory, not current
+row-by-row acceptance. Installed `745629c6` has signed/notarized private-profile
+chat/restart and Find evidence. Later source through `4a2f4ab8` is pushed and
+present in a new signed, Apple Accepted/stapled, not-installed candidate. Its
+broader continuity run fails after ten checks on image draft restoration;
+queue/unread restart proof remains open. See STATUS-2026-10-15.md and
+STARTUP-SHELL-FIRST-2026-10-25.md. Neither scoped extraction nor installation
+authorizes classic-renderer removal. Older unsigned/old-default statements
+describe the historical inventory only, not today's installation.
+
+Seven classic native helper modules remain directly imported; shared
+`serverLaunchArgs` now belongs to `vanta-ts/desktop-native/runtime-launch.mjs`,
+with the old path retained as a compatibility re-export. Classic companion and
+other parity decisions remain owner-gated. No historical row totals are promoted.
+
+## Historical inventory and bounded incremental receipts
+
 Current bounded V-029 Cancel evidence, 2026-10-23: actual chat-started running
 action → keyboard Cancel → Cancel requested → checkpoint Cancelled. First effect
 completes once; second never runs; no automatic Resume or false workflow Done.

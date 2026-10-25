@@ -64,7 +64,7 @@ function Harness() {
 
   return (
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <FlowPanel ctx={ctx} flow={state.flow} leaving={false} onBegin={() => undefined} />
+      <FlowPanel ctx={ctx} finishing={false} flow={state.flow} onBegin={() => undefined} />
     </QueryClientProvider>
   )
 }

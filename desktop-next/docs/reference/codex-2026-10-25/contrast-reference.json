@@ -1,0 +1,50 @@
+{
+  "method": "WCAG 2 relative sRGB luminance; opaque source literal pairs only",
+  "pairs": [
+    {
+      "pair": "desktop default light ink/surface",
+      "foreground": "#1a1c1f",
+      "background": "#ffffff",
+      "scope": "defaults literal pair; applied state unknown",
+      "ratio": 17.076,
+      "aaBody": true,
+      "aaLargeText": true,
+      "confidence": "calculated-from-source-literals-not-rendered"
+    },
+    {
+      "pair": "desktop default dark ink/surface",
+      "foreground": "#ffffff",
+      "background": "#181818",
+      "scope": "defaults literal pair; applied state unknown",
+      "ratio": 17.756,
+      "aaBody": true,
+      "aaLargeText": true,
+      "confidence": "calculated-from-source-literals-not-rendered"
+    },
+    {
+      "pair": "generic light secondary gray500/gray0",
+      "foreground": "#5d5d5d",
+      "background": "#ffffff",
+      "scope": "generic CSS branch only, not resolved dynamic desktop theme",
+      "ratio": 6.585,
+      "aaBody": true,
+      "aaLargeText": true,
+      "confidence": "calculated-from-source-literals-not-rendered"
+    },
+    {
+      "pair": "generic light tertiary gray400/gray0",
+      "foreground": "#8f8f8f",
+      "background": "#ffffff",
+      "scope": "generic CSS branch only; do not use as small-text acceptance",
+      "ratio": 3.234,
+      "aaBody": false,
+      "aaLargeText": true,
+      "confidence": "calculated-from-source-literals-not-rendered"
+    }
+  ],
+  "gaps": [
+    "Current computed theme contrast unknown",
+    "Focus ring contrast unknown until derived --color-ring resolves",
+    "Translucent/blur/native surfaces and actual text sizes not evaluated"
+  ]
+}
