@@ -93,6 +93,7 @@ import {
   type SessionOwnerScope,
   type SessionProfileRoute
 } from './session-request-router'
+import { type StoredTile, toStored } from './session-tile-codec'
 import { ackStoredSessionId, markSessionUnreadFinished } from './session-unread'
 import { migrateTranscriptTailsForProfile } from './transcript-tail-cache'
 import { isBrowserWindow, isSecondaryWindow } from './windows'
@@ -1250,34 +1251,6 @@ export interface SessionTileWorkspaceScope {
 const TILES_KEY = 'vanta.desktop.sessionTiles.v2'
 const LEGACY_TILES_KEY = 'vanta.desktop.sessionTiles.v1'
 const BOTS_TILE_BUCKET = '__bots_workspace__'
-
-/** Persisted placement — `dir` + strip slot (`before`) + dock `anchor` so a
- *  restart / profile swap re-adopts tiles in the same order, not all stacked
- *  right of workspace. */
-type StoredTile = Pick<
-  SessionTile,
-  | 'anchor'
-  | 'before'
-  | 'dir'
-  | 'ownerProfile'
-  | 'ownerRoute'
-  | 'storedSessionId'
-  | 'workspaceMode'
-  | 'workspaceOwnerKey'
-  | 'workspaceTabTitle'
->
-
-const toStored = (t: SessionTile): StoredTile => ({
-  anchor: t.anchor,
-  before: t.before,
-  dir: t.dir,
-  ...(t.ownerProfile ? { ownerProfile: t.ownerProfile } : {}),
-  ...(t.ownerRoute ? { ownerRoute: t.ownerRoute } : {}),
-  storedSessionId: t.storedSessionId,
-  ...(t.workspaceMode ? { workspaceMode: t.workspaceMode } : {}),
-  ...(t.workspaceOwnerKey ? { workspaceOwnerKey: t.workspaceOwnerKey } : {}),
-  ...(t.workspaceTabTitle ? { workspaceTabTitle: t.workspaceTabTitle } : {})
-})
 
 function parseTileList(value: unknown): StoredTile[] {
   return Array.isArray(value)
