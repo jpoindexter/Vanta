@@ -1,0 +1,18 @@
+{
+  "fixture": "/private/tmp/vanta-skill-approval-IMirJN/public-nZlE8B",
+  "seam": "public setSkillWriteApproval using scratch TS source + parent's strict store contract",
+  "invalidRecognizedPolicyRejected": true,
+  "userBytesPreserved": true,
+  "beforeSha256": "a15e48ae4187c6c5dac5dc763e36b417d77fc9ec7d4fa3821bcce3d756588bd7",
+  "afterSha256": "a15e48ae4187c6c5dac5dc763e36b417d77fc9ec7d4fa3821bcce3d756588bd7",
+  "corruptProjectRejectedBeforeUserMutation": true,
+  "unknownKeysAndSiblingSkillsPreserved": true,
+  "missingDefault": false,
+  "explicitOnOff": true,
+  "newFileMode": "600",
+  "liveRepositoryEdited": false,
+  "limits": [
+    "Source/temp proof, not packaged or owner state.",
+    "No atomic write, concurrent-writer/CAS or full local-state recovery acceptance."
+  ]
+}

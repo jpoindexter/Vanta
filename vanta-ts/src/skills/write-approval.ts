@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { appendFile, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { z } from "zod";
-import { loadSettings, userSettingsPath } from "../settings/store.js";
+import { loadSettings } from "../settings/store.js";
+import { updateUserSettings } from "../settings/user-edit.js";
 import { commitInHome, ensureVantaStore, resolveVantaHome, skillsDir, slugifySkillName } from "../store/home.js";
 import { scanForInjection } from "./gating.js";
 import { archiveSkill, readSkill, writeSkill, type WriteInput } from "./store.js";
@@ -30,9 +31,10 @@ const queueDir = (env: NodeJS.ProcessEnv) => join(resolveVantaHome(env), "pendin
 const pendingPath = (id: string, env: NodeJS.ProcessEnv) => join(queueDir(env), `${id}.json`);
 
 export async function setSkillWriteApproval(enabled: boolean, root: string, env: NodeJS.ProcessEnv = process.env): Promise<void> {
-  const path = userSettingsPath(env), current = await readJson(path), skills = asObject(current.skills);
-  current.skills = { ...skills, writeApproval: enabled }; await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(current, null, 2)}\n`, { mode: 0o600 });
+  await loadSettings(root, env);
+  await updateUserSettings((current) => ({
+    ...current, skills: { ...asObject(current.skills), writeApproval: enabled },
+  }), env);
   await loadSettings(root, env);
 }
 
@@ -142,7 +144,6 @@ async function resolveRecord(record: PendingSkillMutation, opts: { status: "appr
 
 async function requiredPending(id: string, env: NodeJS.ProcessEnv): Promise<PendingSkillMutation> { const record = await readRecord(pendingPath(id, env)); if (!record || record.status !== "pending") throw new Error(`pending skill mutation ${id} not found`); return record; }
 async function readRecord(path: string): Promise<PendingSkillMutation | null> { try { return JSON.parse(await readFile(path, "utf8")) as PendingSkillMutation; } catch { return null; } }
-async function readJson(path: string): Promise<Record<string, unknown>> { try { return asObject(JSON.parse(await readFile(path, "utf8"))); } catch { return {}; } }
 const asObject = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const mutationSlug = (mutation: SkillMutation) => mutation.action === "create" || mutation.action === "edit" ? slugifySkillName(mutation.input.name) : slugifySkillName(mutation.slug);
 function safeRelative(path: string): string { if (!path || path === "SKILL.md" || path.startsWith("/") || path.includes("\\") || path.split("/").some((part) => !part || part === "..")) throw new Error("supporting-file path must be contained and cannot be SKILL.md"); return path; }

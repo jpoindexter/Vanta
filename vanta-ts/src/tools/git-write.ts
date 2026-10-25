@@ -52,12 +52,12 @@ export const gitCommitTool: Tool = {
     );
     if (!approved) return { ok: false, output: "denied" };
 
-    const add = await runGit(["add", "-A"], ctx.root);
-    if (add.code !== 0) return { ok: false, output: add.out || "(no output)" };
     const settings = await loadSettings(ctx.root, process.env);
     const baseMessage = withAttribution(parsed.data.message, resolveAttribution(settings));
     const sessionTrailers = ctx.sessionId ? await trailersForSession(join(ctx.root, ".vanta"), ctx.sessionId) : [];
     const message = withTrailers(baseMessage, sessionTrailers);
+    const add = await runGit(["add", "-A"], ctx.root);
+    if (add.code !== 0) return { ok: false, output: add.out || "(no output)" };
     const { code, out } = await runGit(["commit", "-m", message], ctx.root);
     return { ok: code === 0, output: out || "(no output)" };
   },

@@ -29,5 +29,5 @@ export async function updateUserSettings(
   const path = userSettingsFile(env);
   const next = mutate(await readUserSettingsRaw(env));
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+  await writeFile(path, `${JSON.stringify(next, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
 }
