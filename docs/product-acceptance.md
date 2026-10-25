@@ -280,8 +280,11 @@ binding, review, and explicit reauthorization.
    owner-supplied voluntary participant and exact candidate. No recruitment,
    outreach, paid services or CI activation is authorized.
 7. Dependency security is not green. The retained runtime production graph has
-   six findings and the Desktop graph has 26; these are different graphs, not
-   an additive total or a refreshed GitHub alert count. See the
+   six findings. The [js-yaml lock-only patch](dependency-js-yaml-2026-10-25.md)
+   removes one finding in the separate Desktop candidate graph (fresh paired
+   audit: 23 to 22; earlier retained snapshot: 26 to 25); shared installed
+   dependencies and the notarized app were not replaced for that patch. These
+   are different graphs, not an additive total or a refreshed GitHub alert count. See the
    [runtime re-entry](../desktop-next/docs/RUNTIME-SECURITY-REENTRY-2026-10-25.md)
    and [Desktop Vitest record](../desktop-next/docs/VITEST-SECURITY-2026-10-25.md).
 
