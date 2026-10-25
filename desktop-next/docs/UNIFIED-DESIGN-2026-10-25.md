@@ -120,3 +120,12 @@ controls, portaled menus/dialogs, transcript/activity and workbench surfaces
 still require the same shared-contract migration, not separate cosmetic skins.
 Draft-custody/restart engineering continues separately; visual work must not
 weaken its data-preservation checks or approval boundaries.
+
+Next actual-app surface: [unified sidebar/titlebar review](UNIFIED-CHROME-REVIEW-2026-10-25.md)
+retains a seven-file isolated candidate and unapplied patch. Final source
+Electron executes 21 checks, with a separate seven-control narrow replay,
+25 focused tests and renderer typecheck. It replaces six custom titlebar
+buttons with the house primitive and corrects a reproduced glyph-selector
+collision. Canvas paint leakage was caught and corrected in the isolated
+candidate. This is not an installed change or owner visual acceptance;
+per-surface review still governs promotion.

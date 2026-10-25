@@ -1,0 +1,126 @@
+diff --git a/desktop-next/apps/desktop/src/styles/vanta.css b/desktop-next/apps/desktop/src/styles/vanta.css
+index 9deaaa64..8d2ff492 100644
+--- a/desktop-next/apps/desktop/src/styles/vanta.css
++++ b/desktop-next/apps/desktop/src/styles/vanta.css
+@@ -66,0 +67,3 @@
++  --titlebar-control-size: 2rem;
++  --titlebar-control-height: var(--titlebar-control-size);
++  --titlebar-icon-size: var(--composer-icon-size);
+diff --git a/desktop-next/apps/desktop/src/styles/vanta-shell.css b/desktop-next/apps/desktop/src/styles/vanta-shell.css
+index 07cca8a4..966a4fae 100644
+--- a/desktop-next/apps/desktop/src/styles/vanta-shell.css
++++ b/desktop-next/apps/desktop/src/styles/vanta-shell.css
+@@ -35,0 +36,13 @@
++/* The Vanta skin shares the approved editor's density; other saved skins retain theirs. */
++:root[data-vanta-theme='vanta'] {
++  --vs-control: var(--titlebar-control-size);
++  --vs-gap-bar: 0.5rem;
++  --vs-pad-sidebar-y: 0.75rem;
++  --vs-pad-nav-x: 0.75rem;
++  --vs-glyph: var(--titlebar-icon-size);
++  --vs-text-ui: var(--text-label);
++  --vs-text-small: var(--text-ui);
++  --vs-text-meta: var(--text-meta);
++  --vs-weight-strong: var(--font-weight-medium);
++}
++
+@@ -120,0 +134,9 @@ button.vs-tb-name {
++:root[data-vanta-theme='vanta'] .vs-titlebar {
++  background: var(--ui-bg-sidebar);
++}
++
++.vs-titlebar [data-size='icon-titlebar'][aria-pressed='true'] {
++  background: var(--ui-row-active-background);
++  color: var(--ui-text-primary);
++}
++
+@@ -138 +160 @@ button.vs-tb-name {
+-  .vs-titlebar .vs-icon[aria-pressed='true'] {
++  .vs-titlebar :is(.vs-icon, [data-size='icon-titlebar'])[aria-pressed='true'] {
+diff --git a/desktop-next/apps/desktop/src/styles/vanta-sidebar.css b/desktop-next/apps/desktop/src/styles/vanta-sidebar.css
+index ec1831cf..729e848d 100644
+--- a/desktop-next/apps/desktop/src/styles/vanta-sidebar.css
++++ b/desktop-next/apps/desktop/src/styles/vanta-sidebar.css
+@@ -37,0 +38,8 @@
++:root[data-vanta-theme='vanta'] [data-tour='sessions-sidebar'] button[data-testid^='nav-'] {
++  line-height: var(--composer-label-leading);
++}
++
++:root[data-vanta-theme='vanta'] [data-tour='sessions-sidebar'] button[data-testid='nav-new-session'] {
++  color: var(--ui-text-primary);
++}
++
+diff --git a/desktop-next/apps/desktop/src/app/shell/vanta/vanta-titlebar.tsx b/desktop-next/apps/desktop/src/app/shell/vanta/vanta-titlebar.tsx
+index 9e526f80..4a2f9b1c 100644
+--- a/desktop-next/apps/desktop/src/app/shell/vanta/vanta-titlebar.tsx
++++ b/desktop-next/apps/desktop/src/app/shell/vanta/vanta-titlebar.tsx
+@@ -5,0 +6 @@ import { Slot } from '@/contrib/react/slot'
++import { Button } from '@/components/ui/button'
+@@ -104 +105 @@ export function VantaTitlebar({
+-        <button
++        <Button
+@@ -106 +106,0 @@ export function VantaTitlebar({
+-          className="vs-icon"
+@@ -108,0 +109 @@ export function VantaTitlebar({
++          size="icon-titlebar"
+@@ -109,0 +111 @@ export function VantaTitlebar({
++          variant="ghost"
+@@ -112 +114 @@ export function VantaTitlebar({
+-        </button>
++        </Button>
+diff --git a/desktop-next/apps/desktop/src/app/shell/vanta/pane-toggles.tsx b/desktop-next/apps/desktop/src/app/shell/vanta/pane-toggles.tsx
+index c35b77f5..2d4e2d52 100644
+--- a/desktop-next/apps/desktop/src/app/shell/vanta/pane-toggles.tsx
++++ b/desktop-next/apps/desktop/src/app/shell/vanta/pane-toggles.tsx
+@@ -10,0 +11 @@ import { Tip } from '@/components/ui/tooltip'
++import { Button } from '@/components/ui/button'
+@@ -37 +38 @@ function ToggleButton({ Icon, id, label, onClick, pressed }: ToggleSpec) {
+-      <button
++      <Button
+@@ -40 +40,0 @@ function ToggleButton({ Icon, id, label, onClick, pressed }: ToggleSpec) {
+-        className="vs-icon"
+@@ -42,0 +43 @@ function ToggleButton({ Icon, id, label, onClick, pressed }: ToggleSpec) {
++        size="icon-titlebar"
+@@ -43,0 +45 @@ function ToggleButton({ Icon, id, label, onClick, pressed }: ToggleSpec) {
++        variant="ghost"
+@@ -46 +48 @@ function ToggleButton({ Icon, id, label, onClick, pressed }: ToggleSpec) {
+-      </button>
++      </Button>
+@@ -96 +98 @@ export function PaneToggles({ tools }: PaneTogglesProps) {
+-        <button aria-label={copy.more} className="vs-icon" data-testid="titlebar-more" type="button">
++        <Button aria-label={copy.more} data-testid="titlebar-more" size="icon-titlebar" type="button" variant="ghost">
+@@ -98 +100 @@ export function PaneToggles({ tools }: PaneTogglesProps) {
+-        </button>
++        </Button>
+diff --git a/desktop-next/apps/desktop/src/components/ui/button.tsx b/desktop-next/apps/desktop/src/components/ui/button.tsx
+index bd520599..d501c991 100644
+--- a/desktop-next/apps/desktop/src/components/ui/button.tsx
++++ b/desktop-next/apps/desktop/src/components/ui/button.tsx
+@@ -61 +61 @@ const buttonVariants = cva(
+-          'titlebar-icon-button h-(--titlebar-control-height) w-(--titlebar-control-size) rounded-sm [&_svg:not([class*="size-"])]:size-(--titlebar-icon-size)'
++          "titlebar-icon-button h-(--titlebar-control-height) w-(--titlebar-control-size) rounded-sm [&_svg:not([class*='size-'])]:size-(--titlebar-icon-size)"
+diff --git a/desktop-next/apps/desktop/src/components/ui/button-icon-size.test.tsx b/desktop-next/apps/desktop/src/components/ui/button-icon-size.test.tsx
+new file mode 100644
+index 00000000..0460dfac
+--- /dev/null
++++ b/desktop-next/apps/desktop/src/components/ui/button-icon-size.test.tsx
+@@ -0,0 +1,19 @@
++import { cleanup, render } from '@testing-library/react'
++import { afterEach, describe, expect, it } from 'vitest'
++
++import { Button } from './button'
++
++afterEach(cleanup)
++
++describe('Button icon size ownership', () => {
++  it.each([
++    ['default', '3.5'],
++    ['xs', '3'],
++    ['icon-titlebar', '(--titlebar-icon-size)']
++  ] as const)('%s keeps only its winning glyph rule', (size, expected) => {
++    const { getByRole } = render(<Button aria-label="Control" size={size}><svg /></Button>)
++    const rules = getByRole('button').className.split(' ').filter(rule => rule.startsWith('[&_svg:not('))
++
++    expect(rules).toEqual([`[&_svg:not([class*='size-'])]:size-${expected}`])
++  })
++})
