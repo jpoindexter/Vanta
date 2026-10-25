@@ -356,6 +356,9 @@ blurred backdrop.
   Empty lists hide their search field.
   Clear returns focus to that field's input, so continued typing stays in search
   instead of being handed to the chat composer when the clear button disappears.
+  Chat history's Cmd+Shift+F selects the retained query. With results, unmodified
+  Arrow Down reaches a rendered chat title; its native Enter action opens it.
+  Composition, modified editing keys and empty/no-result queries retain input focus.
 - **`SegmentedControl`** — the choice control for small mutually-exclusive sets
   (color mode, tool-call display, usage period). Replaces radio piles and
   pill rows.

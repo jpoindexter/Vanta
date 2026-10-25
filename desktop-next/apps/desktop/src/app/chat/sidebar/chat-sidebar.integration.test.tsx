@@ -8,7 +8,12 @@ import { $layoutTree, noteActiveTreeGroup } from '@/components/pane-shell/tree/s
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { registry } from '@/contrib/registry'
 import { $connectionsRegistry } from '@/store/connection-registry-state'
-import { $sidebarMessagingOpenIds, setSidebarAgentsGrouped, setSidebarGrouping } from '@/store/layout'
+import {
+  $sidebarMessagingOpenIds,
+  SESSION_SEARCH_FOCUS_EVENT,
+  setSidebarAgentsGrouped,
+  setSidebarGrouping
+} from '@/store/layout'
 import { $activeGatewayProfile, $profiles, setShowAllProfiles } from '@/store/profile'
 import { $projectScope, ALL_PROJECTS } from '@/store/project-scope'
 import { $projectTree } from '@/store/projects'
@@ -116,6 +121,43 @@ describe('ChatSidebar navigation activity', () => {
     $removedSessionIds.set(new Set())
     $layoutTree.set(null)
     noteActiveTreeGroup(null)
+  })
+
+  it('moves from a populated chat search to its first matching title without opening it', () => {
+    renderSidebar('/', 'chat')
+    const search = screen.getByRole('textbox', { name: 'Search chats' })
+    fireEvent.change(search, { target: { value: 'Tile two' } })
+    search.focus()
+    fireEvent.keyDown(search, { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Tile two' }))
+    expect($selectedStoredSessionId.get()).toBe('tile-one')
+  })
+
+  it.each([{ key: 'ArrowDown', metaKey: true }, { key: 'ArrowDown', isComposing: true }, { key: 'ArrowUp' }])('leaves editing keys and IME composition in search (%j)', keys => {
+    renderSidebar('/', 'chat')
+    const search = screen.getByRole('textbox', { name: 'Search chats' })
+    fireEvent.change(search, { target: { value: 'Tile two' } })
+    search.focus()
+    fireEvent.keyDown(search, keys)
+    expect(document.activeElement).toBe(search)
+  })
+
+  it.each(['', 'no matching chat'])('keeps search focused when there is no query or result (%s)', value => {
+    renderSidebar('/', 'chat')
+    const search = screen.getByRole('textbox', { name: 'Search chats' })
+    fireEvent.change(search, { target: { value } })
+    search.focus()
+    fireEvent.keyDown(search, { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(search)
+  })
+
+  it('selects the retained query when chat search is requested again', () => {
+    renderSidebar('/', 'chat')
+    const search = screen.getByRole('textbox', { name: 'Search chats' }) as HTMLInputElement
+    fireEvent.change(search, { target: { value: 'Tile two' } })
+    act(() => window.dispatchEvent(new CustomEvent(SESSION_SEARCH_FOCUS_EVENT)))
+    expect(document.activeElement).toBe(search)
+    expect([search.selectionStart, search.selectionEnd]).toEqual([0, 8])
   })
 
   it('keeps navigation and session activity coherent with the focused pane', () => {

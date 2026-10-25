@@ -21,6 +21,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { SearchField } from '@/components/ui/search-field'
+import { useSearchKeyboard } from './use-search-keyboard'
 import {
   Sidebar,
   SidebarContent,
@@ -69,7 +70,6 @@ import {
   $sidebarWorkspaceParentOrderIds,
   filterVisibleProjects,
   pinSession,
-  SESSION_SEARCH_FOCUS_EVENT,
   setPinnedSessionOrder,
   setSidebarCronOpen,
   setSidebarPinsOpen,
@@ -509,14 +509,7 @@ function FullSidebar({
   const searchInputRef = useRef<HTMLInputElement>(null)
   const trimmedQuery = searchQuery.trim()
 
-  // Hotkey (session.focusSearch) → focus the field once it's mounted.
-  useEffect(() => {
-    const onFocus = () => searchInputRef.current?.focus({ preventScroll: true })
-
-    window.addEventListener(SESSION_SEARCH_FOCUS_EVENT, onFocus)
-
-    return () => window.removeEventListener(SESSION_SEARCH_FOCUS_EVENT, onFocus)
-  }, [])
+  const onSearchKeyDown = useSearchKeyboard(searchInputRef)
 
   // Flash the ⌘N hint full-opacity (no transition) for the press, so hitting
   // the shortcut visibly pings its affordance in the sidebar.
@@ -1691,6 +1684,7 @@ function FullSidebar({
               aria-label={s.searchAria}
               inputRef={searchInputRef}
               onChange={setSearchQuery}
+              onKeyDown={onSearchKeyDown}
               placeholder={s.searchPlaceholder}
               value={searchQuery}
             />
@@ -1701,6 +1695,7 @@ function FullSidebar({
           <div
             className={cn('flex min-h-0 flex-1 flex-col pb-1.75', SCROLL_Y, SCROLL_GUTTER)}
             data-sessions-mode={sessionsMode}
+            data-sidebar-search-results={trimmedQuery ? '' : undefined}
             data-sessions-project={inProject ? (enteredProjectId ?? undefined) : undefined}
           >
             {trimmedQuery && (
