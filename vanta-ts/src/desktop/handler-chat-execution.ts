@@ -1,7 +1,7 @@
 import type http from "node:http";
 import { writeRunMemory } from "../session.js";
 import { checkpointSessionMessages } from "../sessions/store.js";
-import type { ImageAttachment } from "../types.js";
+import type { DesktopRunReceipt,ImageAttachment } from "../types.js";
 import type { ChatExecution, ChatInput } from "./handler-chat-lifecycle.js";
 import { attachDesktopRunReceipt,buildRunReceipt,queuedTurnFailureReason,receiptStatusForStoppedReason } from "./handler-chat-receipts.js";
 import { ensureDesktopConversation,persistActiveSession } from "./handler-conversation.js";
@@ -19,6 +19,7 @@ type Outcome = Awaited<ReturnType<LiveExecution["live"]["convo"]["send"]>>;
 
 async function executeInstruction(context: LiveExecution, instruction: string, attachments: { images?: ImageAttachment[]; files: string[] }): Promise<Outcome> {
   const { state, live, controller } = context;
+  state._instructionDisplayedText = [];
   await beginRunCapture(state, instruction, attachments.files, live.convo.messages.filter((entry) => entry.role === "user").length);
   if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction, ...(attachments.images ? { images: attachments.images } : {}) }], process.env);
   return live.convo.send(instruction, attachments.images, controller.signal);
@@ -31,11 +32,12 @@ function emitUsage(state: LiveExecution["state"], live: LiveExecution["live"], u
   } catch { /* the HTTP response and turn.complete stay authoritative */ }
 }
 
-async function settleInstruction(context: LiveExecution, instruction: string, outcome: Outcome): Promise<void> {
+async function settleInstruction(context: LiveExecution, instruction: string, outcome: Outcome): Promise<DesktopRunReceipt> {
   const { state, live, events } = context;
   await writeRunMemory({ provider: live.setup.provider, goals: live.setup.goals, instruction, finalText: outcome.finalText, completionState: outcome.completionState });
   events.push({ label: `${outcome.stoppedReason} · ${outcome.iterations} iteration(s)`, ok: outcome.stoppedReason === "done", kind: "summary" });
-  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText: outcome.finalText, messages: live.convo.messages });
+  const partialText = [...(state._instructionDisplayedText ?? []), outcome.finalText].filter(text => text.trim()).join("\n\n") || undefined;
+  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events, instruction, partialText });
   attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
   await finishRunCapture(state, receipt.status, outcome.finalText, outcome.usage);
   emitUsage(state, live, outcome.usage);
@@ -46,6 +48,7 @@ async function settleInstruction(context: LiveExecution, instruction: string, ou
     } else await turnQueue(state).release(context.claimedTurnId, queuedTurnFailureReason(outcome.stoppedReason));
     context.claimedTurnId = undefined;
   }
+  return receipt;
 }
 
 type NextInstruction = { instruction: string; images: ImageAttachment[] };
@@ -82,10 +85,11 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
   let instruction = context.instructionText;
   let attachments = { images: context.images.length ? context.images : undefined, files: context.files };
   let outcome: Outcome;
+  let receipt: DesktopRunReceipt;
   while (true) {
     outcome = await executeInstruction(liveContext, instruction, attachments);
     attachments = { images: undefined, files: [] };
-    await settleInstruction(liveContext, instruction, outcome);
+    receipt = await settleInstruction(liveContext, instruction, outcome);
     const next = await claimNextInstruction(liveContext, outcome);
     if (next === undefined) break;
     instruction = next.instruction;
@@ -93,6 +97,5 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
   }
   await persistActiveSession(context.state);
   pushTurnComplete(context.state, { finalText: outcome.finalText, usage: outcome.usage, stoppedReason: outcome.stoppedReason });
-  const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason(outcome.stoppedReason), events: context.events, instruction, partialText: outcome.finalText, messages: liveContext.live.convo.messages });
   sendJson(res, 200, { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, stoppedReason: outcome.stoppedReason, receipt });
 }

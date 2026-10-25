@@ -8,7 +8,7 @@ import { notifyThreadEditOpen } from '@/store/thread-scroll'
 // the edit composer, the same runtime call the bubble's own click performs
 // (user-message.tsx ActionBarPrimitive.Edit). Retry would reproduce the
 // refusal; changing the words is the only way forward.
-export const EditPreviousMessageAction: FC<{ label: string }> = ({ label }) => {
+export const EditPreviousMessageAction: FC<{ instruction?: string; label: string }> = ({ instruction, label }) => {
   const threadRuntime = useThreadRuntime()
 
   const previousUserMessageId = useAuiState(s => {
@@ -16,7 +16,12 @@ export const EditPreviousMessageAction: FC<{ label: string }> = ({ label }) => {
     const index = messages.findIndex(message => message.id === s.message.id)
 
     for (let i = index - 1; i >= 0; i--) {
-      if (messages[i].role === 'user') {
+      const message = messages[i]
+      const sourceText = message.metadata?.custom?.sourceText
+      const text = typeof sourceText === 'string' ? sourceText.trim()
+        : message.content.filter(part => part.type === 'text').map(part => part.text).join('\n').trim()
+
+      if (message.role === 'user' && (!instruction?.trim() || text === instruction.trim())) {
         return messages[i].id
       }
     }

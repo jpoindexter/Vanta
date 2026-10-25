@@ -548,6 +548,7 @@ export function toChatMessages(messages: SessionMessage[]): ChatMessage[] {
       id: `${message.timestamp || Date.now()}-${index}-${displayRole}`,
       role: displayRole,
       parts,
+      ...(displayRole === 'user' ? { sourceText: textFromUnknown(message.content ?? message.text) } : {}),
       ...(savedFailure ?? {}),
       ...(message.role === 'assistant' && durableComplete !== undefined ? { durableComplete } : {}),
       ...(message.display_kind === 'async_delegation_complete' || message.display_kind === 'process_complete'

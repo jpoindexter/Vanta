@@ -91,6 +91,7 @@ export function clearChatExecution(state: DesktopState, controller: AbortControl
   state.activeRunCapture = undefined;
   state.forceFreshApprovals = false;
   state._chatDeltas = undefined;
+  state._instructionDisplayedText = undefined;
   state._streamTextDeltas = false;
   state._chatActive = false;
   if (state._chatAbort === controller) state._chatAbort = undefined;

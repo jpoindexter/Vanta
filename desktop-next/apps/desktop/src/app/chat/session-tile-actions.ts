@@ -619,7 +619,7 @@ export function useSessionTileActions({ requestGateway, runtimeId, scope, stored
 
   const runReloadRef = useRef(runReload)
   runReloadRef.current = runReload
-  const reloadFromMessage = useCallback((parentId: string | null) => runReload(parentId), [runReload])
+  const reloadFromMessage = useCallback((parentId: string | null, config?: { sourceId?: string | null }) => runReload(config?.sourceId ?? parentId), [runReload])
 
   const restoreToMessage = useCallback(
     async (messageId: string, target?: { text?: string; userOrdinal?: number | null }) => {

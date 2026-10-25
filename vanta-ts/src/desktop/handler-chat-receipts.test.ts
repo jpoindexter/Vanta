@@ -40,17 +40,9 @@ it("reopens the actual isolated session store and exports the same typed failure
   }
 });
 
-it("captures the current turn's assistant work rather than only its generated stop sentence", () => {
+it("keeps the producer-supplied displayed checkpoint verbatim", () => {
   const receipt = buildRunReceipt({ ...receiptStatusForStoppedReason("repeated_failure"),
-    events: [], instruction: "Current request", partialText: "Stopped after repeated failures.",
-    messages: [
-      { role: "user", content: "Earlier request" },
-      { role: "assistant", content: "Earlier private result" },
-      { role: "user", content: "Current request" },
-      { role: "assistant", content: "Checked source A." },
-      { role: "tool", toolCallId: "t", name: "lookup", content: "Raw tool output" },
-      { role: "assistant", content: "Stopped after repeated failures." },
-    ],
+    events: [], instruction: "Current request", partialText: "Checked source A.\n\nStopped after repeated failures.",
   });
   expect(receipt.checkpoint).toEqual({ instruction: "Current request",
     partialText: "Checked source A.\n\nStopped after repeated failures." });

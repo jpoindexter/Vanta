@@ -1084,7 +1084,7 @@ export function usePromptActions({
 
   const runReloadRef = useRef(runReload)
   runReloadRef.current = runReload
-  const reloadFromMessage = useCallback((parentId: string | null) => runReload(parentId), [runReload])
+  const reloadFromMessage = useCallback((parentId: string | null, config?: { sourceId?: string | null }) => runReload(config?.sourceId ?? parentId), [runReload])
 
   // Cursor-style "restore checkpoint": rewind the conversation to a past user
   // prompt and run it again from there. Reuses the edit composer's rewind

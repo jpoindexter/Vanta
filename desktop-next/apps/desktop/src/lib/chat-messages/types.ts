@@ -63,6 +63,8 @@ export type ChatMessage = {
   durationS?: number
   /** Composer attachment ref strings (`@file:...`, `@image:...`) sent with this user message. */
   attachmentRefs?: string[]
+  /** Canonical persisted user request, before display-only skill/context/attachment projection. */
+  sourceText?: string
   /** Durable backend `messages.id`. Absent until the row is persisted. */
   rowId?: number
   /** Backend transcript rows this message represents — the hydration fold

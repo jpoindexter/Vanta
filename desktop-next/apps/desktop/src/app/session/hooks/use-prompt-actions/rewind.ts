@@ -23,6 +23,7 @@ import {
 } from '@/lib/chat-messages'
 import type { ConfirmRequest } from '@/store/confirm'
 
+import { planReload, type ReloadPlan } from './rewind-reload'
 import {
   appendText,
   isFailedUserTurn,
@@ -36,6 +37,9 @@ import {
 } from './utils'
 
 type RequestGateway = <T = unknown>(method: string, params?: Record<string, unknown>, timeoutMs?: number) => Promise<T>
+
+export { planReload }
+export type { ReloadPlan }
 
 /**
  * Post-rewrite durable identity information from a truncating `prompt.submit`.
@@ -490,59 +494,6 @@ export function appendMidTurnUserMessage<
 // Reload (regenerate)
 // ---------------------------------------------------------------------------
 
-export interface ReloadPlan {
-  branchGroupId: string
-  /** True only after the user confirmed a reload that archives later user turns. */
-  confirmDeepTruncate: boolean
-  /** Original persisted text of the turn — the durable-row-id content key. */
-  sourceText: string
-  text: string
-  truncateOrdinal: number | undefined
-  truncateMessageId?: string
-  truncateRowId?: number
-  userIndex: number
-}
-
-/** The user turn to re-run for a reload from `parentId` (or the last turn). */
-export function planReload(messages: ChatMessage[], parentId: null | string): null | ReloadPlan {
-  const parentIndex = parentId ? messages.findIndex(m => m.id === parentId) : messages.length - 1
-
-  const userBack =
-    parentIndex >= 0 ? [...messages.slice(0, parentIndex + 1)].reverse().findIndex(m => m.role === 'user') : -1
-
-  if (userBack < 0) {
-    return null
-  }
-
-  const userIndex = parentIndex - userBack
-  const userMessage = messages[userIndex]
-  const text = userMessage ? chatMessageText(userMessage).trim() : ''
-
-  if (!userMessage || !text) {
-    return null
-  }
-
-  const targetAssistant =
-    parentId && messages[parentIndex]?.role === 'assistant'
-      ? messages[parentIndex]
-      : messages.slice(userIndex + 1).find(m => m.role === 'assistant')
-
-  // Failed turn: the user msg never reached the gateway, so any truncation
-  // address would mis-aim (#86573/#86623) — resubmit plainly instead.
-  const isFailedTurn = isFailedUserTurn(messages, userIndex)
-
-  return {
-    branchGroupId: targetAssistant?.branchGroupId ?? branchGroupForUser(userMessage),
-    confirmDeepTruncate: false,
-    sourceText: text,
-    text,
-    truncateOrdinal: isFailedTurn ? undefined : visibleUserOrdinal(messages, userIndex),
-    truncateMessageId: isFailedTurn ? undefined : userMessage.id,
-    truncateRowId: isFailedTurn ? undefined : userMessage.rowId,
-    userIndex
-  }
-}
-
 /** A deep cut (regenerate or edit of an older turn) reuses the restore checkpoint confirm copy. */
 export const deepCutConfirmRequest = (copy: {
   restoreBody: string
@@ -568,8 +519,11 @@ export async function planConfirmedReload(
   confirmDeep: () => Promise<boolean>
 ): Promise<null | ReloadPlan> {
   const plan = planReload(messages, parentId)
+  const targetIndex = parentId ? messages.findIndex(message => message.id === parentId) : messages.length - 1
+  const recovery = messages[targetIndex]?.errorSurface?.recovery
+  const boundary = recovery?.actions.includes('retry_failed_step') ? targetIndex : plan?.userIndex
 
-  return plan && confirmIfDeepCut(messages, plan, plan.userIndex, confirmDeep)
+  return plan && confirmIfDeepCut(messages, plan, boundary ?? plan.userIndex, confirmDeep)
 }
 
 /**

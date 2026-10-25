@@ -26,6 +26,8 @@ export type DesktopState = {
   _chatActive?: boolean;
   _chatAbort?: AbortController;
   _chatDeltas?: string[];
+  /** Post-display text for one external instruction; never raw transcript or streaming deltas. */
+  _instructionDisplayedText?: string[];
   _turnQueue?: DesktopTurnQueue;
   _streamTextDeltas?: boolean;
   convo?: Conversation;

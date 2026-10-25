@@ -10,6 +10,8 @@ import { newChat, sendText, waitForShell } from "../done-path/lib.mjs";
 import { startScriptedModel } from "./scripted-model.mjs";
 
 const output = process.argv[2] ? path.resolve(process.argv[2]) : fs.mkdtempSync(path.join(os.tmpdir(), "vanta-cold-recovery-proof-"));
+const only = process.argv[3];
+if (only && !['coldretry', 'coldcheckpoint', 'coldedit', 'coldnudge', 'coldnudgeedit', 'coldfile'].includes(only)) throw new Error('Unknown recovery proof case');
 fs.mkdirSync(output, { recursive: true });
 const composer = "[data-vp='composer-input']";
 const headline = "Vanta stopped: the same step kept failing";
@@ -72,16 +74,24 @@ async function recover(action, request) {
 }
 
 async function journey(name, action) {
-  const request = `flaky ${name} request`;
+  const request = `${name === 'coldfile' ? '@file:brief.md\n\n' : ''}flaky ${name} request`;
   await newChat(current.page);
   await sendText(current.page, request);
   await failureCard(name, `${name}-before-restart.png`);
   const restored = await coldOpen(request, name);
+  if (name.startsWith('coldnudge')) {
+    const sessions = path.join(box.vantaHome, 'sessions');
+    const receipts = fs.readdirSync(sessions).filter(file => file.endsWith('.json')).flatMap(file =>
+      JSON.parse(fs.readFileSync(path.join(sessions, file), 'utf8')).messages.map(message => message.desktopRun));
+    const saved = receipts.find(receipt => receipt?.checkpoint?.instruction === request);
+    assert.ok(saved?.checkpoint?.partialText?.includes('Before the internal continuation.'), 'checkpoint lost work before a synthetic user nudge');
+  }
   steps.push({ name, criterion: "same reason, partial output and offered actions survive restart without execution", ...restored });
   await recover(action, request);
   await waitText(`Recovered: ${name}`);
   const turns = model.requests.filter((r) => r.flaky === name && r.turnStart).map((r) => r.attempt);
   assert.deepEqual(turns, [1, 2], "recovery did not start exactly one additional turn");
+  if (name === 'coldfile') assert.equal(model.requests.findLast(r => r.flaky === name && r.turnStart)?.lastUser, request, 'recovery dropped the attachment reference');
   await current.page.screenshot({ path: path.join(output, `${name}-recovered.png`) });
   steps.push({ name, criterion: "explicit recovery starts exactly one additional turn", action, turns });
 }
@@ -89,9 +99,10 @@ async function journey(name, action) {
 let failure;
 try {
   await open();
-  await journey("coldretry", "Retry the step");
-  await journey("coldcheckpoint", "Start from checkpoint");
-  await journey("coldedit", "Edit request");
+  for (const [name, action] of [['coldretry', 'Retry the step'], ['coldcheckpoint', 'Start from checkpoint'],
+    ['coldedit', 'Edit request'], ['coldnudge', 'Retry the step'], ['coldnudgeedit', 'Edit request'], ['coldfile', 'Retry the step']]) {
+    if (!only || only === name) await journey(name, action);
+  }
   await sendText(current.page, "echo later unrelated request");
   await waitText("echo: later unrelated request");
   assert.equal(await current.page.locator("[data-vp='failure-actions'] button").count(), 0);

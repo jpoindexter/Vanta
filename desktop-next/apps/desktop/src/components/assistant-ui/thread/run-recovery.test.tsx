@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { en } from '@/i18n/en'
+import { toChatMessages } from '@/lib/chat-messages'
+import { toRuntimeMessage } from '@/lib/chat-runtime'
 
 import { stubThreadEnvironment } from '../test-utils'
 
@@ -62,17 +64,20 @@ function stopped(recovery: Record<string, unknown>, text = 'Renamed three files 
 
 function Harness({
   assistant,
+  preceding = [],
   onReload = async () => undefined,
   trailing = []
 }: {
   assistant: ThreadMessage
+  preceding?: ThreadMessage[]
   onReload?: () => Promise<void>
   trailing?: ThreadMessage[]
 }) {
   const runtime = useExternalStoreRuntime<ThreadMessage>({
     isRunning: false,
-    messages: [user(), assistant, ...trailing],
+    messages: [user(), ...preceding, assistant, ...trailing],
     onNew: async () => {},
+    onEdit: async () => {},
     onReload
   })
 
@@ -89,6 +94,30 @@ afterEach(() => {
   cleanup()
   insert.mockReset()
   focus.mockReset()
+})
+
+it('edits the receipt-bound human request rather than a later internal nudge', async () => {
+  const internal = { ...user(), id: 'internal', content: [{ type: 'text', text: 'Internal continuation prompt' }] } as ThreadMessage
+  render(<Harness preceding={[internal]} assistant={stopped({ actions: ALL, checkpoint: { instruction: 'tidy the repo' } })} />)
+  fireEvent.click(await screen.findByRole('button', { name: copy.editRequest }))
+  await waitFor(() => {
+    const editor = document.querySelector("[data-slot='aui_edit-composer-root'] [contenteditable='true'], [data-slot='aui_edit-composer-root'] textarea")
+    expect(editor).not.toBeNull()
+    expect(editor && ('value' in editor ? editor.value : editor.textContent)).toBe('tidy the repo')
+  })
+})
+
+it('edits the attachment-bearing request after display projection and runtime conversion', async () => {
+  const instruction = '@file:/tmp/source.pdf\n\ntidy the document'
+  const original = toRuntimeMessage(toChatMessages([{ role: 'user', content: instruction }])[0])
+  const internal = { ...user(), id: 'internal', content: [{ type: 'text', text: 'Internal continuation' }] } as ThreadMessage
+  render(<Harness preceding={[original, internal]} assistant={stopped({ actions: ALL, checkpoint: { instruction } })} />)
+  fireEvent.click(await screen.findByRole('button', { name: copy.editRequest }))
+  await waitFor(() => {
+    const editor = document.querySelector("[data-slot='aui_edit-composer-root'] [contenteditable='true'], [data-slot='aui_edit-composer-root'] textarea")
+    expect(editor).not.toBeNull()
+    expect(editor && ('value' in editor ? editor.value : editor.textContent)).toBe('tidy the document')
+  })
 })
 
 describe('failed run card', () => {

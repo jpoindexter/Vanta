@@ -35,8 +35,10 @@ export function startScriptedModel() {
     if (!req.url?.endsWith("/chat/completions")) return json(404, { error: "not found" });
     const body = await readBody(req);
     const messages = body.messages ?? [];
-    const lastUser = textOf(messages.findLast((m) => m.role === "user")?.content);
-    const turnStart = messages.at(-1)?.role === "user";
+    // The fixture must distinguish its external requests from the real agent's internal nudges.
+    const lastUser = textOf(messages.findLast((m) => m.role === "user" && /flaky \w+|^echo |^hold/.test(textOf(m.content)))?.content)
+      || textOf(messages.findLast((m) => m.role === "user")?.content);
+    const turnStart = messages.at(-1)?.role === "user" && textOf(messages.at(-1)?.content) === lastUser;
     const flaky = /flaky (\w+)/.exec(lastUser)?.[1];
     if (flaky && turnStart) attempts.set(flaky, (attempts.get(flaky) ?? 0) + 1);
     const failing = Boolean(flaky) && (attempts.get(flaky) ?? 0) === 1;
@@ -52,8 +54,15 @@ export function startScriptedModel() {
     res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache" });
 
     if (failing) {
+      const callInTurn = requests.filter((r) => r.flaky === flaky && r.attempt === record.attempt).length;
+      if (flaky.startsWith("coldnudge") && callInTurn === 2) {
+        res.write(CHUNK({ role: "assistant", content: "" }));
+        res.end(CHUNK({}, "stop") + "data: [DONE]\n\n");
+        return;
+      }
       const call = { index: 0, id: `call-${requests.length}`, type: "function", function: { name: "no_such_tool", arguments: JSON.stringify({ id: "x" }) } };
-      res.write(CHUNK({ role: "assistant", content: `I started on ${flaky} and made some progress. ` }));
+      const marker = flaky.startsWith("coldnudge") && callInTurn === 1 ? "Before the internal continuation. " : "";
+      res.write(CHUNK({ role: "assistant", content: `I started on ${flaky} and made some progress. ${marker}` }));
       res.write(CHUNK({ tool_calls: [call] }));
       res.end(CHUNK({}, "tool_calls") + "data: [DONE]\n\n");
       return;

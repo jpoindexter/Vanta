@@ -65,6 +65,7 @@ export function attachConversation(state: DesktopState, setup: RunSetup, history
     getServiceTier: () => state.providerSpeed,
     summarize: buildSummarizer(setup.provider),
     activeGoalText: setup.goals.find((g) => g.status === "active")?.text,
+    onText: (text) => { state._instructionDisplayedText?.push(text); },
     onTextDelta: (delta) => {
       state._chatDeltas?.push(delta);
       if (state._streamTextDeltas && state._sseClients && state._sseSessionId) {

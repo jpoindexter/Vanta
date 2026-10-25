@@ -61,7 +61,7 @@ export const RunRecoveryActions: FC<{ recovery: RunRecovery }> = ({ recovery }) 
           </button>
         </ActionBarPrimitive.Reload>
       )}
-      {offers('edit_request') && <EditPreviousMessageAction label={copy.editRequest} />}
+      {offers('edit_request') && <EditPreviousMessageAction instruction={recovery.checkpoint?.instruction} label={copy.editRequest} />}
       {offers('start_from_checkpoint') && recovery.checkpoint && (
         <CheckpointAction label={copy.startFromCheckpoint} recovery={recovery} />
       )}

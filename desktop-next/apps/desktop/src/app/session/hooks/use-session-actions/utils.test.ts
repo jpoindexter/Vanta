@@ -439,6 +439,10 @@ describe('chatPartsEquivalent', () => {
 })
 
 describe('chatMessagesEquivalent', () => {
+  it('publishes a changed canonical request even when its displayed caption is unchanged', () => {
+    const before = { ...msg('1', 'user', 'Research A'), sourceText: '@file:a.pdf\n\nResearch A' }
+    expect(chatMessagesEquivalent(before, { ...before, sourceText: '@file:b.pdf\n\nResearch A' })).toBe(false)
+  })
   it('returns true for structurally identical messages', () => {
     expect(chatMessagesEquivalent(msg('1', 'user', 'Hello'), msg('1', 'user', 'Hello'))).toBe(true)
   })
