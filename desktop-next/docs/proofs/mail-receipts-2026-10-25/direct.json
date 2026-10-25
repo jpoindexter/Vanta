@@ -1,0 +1,38 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-mail-receipt-fixed-mj7CnK",
+  "sockets": 0,
+  "attempts": 1,
+  "outcomes": [
+    {
+      "resolved": false,
+      "error": "gateway effect unknown: gateway.final"
+    },
+    {
+      "resolved": false,
+      "error": "gateway effect unknown: gateway.final"
+    }
+  ],
+  "receipts": [
+    {
+      "version": 1,
+      "id": "synthetic-mail:effect:8f040a2e824a78b50be4688e3c5f8873348e4d95b286d7773c7b9e5b72a856db:2026-10-25T14:19:57.147Z",
+      "workItemId": "synthetic-mail:effect:8f040a2e824a78b50be4688e3c5f8873348e4d95b286d7773c7b9e5b72a856db",
+      "runId": "synthetic-mail:effect:8f040a2e824a78b50be4688e3c5f8873348e4d95b286d7773c7b9e5b72a856db",
+      "action": "gateway.final",
+      "disposition": "unknown",
+      "verification": "unverified",
+      "at": "2026-10-25T14:19:57.147Z"
+    }
+  ],
+  "claims": [
+    {
+      "version": 1,
+      "id": "8f040a2e824a78b50be4688e3c5f8873348e4d95b286d7773c7b9e5b72a856db",
+      "payloadSha256": "ea4c4e16512a5c48e1dad4b247d13116ec48f1619f135ee587349109e6d16016",
+      "idempotencyKey": "synthetic-mail:1",
+      "state": "settled",
+      "outcome": "unknown",
+      "updatedAt": "2026-10-25T14:19:57.161Z"
+    }
+  ]
+}

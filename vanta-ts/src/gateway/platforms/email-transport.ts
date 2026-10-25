@@ -66,23 +66,16 @@ function toRawEmail(m: FetchedMessage): RawEmail {
   };
 }
 
-/**
- * Send one reply via the SMTP host. Errors-as-values: any failure is swallowed (the
- * adapter's send already catches, this is defence in depth).
- */
+/** Let the effect gateway persist send failures as unknown without retrying. */
 async function sendSmtp(cfg: MailHost, msg: OutboundEmail): Promise<void> {
-  try {
-    const nodemailer = await import("nodemailer");
-    const transporter = nodemailer.createTransport({
-      host: cfg.host,
-      port: cfg.port,
-      secure: cfg.secure,
-      auth: { user: cfg.user, pass: cfg.pass },
-    });
-    await transporter.sendMail({ from: cfg.user, to: msg.to, subject: msg.subject, text: msg.body });
-  } catch {
-    /* errors-as-values: a send failure must not throw through the gateway loop */
-  }
+  const nodemailer = await import("nodemailer");
+  const transporter = nodemailer.createTransport({
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
+    auth: { user: cfg.user, pass: cfg.pass },
+  });
+  await transporter.sendMail({ from: cfg.user, to: msg.to, subject: msg.subject, text: msg.body });
 }
 
 /** Build the live IMAP+SMTP transport from an `EmailConfig` (built by `build(env)`). */
