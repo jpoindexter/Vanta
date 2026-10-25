@@ -67,6 +67,11 @@ export function useFindBarFocus(active: boolean, focusRequest: number) {
       void setFindQuery($findInPage.get().query)
     }
 
+    if (focusRequest > 0 && document.activeElement === inputRef.current) {
+      inputRef.current?.select()
+      return undefined
+    }
+
     const id = requestAnimationFrame(() => {
       inputRef.current?.focus()
       if (focusRequest > 0) inputRef.current?.select()

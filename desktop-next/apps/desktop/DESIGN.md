@@ -623,6 +623,8 @@ long transcript or a busy terminal.
 - Dismissing Find returns focus and the rich-editor caret to its opener. A
   repeated Cmd+F inside Find preserves that origin; dismissal never steals from another
   selected control or restores a hidden pane. Route teardown does not restore.
+- Repeating Cmd+F in the focused query selects immediately, without a later
+  frame overwriting typed characters. Entry from other controls stays deferred.
 - Opening Find prefers the focused chat or floating composer's surface identity,
   then the interacted layout group, then the first visible chat. A hidden
   keep-alive pane can never claim that search.

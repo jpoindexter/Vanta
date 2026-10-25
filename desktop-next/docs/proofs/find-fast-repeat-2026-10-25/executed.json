@@ -1,0 +1,26 @@
+{
+  "checks": [
+    "Immediate typing retains the whole query: Scripted turn finished.",
+    "Immediate typing retains the whole query: Rapid Find navigation",
+    "Immediate typing retains the whole query: No matches at all",
+    "Escape returns typing focus",
+    "Draft unchanged",
+    "No extra send",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "text": "Scripted turn finished.",
+      "value": "Scripted turn finished."
+    },
+    {
+      "text": "Rapid Find navigation",
+      "value": "Rapid Find navigation"
+    },
+    {
+      "text": "No matches at all",
+      "value": "No matches at all"
+    }
+  ],
+  "errors": []
+}

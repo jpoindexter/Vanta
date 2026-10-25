@@ -36,6 +36,22 @@ async function openFromDraft(editable = false) {
 }
 
 describe('FindBar dismissal focus', () => {
+  it('selects a repeated query immediately without a later frame erasing typed characters', async () => {
+    const { query } = await openFromDraft()
+    fireEvent.change(query, { target: { value: 'old query' } })
+    await waitFor(() => expect($findInPage.get().query).toBe('old query'))
+    const input = query as HTMLInputElement
+    input.setSelectionRange(9, 9)
+    const frames: FrameRequestCallback[] = []
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(callback => frames.push(callback))
+    act(openFindBar)
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, 9])
+    input.setRangeText('C', input.selectionStart!, input.selectionEnd!, 'end')
+    act(() => frames.forEach(callback => callback(performance.now())))
+    expect(input.value).toBe('C')
+    expect([input.selectionStart, input.selectionEnd]).toEqual([1, 1])
+  })
+
   it('keeps Find usable after its document closes while the query has focus', async () => {
     const { draft, query } = await openFromDraft()
     draft.setAttribute('data-vp', 'composer-input')
