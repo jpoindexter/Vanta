@@ -47,12 +47,22 @@ Receipt: proofs/policy-recovery-2026-10-25/direct.json.
 
 ## Remaining / exact re-entry
 
-Do not turn this into a whole recovery claim. Tolerant direct read/modify/write
-paths remain in access-mode, config/sandbox actions, plugin CLI and skill-write
-approval; git-write reads settings after staging. Fix those as separate narrow
-units before claiming all policy writers are protected. Diagnostic-only empty
-fallbacks can still misreport status. Atomicity, concurrency/CAS, source symlink
-handling, multi-file snapshot races and full app recovery remain open.
+Follow-ons through `4a2f4ab8` now preflight Git staging and skill approval, guard
+direct writer targets and incoming policy, stop plugin uninstall before its
+effect, and surface initial/late terminal settings errors. See
+POLICY-WRITERS-2026-10-25.md, TARGET-WRITER-GUARD-2026-10-25.md and
+SETTINGS-RECOVERY-UI-2026-10-25.md. This does not make recovery transactional.
+
+Whole-CLI startup remains a separate ordering gap: `runCli` starts kernel
+prewarm before `prepareRun` loads capabilities/settings, and `prepareRun`
+consumes/bootstraps that kernel first. The executed `loadRuntimeSettings` proof
+above establishes its own boundary, not zero kernel effects for an entire CLI
+launch. A fake kernel or `--help` path cannot establish that missing criterion.
+The shipped export proof also cannot execute private/inlined startup helpers.
+No whole-CLI no-effect startup claim is made.
+
+Diagnostic-only fallbacks, atomicity, concurrency/CAS, source symlink handling,
+multi-file snapshot races and full application recovery remain open.
 
 No owner settings, live account, MCP process, normal profile, installed app,
 Rust/factory/MANIFESTO, Actions, paid service, main merge or release is changed.

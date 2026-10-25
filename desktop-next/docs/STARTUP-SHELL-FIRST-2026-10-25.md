@@ -39,11 +39,12 @@ provider and owner-store checks: 55 cases/six files pass, with two existing jsdo
 has no new/worse finding against the existing baseline (15 inherited findings).
 No suite-wide acceptance is implied.
 
-These component checks do not establish first paint or keyboard reachability
-in an installed app. The installed bundle remains source `745629c6` until a new
-exact-source candidate is accepted and transactionally installed. Source
-`4a2f4ab8` is signed, Apple Accepted/stapled and passes its 13-step/seven-probe
-packaged chat/approval path; it does not contain this startup change.
+These component checks alone do not establish first paint or installed behavior.
+Subsequent [exact delivery](SHELL-FIRST-DELIVERY-2026-10-25.md) installs source
+`536e17fb`, signed and Apple Accepted/stapled, with its own installed 13-step/
+seven-probe path. Startup observation has 16 passing assertions but remains
+PARTIAL because sustained interaction while connecting was not observed. The
+earlier `4a2f4ab8` package did not contain this startup change.
 
 ## Continuity boundary
 

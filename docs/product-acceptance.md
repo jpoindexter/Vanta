@@ -17,11 +17,14 @@ participants, future effect paths, and publication require separate evidence.
 
 The [Desktop status](../desktop-next/docs/STATUS-2026-10-15.md) is the current
 entry point; its dated receipts distinguish source from the installed build.
-Source `4a2f4ab8` is pushed and present in a signed, Apple Accepted/stapled local
-candidate. Its packaged 13-step/seven-probe chat/approval path passes; its broader
+Source `536e17fb` is pushed and installed as a signed, Apple Accepted/stapled
+local candidate. Its actual installed 13-step/seven-probe chat/approval path
+passes. Startup observation remains PARTIAL: 16 assertions pass, but sustained
+typing while connecting was not observed. The earlier broader `4a2f4ab8`
 continuity run stops after ten passing assertions because unsent image attachments
-are lost on cold restart. Later queue/unread assertions were not reached.
-Installed source remains `745629c6`; do not attribute later fixes to it.
+are lost on cold restart. That attachment gap is not fixed here; later queue/
+unread assertions were not reached. See the
+[exact delivery](../desktop-next/docs/SHELL-FIRST-DELIVERY-2026-10-25.md).
 The [shell-first startup record](../desktop-next/docs/STARTUP-SHELL-FIRST-2026-10-25.md)
 tracks the owner's removal of passive loading takeovers and the measured Codex
 design reference. These are not whole Desktop or security acceptance.
@@ -131,7 +134,7 @@ exception below must not be treated as a current security-green claim.
 
 The use-case catalog currently records 6 executed and 6 passed scenarios across 6 of 15 categories. The remaining categories are coverage gaps, not failures.
 
-## Regression gates
+## Historical regression receipts
 
 - TypeScript: 1,491 test files; 13,802 passed and 3 skipped.
 - Rust kernel: 70 passed.
@@ -151,8 +154,8 @@ The use-case catalog currently records 6 executed and 6 passed scenarios across 
 - Packaged performance proof: cold-start median plus per-sample hard ceiling, first-use, memory, CPU, and package-size budgets passed.
 - True-first-token proof: 40 live-provider samples passed baseline eligibility across CLI, TUI, gateway, and signed packaged Desktop; content-free receipts and per-stage p95 budgets are stored in `vanta-ts/scripts/fixtures/`.
 - Automatic compaction proof: real launcher, six TUI turns, automatic threshold, square-cell 25% phase, summary request, and resumed response passed.
-- Current integrated `vanta-ts` npm audit: 0 vulnerabilities on 2026-08-13.
-- Current documentation audit: all fixable findings updated; the affected
+- Historical integrated `vanta-ts` npm audit: 0 vulnerabilities on 2026-08-13.
+- Historical documentation audit: all fixable findings updated; the affected
   build-time `image-size` parsers are disabled and their input signatures are
   rejected before Docusaurus runs. The exact two-advisory exception expands
   through 19 packages, fails on any additional advisory, and expires 2026-10-01.

@@ -3,12 +3,14 @@
 ## Latest evidence index — 2026-10-25
 
 The October 14 matrix and counts below are historical inventory, not current
-row-by-row acceptance. Installed `745629c6` has signed/notarized private-profile
-chat/restart and Find evidence. Later source through `4a2f4ab8` is pushed and
-present in a new signed, Apple Accepted/stapled, not-installed candidate. Its
-broader continuity run fails after ten checks on image draft restoration;
-queue/unread restart proof remains open. See STATUS-2026-10-15.md and
-STARTUP-SHELL-FIRST-2026-10-25.md. Neither scoped extraction nor installation
+row-by-row acceptance. Installed `536e17fb` has signed/notarized private-profile
+13-step/seven-probe chat/restart evidence; startup observation remains PARTIAL,
+with 16 passing assertions and unobserved sustained connecting interaction.
+Find acceptance belongs to the earlier exact `745629c6`/`4a2f4ab8` receipts, not
+a fresh Find replay here. The broader `4a2f4ab8` continuity run fails after ten
+checks on image draft restoration; queue/unread restart proof remains open.
+See STATUS-2026-10-15.md and SHELL-FIRST-DELIVERY-2026-10-25.md.
+Neither scoped extraction nor installation
 authorizes classic-renderer removal. Older unsigned/old-default statements
 describe the historical inventory only, not today's installation.
 
