@@ -2,9 +2,11 @@
 
 ## Gap first
 
-Source-only follow-on to installed745629c6. The installed application has NOT
-received this change yet. No full local-state/security/card closure is claimed.
-Original273 changed/untracked regular files retain their prior hashes.
+The original source-only receipt below preceded the later installed `536e17fb`
+delivery. A new source-only CLI ordering follow-on is recorded in
+[CLI-POLICY-PREFLIGHT-2026-10-25.md](CLI-POLICY-PREFLIGHT-2026-10-25.md).
+It has not been packaged or installed. No full local-state/security/card closure
+is claimed. Original273 changed/untracked regular files retain their prior hashes.
 
 ## Cause and bounded change
 
@@ -53,13 +55,14 @@ effect, and surface initial/late terminal settings errors. See
 POLICY-WRITERS-2026-10-25.md, TARGET-WRITER-GUARD-2026-10-25.md and
 SETTINGS-RECOVERY-UI-2026-10-25.md. This does not make recovery transactional.
 
-Whole-CLI startup remains a separate ordering gap: `runCli` starts kernel
+Historical ordering gap, now addressed in the source-only follow-on above: `runCli` started kernel
 prewarm before `prepareRun` loads capabilities/settings, and `prepareRun`
-consumes/bootstraps that kernel first. The executed `loadRuntimeSettings` proof
+consumed/bootstrapped that kernel first. The executed `loadRuntimeSettings` proof
 above establishes its own boundary, not zero kernel effects for an entire CLI
 launch. A fake kernel or `--help` path cannot establish that missing criterion.
 The shipped export proof also cannot execute private/inlined startup helpers.
-No whole-CLI no-effect startup claim is made.
+The new public CLI dispatch evidence is separate; exact packaged/installed
+acceptance remains open. No all-startup-operations no-effect claim is made.
 
 Diagnostic-only fallbacks, atomicity, concurrency/CAS, source symlink handling,
 multi-file snapshot races and full application recovery remain open.

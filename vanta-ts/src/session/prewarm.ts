@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import type { KernelClient } from "../kernel/client.js";
 import { preconnectStartup } from "../net/preconnect.js";
 import { bootstrapKernel } from "./bootstrap-kernel.js";
+import { validateSettingsBeforeEffects } from "./settings-preflight.js";
 
 type Bootstrap = (root: string) => Promise<KernelClient>;
 type Preconnect = (env: NodeJS.ProcessEnv) => Promise<unknown>;
@@ -28,13 +29,15 @@ function projectKey(root: string): string {
  */
 export function startRunPrewarm(root: string, deps: PrewarmDeps = {}): void {
   const key = projectKey(root);
+  const env = deps.env ?? process.env;
+  const validated = validateSettingsBeforeEffects(key, env);
   if (!kernelPrewarms.has(key)) {
     const bootstrap = deps.bootstrap ?? bootstrapKernel;
-    const pending = bootstrap(key);
+    const pending = validated.then(() => bootstrap(key));
     void pending.catch(() => {});
     kernelPrewarms.set(key, pending);
   }
-  void (deps.preconnect ?? preconnectStartup)(deps.env ?? process.env).catch(() => {});
+  void validated.then(() => (deps.preconnect ?? preconnectStartup)(env)).catch(() => {});
 }
 
 /**
@@ -45,6 +48,7 @@ export async function consumePrewarmedKernel(
   root: string,
   deps: ConsumeDeps = {},
 ): Promise<KernelClient> {
+  await validateSettingsBeforeEffects(root);
   const key = projectKey(root);
   const pending = kernelPrewarms.get(key);
   kernelPrewarms.delete(key);

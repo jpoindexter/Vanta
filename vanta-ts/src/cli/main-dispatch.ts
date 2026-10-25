@@ -3,6 +3,7 @@ import { startInteractive, resumeIdFrom, hasForkSession, parseRunArgs } from "./
 import type { parseStartupFlags } from "./startup-flags.js";
 import { COMMANDS } from "./commands-table.js";
 import { startRunPrewarm } from "../session/prewarm.js";
+import { validateSettingsBeforeEffects } from "../session/settings-preflight.js";
 
 type Parsed = ReturnType<typeof parseStartupFlags>;
 
@@ -39,7 +40,10 @@ export async function runCli(repoRoot: string, parsed: Parsed): Promise<void> {
   const [cmd, ...rest] = parsed.rest;
   // The short-circuit for the assembled prompt lives in startInteractive.
   if (parsed.dumpPrompt) return startInteractive(repoRoot, { dumpPrompt: true });
-  if (cmd === undefined || PREWARM_COMMANDS.has(cmd)) startRunPrewarm(repoRoot);
+  if (cmd === undefined || PREWARM_COMMANDS.has(cmd)) {
+    await validateSettingsBeforeEffects(repoRoot);
+    startRunPrewarm(repoRoot);
+  }
   await runInteractive(repoRoot, cmd, rest, parsed);
 
   const handler = cmd === undefined ? undefined : COMMANDS[cmd];
