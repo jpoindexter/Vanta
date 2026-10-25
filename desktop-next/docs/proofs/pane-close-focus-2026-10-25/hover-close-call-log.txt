@@ -1,0 +1,29 @@
+/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-2p0Uiw
+locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('heading', { name: 'Local brief', exact: true }).locator('xpath=ancestor::*[@data-tree-group][1]').getByRole('button', { name: 'Close', exact: true }).last()[22m
+[2m    - locator resolved to <button tabindex="-1" type="button" aria-label="Close" class="grid w-(--pane-tab-close-width) cursor-pointer place-items-center bg-transparent text-(--ui-text-tertiary) outline-none hover:text-foreground">…</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <span class="block min-w-0 truncate font-medium group-data-[closeable]/tab:text-clip">brief.md</span> from <div class="pane-tab-content flex h-full min-w-0 max-w-full flex-1 items-center">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is visible, enabled and stable[22m
+[2m      - scrolling into view if needed[22m
+[2m      - done scrolling[22m
+[2m      - <span class="block min-w-0 truncate font-medium group-data-[closeable]/tab:text-clip">brief.md</span> from <div class="pane-tab-content flex h-full min-w-0 max-w-full flex-1 items-center">…</div> subtree intercepts pointer events[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is visible, enabled and stable[22m
+[2m       - scrolling into view if needed[22m
+[2m       - done scrolling[22m
+[2m       - <span class="block min-w-0 truncate font-medium group-data-[closeable]/tab:text-clip">brief.md</span> from <div class="pane-tab-content flex h-full min-w-0 max-w-full flex-1 items-center">…</div> subtree intercepts pointer events[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+    at /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/pane-close-candidate-20261025-u0SXBi/desktop-next/tools/proof/pane-dismissal-keyboard.mjs:65:76

@@ -1,0 +1,111 @@
+{
+  "checks": [
+    "Shift+Tab reaches the document's Edit control",
+    "Cmd+W closes the focused document pane",
+    "Closing the pane keeps focus on a visible control",
+    "Shift+Tab 1 stays on a visible control",
+    "Shift+Tab 2 stays on a visible control",
+    "Shift+Tab 3 stays on a visible control",
+    "Shift+Tab 4 stays on a visible control",
+    "Shift+Tab 5 stays on a visible control"
+  ],
+  "states": [
+    {
+      "name": "before-close",
+      "focus": "<button class=\"flex items-center gap-1 text-meta font-bold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground\" type=\"button\" data-state=\"instant-open\" data-slot=\"tooltip-trigger\" aria-describedby=\"radix-_r_6k_\" data-radix-popper-side=\"bottom\" data-radix-popper-align=\"center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"tabler-icon tabler-icon-pencil size-3\"><path d=\"M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4\"><",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\n\nEnter to send · Shift Enter for a new line\n\nbrief.md\nPREVIEW\nSOURCE\nEdit\nLocal brief\n\nNo operator data.\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nEdit (e)",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "after-close",
+      "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w-full\" contenteditable=\"true\" data-placeholder=\"Ask Vanta to do something\" data-slot=\"composer-rich-input\" data-vp=\"composer-input\" role=\"textbox\" spellcheck=\"false\">Unsent pane-dismissal draft</div>",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "backward-0",
+      "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w-full\" contenteditable=\"true\" data-placeholder=\"Ask Vanta to do something\" data-slot=\"composer-rich-input\" data-vp=\"composer-input\" role=\"textbox\" spellcheck=\"false\">Unsent pane-dismissal draft</div>",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nDictate",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "backward-1",
+      "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w-full\" contenteditable=\"true\" data-placeholder=\"Ask Vanta to do something\" data-slot=\"composer-rich-input\" data-vp=\"composer-input\" role=\"textbox\" spellcheck=\"false\">Unsent pane-dismissal draft</div>",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nDictate",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "backward-2",
+      "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center gap-1.5 text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-[color,background-color,border-color,box-shadow,opacity] duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-3.5 size-(--composer-control-size) shrink-0 text-(--ui-text-tert",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nDictate",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "backward-3",
+      "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center gap-1.5 text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-[color,background-color,border-color,box-shadow,opacity] duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-3.5 size-(--composer-control-size) shrink-0 rounded-md text-(--u",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nDictate\nAttach",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "backward-4",
+      "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center gap-1.5 text-xs leading-4 font-medium whitespace-nowrap shadow-none duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 hover:bg-(--chrome-action-hover) rounded-sm [&amp;_svg:not([class*='size-'])]:size-3 pointer-events-none size-4 shrink-0 text-muted-foreground/60 opacity-0 transition hove",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nDictate\nAttach",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "failure",
+      "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center whitespace-nowrap transition-[color,background-color,border-color,box-shadow,opacity] duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 bg-transparent shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ui-stroke-secondary)_50%,transparent)] hover:bg-(--chrome-action-hover) hover:text-(--ui-t",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:34\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-zTbThR/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0\nAttach\nModel · custom: done-path",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

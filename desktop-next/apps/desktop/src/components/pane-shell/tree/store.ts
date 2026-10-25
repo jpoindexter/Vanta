@@ -46,6 +46,7 @@ import {
   type TabStripMode
 } from './model'
 import { isTreePaneParked } from './parked-panes'
+import { handoffAfterPaneClose } from './pane-close-focus'
 import { FLOATING_PLACEMENT } from './renderer/floating-rect'
 import { tabStripVisibleForZone } from './renderer/strip-visibility'
 
@@ -672,6 +673,7 @@ export function closeFocusedSessionTab(): boolean {
  *  removePane fronts whichever neighbour filled the gap (#79002). */
 export function closeToolPane(paneId: string) {
   const group = paneGroup(paneId)
+  handoffAfterPaneClose(group?.id, $activeTreeGroup.get())
   const handoff = group?.active === paneId ? chatZoneHandoff(group, paneId) : null
 
   if (group && handoff) {
@@ -1016,6 +1018,7 @@ export function dismissTreePane(paneId: string) {
 }
 
 export function closeTreePane(paneId: string) {
+  handoffAfterPaneClose(paneGroup(paneId)?.id, $activeTreeGroup.get())
   const closer = paneClosers[paneId]
 
   if (closer) {
