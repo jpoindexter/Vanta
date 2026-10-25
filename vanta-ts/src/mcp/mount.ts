@@ -16,7 +16,7 @@ import {
   type ServerSpec,
   type McpTrust,
 } from "./mount-config.js";
-import { loadSettings, type Settings } from "../settings/store.js";
+import { loadSettings } from "../settings/store.js";
 import { serverAccessDecision } from "../settings/mcp-access.js";
 import {
   executeEffect,
@@ -227,7 +227,7 @@ export async function mountMcpServers(
   const trust = opts.trust;
   const pending = opts.pending ?? authPending;
   const config = await readMcpConfig(env, cwd);
-  const settings = await loadSettings(cwd, env).catch(() => ({} as Settings));
+  const settings = await loadSettings(cwd, env);
   const configuredNames = Object.keys(config.servers);
   const names = configuredNames.filter((name) => serverAccessDecision(name, settings.mcp ?? {}) === "allow");
   for (const name of configuredNames) {

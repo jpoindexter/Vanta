@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { writeMetadataCache } from "../cache/metadata.js";
 import {
   loadSettings,
   settingsCachePath,
@@ -56,22 +57,20 @@ describe("loadSettings", () => {
     expect(s.sshConfigs?.[0]?.host).toBe("1.2.3.4");
   });
 
-  it("drops a settings file whose ssh profile injects a local command", async () => {
+  it("rejects a settings file whose ssh profile injects a local command", async () => {
     // A ProxyCommand option runs a LOCAL command via ssh, bypassing assessment.
-    // The schema rejects it, so the whole (untrusted) settings object is dropped.
+    // Reject the file rather than silently discarding other policy in it.
     await writeFile(join(home, "settings.json"), JSON.stringify({
       sshConfigs: [{ name: "evil", host: "h", options: ["ProxyCommand=touch /tmp/pwned"] }],
     }));
-    const s = await loadSettings(root, env);
-    expect(s.sshConfigs).toBeUndefined();
+    await expect(loadSettings(root, env)).rejects.toThrow("Settings need recovery");
   });
 
-  it("drops a settings file whose ssh profile uses a leading-dash host", async () => {
+  it("rejects a settings file whose ssh profile uses a leading-dash host", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({
       sshConfigs: [{ name: "evil", host: "-oProxyCommand=touch /tmp/pwned" }],
     }));
-    const s = await loadSettings(root, env);
-    expect(s.sshConfigs).toBeUndefined();
+    await expect(loadSettings(root, env)).rejects.toThrow("Settings need recovery");
   });
 
   it("loads autoMode settings", async () => {
@@ -139,16 +138,15 @@ describe("loadSettings", () => {
     expect(s).toEqual({});
   });
 
-  it("silently drops malformed plugin settings", async () => {
+  it("rejects malformed plugin settings", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ plugins: { enabled: [123] } }));
-    const s = await loadSettings(root, env);
-    expect(s).toEqual({});
+    await expect(loadSettings(root, env)).rejects.toThrow("Settings need recovery");
   });
 
-  it("persists a metadata-validated cache and invalidates it when a scope changes", async () => {
+  it("reads current policy rather than a persisted metadata cache", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
     expect((await loadSettings(root, env)).allowedTools).toEqual(["read_file"]);
-    expect(JSON.parse(await import("node:fs/promises").then(({ readFile }) => readFile(settingsCachePath(root, env), "utf8"))).version).toBe(1);
+    await writeMetadataCache(settingsCachePath(root, env), 1, { allowedTools: ["shell_cmd"] }, []);
 
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["write_file", "read_file"] }));
     expect((await loadSettings(root, env)).allowedTools).toEqual(["write_file", "read_file"]);
@@ -156,7 +154,7 @@ describe("loadSettings", () => {
 
   it("recovers from a corrupt persisted settings cache", async () => {
     await writeFile(join(home, "settings.json"), JSON.stringify({ allowedTools: ["read_file"] }));
-    await loadSettings(root, env);
+    await mkdir(join(home, "cache", "settings"), { recursive: true });
     await writeFile(settingsCachePath(root, env), "{broken", "utf8");
     expect((await loadSettings(root, env)).allowedTools).toEqual(["read_file"]);
   });

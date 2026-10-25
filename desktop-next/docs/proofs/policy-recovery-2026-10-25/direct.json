@@ -1,0 +1,47 @@
+{
+  "source": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/vanta-ts",
+  "fixture": "/tmp/vanta-policy-boundary-proof-n64tAZ",
+  "seams": [
+    "loadRuntimeSettings",
+    "mountMcpServers",
+    "loadSettings"
+  ],
+  "runtime": {
+    "rejectedWithExactPath": true,
+    "envNotApplied": true
+  },
+  "mcp": {
+    "rejectedWithExactPath": true,
+    "configuredServers": 1,
+    "launchMarkerAbsent": true
+  },
+  "counts": {
+    "socket": 0,
+    "tls": 0,
+    "fetch": 0,
+    "subprocess": 0,
+    "trust": 0,
+    "kernel": 0,
+    "approval": 0,
+    "register": 0
+  },
+  "sourcePreservedOnRejection": true,
+  "beforeSha256": "2247653343bf67ae902b5684642de88e3b6b2eda23c8d851cc2a1406d50b72e5",
+  "afterSha256": "2247653343bf67ae902b5684642de88e3b6b2eda23c8d851cc2a1406d50b72e5",
+  "maliciousMetadataCache": "version2/empty manifest/value{} ignored",
+  "missingScopes": "empty success",
+  "validLayering": {
+    "blockedTools": [
+      "shell_cmd"
+    ],
+    "ui": {
+      "theme": "light",
+      "spinner": "dots"
+    }
+  },
+  "limits": [
+    "Source TypeScript modules, not an installed package.",
+    "No real provider, MCP process, network, owner settings, UI or accounts used.",
+    "Not whole local-state or direct-writer recovery acceptance."
+  ]
+}

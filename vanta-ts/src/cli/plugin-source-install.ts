@@ -19,7 +19,7 @@ export async function installPluginSources(
   if (!sources.length) return [];
   const env = opts.env ?? process.env;
   const log = opts.log ?? ((m: string) => console.log(m));
-  const settings: Settings = await loadSettings(repoRoot, env).catch(() => ({}));
+  const settings: Settings = await loadSettings(repoRoot, env);
   const enabled = settings.plugins?.enabled ?? [];
   const installed: string[] = [];
   for (const source of sources) {

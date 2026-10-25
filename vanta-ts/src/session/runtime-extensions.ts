@@ -10,12 +10,12 @@ import { mcpAutoMountEnabled } from "../settings/mcp-access.js";
 import type { EffectGateContext } from "../effects/execute-effect.js";
 
 /** SETTINGS-BLOCKEDTOOLS-ENFORCE: load + apply settings once. prepareRun calls
- *  this BEFORE buildRegistry so it can exclude `settings.blockedTools`. Failure
- *  to read settings degrades to empty (current behavior — env stays untouched). */
+ *  this BEFORE buildRegistry so it can exclude `settings.blockedTools`.
+ *  Unreadable policy stops construction before tools or env are enabled. */
 export async function loadRuntimeSettings(repoRoot: string): Promise<Settings> {
   if (skipSettings(resolveIsolation(process.env))) return {};
   const { loadSettings, applySettingsEnv } = await import("../settings/store.js");
-  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}));
+  const settings = await loadSettings(repoRoot, process.env);
   applySettingsEnv(settings, process.env);
   return settings;
 }

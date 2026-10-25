@@ -115,32 +115,32 @@ async function runDelegate(
   const wt = await resolveWorktree(ctx.root, isolation);
   if ("ok" in wt && !wt.ok) return wt;
   const { handle: worktreeHandle, workerRoot } = wt as { handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string };
-  const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
-    import("../mcp/mount.js"),
-    import("../settings/store.js"),
-    import("../settings/mcp-access.js"),
-  ]);
-  const workerSettings: Settings = await loadSettings(workerRoot, process.env).catch(() => ({}));
-  if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
-    await mountMcpServers(registry, process.env, () => {}, {
-      cwd: workerRoot,
-      effectGate: {
-        kernel: ctx.safety,
-        approval: {
-          request: (request) => ctx.requestApproval(
-            request.action,
-            request.reason,
-            "mcp_mount",
-            { fresh: true },
-          ),
-        },
-        projectRoot: workerRoot,
-        sessionId: ctx.sessionId,
-        permissionMode: ctx.permissionMode?.() ?? "default",
-      },
-    });
-
   try {
+    const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
+      import("../mcp/mount.js"),
+      import("../settings/store.js"),
+      import("../settings/mcp-access.js"),
+    ]);
+    const workerSettings: Settings = await loadSettings(workerRoot, process.env);
+    if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
+      await mountMcpServers(registry, process.env, () => {}, {
+        cwd: workerRoot,
+        effectGate: {
+          kernel: ctx.safety,
+          approval: {
+            request: (request) => ctx.requestApproval(
+              request.action,
+              request.reason,
+              "mcp_mount",
+              { fresh: true },
+            ),
+          },
+          projectRoot: workerRoot,
+          sessionId: ctx.sessionId,
+          permissionMode: ctx.permissionMode?.() ?? "default",
+        },
+      });
+
     const outcome = await spawnSubagent({
       goal,
       instruction,
