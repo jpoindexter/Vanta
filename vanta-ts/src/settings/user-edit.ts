@@ -7,10 +7,15 @@ export function userSettingsFile(env?: NodeJS.ProcessEnv): string {
 }
 
 export async function readUserSettingsRaw(env?: NodeJS.ProcessEnv): Promise<Record<string, unknown>> {
+  const path = userSettingsFile(env);
   try {
-    const parsed: unknown = JSON.parse(await readFile(userSettingsFile(env), "utf8"));
-    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
-  } catch { return {}; }
+    const parsed: unknown = JSON.parse(await readFile(path, "utf8"));
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) throw new Error("not an object");
+    return parsed as Record<string, unknown>;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw new Error(`User settings need recovery at ${path}. Inspect the existing file and restore a valid JSON object before retrying; nothing was written.`);
+  }
 }
 
 /**

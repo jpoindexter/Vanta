@@ -1,0 +1,10 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-settings-recovery-fixed-A5JiWU",
+  "error": "User settings need recovery at /var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-settings-recovery-fixed-A5JiWU/home/settings.json. Inspect the existing file and restore a valid JSON object before retrying; nothing was written.",
+  "preserved": true,
+  "beforeHash": "5e9d3ed4ebc11b262821add03f36792bd5767e4e3d9114d85dc6be77baa46fbe",
+  "afterHash": "5e9d3ed4ebc11b262821add03f36792bd5767e4e3d9114d85dc6be77baa46fbe",
+  "files": [
+    "settings.json"
+  ]
+}
