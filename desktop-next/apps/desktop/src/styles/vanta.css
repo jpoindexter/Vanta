@@ -58,6 +58,11 @@
     inset -1px 0 color-mix(in srgb, var(--ui-base) 4%, transparent),
     inset -8px 0 16px -16px color-mix(in srgb, var(--ui-base) 16%, transparent);
   --vp-radius-composer: var(--radius-composer);
+  --composer-surface-background: var(--dt-background);
+  --composer-surface-inset: 0.75rem;
+  --composer-label-size: 0.875rem;
+  --composer-label-leading: 1.25rem;
+  --composer-icon-size: 1.125rem;
   --composer-control-size: 2rem;
   --composer-surface-pad-x: 0;
   --composer-surface-pad-y: 0;
@@ -80,15 +85,20 @@
   --ui-text-quaternary: color-mix(in srgb, var(--ui-base) 52%, transparent);
 }
 
+/* The approved dark composer rises through the existing neutral card seed. */
+:root[data-vanta-theme='vanta'][data-vanta-mode='dark'] {
+  --composer-surface-background: var(--theme-card-seed);
+}
+
 :root[data-vanta-theme='vanta'] body {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
 
-/* The text caret and a quiet edge mark typing focus; buttons keep their keyboard rings. */
-:root[data-vanta-theme='vanta'] [data-slot='composer-surface']:focus-within {
-  outline: 1px solid var(--ui-stroke-secondary);
-  outline-offset: 0;
+/* Only editor focus marks the surface. A footer button draws its own ring. */
+:root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer']:not([data-hud-shell] *):has([data-vp='composer-input']:focus-visible) {
+  outline: 2px solid var(--dt-ring);
+  outline-offset: 3px;
 }
 
 

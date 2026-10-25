@@ -73,23 +73,41 @@
 
 /* One opaque typing surface; the backing and status cards share its existing fill. */
 :root[data-vanta-theme='vanta'] [data-slot='composer-root'] {
-  --composer-fill: var(--dt-background);
+  --composer-fill: var(--composer-surface-background);
 }
 
 :root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] {
-  padding: 12px;
+  padding: var(--composer-surface-inset);
   border-color: transparent !important;
   border-radius: var(--radius-composer);
-  background: var(--dt-background);
+  background: var(--composer-surface-background);
   box-shadow: var(--shadow-composer);
+}
+
+:root[data-vanta-theme='vanta'] .desktop-input-chrome[data-slot='composer-surface'][data-vp='composer'] {
+  inline-size: 100%;
+  max-inline-size: var(--vp-column);
+  margin-inline: auto;
 }
 
 :root[data-vanta-theme='vanta'] [data-vp='composer-input'] {
   padding-inline: 4px;
 }
 
+/* Home exposes the same slots without replacing the chat's rich editor or
+   overriding its independently scaled conversation text. */
+:root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] > textarea {
+  font-size: var(--composer-label-size);
+  line-height: var(--composer-label-leading);
+}
+
+:root[data-vanta-theme='vanta'] [data-slot='composer-controls'] {
+  gap: var(--composer-control-gap);
+}
+
 :root[data-vanta-theme='vanta'] .vp-composer-left > button,
 :root[data-vanta-theme='vanta'] .vp-composer-left [data-slot='fan-menu-anchor'] > button,
+:root[data-vanta-theme='vanta'] [data-slot='composer-controls'] [data-slot='button']:not([data-variant='default']),
 :root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-'] {
   border-color: transparent;
   background: transparent;
@@ -98,19 +116,53 @@
 }
 
 :root[data-vanta-theme='vanta'] .vp-composer-left > button,
-:root[data-vanta-theme='vanta'] .vp-composer-left [data-slot='fan-menu-anchor'] > button {
+:root[data-vanta-theme='vanta'] .vp-composer-left [data-slot='fan-menu-anchor'] > button,
+:root[data-vanta-theme='vanta'] [data-slot='composer-controls'] [data-size='icon-sm'] {
   width: var(--composer-control-size);
   height: var(--composer-control-size);
 }
 
-:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-'] {
+:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-'],
+:root[data-vanta-theme='vanta'] [data-slot='composer-controls'] [data-slot='button']:not([data-size^='icon']) {
   min-height: var(--composer-control-size);
   padding-inline: 8px;
-  font-size: var(--vp-small);
+  font-size: var(--composer-label-size);
+  line-height: var(--composer-label-leading);
 }
 
-:root[data-vanta-theme='vanta'] .vp-composer-left button:is(:hover, [data-state='open']):not(:disabled),
-:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-']:is(:hover, [data-state='open']):not(:disabled) {
+:root[data-vanta-theme='vanta'] .vp-composer-left > button > svg,
+:root[data-vanta-theme='vanta'] .vp-composer-left [data-slot='fan-menu-anchor'] > button > svg,
+:root[data-vanta-theme='vanta'] [data-slot='composer-controls'] > button > svg,
+:root[data-vanta-theme='vanta'] [data-slot='composer-send'] > svg,
+:root[data-vanta-theme='vanta'] [data-vp='composer-send'] > svg {
+  inline-size: var(--composer-icon-size);
+  block-size: var(--composer-icon-size);
+}
+
+/* Home uses a slot rather than the chat's data-vp marker, so other skins do
+   not accidentally inherit the globally imported wireframe send styles. */
+:root[data-vanta-theme='vanta'] :is([data-slot='composer-send'], [data-vp='composer-send']) {
+  inline-size: var(--composer-control-size);
+  block-size: var(--composer-control-size);
+  border-radius: var(--radius-pill);
+  border-color: transparent;
+  background: var(--theme-foreground);
+  color: var(--theme-background-seed);
+}
+
+:root[data-vanta-theme='vanta'] :is([data-slot='composer-send'], [data-vp='composer-send']):hover:not(:disabled):not([aria-disabled='true']) {
+  background: color-mix(in srgb, var(--theme-foreground) 88%, var(--theme-background-seed));
+}
+
+:root[data-vanta-theme='vanta'] :is([data-slot='composer-send'], [data-vp='composer-send']):is(:disabled, [aria-disabled='true']) {
+  background: var(--chrome-action-hover);
+  color: var(--ui-text-tertiary);
+  opacity: 1;
+}
+
+:root[data-vanta-theme='vanta'] .vp-composer-left button:is(:hover, [data-state='open']):not(:disabled):not([aria-disabled='true']),
+:root[data-vanta-theme='vanta'] [data-slot='composer-controls'] [data-slot='button']:not([data-variant='default']):is(:hover, [data-state='open']):not(:disabled):not([aria-disabled='true']),
+:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-']:is(:hover, [data-state='open']):not(:disabled):not([aria-disabled='true']) {
   background: var(--chrome-action-hover);
   color: var(--ui-text-primary);
 }
@@ -121,9 +173,20 @@
   outline-offset: 2px;
 }
 
+/* Home's desktop-input-chrome also opts out of the global child outline. */
+:root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] button:focus-visible {
+  outline: 2px solid var(--dt-ring);
+  outline-offset: 2px;
+}
+
 @media (forced-colors: active) {
   :root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] {
     border-color: CanvasText !important;
+  }
+
+  :root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer']:not([data-hud-shell] *):has([data-vp='composer-input']:focus-visible),
+  :root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] button:focus-visible {
+    outline-color: Highlight;
   }
 }
 

@@ -49,6 +49,7 @@ import { useGatewayEventHandler } from './gateway-event'
 import { handleServerRequest as dispatchServerRequest } from './gateway-event/server-requests'
 import { extendInterruptedReply } from './interrupted-reply'
 import { currentResponseParts, mergeCurrentResponseText } from './response-parts'
+import { settleTerminalMessage, terminalStreamIndex } from './terminal-message-target'
 import { completionErrorText, delegateTaskPayloads, MAX_STREAM_FLUSH_GAP_MS, STREAM_DELTA_FLUSH_MS } from './utils'
 
 interface MessageStreamOptions {
@@ -871,12 +872,10 @@ export function useMessageStream({
           message => message.role === 'user' && !(hasCurrentResponse && message.id === `user-queued-${sessionId}`)
         )
 
-        const streamIndex = streamId
-          ? prev.findIndex((message, index) => index > lastUserIndex && message.id === streamId)
-          : -1
+        const streamIndex = terminalStreamIndex(prev, lastUserIndex, streamId, Boolean(completionError))
 
         const settleAt = (index: number) =>
-          prev.map((message, messageIndex) => (messageIndex === index ? completeMessage(message) : message))
+          settleTerminalMessage({ messages: prev, index, failed: Boolean(completionError), complete: completeMessage })
 
         let collapsed: DuplicateFinalCollapse | null = null
 

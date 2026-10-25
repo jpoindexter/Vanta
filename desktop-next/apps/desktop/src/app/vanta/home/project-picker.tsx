@@ -25,7 +25,7 @@ export function ProjectPicker({ onChange, projectId, projects }: ProjectPickerPr
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Chip aria-label={`${HOME_COPY.projectLabel}: ${selected.name}`} data-testid="home-composer-project">
+        <Chip aria-label={`${HOME_COPY.projectLabel}: ${selected.name}`} data-testid="home-composer-project" data-vp="chip-project">
           {selected.name + HOME_COPY.projectSuffix}
           <IconChevronDown aria-hidden size={12} stroke={2} />
         </Chip>

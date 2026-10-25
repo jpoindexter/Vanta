@@ -5,7 +5,7 @@
 //   V-006  three messages are queued behind a busy run; one is edited, one moved, one cancelled; the app is quit
 //          and relaunched; the remaining queue is intact; the queued turns run in the edited order.
 //
-//   node tools/receipts-queue-proof/run.mjs --out docs/proofs/receipts-queue/run-01 [--no-shots] [--keep] [--control wipe-queue]
+//   node tools/receipts-queue-proof/run.mjs --out <dir> [--only all|queue] [--no-shots] [--keep] [--control wipe-queue]
 import fs from "node:fs";
 import path from "node:path";
 
@@ -16,13 +16,15 @@ import { startScriptedModel } from "./scripted-model.mjs";
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
+const scope = option("--only", "all");
+if (!["all", "queue"].includes(scope)) throw new Error("--only must be all or queue");
 const outDir = path.resolve(option("--out", path.join(import.meta.dirname, "..", "..", "docs", "proofs", "receipts-queue", `run-${Date.now()}`)));
 const TIMEOUT = 25_000;
 const COMPOSER = "[data-vp='composer-input']";
 const QUEUE_ROWS = "[data-vp='queue-row']";
 const ALL_ACTIONS = ["Retry the step", "Edit request", "Start from checkpoint"];
 
-const ctx = { box: null, model: null, cur: null, steps: [], saved: null };
+const ctx = { box: null, model: null, cur: null, steps: [], saved: null, windowErrors: [] };
 const shot = async (name) => { if (!flag("--no-shots")) await ctx.cur?.page.screenshot({ path: path.join(outDir, `${name}.png`) }).catch(() => undefined); };
 const page = () => ctx.cur.page;
 const bodyText = () => page().evaluate(() => document.body.innerText);
@@ -76,6 +78,7 @@ async function restartApp() {
 
 async function openApp() {
   ctx.cur = await launchApp({ box: ctx.box, project: ctx.box.projectA, modelUrl: ctx.model.url });
+  ctx.windowErrors.push(ctx.cur.errors);
   await waitForShell(page());
   await sleep(1500);
   page().setDefaultTimeout(TIMEOUT);
@@ -246,7 +249,7 @@ async function main() {
   let failed = false;
   try {
     await openApp();
-    for (const [id, title, fn] of STEPS) {
+    for (const [id, title, fn] of STEPS.filter(([id]) => scope === "all" || id.startsWith("b"))) {
       if (failed) { ctx.steps.push({ id, title, status: "SKIPPED" }); continue; }
       const started = Date.now();
       try {
@@ -255,17 +258,17 @@ async function main() {
       } catch (error) {
         failed = true;
         await shot(`FAIL-${id}`);
-        ctx.steps.push({ id, title, status: "FAIL", ms: Date.now() - started, error: String(error.message ?? error).split("\n").slice(0, 3).join(" ").slice(0, 600) });
+        ctx.steps.push({ id, title, status: "FAIL", ms: Date.now() - started, error: String(error.stack ?? error) });
       }
     }
   } finally {
-    const errors = ctx.cur?.errors ?? [];
+    const errors = ctx.windowErrors.flat();
     ctx.model.release();
     await ctx.cur?.app.close().catch(() => undefined);
     await ctx.model.close();
     killLeftovers(ctx.box);
     if (!flag("--keep")) fs.rmSync(ctx.box.root, { recursive: true, force: true });
-    const result = { sandbox: flag("--keep") ? ctx.box.root : "(removed)", steps: ctx.steps, consoleErrors: errors.slice(0, 10), pass: ctx.steps.every((s) => s.status === "PASS") };
+    const result = { scope, sandbox: flag("--keep") ? ctx.box.root : "(removed)", steps: ctx.steps, modelRequests: ctx.model.requests, consoleErrorCount: errors.length, consoleErrors: errors.slice(0, 10), pass: ctx.steps.every((s) => s.status === "PASS") };
     fs.writeFileSync(path.join(outDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
     console.log(JSON.stringify(result));
     process.exit(result.pass ? 0 : 1);

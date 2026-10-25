@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ClientSessionState } from '@/app/types'
 import { chatMessageText } from '@/lib/chat-messages'
+import { createClientSessionState } from '@/lib/chat-runtime'
 
 import { type MessageStreamHarness, renderMessageStream } from './test-harness'
 
@@ -30,12 +31,12 @@ function lastAssistant() {
   return [...getState().messages].reverse().find(m => m.role === 'assistant' && !m.hidden)
 }
 
-describe('terminal error message.complete frames', () => {
-  afterEach(() => {
-    cleanup()
-    vi.restoreAllMocks()
-  })
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
+describe('terminal error message.complete frames', () => {
   it('marks the bubble failed from the structured error field, not the text heuristic', async () => {
     mountStream()
     await start()
@@ -112,4 +113,47 @@ describe('terminal error message.complete frames', () => {
     expect(bubble?.error).toBe('kaput')
     expect(bubble?.errorSurface).toBeUndefined()
   })
+})
+
+it('settles the failure on the latest same-turn segment when its stream row precedes later tool output', async () => {
+  const initial = createClientSessionState()
+  const first: ClientSessionState['messages'][number] = {
+    id: 'third-tool-segment-1',
+    role: 'assistant',
+    pending: true,
+    parts: [{ type: 'text', text: 'I started on third and made some progress.' }]
+  }
+  initial.streamId = first.id
+  initial.busy = true
+  initial.messages = [
+    {
+      id: 'request-third',
+      role: 'user',
+      parts: [{ type: 'text', text: 'flaky third step' }]
+    },
+    first,
+    { ...first, id: 'third-tool-segment-2', pending: false, interim: true },
+    { ...first, id: 'third-tool-segment-3', pending: false, interim: true }
+  ]
+  stream = renderMessageStream(SID, { states: new Map([[SID, initial]]) })
+  await completeWithError({
+    text: 'Stopped: called no_such_tool with identical arguments 3 times without progress.',
+    error: 'Repeated failure',
+    partial: true,
+    error_surface: {
+      layer: 'runtime',
+      code: 'repeated_failure',
+      retryable: true,
+      recovery: {
+        actions: ['edit_request'],
+        checkpoint: { instruction: 'flaky third step' }
+      }
+    }
+  })
+  expect(lastAssistant()?.id).toBe('third-tool-segment-3')
+  expect(lastAssistant()?.errorSurface?.recovery?.checkpoint?.instruction).toBe('flaky third step')
+  expect(getState().messages.filter((message) => message.error)).toHaveLength(1)
+  expect(getState().messages.find((message) => message.id === first.id)?.error).toBeUndefined()
+  expect(getState().messages.find((message) => message.id === first.id)?.pending).toBe(false)
+  expect(getState().messages.find((message) => message.id === 'third-tool-segment-2')?.parts).toEqual(first.parts)
 })

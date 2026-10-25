@@ -60,8 +60,21 @@ function stopped(recovery: Record<string, unknown>, text = 'Renamed three files 
   } as unknown as ThreadMessage
 }
 
-function Harness({ assistant, onReload = async () => undefined }: { assistant: ThreadMessage; onReload?: () => Promise<void> }) {
-  const runtime = useExternalStoreRuntime<ThreadMessage>({ isRunning: false, messages: [user(), assistant], onNew: async () => {}, onReload })
+function Harness({
+  assistant,
+  onReload = async () => undefined,
+  trailing = []
+}: {
+  assistant: ThreadMessage
+  onReload?: () => Promise<void>
+  trailing?: ThreadMessage[]
+}) {
+  const runtime = useExternalStoreRuntime<ThreadMessage>({
+    isRunning: false,
+    messages: [user(), assistant, ...trailing],
+    onNew: async () => {},
+    onReload
+  })
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -140,4 +153,30 @@ describe('failed run card', () => {
     expect(await screen.findByText('Vanta stopped: the same step kept failing')).toBeTruthy()
     expect(screen.getByRole('button', { name: copy.retryStep })).toBeTruthy()
   })
+})
+
+it('never offers an older failure recovery after another user request starts', async () => {
+  const onReload = vi.fn(async () => undefined)
+  const later = {
+    ...user(),
+    id: 'user-2',
+    content: [{ type: 'text', text: 'a different request' }]
+  } as ThreadMessage
+  render(
+    <Harness
+      assistant={stopped({
+        actions: ALL,
+        checkpoint: { instruction: 'tidy the repo' }
+      })}
+      trailing={[later]}
+      onReload={onReload}
+    />
+  )
+
+  expect(await screen.findByText('Vanta stopped: the same step kept failing')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: copy.retryStep })).toBeNull()
+  expect(screen.queryByRole('button', { name: copy.editRequest })).toBeNull()
+  expect(screen.queryByRole('button', { name: copy.startFromCheckpoint })).toBeNull()
+  expect(onReload).not.toHaveBeenCalled()
+  expect(insert).not.toHaveBeenCalled()
 })
