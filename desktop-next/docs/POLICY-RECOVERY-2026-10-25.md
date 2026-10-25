@@ -5,7 +5,8 @@
 The original source-only receipt below preceded the later installed `536e17fb`
 delivery. A new source-only CLI ordering follow-on is recorded in
 [CLI-POLICY-PREFLIGHT-2026-10-25.md](CLI-POLICY-PREFLIGHT-2026-10-25.md).
-It has not been packaged or installed. No full local-state/security/card closure
+Its exact candidate and installed bundled CLI now have separate acceptance in
+POLICY-PREFLIGHT-DELIVERY-2026-10-25.md. No full local-state/security/card closure
 is claimed. Original273 changed/untracked regular files retain their prior hashes.
 
 ## Cause and bounded change
@@ -61,8 +62,8 @@ consumed/bootstrapped that kernel first. The executed `loadRuntimeSettings` proo
 above establishes its own boundary, not zero kernel effects for an entire CLI
 launch. A fake kernel or `--help` path cannot establish that missing criterion.
 The shipped export proof also cannot execute private/inlined startup helpers.
-The new public CLI dispatch evidence is separate; exact packaged/installed
-acceptance remains open. No all-startup-operations no-effect claim is made.
+The new public CLI dispatch evidence and exact candidate/installed acceptance
+are separate dated receipts. No all-startup-operations no-effect claim is made.
 
 Diagnostic-only fallbacks, atomicity, concurrency/CAS, source symlink handling,
 multi-file snapshot races and full application recovery remain open.

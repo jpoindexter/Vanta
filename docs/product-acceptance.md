@@ -17,17 +17,20 @@ participants, future effect paths, and publication require separate evidence.
 
 The [Desktop status](../desktop-next/docs/STATUS-2026-10-15.md) is the current
 entry point; its dated receipts distinguish source from the installed build.
-Source `536e17fb` is pushed and installed as a signed, Apple Accepted/stapled
+Source `510e0450` is pushed and installed as a signed, Apple Accepted/stapled
 local candidate. Its actual installed 13-step/seven-probe chat/approval path
-passes. Startup observation remains PARTIAL: 16 assertions pass, but sustained
+and 27 bundled-CLI policy cases pass. The ordinary terminal launcher is unchanged.
+The earlier `536e17fb` startup observation remains PARTIAL: 16 assertions pass, but sustained
 typing while connecting was not observed. The earlier broader `4a2f4ab8`
 continuity run stops after ten passing assertions because unsent image attachments
 are lost on cold restart. That attachment gap is not fixed here; later queue/
 unread assertions were not reached. See the
-[exact delivery](../desktop-next/docs/SHELL-FIRST-DELIVERY-2026-10-25.md).
+[exact delivery](../desktop-next/docs/POLICY-PREFLIGHT-DELIVERY-2026-10-25.md).
 The [shell-first startup record](../desktop-next/docs/STARTUP-SHELL-FIRST-2026-10-25.md)
 tracks the owner's removal of passive loading takeovers and the measured Codex
-design reference. These are not whole Desktop or security acceptance.
+design reference. The composer proposal is review-only and image custody remains
+an isolated experiment, not an installed fix. These are not whole Desktop or
+security acceptance.
 
 ### Historical October 8 checkpoint
 

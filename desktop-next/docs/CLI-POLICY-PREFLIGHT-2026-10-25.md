@@ -2,10 +2,12 @@
 
 ## Scope and delivery status
 
-Source follow-on to `25a91493`; not yet packaged or installed. The installed
-Desktop remains `536e17fb`. Ordinary terminal CLI delivery is separate from
-replacing Desktop. This closes a bounded startup ordering defect, not the full
-local-state recovery card or all CLI startup operations.
+Source checkpoint `510e0450` follows `25a91493` and is now separately packaged,
+signed/notarized and installed. See
+[POLICY-PREFLIGHT-DELIVERY-2026-10-25.md](POLICY-PREFLIGHT-DELIVERY-2026-10-25.md)
+for exact identity and candidate/installed receipts. Ordinary terminal CLI
+delivery remains separate from replacing Desktop. This closes a bounded startup
+ordering defect, not the full local-state recovery card or all CLI operations.
 
 ## Cause and change
 
@@ -66,7 +68,7 @@ earlier sequence. No claim is made about all process initialization, arbitrary
 operational commands, filesystem atomicity/CAS, symlink/concurrent snapshot
 races, real TTY/setup interaction, owner profile, or live-account behavior.
 
-Next: execute the same guarded public CLI paths against the exact packaged
-candidate, alongside cold-restart image-draft acceptance, before replacing the
-installed app. The attachment-custody candidate is still isolated and under
-review; no image-restart fix is included in this source checkpoint.
+The same guarded public paths now have separate exact candidate and installed
+receipts in the delivery record above. Next: finish the isolated attachment
+custody/recovery contract and execute cold-restart image-draft acceptance.
+No image-restart fix is included in this checkpoint.
