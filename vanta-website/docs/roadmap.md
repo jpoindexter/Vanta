@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1289 capabilities shipped · 5 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-10-08._
+_1289 capabilities shipped · 6 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-10-25._
 
 ## In flight
 
@@ -19,6 +19,10 @@ What we are actively building next.
 **Operator** · L-size
 
 Streamline the existing Vanta Desktop into one everyday workflow: invoke, give context, work, intervene, inspect results and resume or schedule. Keep the generalist engine, capabilities and revocable authority. White/grey with Vanta violet; optional mini/avatar opens the same workspace, not another agent. Owner priority 2026-10-03: dependable chat/remembered approvals and Stop first, then browser/native actions with saved results, then local-first voice in the same conversation. Voice model downloads and optional hosted providers have explicit acceptance in VOICE-LOCAL-MODELS-AND-PROVIDERS; historical speech modules are not Desktop voice proof. Sequence and evidence: docs/voice-and-everyday-agent-plan-2026-10-03.md
+
+### Desktop Next
+
+**Operator** · L-size
 
 ### Repository Git probe isolation — project configuration cannot execute host commands
 

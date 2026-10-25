@@ -73,7 +73,9 @@ out.push('## In flight', '');
 out.push('What we are actively building next.', '');
 if (inFlight.length === 0) out.push('_Nothing in flight right now — the remaining accepted work is listed under external proof gates._', '');
 for (const c of inFlight) {
-  out.push(`### ${clean(c.title)}`, '');
+  const title = leaky(c.title) ? c.title.split('—')[0].trim() : c.title;
+  if (leaky(title)) throw new Error(`gen-roadmap: unsafe public heading for ${c.id}`);
+  out.push(`### ${clean(title)}`, '');
   out.push(`**${c.track}** · ${c.size || 'M'}-size`, '');
   const d = cleanDesc(c);
   if (d) out.push(d, '');
