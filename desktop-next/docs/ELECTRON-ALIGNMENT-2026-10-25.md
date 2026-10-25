@@ -2,6 +2,14 @@
 
 ## Gap first
 
+Current follow-on: combined745629c6 is signed/notarized and installed; actual
+installed13steps/seven probes and27Find checks pass on Electron43.8.1.
+PARALLEL-DELIVERY-2026-10-25.md has exact current identity, rollback and limits.
+The source/package-stage paragraphs below retain their historical diagnostics;
+they are not current pending-install statements. Whole security remains open.
+
+### Historical source/package stages
+
 Follow-on: the Electron-only b8946f12 signed package was Apple Accepted and
 passes the packaged13-step/seven-probe criterion, recording packaged=true and
 Electron43.8.1. It was deliberately not installed, so the next replacement can

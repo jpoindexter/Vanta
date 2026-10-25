@@ -2,6 +2,10 @@
 
 ## Gap first
 
+Current delivered checkpoint is745629c6; see
+PARALLEL-DELIVERY-2026-10-25.md for the latest installed identity and proof.
+The earlier compatible-dependency stage below remains historical evidence.
+
 Combined candidate is now installed; see
 [exact security delivery](SECURITY-DELIVERY-2026-10-25.md). Other security/trust/
 modularization work remains; no whole-card closure, external mail test or native

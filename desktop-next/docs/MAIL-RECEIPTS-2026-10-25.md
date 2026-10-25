@@ -1,5 +1,10 @@
 # Mail failures remain unknown, not confirmed — 2026-10-25
 
+Delivery follow-on: source745629c6 installed. Actual installed adapter/effect
+modules execute unknown/no-retry proof with zero network calls. Private bundled
+sendGatewayMessage is not exported; its full SOURCE proof remains separate.
+See PARALLEL-DELIVERY-2026-10-25.md; no live SMTP/recipient verification implied.
+
 ## Reproduced cause
 
 EmailAdapter and its live SMTP transport each swallowed outbound exceptions.

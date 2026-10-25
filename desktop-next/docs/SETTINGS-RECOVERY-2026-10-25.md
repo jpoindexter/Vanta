@@ -1,5 +1,10 @@
 # Refuse destructive settings fallback — 2026-10-25
 
+Delivery follow-on: source745629c6 installed; its actual shipped setSkillEnabled
+also refuses corrupt temporary settings and retains the exact bytes, zero
+network/subprocess calls. PARALLEL-DELIVERY-2026-10-25.md holds installed proof;
+no owner settings or whole recovery-boundary acceptance implied.
+
 ## Reproduced public path
 
 readUserSettingsRaw converted malformed/non-object JSON and every read failure
@@ -26,7 +31,9 @@ framework, automatic policy reset, new dependency or production caller change.
 - Tests also cover arrays/null/scalars and a non-ENOENT read failure, skipped
   mutation callbacks, preserved valid keys and new-file behavior.
 
-Caller scope: Desktop tools-api toggle and skills enable-state writer/reader.
+Caller scope: Desktop tools-api toggle and skills enable-state writer/reader;
+tools/recall.ts also reads skill overrides and already catches/surfaces recovery
+failure without a production caller change.
 No owner settings, live network, credential, UI or installed runtime was used.
 This is source acceptance only until the next combined package.
 

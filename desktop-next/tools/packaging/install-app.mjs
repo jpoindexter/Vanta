@@ -1,9 +1,10 @@
 // Puts the packaged "Vanta.app" where a person can open it.
-// Touches only the destination app folder and one launcher file; never /Applications/Vanta.app,
-// ~/.vanta or the `vanta` command.
+// Reuses the local updater's staged, verified replacement and retained rollback.
+// Never quits Vanta, changes its profile, or rewrites the `vanta` command.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { hasRunningDesktop, installLocalDesktop } from "../../../vanta-ts/scripts/lib/desktop-local-install.mjs";
 
 export const LAUNCHER_MARKER = "# vanta-next launcher (written by `npm run vanta:install`)";
 
@@ -12,7 +13,7 @@ export function launcherScript(appPath) {
   return [
     "#!/bin/sh",
     LAUNCHER_MARKER,
-    `APP="${appPath}"`,
+    `APP='${appPath.replaceAll("'", "'\\''")}'`,
     'if [ ! -d "$APP" ]; then',
     `  echo 'Vanta is not installed at '"$APP"'. Run: npm run vanta:install (in desktop-next).' >&2`,
     "  exit 1",
@@ -22,16 +23,52 @@ export function launcherScript(appPath) {
   ].join("\n");
 }
 
-/** Copies the built app over the previous copy of the same app, keeping signature and symlinks intact. */
-export function installApp({ source, destDir, name }) {
+const bundlesOverlap = (candidate, target) => candidate === target
+  || candidate.startsWith(`${target}${path.sep}`) || target.startsWith(`${candidate}${path.sep}`);
+
+function installationDirectory(destDir) {
+  const directory = path.resolve(destDir);
+  let ancestor = directory;
+  while (!fs.existsSync(ancestor)) ancestor = path.dirname(ancestor);
+  const resolved = path.join(fs.realpathSync(ancestor), path.relative(ancestor, directory));
+  if (resolved.split(path.sep).some(part => /\.app$/i.test(part))) throw new Error("Refusing an installation directory inside another app bundle.");
+  fs.mkdirSync(resolved, { recursive: true });
+  return resolved;
+}
+
+function installationPaths({ source, destDir, name }) {
   if (!fs.existsSync(path.join(source, "Contents", "Info.plist"))) {
     throw new Error(`No built app at ${source}. Run \`npm run vanta:package\` in desktop-next first.`);
   }
-  const target = path.join(destDir, `${name}.app`);
-  fs.mkdirSync(destDir, { recursive: true });
-  fs.rmSync(target, { recursive: true, force: true });
-  execFileSync("ditto", [source, target]);
-  return target;
+  if (name !== "Vanta" || !path.isAbsolute(source) || !path.isAbsolute(destDir) || path.parse(destDir).root === destDir) {
+    throw new Error("Expected an absolute Vanta.app candidate and destination directory.");
+  }
+  if (fs.lstatSync(source).isSymbolicLink()) throw new Error("Refusing a symlink bundle.");
+  const target = path.join(installationDirectory(destDir), "Vanta.app");
+  const candidate = fs.realpathSync(source);
+  if (bundlesOverlap(candidate, target)) {
+    throw new Error("Candidate and destination must be separate bundles.");
+  }
+  const backupRoot = path.join(path.dirname(target), ".vanta-install-backups");
+  if (fs.existsSync(backupRoot) && fs.lstatSync(backupRoot).isSymbolicLink()) throw new Error("Refusing a symlink rollback target.");
+  return { candidate, target, backupRoot };
+}
+
+/** Installs only the regular Vanta identity; returns the retained rollback receipt. */
+export async function installApp({ source, destDir, name, run = execFileSync }) {
+  const { candidate, target, backupRoot } = installationPaths({ source, destDir, name });
+  const assertStopped = () => {
+    const processes = run("ps", ["-axo", "comm="], { encoding: "utf8" });
+    if (hasRunningDesktop(processes, target)) throw new Error("Quit Vanta after saving your work, then install again. No app was replaced.");
+  };
+  const verify = bundle => {
+    const id = run("plutil", ["-extract", "CFBundleIdentifier", "raw", path.join(bundle, "Contents", "Info.plist")], { encoding: "utf8" }).trim();
+    if (id !== "studio.theft.vanta-next") throw new Error("Candidate or installed app has the wrong Vanta bundle identifier.");
+    run("codesign", ["--verify", "--deep", "--strict", bundle], { stdio: "inherit" });
+  };
+  assertStopped();
+  if (fs.existsSync(target)) verify(target);
+  return installLocalDesktop({ candidate, target, backupRoot, verify, assertStopped });
 }
 
 /** Writes the launcher, refusing to replace a file this installer did not write. */

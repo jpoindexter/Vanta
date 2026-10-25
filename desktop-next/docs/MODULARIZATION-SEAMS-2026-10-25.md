@@ -1,5 +1,10 @@
 # Proven Desktop modularization seams — 2026-10-25
 
+Delivery follow-on: shared-launcher source745629c6 is signed/notarized and
+installed; new shell's real packaged runtime boots and restarts through the
+13-step/seven-probe journey. See PARALLEL-DELIVERY-2026-10-25.md. Classic
+distribution contents/UI and whole modularization are still not certified.
+
 ## Gap first
 
 Whole-app modularization is incomplete. Three oversized files remain:

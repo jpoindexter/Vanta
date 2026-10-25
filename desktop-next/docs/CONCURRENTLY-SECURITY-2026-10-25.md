@@ -31,6 +31,7 @@ It is not a full dev-server startup, UI acceptance or installed-app behavior
 claim. Other29Desktop findings, runtime/website and default-branch alerts remain;
 security is not green. No CLI runtime dependency or owner policy change.
 
-The next compatible candidate is Desktop Zod4; runtime Zod3/OpenAI5 migration
-is a separate scope. Exact installed build remains in
-SECURITY-DELIVERY-2026-10-25.md until a later combined delivery.
+Follow-on Desktop Zod4 is accepted with audit28, recorded in
+ZOD-SECURITY-2026-10-25.md; runtime Zod3/OpenAI5 remains separate. Current
+installed executable745629c6 is recorded in PARALLEL-DELIVERY-2026-10-25.md.
+Concurrently remains development tooling, not a bundled runtime feature.

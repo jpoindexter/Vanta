@@ -1,5 +1,10 @@
 # Desktop bounded-collection parsing — 2026-10-25
 
+Delivery follow-on: exact745629c6 build with this dependency is now installed
+and passed its chat/restart/Find acceptance. PARALLEL-DELIVERY-2026-10-25.md
+holds identity/proof; those journeys are not all schema consumers or complete
+denial-of-service acceptance. The package-level regression below remains narrow.
+
 Desktop Zod4.4.3→4.6.7; runtime Zod3/OpenAI5 remains unchanged. Only the real
 Desktop manifest pin, its lock owner entry and the hoisted Zod package change.
 No forced override, API migration, new quota or capability deletion.

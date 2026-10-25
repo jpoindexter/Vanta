@@ -1,5 +1,10 @@
 # Find retains pane intent across queued focus — 2026-10-25
 
+Delivery follow-on: source745629c6 is now signed/notarized and installed;
+actual installed split-Find27checks/two requests/zero errors pass. See
+PARALLEL-DELIVERY-2026-10-25.md. Source-stage limits below are historical, not
+current installation identity; owner/VoiceOver/whole-Desktop gates remain.
+
 ## Observed criterion and correction
 
 Switching to a pane while Find is open must retain that pane as the query's
