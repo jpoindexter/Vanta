@@ -85,8 +85,9 @@ async function cmdInstall(src: string | undefined): Promise<number> {
   return 0;
 }
 
-async function cmdUninstall(name: string | undefined): Promise<number> {
+async function cmdUninstall(repoRoot: string, name: string | undefined): Promise<number> {
   if (!name) { console.error("usage: vanta plugin uninstall <name>"); return 1; }
+  await loadSettings(repoRoot, process.env);
   const res = await uninstallPlugin(name, nodeFs, resolveVantaHome(process.env));
   if (!res.ok) { console.error(res.error); return 1; }
   // Also drop a lingering enabled-list entry so the loader doesn't report it missing.
@@ -164,7 +165,7 @@ export async function runPlugin(repoRoot: string, rest: string[]): Promise<numbe
     case "enable": return cmdEnable(rest[1], true);
     case "disable": return cmdEnable(rest[1], false);
     case "install": return cmdInstall(rest[1]);
-    case "uninstall": return cmdUninstall(rest[1]);
+    case "uninstall": return cmdUninstall(repoRoot, rest[1]);
     case "grant": return cmdCapability(rest[1], rest[2], true);
     case "revoke": return cmdCapability(rest[1], rest[2], false);
     case "capabilities": return cmdCapabilities(rest[1]);

@@ -1,0 +1,43 @@
+{
+  "fixture": "/private/tmp/vanta-settings-writer-2BU3oD/public-DsSJgd",
+  "seam": "scratch source public writeSettings/saveDesktopAccessMode/runPlugin",
+  "writerCases": [
+    {
+      "label": "malformed",
+      "rejected": true,
+      "bytesPreserved": true,
+      "beforeSha256": "d98ad819e2b0ead95c2d1704c466c8ae5d4246d6f55e33c62b2b5a4438373623",
+      "afterSha256": "d98ad819e2b0ead95c2d1704c466c8ae5d4246d6f55e33c62b2b5a4438373623"
+    },
+    {
+      "label": "nonobject",
+      "rejected": true,
+      "bytesPreserved": true,
+      "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "label": "invalid-recognized",
+      "rejected": true,
+      "bytesPreserved": true,
+      "beforeSha256": "35e3ba4c8f77e7c2a6208213f548f8372645f105f66f55d527109e82b9c3e959",
+      "afterSha256": "35e3ba4c8f77e7c2a6208213f548f8372645f105f66f55d527109e82b9c3e959"
+    }
+  ],
+  "desktopCorruptTargetPreserved": true,
+  "missingTargetCreated": true,
+  "pluginRetainedBeforeCorruptPolicyRejection": true,
+  "validPluginUninstallAndDisable": true,
+  "guards": {
+    "socket": 0,
+    "tls": 0,
+    "fetch": 0,
+    "subprocess": 0
+  },
+  "liveRepositoryEdited": false,
+  "limits": [
+    "Target validation only; not all-layer validation for every writer caller.",
+    "Not packaged/owner-state proof, atomicity, concurrent-writer/CAS, or symlink handling.",
+    "Config/sandbox callback errors still have no visible recovery affordance."
+  ]
+}

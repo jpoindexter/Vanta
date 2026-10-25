@@ -85,6 +85,7 @@ export async function writeSettings(
   path: string,
   settings: Settings,
 ): Promise<void> {
+  await readJson(path);
   await mkdir(join(path, ".."), { recursive: true });
   await writeFile(path, JSON.stringify(settings, null, 2) + "\n", "utf8");
 }
