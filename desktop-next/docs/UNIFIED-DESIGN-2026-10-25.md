@@ -33,6 +33,12 @@ Reviewed upstream HEAD `85e48a0e5d96fdd2492598ac8085ff8148460cb5`:
 
 ## Single-authority contract
 
+Published-artifact follow-on: [ASTRYX-COMPATIBILITY-2026-10-25.md](ASTRYX-COMPATIBILITY-2026-10-25.md)
+records the actual 0.7.4 Vite/Electron experiment. Explicit semantic mappings
+corrected observed heading leakage and passed bounded paint/focus checks, but
+nested Astryx/Radix Escape dismissal fails. Do not treat source feasibility or
+that bounded pass as clearance to add a competing overlay stack to production.
+
 Use the existing Vanta theme/token authority. Components consume semantic roles;
 an Astryx integration must map to those same values, including portaled menus,
 dialogs and tooltips. It must not introduce another persisted mode, independent
