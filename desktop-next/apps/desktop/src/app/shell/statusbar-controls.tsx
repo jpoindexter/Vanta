@@ -17,6 +17,8 @@ import { ContribRender } from '@/contrib/react/boundary'
 import { useI18n } from '@/i18n'
 import { useKeybindHint } from '@/lib/keybinds/use-keybind-hint'
 import { cn } from '@/lib/utils'
+import { StatusbarDetails } from './statusbar-details'
+import { isStatusbarDetail, statusbarDetailItem } from './statusbar-presentation'
 import {
   $statusbarHiddenIds,
   isStatusbarLayoutDefault,
@@ -45,6 +47,8 @@ export interface StatusbarMenuItem {
 
 export interface StatusbarItem {
   id: string
+  /** Running/failed work or an available update stays visible outside Details. */
+  attention?: boolean
   /** Escape hatch: render an arbitrary node into the bar (own state, tooltip,
    *  events). When set, it OWNS the slot — label/variant/onSelect are ignored.
    *  This is how a plugin drops a full stateful React component into the bar. */
@@ -95,13 +99,14 @@ export function StatusbarControls({ className, leftItems = [], items = [], ...pr
 
   const visible = (item: StatusbarItem) =>
     !item.hidden && (item.lockedVisible || !item.toggleLabel || !hiddenIds.includes(item.id))
+  const details = [...leftItems, ...items].filter(item => visible(item) && isStatusbarDetail(item))
 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <footer
           className={cn(
-            'flex h-5 shrink-0 items-stretch justify-between gap-2 bg-(--ui-sidebar-surface-background) px-1 py-0 text-(--ui-text-tertiary) [-webkit-app-region:no-drag]',
+            'flex h-7 shrink-0 items-stretch justify-between gap-2 bg-(--ui-bg-chrome) px-2 py-0 text-(--ui-text-tertiary) [-webkit-app-region:no-drag]',
             className
           )}
           data-slot="statusbar"
@@ -112,14 +117,19 @@ export function StatusbarControls({ className, leftItems = [], items = [], ...pr
               horizontal scrollbar across the bottom of the window. Items already
               `truncate` their labels, so clipping is the right behavior. */}
           <div className="flex min-w-0 items-stretch gap-0.5 overflow-x-clip">
-            {leftItems.filter(visible).map(item => (
+            {leftItems.filter(item => visible(item) && !isStatusbarDetail(item)).map(item => (
               <StatusbarItemView item={item} key={`left:${item.id}`} navigate={navigate} />
             ))}
           </div>
           <div className="flex min-w-0 items-stretch gap-0.5 overflow-x-clip">
-            {items.filter(visible).map(item => (
+            {items.filter(item => visible(item) && !isStatusbarDetail(item)).map(item => (
               <StatusbarItemView item={item} key={`right:${item.id}`} navigate={navigate} />
             ))}
+            {details.length > 0 && <StatusbarDetails>
+              {details.map(item => <div className="vs-status-details-row" key={item.id}>
+                <StatusbarItemView item={statusbarDetailItem(item)} navigate={navigate} />
+              </div>)}
+            </StatusbarDetails>}
           </div>
         </footer>
       </ContextMenuTrigger>

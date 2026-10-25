@@ -63,7 +63,7 @@ export async function approvalRows(ctx) {
   await startChat(page, "shell: curl -s http://127.0.0.1:9/", "Done. The command finished").catch(() => undefined);
   const card = await page.getByText("Run a command").first().waitFor({ state: "visible", timeout: 10000 }).then(() => true, () => false);
   const buttons = [];
-  for (const name of ["Allow once", "Always allow shell commands in this project", "Reject"]) if (await usable(page.getByRole("button", { name }))) buttons.push(name);
+  for (const name of ["Allow once", "Always allow shell commands", "Reject"]) if (await usable(page.getByRole("button", { name, exact: true }))) buttons.push(name);
   await page.getByRole("button", { name: "Reject" }).first().click().catch(() => undefined);
   await page.waitForTimeout(1500);
   verdict("F-145", AREA, "Approval card: Allow once, Always allow, Reject", card && buttons.length === 3, { pass: `${buttons.join(" / ")}; Reject ended the turn`, why: `card=${card} buttons=${buttons.join(",")}` });

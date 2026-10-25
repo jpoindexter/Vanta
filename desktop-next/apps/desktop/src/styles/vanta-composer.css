@@ -71,10 +71,60 @@
   margin: 0 0 8px;
 }
 
+/* One opaque typing surface; the backing and status cards share its existing fill. */
+:root[data-vanta-theme='vanta'] [data-slot='composer-root'] {
+  --composer-fill: var(--dt-background);
+}
+
+:root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] {
+  padding: 12px;
+  border-color: transparent !important;
+  border-radius: var(--radius-composer);
+  background: var(--dt-background);
+  box-shadow: var(--shadow-composer);
+}
+
+:root[data-vanta-theme='vanta'] [data-vp='composer-input'] {
+  padding-inline: 4px;
+}
+
+:root[data-vanta-theme='vanta'] .vp-composer-left > button,
+:root[data-vanta-theme='vanta'] .vp-composer-left [data-slot='fan-menu-anchor'] > button,
+:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-'] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ui-text-secondary);
+}
+
+:root[data-vanta-theme='vanta'] .vp-composer-left > button,
+:root[data-vanta-theme='vanta'] .vp-composer-left [data-slot='fan-menu-anchor'] > button {
+  width: var(--composer-control-size);
+  height: var(--composer-control-size);
+}
+
+:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-'] {
+  min-height: var(--composer-control-size);
+  padding-inline: 8px;
+  font-size: var(--vp-small);
+}
+
+:root[data-vanta-theme='vanta'] .vp-composer-left button:is(:hover, [data-state='open']):not(:disabled),
+:root[data-vanta-theme='vanta'] [data-vp='composer'] [data-vp^='chip-']:is(:hover, [data-state='open']):not(:disabled) {
+  background: var(--chrome-action-hover);
+  color: var(--ui-text-primary);
+}
+
 /* The legacy composer blanket suppresses child outlines; quiet buttons need their own ring. */
 :root[data-vanta-theme='vanta'] [data-slot='composer-root'] button:focus-visible {
   outline: 2px solid var(--dt-ring);
   outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  :root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer'] {
+    border-color: CanvasText !important;
+  }
 }
 
 /* Wireframe list pages set h3 {font-size:18px} on the UA bold weight. */

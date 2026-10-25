@@ -80,11 +80,11 @@ export async function attachRows(ctx) {
   const { page, app } = ctx;
   await inChat(page);
   await attempt(page, "F-115", AREA, "+ menu: Files, Folder, Images, Paste image", async () => {
-    await page.getByRole("button", { name: "Add context" }).click();
+    await page.getByRole("button", { name: "Attach", exact: true }).click();
     await page.waitForTimeout(500);
     const items = await menuItems(page);
     await imagePickRow(ctx, items);
-    await page.getByRole("button", { name: "Add context" }).click();
+    await page.getByRole("button", { name: "Attach", exact: true }).click();
     await page.waitForTimeout(400);
     await clearNativeLog(app);
     await pick(page, "Folder…");
@@ -94,7 +94,7 @@ export async function attachRows(ctx) {
     verdict("F-118", AREA, "Attachment chip after picking a folder", picked && chip, { pass: "Folder… opened the native picker (stubbed) and the folder became a chip; its remove control is the chip's ×", why: `picker=${picked} chip=${chip}` });
   });
   await attempt(page, "F-116", AREA, "+ menu: URL…, Prompt snippets…", async () => {
-    await page.getByRole("button", { name: "Add context" }).click();
+    await page.getByRole("button", { name: "Attach", exact: true }).click();
     await page.waitForTimeout(400);
     const items = await menuItems(page);
     verdict("F-116", AREA, "+ menu: URL… and Prompt snippets…", items.includes("URL…") && items.includes("Prompt snippets…"), { pass: "both entries are in the menu", why: items.join(" / ") });
@@ -115,6 +115,14 @@ export async function pillRows(page) {
   await closeMenus(page);
   record("F-121", AREA, "Model switch confirm, picker overlay, visibility dialog", "NOT-RUN", "choosing another model would change the sandbox's provider (a key or endpoint is needed); the picker menu itself is F-120");
   await attempt(page, "F-122", AREA, "Reasoning pill", async () => {
+    const options = await page.evaluate(() => window.desktopBridge.api({ method: "GET", path: "/api/models" }));
+    const current = options.find((option) => option.current);
+    if (!current) throw new Error("The model catalog has no current model");
+    if (!current.modelSettings?.effort?.options?.length) {
+      const count = await page.getByRole("button", { name: /^Effort/ }).count();
+      verdict("F-122", AREA, "Reasoning pill follows model capabilities", count === 0, { pass: "current model offers no effort levels; unsupported control is hidden", why: `${count} effort controls for a model with no levels` });
+      return;
+    }
     await page.getByRole("button", { name: /^Effort/ }).click();
     await page.waitForTimeout(500);
     const items = await menuItems(page);

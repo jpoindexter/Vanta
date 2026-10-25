@@ -104,6 +104,7 @@ function versionItem(
   toggleLabel: string
 ): StatusbarItem {
   return {
+    attention: applying || status.hasUpdate,
     className: status.hasUpdate ? 'text-primary hover:text-primary' : undefined,
     hidden: status.unknown,
     icon: applying ? <Loader2 className="size-3 animate-spin" /> : <Hash className="size-3" />,
@@ -366,7 +367,7 @@ export function useStatusbarItems({
   const gatewayHealth = statusBarGatewayHealth({
     connectionState: gatewayState,
     copy: {
-      backend: copy.backend,
+      backend: 'Vanta',
       checking: copy.gatewayChecking,
       connecting: copy.gatewayConnecting,
       messagingDegraded: copy.messagingDegraded,
@@ -564,6 +565,7 @@ export function useStatusbarItems({
             <Codicon name="hubot" size="0.75rem" />
           ),
         id: 'agents',
+        attention: subagentsRunning > 0 || subagentsFailed > 0,
         label: copy.agents,
         onSelect: openAgents,
         title: agentsOpen ? copy.closeAgents : copy.openAgents,

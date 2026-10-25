@@ -1,4 +1,4 @@
-import { $projectTree, projectRootCwd } from '@/store/projects'
+import { $projects, $projectTree, projectRootCwd } from '@/store/projects'
 
 /** The two calls a handoff needs; both exist only in the Vanta shell. */
 export interface ProjectTaskBridge {
@@ -35,7 +35,8 @@ export async function startTaskInProject(input: {
   text: string
 }): Promise<TaskStart> {
   const { bridge, projectId, startHere, text } = input
-  const folderOf = input.folderOf ?? ((id: string) => projectRootCwd($projectTree.get().find(node => node.id === id)))
+  const folderOf = input.folderOf ?? ((id: string) =>
+    projectRootCwd($projectTree.get().find(node => node.id === id)) || $projects.get().find(project => project.id === id)?.primary_path?.trim() || '')
   const folder = projectId ? folderOf(projectId) : ''
   const current = folder && bridge?.currentDir ? ((await bridge.currentDir())?.dir ?? '') : ''
 

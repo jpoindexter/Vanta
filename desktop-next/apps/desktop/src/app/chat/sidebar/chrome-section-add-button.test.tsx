@@ -22,6 +22,19 @@ beforeEach(() => {
 })
 
 describe('SidebarSectionAddButton', () => {
+  it('keeps project creation visible without requiring hover', () => {
+    render(
+      <SidebarSectionAddButton
+        ariaLabel="New project"
+        onNewProjectDrag={{ onArm: vi.fn() }}
+        onPlainClick={vi.fn()}
+      />
+    )
+    const button = screen.getByRole('button', { name: 'New project' })
+    expect(button.className).toContain('opacity-100')
+    expect(button.className.split(' ')).not.toContain('opacity-0')
+  })
+
   it('keeps a sub-threshold press an ordinary new-session click', () => {
     const onPlainClick = vi.fn()
     const onNewSessionSplit = vi.fn()

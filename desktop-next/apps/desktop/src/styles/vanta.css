@@ -47,10 +47,22 @@
   --ui-bg-input: var(--theme-background-seed);
   --ui-chat-bubble-background: var(--theme-bubble-seed);
 
-  /* Flat: shadows belong to popovers and dialogs only. */
+  /* Resting controls stay flat; the typing surface and sidebar have quiet depth. */
   --shadow-xs: none;
   --shadow-sm: none;
-  --shadow-composer: none;
+  --shadow-composer:
+    0 0 0 1px color-mix(in srgb, var(--ui-base) 6%, transparent),
+    0 2px 8px color-mix(in srgb, var(--ui-base) 4%, transparent),
+    0 4px 40px color-mix(in srgb, var(--ui-base) 3%, transparent);
+  --shadow-sidebar:
+    inset -1px 0 color-mix(in srgb, var(--ui-base) 4%, transparent),
+    inset -8px 0 16px -16px color-mix(in srgb, var(--ui-base) 16%, transparent);
+  --vp-radius-composer: var(--radius-composer);
+  --composer-control-size: 2rem;
+  --composer-surface-pad-x: 0;
+  --composer-surface-pad-y: 0;
+  --composer-row-gap: 0.5rem;
+  --composer-control-gap: 0.5rem;
   --dt-input-inset: none;
 
   /* Type: UI 14/20, chat body 14/20.3 (the wireframe's 14px at 1.45), captions 13/18, tool and meta rows 12. */
@@ -73,10 +85,10 @@
   line-height: 1.25rem;
 }
 
-/* Focus on a field or the composer is a neutral, heavier border (Codex does the
-   same); the blue ring is for keyboard focus on buttons, menus and links. */
+/* The text caret and a quiet edge mark typing focus; buttons keep their keyboard rings. */
 :root[data-vanta-theme='vanta'] [data-slot='composer-surface']:focus-within {
-  border-color: var(--dt-composer-ring) !important;
+  outline: 1px solid var(--ui-stroke-secondary);
+  outline-offset: 0;
 }
 
 

@@ -34,9 +34,8 @@ export function SidebarSectionMeta({ children }: { children: React.ReactNode }) 
 // where callers already look for row chrome.
 export { SIDEBAR_LEAD_ICON_SIZE, SIDEBAR_ROW_CARD_MIN_H, SIDEBAR_TRUNCATED_LEADING } from './row-geometry'
 
-// The section header's "+" button, hover-revealed (group/section lives on
-// SidebarSectionHeader), mirroring the artifacts/file browser header
-// affordances. focus-visible keeps them keyboard-reachable.
+// Chat-header actions reveal on hover/focus; project creation stays visible
+// so finding a project does not depend on discovering a hidden gesture.
 const HEADER_ACTION_BTN =
   'text-(--ui-text-tertiary) opacity-0 transition-opacity hover:bg-(--ui-control-hover-background) hover:text-foreground group-hover/section:opacity-100 focus-visible:opacity-100'
 
@@ -76,7 +75,7 @@ export function SidebarSectionAddButton({
     <Tip label={ariaLabel}>
       <Button
         aria-label={ariaLabel}
-        className={HEADER_ACTION_BTN}
+        className={cn(HEADER_ACTION_BTN, onNewProjectDrag && 'opacity-100')}
         onClick={event => {
           event.stopPropagation()
           onPlainClick()

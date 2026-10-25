@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { $projects, $projectTree } from '@/store/projects'
 
 import { sameFolder, startTaskInProject } from './project-task'
 
 const folderOf = (id: string) => ({ a: '/work/alpha', b: '/work/bravo' })[id] ?? ''
+
+afterEach(() => { $projects.set([]); $projectTree.set([]) })
 
 function setup(current: string) {
   const startHere = vi.fn(async () => undefined)
@@ -13,6 +17,20 @@ function setup(current: string) {
 }
 
 describe('startTaskInProject', () => {
+  it('uses the loaded picker project when the sidebar tree has not loaded', async () => {
+    $projectTree.set([])
+    $projects.set([{
+      id: 'b', slug: 'bravo', name: 'Bravo', primary_path: '/work/bravo',
+      archived: false, created_at: 0, folders: [], description: null,
+      icon: null, color: null, board_slug: null
+    }])
+    const s = setup('/work/alpha')
+
+    expect(await startTaskInProject({ ...s, projectId: 'b', text: 'Use Bravo' })).toBe('switching')
+    expect(s.switchProjectForNewTask).toHaveBeenCalledWith(expect.objectContaining({ folder: '/work/bravo' }))
+    expect(s.startHere).not.toHaveBeenCalled()
+  })
+
   it('starts in place for the project the runtime is already in, ignoring a trailing slash', async () => {
     const s = setup('/work/alpha/')
 

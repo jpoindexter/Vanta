@@ -58,7 +58,9 @@ describe('statusbar item visibility', () => {
     fireEvent.click(row)
 
     expect($statusbarHiddenIds.get()).not.toContain('cache-hit-rate')
-    expect(within(statusbar).getByText('Cache')).toBeTruthy()
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+    fireEvent.click(screen.getByTestId('statusbar-details'))
+    expect(within(await screen.findByTestId('statusbar-details-panel')).getByText('Cache')).toBeTruthy()
   })
 
   it('never lets the user hide a locked item (system icon / update pill)', async () => {
@@ -86,7 +88,9 @@ describe('reset to defaults', () => {
     const statusbar = bar([item('cache-hit-rate', 'Cache'), item('gateway-health', 'Gateway')])
 
     expect(screen.queryByText('Gateway')).toBeNull()
-    expect(within(statusbar).getByText('Cache')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('statusbar-details'))
+    expect(within(await screen.findByTestId('statusbar-details-panel')).getByText('Cache')).toBeTruthy()
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
 
     openContextMenu(statusbar)
     fireEvent.click(await screen.findByRole('menuitem', { name: /reset to defaults/i }))

@@ -1,5 +1,6 @@
 import { IconPlus, IconSearch } from '@tabler/icons-react'
 
+import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { useKeybindHint } from '@/lib/keybinds/use-keybind-hint'
 
@@ -17,13 +18,17 @@ function NavAction({ hintAction, icon: Icon, label, navId, onSelect }: NavAction
   const hint = useKeybindHint(hintAction)
 
   return (
-    <button aria-label={label} className="vs-nav" data-testid={`nav-${navId}`} onClick={onSelect} type="button">
-      <span aria-hidden className="vs-nav-glyph">
-        <Icon size={18} />
-      </span>
-      <span className="vs-nav-text" data-tour={`sidebar-nav-${navId}`}>{label}</span>
-      {hint ? <span className="vs-nav-key">{hint}</span> : null}
-    </button>
+    <Tip boundary="viewport" label={label} placement="left-rail">
+      <button aria-label={label} className="vs-nav" data-testid={`nav-${navId}`} onClick={onSelect} type="button">
+        <span aria-hidden className="vs-nav-glyph">
+          <Icon size={18} />
+        </span>
+        <span className="vs-nav-text" data-tour={`sidebar-nav-${navId}`}>
+          {label}
+        </span>
+        {hint ? <span className="vs-nav-key">{hint}</span> : null}
+      </button>
+    </Tip>
   )
 }
 
@@ -39,21 +44,23 @@ function DestinationRow({ active, destination, onOpen }: DestinationRowProps) {
   const Icon = destination.icon
 
   return (
-    <button
-      aria-current={active ? 'page' : undefined}
-      aria-label={label}
-      className="vs-nav"
-      data-testid={`nav-${destination.navId}`}
-      onClick={() => onOpen(destination)}
-      type="button"
-    >
-      <span aria-hidden className="vs-nav-glyph">
-        <Icon size={18} />
-      </span>
-      <span className="vs-nav-text" data-tour={`sidebar-nav-${destination.navId}`}>
-        {label}
-      </span>
-    </button>
+    <Tip boundary="viewport" label={label} placement="left-rail">
+      <button
+        aria-current={active ? 'page' : undefined}
+        aria-label={label}
+        className="vs-nav"
+        data-testid={`nav-${destination.navId}`}
+        onClick={() => onOpen(destination)}
+        type="button"
+      >
+        <span aria-hidden className="vs-nav-glyph">
+          <Icon size={18} />
+        </span>
+        <span className="vs-nav-text" data-tour={`sidebar-nav-${destination.navId}`}>
+          {label}
+        </span>
+      </button>
+    </Tip>
   )
 }
 

@@ -141,6 +141,7 @@ import { markEverythingRead } from '@/store/session-unread'
 import { markSessionUnread } from '@/store/session-unread-remote'
 import { $archivedSessions, loadArchivedSessions } from '@/store/sidebar-archive'
 import { applySidebarNavPrefs, SIDEBAR_NAV_PREFS_AREA } from '@/store/sidebar-nav'
+import { NavigationGroup } from './vanta/navigation-group'
 import { $sidebarSessionRankIds } from '@/store/sidebar-sort'
 
 import {
@@ -312,6 +313,7 @@ function useNavLabel() {
   const v = t.vantaShell.sidebar.nav
 
   const byId: Record<string, string> = {
+    'new-session': t.vantaShell.sidebar.newChat,
     artifacts: v.outputs,
     capabilities: v.skills,
     company: v.company,
@@ -1536,6 +1538,7 @@ function FullSidebar({
         <SidebarGroup className="shrink-0 p-0 pb-2 pt-[calc(var(--titlebar-height)+0.375rem)]">
           <SidebarGroupContent>
             <SidebarMenu className="gap-px">
+              <NavigationGroup>
               {navItems.map(item => {
                 const isInteractive = Boolean(item.action) || Boolean(item.route)
 
@@ -1569,6 +1572,7 @@ function FullSidebar({
                     // A tip anchored to the label points at the end of the
                     // word; the row is what it's actually about.
                     data-active={active ? 'true' : undefined}
+                    aria-current={active ? 'page' : undefined}
                     data-testid={`nav-${item.id}`}
                     data-tip-region=""
                     onClick={() => {
@@ -1648,7 +1652,7 @@ function FullSidebar({
                 // New session + route-backed pages can open in a split —
                 // right-click for the directional "Open in split" submenu.
                 return (
-                  <SidebarMenuItem key={item.id}>
+                  <SidebarMenuItem data-nav-id={item.id} data-nav-active={active} key={item.id}>
                     {isNewSession || (item.route && item.id !== 'home') ? (
                       <ContextMenu>
                         <ContextMenuTrigger asChild>{button}</ContextMenuTrigger>
@@ -1672,6 +1676,7 @@ function FullSidebar({
                   </SidebarMenuItem>
                 )
               })}
+              </NavigationGroup>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

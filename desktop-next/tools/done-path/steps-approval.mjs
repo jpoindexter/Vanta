@@ -234,7 +234,8 @@ async function switchSettled(ctx) {
 
 /** Settings > Sessions > Default project folder, waiting for the pane to finish loading before each click. */
 async function openDefaultProjectFolder(page) {
-  await page.getByTestId("titlebar-settings").click();
+  await page.getByTestId("titlebar-more").click();
+  await page.getByTestId("more-settings").click();
   await settle(page, 1500);
   const item = page.getByRole("button", { name: /Default project fol/ });
   for (let attempt = 0; attempt < 3 && !(await item.isVisible().catch(() => false)); attempt += 1) {

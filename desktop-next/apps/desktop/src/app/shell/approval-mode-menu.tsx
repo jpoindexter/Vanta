@@ -43,6 +43,7 @@ export function useApprovalModeStatusbarItem(profile: string, requestGateway: Ap
   }, [profile, requestGateway])
 
   return {
+    attention: mode === 'off',
     className: mode === 'off' ? 'bg-(--chrome-action-hover) text-foreground' : undefined,
     icon: mode === 'off' ? <ZapFilled className="size-3.5" /> : <Zap className="size-3.5 opacity-70" />,
     id: 'approval-mode',

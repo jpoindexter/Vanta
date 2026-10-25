@@ -4,9 +4,10 @@
  * Unlayered, imported after styles.css, so it wins over the Tailwind utilities
  * the Vanta components carry. Hooks are data-testid attributes, not classes. */
 
-/* The pane shell zeroes sidebar borders ([data-tree-group] :is(aside, [data-slot=sidebar])); the wireframe draws one hairline. */
+/* Inset depth cannot be clipped by the pane shell's overflow boundary. */
 [data-tree-group] [data-slot='sidebar'][data-tour='sessions-sidebar'] {
-  border-right: 1px solid var(--ui-stroke-tertiary);
+  border-right: 0;
+  box-shadow: var(--shadow-sidebar);
 }
 
 [data-tour='sessions-sidebar'] [data-slot='sidebar-content'] {
@@ -52,11 +53,19 @@
 
 /* ---------- group labels ---------- */
 
+.vs-nav-supporting {
+  margin-inline-start: var(--vs-pad-sidebar-x);
+}
+
+.vs-nav-supporting[hidden] {
+  display: none;
+}
+
 [data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] {
   justify-content: space-between;
   padding: var(--vs-pad-label);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 [data-tour='sessions-sidebar'] [data-testid='sidebar-group-label'] > :first-child {
@@ -85,9 +94,9 @@
 
 /* On the name itself: a button resets text-transform, so the collapsible headers would not inherit it. */
 [data-tour='sessions-sidebar'] [data-testid='sidebar-group-name'] {
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   line-height: 1.45;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .vs-badge {
@@ -117,4 +126,28 @@
 
 [data-tour='sessions-sidebar'] [data-testid='sidebar-row'][data-selected='true'] :is([data-testid='sidebar-row-title'], [data-testid='sidebar-row-title'] span, [data-testid='sidebar-row-time']) {
   font-weight: var(--vs-weight-strong);
+}
+
+/* Pointer and keyboard reveal the same row actions without moving the title. */
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row']:focus-within [data-row-actions] button {
+  color: var(--ui-text-secondary);
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row']:focus-within .session-row-tail {
+  visibility: hidden;
+}
+
+[data-tour='sessions-sidebar'] [data-testid='sidebar-row'] [data-row-actions] button {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+@media (hover: none) {
+  [data-tour='sessions-sidebar'] [data-testid='sidebar-row'] [data-row-actions] button {
+    color: var(--ui-text-secondary);
+  }
+
+  [data-tour='sessions-sidebar'] [data-testid='sidebar-row'] .session-row-tail {
+    visibility: hidden;
+  }
 }

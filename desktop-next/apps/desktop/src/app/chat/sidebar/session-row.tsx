@@ -352,7 +352,7 @@ function SidebarSessionRowImpl({
           size="icon"
           variant="ghost"
         >
-          <Codicon name="kebab-vertical" size="0.875rem" />
+          <Codicon name="ellipsis" size="0.875rem" />
         </Button>
       </SessionActionsMenu>
     </div>

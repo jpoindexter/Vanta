@@ -357,10 +357,10 @@ describe('ChatSidebar section labels', () => {
     renderSidebar('/', 'chat')
 
     expect(screen.getByText('Projects')).toBeTruthy()
-    expect(screen.queryByText('Sessions')).toBeNull()
+    expect(screen.queryByText('Chats')).toBeNull()
   })
 
-  it('keeps the "Sessions" label when grouping is on but no projects exist', () => {
+  it('keeps the "Chats" label when grouping is on but no projects exist', () => {
     // The source-filter toggle with an empty tree: the section lists plain
     // chat sessions, so heading it "Projects" mislabeled them (#62537).
     setSidebarAgentsGrouped(true)
@@ -369,11 +369,11 @@ describe('ChatSidebar section labels', () => {
 
     renderSidebar('/', 'chat')
 
-    expect(screen.getByText('Sessions')).toBeTruthy()
+    expect(screen.getByText('Chats')).toBeTruthy()
     expect(screen.queryByText('Projects')).toBeNull()
   })
 
-  it('keeps the "Sessions" label when the grouped tree is only the synthetic Home bucket', () => {
+  it('keeps the "Chats" label when the grouped tree is only the synthetic Home bucket', () => {
     // No real projects — every session fell into Home. A lone Home bucket is
     // the flat session list wearing a project costume, not a switcher.
     setSidebarAgentsGrouped(true)
@@ -382,7 +382,7 @@ describe('ChatSidebar section labels', () => {
 
     renderSidebar('/', 'chat')
 
-    expect(screen.getByText('Sessions')).toBeTruthy()
+    expect(screen.getByText('Chats')).toBeTruthy()
     expect(screen.queryByText('Projects')).toBeNull()
   })
 })
@@ -426,19 +426,19 @@ describe('ChatSidebar empty-profile sections', () => {
     // …and the sidebar did not collapse to the blank state: the search field
     // only renders inside the session area, so its presence proves the area
     // (and the messaging sections inside it) rendered.
-    expect(screen.getByPlaceholderText('Search sessions…')).toBeTruthy()
+    expect(screen.getByPlaceholderText('Search chats…')).toBeTruthy()
   })
 
   it('still shows the blank state when a profile has nothing at all', () => {
     $messagingSessions.set([])
     $sidebarMessagingOpenIds.set([])
 
-    // SidebarBlankState: a centered "No sessions yet" plus a "New project"
+    // SidebarBlankState: a centered "No chats yet" plus a "New project"
     // button, rendered INSTEAD of the whole session area (search included).
     const { container } = renderSidebar('/', 'chat')
 
-    expect(container.textContent).toContain('No sessions yet')
-    expect(screen.queryByPlaceholderText('Search sessions…')).toBeNull()
+    expect(container.textContent).toContain('No chats yet')
+    expect(screen.queryByPlaceholderText('Search chats…')).toBeNull()
   })
 })
 

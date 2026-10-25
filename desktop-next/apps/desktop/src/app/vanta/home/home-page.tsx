@@ -16,13 +16,14 @@ function isEmptyReady(state: BlockState<unknown>): boolean {
 export function HomePage({ actions, needsYou, nextUp, projects, recent, running, starterPrompt }: HomeProps) {
   const [value, setValue] = useState('')
   const [projectId, setProjectId] = useState<string | null>(projects[0]?.id ?? null)
+  const selectedProjectId = projects.some(project => project.id === projectId) ? projectId : projects[0]?.id ?? null
   const allEmpty = [needsYou, running, nextUp, recent].every(isEmptyReady)
 
   const submit = () => {
     const text = value.trim()
 
     if (text) {
-      actions.onSubmitTask(text, projectId)
+      actions.onSubmitTask(text, selectedProjectId)
       setValue('')
     }
   }
@@ -35,13 +36,13 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
           onProjectChange={setProjectId}
           onSubmit={submit}
           onValueChange={setValue}
-          projectId={projectId}
+          projectId={selectedProjectId}
           projects={projects}
           value={value}
         />
         <div aria-label={HOME_COPY.projectLabel} className="vp-chips" role="group">
           {projects.map(project => (
-            <VpChip aria-pressed={project.id === projectId} data-testid="home-project-chip" key={project.id} onClick={() => setProjectId(project.id)}>
+            <VpChip aria-pressed={project.id === selectedProjectId} data-testid="home-project-chip" key={project.id} onClick={() => setProjectId(project.id)}>
               {project.name}
             </VpChip>
           ))}

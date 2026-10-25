@@ -41,7 +41,7 @@
   --conversation-base-line-height: calc(var(--vp-text) * var(--vp-leading));
   --conversation-line-height: calc(var(--vp-text) * var(--vp-leading));
   --conversation-tool-base-size: var(--vp-meta);
-  --conversation-turn-gap: var(--vp-gap);
+  --conversation-turn-gap: 1.5rem;
   --turn-block-gap: var(--vp-gap);
   --message-text-indent: 0px;
 
@@ -187,7 +187,7 @@
 /* ---------- thread ---------- */
 
 [data-slot='aui_thread-viewport'] {
-  padding-block-start: 22px;
+  padding-block-start: 2rem;
   padding-inline: var(--vp-gutter);
 }
 
@@ -208,12 +208,17 @@
   overflow: visible;
 }
 
+[data-slot='aui_user-message-root'] {
+  max-width: 85%;
+  margin-inline-start: auto;
+}
+
 .vp-assistant-footer {
   padding: 0;
 }
 
 .vp-user-bubble {
-  padding: 8px 14px;
+  padding: 0.75rem 1rem;
   border: 0;
   border-radius: var(--vp-radius-bubble);
   background: var(--vp-raised);
@@ -242,7 +247,7 @@
   gap: 8px;
   min-width: 0;
   width: 100%;
-  padding: 2px 0;
+  padding: 0.5rem 0;
   border: 0;
   background: transparent;
   color: var(--vp-ink2);

@@ -124,7 +124,7 @@
   src: url('./fonts/JetBrainsMono-Italic.woff2') format('woff2');
 }
 
-/* THE radius ramp: one place, 2 / 4 / 6 / 8 / 10 / 12 px, every larger rounded rectangle is 12.
+/* THE radius ramp: one place, 2 / 4 / 6 / 8 / 10 / 12 px; the wireframe composer has its own 22px role.
    Real theme variables (not inline), so `rounded-lg`, `var(--radius-lg)` and the semantic names below
    all follow the same numbers. Everything in the app picks a step or a semantic name; no literal radii
    (src/styles/design-guard.test.ts holds that line). */
@@ -139,7 +139,8 @@
   --radius-4xl: calc(var(--radius-scalar) * 0.75rem);
   /* Semantic names: components ask for the role, not the number. */
   --radius-control: var(--radius-md); /* buttons, inputs, selects, menu rows */
-  --radius-surface: var(--radius-2xl); /* composer, dialogs, popovers, cards, bubbles */
+  --radius-surface: var(--radius-2xl); /* dialogs, popovers, cards, bubbles */
+  --radius-composer: calc(var(--radius-scalar) * 1.375rem);
   --radius-pill: 9999px; /* chips, badges, avatars, switches */
 }
 

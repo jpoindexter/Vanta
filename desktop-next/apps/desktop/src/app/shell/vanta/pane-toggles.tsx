@@ -7,7 +7,7 @@ import { $terminalTakeover } from '@/app/right-sidebar/store'
 import { $terminals } from '@/app/right-sidebar/terminal/terminals'
 import { $paneVisible } from '@/components/pane-shell/tree/store'
 import { useI18n } from '@/i18n'
-import { cn } from '@/lib/utils'
+import { Tip } from '@/components/ui/tooltip'
 import { toggleFileBrowserOpen, $fileBrowserOpen } from '@/store/layout'
 import { toggleBrowserTab } from '@/store/preview'
 import { $reviewOpen, toggleReview } from '@/store/review'
@@ -18,9 +18,6 @@ import { MoreMenu } from './more-menu'
 import type { SystemTools } from './system-tools'
 
 const ICON = 16
-
-/** Tools that drop into More under 1100px so the title keeps its room. */
-const OPTIONAL = 'vs-tb-opt'
 
 interface PaneTogglesProps {
   tools: SystemTools
@@ -36,16 +33,18 @@ interface ToggleSpec {
 
 function ToggleButton({ Icon, id, label, onClick, pressed }: ToggleSpec) {
   return (
-    <button
-      aria-label={label}
-      aria-pressed={pressed}
-      className="vs-icon"
-      data-testid={`titlebar-${id}`}
-      onClick={onClick}
-      type="button"
-    >
-      <Icon aria-hidden size={ICON} />
-    </button>
+    <Tip label={label}>
+      <button
+        aria-label={label}
+        aria-pressed={pressed}
+        className="vs-icon"
+        data-testid={`titlebar-${id}`}
+        onClick={onClick}
+        type="button"
+      >
+        <Icon aria-hidden size={ICON} />
+      </button>
+    </Tip>
   )
 }
 
@@ -82,29 +81,16 @@ function WorkbenchToggles() {
   )
 }
 
-/** Right side of the titlebar: the workbench toggles (Changes, Terminal, Browser,
- *  Files), the restored app controls (settings, layout editor, HUD, swap sides,
- *  right sidebar), then More. Each pane opens on the user's intent only. */
+/** Pane controls stay in reach; advanced window controls share the existing More menu. */
 export function PaneToggles({ tools }: PaneTogglesProps) {
   const { t } = useI18n()
   const navigate = useNavigate()
   const copy = t.vantaShell.titlebar
-  const visible = [
-    { ...tools.settings },
-    { ...tools.layout, className: cn(tools.layout.className, OPTIONAL) },
-    { ...tools.hud, className: OPTIONAL },
-    { ...tools.flip, className: OPTIONAL },
-    { ...tools.rightSidebar }
-  ]
-
   return (
     <div className="vs-tb-right">
       <WorkbenchToggles />
-      <span aria-hidden className="vs-tb-sep" />
       <div className="vs-tb-tools" data-testid="titlebar-tools">
-        {visible.map(tool => (
-          <TitlebarToolButton key={tool.id} navigate={navigate} tool={tool} />
-        ))}
+        <TitlebarToolButton navigate={navigate} tool={tools.rightSidebar} />
       </div>
       <MoreMenu tools={tools}>
         <button aria-label={copy.more} className="vs-icon" data-testid="titlebar-more" type="button">

@@ -39,6 +39,8 @@ describe('approval mode statusbar item', () => {
     const requestGateway = vi.fn(async (_method, params) => ({ value: params?.value ?? 'smart' }))
     render(<Harness profile="work" requestGateway={requestGateway} />)
 
+    fireEvent.click(screen.getByTestId('statusbar-details'))
+
     fireEvent.pointerDown(screen.getByRole('button', { name: /smart/i }), { button: 0 })
     fireEvent.click(await screen.findByRole('menuitemradio', { name: /manual/i }))
 
@@ -51,6 +53,15 @@ describe('approval mode statusbar item', () => {
         profile: 'work'
       })
       expect(screen.getByRole('button', { name: /manual/i })).toBeTruthy()
+    })
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: /manual/i }), { button: 0 })
+    fireEvent.click(await screen.findByRole('menuitemradio', { name: /^off/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('contentinfo').textContent).toContain('Off')
+      expect(requestGateway).toHaveBeenCalledWith('config.set', {
+        key: 'approvals.mode', value: 'off', profile: 'work'
+      })
     })
   })
 })

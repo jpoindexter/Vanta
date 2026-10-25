@@ -17,6 +17,19 @@ function renderHome(overrides: Partial<HomeProps> = {}, state: Parameters<typeof
 }
 
 describe('HomePage', () => {
+  it('submits the project shown by the picker when projects load after Home', () => {
+    const base = homeProps('ready')
+    const onSubmitTask = vi.fn()
+    const props = { ...base, actions: { ...base.actions, onSubmitTask } }
+    const view = render(<HomePage {...props} projects={[]} />)
+
+    view.rerender(<HomePage {...props} />)
+    fireEvent.change(screen.getByLabelText('Start a task'), { target: { value: 'Use the visible project' } })
+    fireEvent.click(screen.getByTestId('home-composer-send'))
+
+    expect(onSubmitTask).toHaveBeenCalledWith('Use the visible project', base.projects[0].id)
+  })
+
   it('shows the four supervision blocks in reading order', () => {
     renderHome()
 
