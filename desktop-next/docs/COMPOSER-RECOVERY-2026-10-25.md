@@ -12,8 +12,10 @@ last visible assistant segment, rather than the original stream segment before
 later tool output. The latest-message recovery guard is unchanged: older
 failures cannot resume a newer request. No automatic retry is introduced.
 
-At this checkpoint the installed app remains source510e0450. New source proof
-is not installed acceptance; packaging and installed replay follow separately.
+At the original source checkpoint the installed app remained `510e0450`.
+The subsequent exact-source signed/notarized installation and separate replay
+are recorded in [COMPOSER-DELIVERY-2026-10-25.md](COMPOSER-DELIVERY-2026-10-25.md).
+The source results below remain source evidence, not substituted installed proof.
 
 ## Design contract
 

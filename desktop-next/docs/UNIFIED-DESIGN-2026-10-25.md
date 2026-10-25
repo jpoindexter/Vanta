@@ -82,9 +82,14 @@ portals, narrow windows and normal chat; obtain owner visual acceptance per
 surface. A rendered proposal, matching React major, token inventory or green
 build alone cannot establish this.
 
-Current state: composer direction approved and source treatment applied, with
-22actual source-app checks and the limits in COMPOSER-RECOVERY-2026-10-25.md.
-Upstream/source feasibility reviewed; no Astryx dependency added, no cross-app
-migration or installed redesign claimed.
+Current state: the approved composer is applied and installed from source
+`14fee24d`. Actual candidate and installed paths separately pass 22 composer
+checks; full recovery/queue separately passes ten steps at each path. Exact
+identity, notarization, rollback and proof limits are in
+[COMPOSER-DELIVERY-2026-10-25.md](COMPOSER-DELIVERY-2026-10-25.md).
+Upstream/source feasibility is reviewed; no Astryx dependency, cross-app
+migration or whole-app visual acceptance is claimed. Sidebar/titlebar, utility
+controls, portaled menus/dialogs, transcript/activity and workbench surfaces
+still require the same shared-contract migration, not separate cosmetic skins.
 Draft-custody/restart engineering continues separately; visual work must not
 weaken its data-preservation checks or approval boundaries.

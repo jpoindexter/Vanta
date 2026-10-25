@@ -17,20 +17,26 @@ participants, future effect paths, and publication require separate evidence.
 
 The [Desktop status](../desktop-next/docs/STATUS-2026-10-15.md) is the current
 entry point; its dated receipts distinguish source from the installed build.
-Source `510e0450` is pushed and installed as a signed, Apple Accepted/stapled
-local candidate. Its actual installed 13-step/seven-probe chat/approval path
-and 27 bundled-CLI policy cases pass. The ordinary terminal launcher is unchanged.
+Source `14fee24d` is pushed and installed as a signed, Apple Accepted/stapled
+local candidate. Actual candidate and installed paths each pass 22 composer
+checks, ten live-recovery/queue steps and the 13-step/seven-probe ordinary
+chat/approval path. Exact identity, rollback and limits are in the
+[composer delivery](../desktop-next/docs/COMPOSER-DELIVERY-2026-10-25.md).
+The earlier `510e0450` delivery separately passes 27 bundled-CLI policy cases;
+those were not rerun for this renderer-only slice. The terminal launcher is unchanged.
 The earlier `536e17fb` startup observation remains PARTIAL: 16 assertions pass, but sustained
 typing while connecting was not observed. The earlier broader `4a2f4ab8`
 continuity run stops after ten passing assertions because unsent image attachments
 are lost on cold restart. That attachment gap is not fixed here; later queue/
 unread assertions were not reached. See the
-[exact delivery](../desktop-next/docs/POLICY-PREFLIGHT-DELIVERY-2026-10-25.md).
+[earlier policy delivery](../desktop-next/docs/POLICY-PREFLIGHT-DELIVERY-2026-10-25.md).
 The [shell-first startup record](../desktop-next/docs/STARTUP-SHELL-FIRST-2026-10-25.md)
 tracks the owner's removal of passive loading takeovers and the measured Codex
-design reference. The composer proposal is review-only and image custody remains
-an isolated experiment, not an installed fix. These are not whole Desktop or
-security acceptance.
+design reference. The approved composer is now installed using the existing
+Vanta tokens and primitives. Other surfaces and Astryx compatibility remain
+open under the [unified design contract](../desktop-next/docs/UNIFIED-DESIGN-2026-10-25.md).
+Image custody remains an isolated experiment, not an installed fix. These
+receipts are not whole Desktop, owner visual or security acceptance.
 
 ### Historical October 8 checkpoint
 
