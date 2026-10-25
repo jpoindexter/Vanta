@@ -107,6 +107,9 @@ try {
   check("First Escape leaves Find and its query intact", await bar.isVisible() && await bar.locator("input").inputValue() === "Splitpane");
   await ctx.page.getByRole("menu").waitFor({ state: "hidden" });
   check("First Escape closes only the navigation menu", true);
+  await bar.locator("input").fill("Splitpane Alpha");
+  await ctx.page.waitForFunction(() => document.querySelector('[data-find-root] mark.find-hit')?.textContent === "Splitpane Alpha", null, { timeout: 2000 });
+  check("Typing after a sidebar menu keeps the captured chat", await ctx.page.locator('[data-find-root]').getAttribute('data-composer-surface-id') === nextOwner);
   await ctx.page.keyboard.press("Escape");
   await bar.waitFor({ state: "hidden" });
   check("Second Escape closes Find without submitting a draft", model.requests.length === 2 && await editors[1].textContent() === "Unsent Alpha draft continued");
