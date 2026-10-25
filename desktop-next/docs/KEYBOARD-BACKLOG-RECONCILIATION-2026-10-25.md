@@ -77,6 +77,36 @@ Existing MIT/NOTICE files are unchanged.
 
 ## Review trigger and preservation
 
+### Current-head objective audit
+
+The original objective is source keyboard/navigation repair plus preservation,
+accurate planning, recoverable backups and verified scoped pushes. It explicitly
+excludes installation, owner-gated changes and release. It is not authority to
+close the entire Desktop redesign or DN-13/22/29.
+
+At pushed source 50ea6cf37065dbc14f783fc0984d4e6550587d75, all 9,420 tracked
+desktop-next/vanta-ts input blobs matched the isolated candidate byte-for-byte.
+Its fresh source build exited 0 (339 runtime chunks). One existing
+tools/proof/split-find-focus.mjs execution exited 0: 27 checks, two loopback
+model requests and no renderer errors. Full report:
+[current-head Find acceptance](proofs/keyboard-goal-current-2026-10-25/acceptance.json).
+The existing kernel binary was reused read-only; no Rust rebuild or edit.
+
+| Objective requirement | Executed evidence / disposition |
+| --- | --- |
+| Switching panes while Find stays open | Current-head actual Electron: query retention, explicit focus/transcript retarget, old-highlight cleanup, hover guard, repeated Cmd+F, new-draft typing and one-layer Escape all pass |
+| Further dependency-ready keyboard/navigation defects | Nine DN-13 supporting source checklist items read back complete; dated reports above cover history, roster, preview, close-focus, rapid typing and announcements. No remaining reproduced, dependency-ready defect identified in the named keyboard backlog; do not invent work from absent acceptance reports |
+| Preserve existing work | All 273 original regular-file hashes unchanged; original 77 compact dirty entries retained; unfinished design not included in source candidate |
+| Backup and push | 50ea6cf3 local/remote SHA exact; verified complete-history branch.bundle, binary dirty patch and 237-entry untracked archive in keyboard-audit-final-20261025-alaMDO |
+| Planning accuracy | Roadmap IDs/status/dependencies/Done/shipped history unchanged; three projections refreshed at 50ea6cf3; DN-13/22/29 stay open, superseded N=20 item remains historical and unchecked |
+| Authority exclusions | No installation/main merge/tag/release/PR edit/account/profile/Mac-setting/protected-source/paid-service change |
+
+This audit supports closing the bounded source keyboard/navigation goal after
+publishing this record and verifying its recovery checkpoint. It does not close
+installed/normal-profile approval persistence, audible VoiceOver, whole-app
+contrast/zoom/theme acceptance, owner visual/token migration or unrelated backend
+and security work. New concrete defects can re-enter the existing cards.
+
 Proceed with conditions: exact ready fixes may continue; full release and
 Desktop completion remain unproven. The fixture defect is resolved. Next review
 requires a concrete dependency-ready defect or owner authority/evidence for the
