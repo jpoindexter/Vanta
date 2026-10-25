@@ -17,13 +17,19 @@ participants, future effect paths, and publication require separate evidence.
 
 The [Desktop status](../desktop-next/docs/STATUS-2026-10-15.md) is the current
 entry point; its dated receipts distinguish source from the installed build.
-Source `14fee24d` is pushed and installed as a signed, Apple Accepted/stapled
-local candidate. Actual candidate and installed paths each pass 22 composer
-checks, ten live-recovery/queue steps and the 13-step/seven-probe ordinary
-chat/approval path. Exact identity, rollback and limits are in the
-[composer delivery](../desktop-next/docs/COMPOSER-DELIVERY-2026-10-25.md).
+Source `71cf90cf` is pushed and installed as the signed, Apple Accepted/stapled
+local candidate `0.1.0-local.20261025.recovery2`. Actual candidate and installed
+paths separately pass 13 expanded recovery criteria across six cold restarts
+(27 loopback model requests, zero renderer errors), and the 13-step/seven-probe
+ordinary chat/approval path. Exact identity, rollback, retained failed controls
+and limits are in the [recovery delivery](../desktop-next/docs/COLD-RECOVERY-2026-10-25.md).
+The earlier 22 composer checks and ten recovery/queue steps belong to source
+`14fee24d` in the historical [composer delivery](../desktop-next/docs/COMPOSER-DELIVERY-2026-10-25.md),
+not full visual acceptance of the later build. Unsent image/queue custody,
+wider design/parity, normal owner-profile, live-account, physical-device and
+human acceptance remain open.
 The earlier `510e0450` delivery separately passes 27 bundled-CLI policy cases;
-those were not rerun for this renderer-only slice. The terminal launcher is unchanged.
+those were not rerun for this bounded Desktop recovery slice. The terminal launcher is unchanged.
 The earlier `536e17fb` startup observation remains PARTIAL: 16 assertions pass, but sustained
 typing while connecting was not observed. The earlier broader `4a2f4ab8`
 continuity run stops after ten passing assertions because unsent image attachments

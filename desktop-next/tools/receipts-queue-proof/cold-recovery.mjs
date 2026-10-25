@@ -70,6 +70,12 @@ async function recover(action, request) {
     assert.ok((await editor.evaluate((el) => "value" in el ? el.value : el.innerText)).includes(request));
     await editor.click(); await page.keyboard.press("Meta+a");
     await page.keyboard.insertText(`${request}, with more detail`); await page.keyboard.press("Enter");
+    if (request.includes('coldnudgeedit')) {
+      const confirmation = page.getByRole('dialog').filter({ hasText: 'Restore to this checkpoint?' });
+      await confirmation.getByRole('button', { name: 'Restore & rerun', exact: true }).waitFor({ state: 'visible' });
+      await page.screenshot({ path: path.join(output, 'edit-restore-confirmation.png') });
+      await confirmation.getByRole('button', { name: 'Restore & rerun', exact: true }).click();
+    }
   }
 }
 

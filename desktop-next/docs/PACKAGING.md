@@ -22,7 +22,9 @@ state, verify signature/ticket/build identity, and refuse to interrupt active
 work. Check the exact installed path afterward, not just the source bundle.
 
 Current executed delivery and remaining gates are recorded in
-[INSTALLED-DELIVERY-2026-10-25.md](INSTALLED-DELIVERY-2026-10-25.md).
+[COLD-RECOVERY-2026-10-25.md](COLD-RECOVERY-2026-10-25.md). Earlier
+[INSTALLED-DELIVERY-2026-10-25.md](INSTALLED-DELIVERY-2026-10-25.md) receipts
+remain historical evidence for their exact source versions.
 Dependency changes require their own dated proof; Apple acceptance does not
 certify dependency security. No public release, legacy removal or data deletion
 is implied. Original packaging notes below are historical, not current setup,

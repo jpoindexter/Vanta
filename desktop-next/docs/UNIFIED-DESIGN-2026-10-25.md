@@ -107,11 +107,13 @@ portals, narrow windows and normal chat; obtain owner visual acceptance per
 surface. A rendered proposal, matching React major, token inventory or green
 build alone cannot establish this.
 
-Current state: the approved composer is applied and installed from source
-`14fee24d`. Actual candidate and installed paths separately pass 22 composer
-checks; full recovery/queue separately passes ten steps at each path. Exact
-identity, notarization, rollback and proof limits are in
-[COMPOSER-DELIVERY-2026-10-25.md](COMPOSER-DELIVERY-2026-10-25.md).
+Current installed source is `71cf90cf`; its exact notarized recovery delivery
+and rollback are in [COLD-RECOVERY-2026-10-25.md](COLD-RECOVERY-2026-10-25.md).
+The approved composer was first applied/installed from `14fee24d`, where
+candidate and installed paths separately passed 22 composer checks and ten
+recovery/queue steps. Those appearance receipts remain historical in
+[COMPOSER-DELIVERY-2026-10-25.md](COMPOSER-DELIVERY-2026-10-25.md); they were not
+rerun as full visual acceptance for the later recovery-only correction.
 Upstream/source feasibility is reviewed; no Astryx dependency, cross-app
 migration or whole-app visual acceptance is claimed. Sidebar/titlebar, utility
 controls, portaled menus/dialogs, transcript/activity and workbench surfaces

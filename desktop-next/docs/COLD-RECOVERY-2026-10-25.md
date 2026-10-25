@@ -2,18 +2,25 @@
 
 ## Current boundary
 
+Replacement source `71cf90cf` is pushed, frozen in a separate clean worktree and
+installed at `/Applications/Vanta.app` as `0.1.0-local.20261025.recovery2`.
+Candidate and installed paths separately pass the complete expanded recovery
+replay and ordinary-chat/approval path below. Apple Accepted, stapling,
+signature and Gatekeeper checks pass. This closes this bounded delivery slice,
+not the full Desktop goal, whole-app redesign or remaining state-custody work.
+
 **Candidate `5a13805f` is held, not installed.** Its initial seven-step packaged
 replay passed, but independent review and a new actual packaged control exposed
 loss of work across internal continuation prompts. Three renderer regressions
 also proved Retry/Edit could select an internal prompt rather than the saved
 human request. Review found that raw-message collection bypassed display
-rewrites/suppression. These are one checkpoint/turn-boundary correction in
-progress; passing the earlier cases or Apple notarization does not clear them.
+rewrites/suppression. Those findings led to the replacement above; passing
+the earlier cases or Apple notarization alone did not clear that candidate.
 
 This is a bounded runtime/renderer correction, not whole-Desktop acceptance or
-the wider design proposal. The installed app remains source `14fee24d` until a
-separate exact-source package, notarization, guarded installation and replay
-are recorded here. Owner profiles and the terminal launcher are unchanged.
+the wider design proposal. The previous installed `14fee24d` app is retained
+as rollback. Owner profiles and the terminal launcher were not changed by
+the test runs or installer.
 
 ## Causes and correction
 
@@ -111,6 +118,30 @@ External evidence/backup root:
   three criteria, five requests, exact original attachment-bearing request
   delivered once after deliberate Retry. These are source Electron checks;
   the final clean package still needs the complete expanded replay.
+- Clean packaged source `71cf90cf` passes all 13 expanded recovery criteria in
+  `packaged-displayed-v2-final/result.json`: six cold restarts cover Retry,
+  checkpoint submission, Edit, internal-continuation Retry/Edit and exact
+  attachment-bearing Retry; opening history sends no model request; older
+  failures offer no actions after later work. Twenty-seven loopback requests,
+  zero renderer errors. The source build and packaged build are separate.
+- The first expanded package replay stopped after nine criteria at the existing
+  Edit deep-rewind confirmation. Its screenshot/result remain in
+  `packaged-displayed-v2/`. The harness, not production policy, was corrected
+  to inspect and explicitly answer that exact confirmation inside its private
+  fixture. `packaged-edit-v2/` then passes the narrow three-criterion control;
+  the full final replay above passes without removing or bypassing the guard.
+- The same exact package passes the ordinary-chat path: 13 steps plus seven
+  probes, including scoped Always permission across restart, project separation,
+  one-way actions still asking, persisted Plan mode, large-paste typing, image
+  send and 1440/1100/800px layout. `packaged-ordinary-v2/` retains its report and
+  captures. One Chromium blocked-vibration warning is recorded; no broad
+  assistive, physical focus, microphone or live-account claim follows.
+- Package ASAR SHA256:
+  `f65ba24021dc75f3d4eb6425a5f1dcce57d187a8345aaeda85c54134b80ae36b`.
+  Candidate tracked status is clean; source build identity is `71cf90cf`, built
+  `2026-10-25T20:45:29.357Z`. Signature verification passes. A complete-history
+  source bundle and the original 273-file preservation manifest are verified;
+  only the two previously approved composer styles differ from that manifest.
 
 The script is `node desktop-next/tools/receipts-queue-proof/cold-recovery.mjs
 <private-output>`. It reuses the existing real-shell sandbox and local scripted
@@ -119,8 +150,36 @@ isolated. It never reads owner credentials or sends to a real provider.
 
 ## Still required
 
-Exact clean-source signed package; packaged
-and installed restart/recovery replay; installer rollback, signature/notary and
-identity checks. No full-suite, live-account, physical focus, screen-reader,
+No full-suite, live-account, physical focus, screen-reader,
 microphone, whole design or unfamiliar-person acceptance is claimed. Draft/image
 custody remains a separate unintegrated patch and cannot be closed by this work.
+
+## Installed delivery and rollback
+
+- Source: `71cf90cf235619f0128e7d5b69feaa5bb2502263`; built
+  `2026-10-25T20:45:29.357Z`; version `0.1.0-local.20261025.recovery2`.
+- Installed at `2026-10-25T20:55:40.384Z`. Installed and candidate ASAR SHA256:
+  `f65ba24021dc75f3d4eb6425a5f1dcce57d187a8345aaeda85c54134b80ae36b`.
+- Apple job `007e52d5-2448-4b6d-91c5-bb6b0dd50ae7`: Accepted. Candidate and
+  installed bundle independently pass `codesign --verify --deep --strict`,
+  `xcrun stapler validate` and `spctl --assess --type execute --verbose=2`.
+- Guarded installer retained `/Applications/.vanta-install-backups/update-T57KDE/Vanta.app`
+  and adjacent `receipt.json`, binding previous ASAR
+  `e42e4bf2a450f8198746787a3e1a82891d43e080cbda51f282a2a808655c4f84`.
+  It did not quit an owner process or change either terminal launcher.
+- Actual `Application Support/Vanta` was copied mechanically while the owner
+  app was stopped before/after to the external evidence root's
+  `owner-userData-before-v2/`; no credential/profile content was inspected.
+- `installed-displayed-v2/result.json`: all 13 recovery criteria pass, six
+  restarts, 27 loopback model requests and zero renderer errors. This launches
+  the exact installed binary with isolated HOME/userData/VANTA_HOME, not a
+  source Electron app or the owner's normal profile.
+- `installed-ordinary-v2/`: 13 ordinary-chat steps and seven probes pass on
+  that exact installed binary. The known blocked-vibration warning is retained.
+  Scripted model, sandbox permissions, image bytes and projects are fixtures;
+  these are not live-account, physical microphone or human acceptance.
+- Post-stapling local ZIP:
+  `/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-deliveries/2026-10-25/Vanta-0.1.0-local.20261025.recovery2-notarized-arm64.zip`,
+  208055729 bytes, SHA256
+  `e6d8eeb5b39462f4c610731ac00c905214480730f2bb9da08342c4bcba2a26e3`.
+  This is a local delivery, not a published release, tag or main merge.
