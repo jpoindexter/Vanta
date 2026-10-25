@@ -3,6 +3,8 @@
 ## Remaining gap first
 
 This is source acceptance, not installed-app delivery or owner visual approval.
+Follow-on delivery: [exact installed build](INSTALLED-DELIVERY-2026-10-25.md)
+records the subsequent signed/notarized installation and packaged-path proof.
 The broader delivery, security and modularization goal remains active. DN-29
 and Desktop cutover remain open. No legacy capability was removed.
 
@@ -60,9 +62,10 @@ The verified pre-edit bundle, original binary dirty patch and 237-file untracked
 archive remain in `Vanta-backups/keyboard-goal-accepted-20261025-cMRwre` outside
 the public repo. Source candidate: `Vanta-backups/delivery-candidate-20261025-pNXJV7`.
 
-Next: finish the existing restart criterion, publish a scoped source checkpoint,
-back it up, package/sign/notarize, preserve the previous app privately, install
-without interrupting user work, and run the same criterion against that exact
-installed build. No main merge, PR reopening, public release/tag or paid/CI
+The existing restart criterion subsequently passed; source checkpoint f5b12a97
+was pushed, backed up, signed/notarized and installed without interrupting work.
+The exact installed-path criterion also passed; see the follow-on delivery
+record for evidence. Next: dependency/security and remaining trust batches.
+No main merge, PR reopening, public release/tag or paid/CI
 workflow is authorized here. Owner visual/parity and deferred human/live-account
 acceptance remain separate.

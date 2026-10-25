@@ -6,6 +6,12 @@ roadmap/Trello evidence and verified pushed checkpoints. Not another shell.
 
 ## Now
 
+Checkpoint: the preserved candidate was integrated/pushed as f5b12a97, signed,
+notarized and installed. Actual installed path:13steps/seven probes PASS.
+See INSTALLED-DELIVERY-2026-10-25.md for exact identity, recovery and gaps.
+Next engineering unit: dependency batches in DEPENDENCY-REENTRY-2026-10-25.md.
+The original execution sequence below is retained; owner gates stay explicit.
+
 Integrate the preserved sidebar/composer/titlebar/transcript/navigation/status
 and project-entry work into an isolated exact-index candidate. Review source,
 keep unrelated original tests/research/done-path artifacts out, run affected
