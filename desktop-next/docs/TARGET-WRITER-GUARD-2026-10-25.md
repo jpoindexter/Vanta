@@ -30,3 +30,10 @@ unproven. Config/sandbox callbacks currently need visible error recovery for
 late persistence failure; do not ship a silent catch or claim full writer UX
 from this guard. No owner configuration or plugin was touched. Broad cards,
 security and owner acceptance gates remain open.
+
+Follow-on source validation: the public writer also rejected neither invalid
+incoming policy nor a new invalid scope. Two regressions reproduce that failure;
+the existing schema now validates recognized incoming values before mkdir/write,
+without stripping unknown keys from the provided object. All10writer cases and
+42focused consumer cases/sixfiles pass; runtime tsc passes. No whole-layer or
+atomicity claim follows from this additional input-boundary check.

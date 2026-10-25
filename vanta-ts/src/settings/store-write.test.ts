@@ -33,4 +33,18 @@ describe("settings writer preserves suspect targets", () => {
     await writeSettings(path, next);
     expect(JSON.parse(await readFile(path, "utf8"))).toEqual(next);
   });
+
+  it("rejects invalid incoming policy without replacing a valid target", async () => {
+    const path = join(fixture, "settings.json");
+    const before = '{"blockedTools":["shell_cmd"]}';
+    await writeFile(path, before);
+    await expect(writeSettings(path, { blockedTools: false } as never)).rejects.toThrow("invalid");
+    expect(await readFile(path, "utf8")).toBe(before);
+  });
+
+  it("rejects invalid incoming policy before creating a missing scope", async () => {
+    const path = join(fixture, "missing", "settings.json");
+    await expect(writeSettings(path, { blockedTools: false } as never)).rejects.toThrow("invalid");
+    expect(await readdir(fixture)).toEqual([]);
+  });
 });

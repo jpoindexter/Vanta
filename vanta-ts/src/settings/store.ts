@@ -86,6 +86,9 @@ export async function writeSettings(
   settings: Settings,
 ): Promise<void> {
   await readJson(path);
+  if (!SettingsSchema.strip().safeParse(settings).success) {
+    throw new Error(`Settings change for ${path} is invalid; nothing was written.`);
+  }
   await mkdir(join(path, ".."), { recursive: true });
   await writeFile(path, JSON.stringify(settings, null, 2) + "\n", "utf8");
 }
