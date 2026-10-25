@@ -2,6 +2,15 @@
 
 ## Gap first / re-entry
 
+Later SOURCE checkpoints5fbc1fdc/e10b50b8/f6c583e7 add settings policy recovery,
+authoritative transcript extraction and Desktop dev-only Vitest4.1.12. They are
+not in the installed app documented here. Current source status and remaining
+remaining direct-writer trust work are at the top of STATUS-2026-10-15.md.
+Later e028a334 preflights Git staging and skill-approval writes; remaining writer
+and atomic recovery are still open. Runtime core migration scope has its own
+RUNTIME-SECURITY-REENTRY-2026-10-25.md and is not hidden behind a v3 alias.
+Installed identity/evidence below remains accurate for745629c6, not later code.
+
 Source `745629c663374edf73aa8dd50d19fe1ac96faa5d` is pushed and installed at
 `/Applications/Vanta.app` as `0.1.0-local.20261025.parallel`. Developer ID signed;
 Apple submission `7a7583b4-978e-4255-9ee4-c20210e28df9` Accepted and stapled.
