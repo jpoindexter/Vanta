@@ -1,0 +1,81 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Z35sR6",
+  "checks": [
+    "Ctrl+Shift+Tab returns to the previous chat",
+    "Find stays open across in-pane tab switching",
+    "The query is retained",
+    "Find highlights the now-visible chat, not the hidden tab",
+    "Escape never focuses the hidden draft",
+    "Both drafts are preserved",
+    "No draft was submitted",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "before-cycle",
+      "url": "file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/roster-search-candidate-20261025-mcGn9B/desktop-next/apps/desktop/dist/index.html#/20261025-120101-ddacac63-36ab-47b6-9215-56246974342d",
+      "focus": "<input aria-label=\"Find in page\" autocomplete=\"off\" class=\"h-6 w-40 bg-transparent text-xs text-(--ui-text-primary) outline-none placeholder:text-(--ui-text-tertiary)\" placeholder=\"Find in page\" type=\"search\" value=\"Tabnav\">",
+      "roots": [
+        {
+          "owner": "_r_97_",
+          "visible": true,
+          "marks": [
+            "Tabnav"
+          ]
+        }
+      ],
+      "drafts": [
+        {
+          "visible": false,
+          "text": "Unsent Bravo draft"
+        },
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    },
+    {
+      "name": "after-cycle",
+      "url": "file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/roster-search-candidate-20261025-mcGn9B/desktop-next/apps/desktop/dist/index.html#/20261025-120101-ddacac63-36ab-47b6-9215-56246974342d",
+      "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w",
+      "roots": [
+        {
+          "owner": "_r_50_",
+          "visible": true,
+          "marks": [
+            "Tabnav"
+          ]
+        }
+      ],
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Bravo draft"
+        },
+        {
+          "visible": false,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    },
+    {
+      "name": "dismissed",
+      "url": "file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/roster-search-candidate-20261025-mcGn9B/desktop-next/apps/desktop/dist/index.html#/20261025-120101-ddacac63-36ab-47b6-9215-56246974342d",
+      "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w",
+      "roots": [],
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Bravo draft"
+        },
+        {
+          "visible": false,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    }
+  ],
+  "modelRequests": 2,
+  "rendererErrors": []
+}

@@ -14,6 +14,7 @@ import {
   $layoutTree,
   layoutHasRootSide,
   paneRootSide,
+  revealTreePane,
   restoreHiddenTreeSideTabs,
   restoreMinimizedTreeSide,
   restoreTreePane,
@@ -809,12 +810,12 @@ export function revealFileInTree(path: string): void {
   $revealInTreeRequest.set(path)
 }
 
-// Hotkey → focus the sessions search field. Opens the sidebar first, then lets
-// the field (which only mounts when the sidebar is open) subscribe + focus.
+// Chat search reveals its tab, not just the side containing the agent roster.
 export const SESSION_SEARCH_FOCUS_EVENT = 'desktop:focus-session-search'
 
 export function requestSessionSearchFocus() {
   setSidebarOpen(true)
+  revealTreePane('sessions')
 
   if (typeof window !== 'undefined') {
     window.setTimeout(() => window.dispatchEvent(new CustomEvent(SESSION_SEARCH_FOCUS_EVENT)), 0)

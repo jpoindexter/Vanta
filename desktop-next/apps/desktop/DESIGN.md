@@ -359,6 +359,8 @@ blurred backdrop.
   Chat history's Cmd+Shift+F selects the retained query. With results, unmodified
   Arrow Down reaches a rendered chat title; its native Enter action opens it.
   Composition, modified editing keys and empty/no-result queries retain input focus.
+  The history shortcut reveals the Chats tab even when the agent roster owns
+  the sidebar. It does not change the current chat or its workspace owner.
 - **`SegmentedControl`** — the choice control for small mutually-exclusive sets
   (color mode, tool-call display, usage period). Replaces radio piles and
   pill rows.
