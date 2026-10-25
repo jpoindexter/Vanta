@@ -53,7 +53,8 @@
  *   the renderer-side walker is the only path that satisfies the issue.
  */
 
-import { queryVisible } from '@/components/pane-shell/pane-visibility'
+import { queryAllVisible } from '@/components/pane-shell/pane-visibility'
+import { $activeTreeGroup } from '@/components/pane-shell/tree/store'
 
 const SCOPE_SELECTOR = '[data-chat-surface]'
 const HIGHLIGHT_CLASS = 'find-hit'
@@ -88,7 +89,16 @@ let scheduled = false
  * route-change cleanup in FindBar closes the bar first).
  */
 export function resolveCurrentFindScope(): HTMLElement | null {
-  return queryVisible<HTMLElement>(SCOPE_SELECTOR)
+  const surfaces = queryAllVisible<HTMLElement>(SCOPE_SELECTOR)
+  const focused = document.activeElement
+  const focusedSurface = focused?.closest(SCOPE_SELECTOR)
+  const owner = focused?.closest<HTMLElement>('[data-composer-owner]')?.dataset.composerOwner
+  const group = $activeTreeGroup.get()
+
+  // A floating composer lives outside its chat; its stable owner identifies the same surface.
+  return surfaces.find(surface => surface === focusedSurface || (owner && surface.dataset.composerSurfaceId === owner))
+    ?? surfaces.find(surface => group && surface.closest<HTMLElement>('[data-tree-group]')?.dataset.treeGroup === group)
+    ?? surfaces[0] ?? null
 }
 
 /** Capture the current view as the find scope. Called when the bar opens. */

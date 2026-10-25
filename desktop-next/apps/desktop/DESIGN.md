@@ -618,6 +618,9 @@ long transcript or a busy terminal.
 - Dismissing Find returns focus and the rich-editor caret to its opener. A
   repeated Cmd+F preserves that origin; dismissal never steals from another
   selected control or restores a hidden pane. Route teardown does not restore.
+- Opening Find prefers the focused chat or floating composer's surface identity,
+  then the interacted layout group, then the first visible chat. A hidden
+  keep-alive pane can never claim that search.
 - Find counts and steps visible content, not CSS-hidden legacy headers. A
   display:contents wrapper must not exclude its visible children.
 - Cancellation is synchronous in the UI even if cleanup is async: overlays,
