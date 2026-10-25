@@ -1,0 +1,61 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { makeSandbox, launchApp, killLeftovers } from "../done-path/harness.mjs";
+import { startScriptedModel } from "../done-path/scripted-model.mjs";
+import { waitForShell, newChat } from "../done-path/lib.mjs";
+
+const box = await makeSandbox();
+const model = await startScriptedModel();
+const ctx = await launchApp({ box, project: box.projectA, modelUrl: model.url });
+ctx.page.setDefaultTimeout(5000);
+const checks = [];
+const check = (name, ok) => { assert.ok(ok, name); checks.push(name); };
+const editor = ctx.page.locator('[data-vp="composer-input"]:visible');
+const bar = ctx.page.getByRole("search");
+try {
+  await waitForShell(ctx.page);
+  await newChat(ctx.page);
+  await editor.click();
+  await ctx.page.keyboard.insertText("Chat-only navigation test");
+  await ctx.page.keyboard.press("Enter");
+  await ctx.page.waitForFunction(() => [...document.querySelectorAll('[data-role="assistant"]')].some(el => el.checkVisibility() && el.textContent.includes("Scripted turn finished.")));
+  await editor.click();
+  await ctx.page.keyboard.insertText("Unsent Find-close draft");
+  await ctx.page.getByTestId("titlebar-files").click();
+  await ctx.page.locator('[title$="brief.md"]:visible').last().dblclick();
+  const heading = ctx.page.getByRole("heading", { name: "Local brief", exact: true });
+  await heading.click();
+  await ctx.page.keyboard.press("Meta+f");
+  await bar.locator("input").fill("Local brief");
+  await ctx.page.waitForFunction(() => document.querySelector('[data-find-root][data-preview-markdown] mark.find-hit')?.textContent === "Local brief");
+  check("Document Find is live before close", true);
+  check("Find input retains focus before Cmd+W", await bar.locator("input").evaluate(el => el === document.activeElement));
+  await ctx.page.keyboard.press("Meta+w");
+  await heading.waitFor({ state: "hidden" });
+  await ctx.page.waitForFunction(() => document.querySelector('[data-find-root][data-chat-surface]'));
+  check("Closing the searched document moves Find to the visible chat", true);
+  check("Find remains open with its original query", await bar.isVisible() && await bar.locator("input").inputValue() === "Local brief");
+  await ctx.page.keyboard.press("Meta+f");
+  await ctx.page.waitForFunction(() => document.activeElement.matches('[role="search"] input') && document.activeElement.selectionStart === 0 && document.activeElement.selectionEnd === 11);
+  await ctx.page.keyboard.type("Chat-only navigation");
+  await ctx.page.waitForFunction(() => document.querySelector('[data-find-root][data-chat-surface] mark.find-hit')?.textContent === "Chat-only navigation");
+  check("The retained search can find visible chat text", true);
+  await ctx.page.keyboard.press("Escape");
+  await bar.waitFor({ state: "hidden" });
+  check("Dismissal restores visible typing focus", await editor.evaluate(el => el === document.activeElement));
+  check("Draft remains unchanged", await editor.textContent() === "Unsent Find-close draft");
+  check("Document remains unchanged", fs.readFileSync(`${box.projectA}/brief.md`, "utf8") === "# Local brief\nNo operator data.\n");
+  check("No extra send", model.requests.length === 1);
+  check("No renderer errors", ctx.errors.length === 0);
+  process.stdout.write(`${JSON.stringify({ root: box.root, checks, requests: model.requests.length, errors: ctx.errors })}\n`);
+} catch (error) {
+  process.stderr.write(`${box.root}\n${error.stack}\n`);
+  process.exitCode = 1;
+} finally {
+  const state = await ctx.page.evaluate(() => ({ focus: document.activeElement.outerHTML.slice(0, 600), roots: [...document.querySelectorAll('[data-find-root]')].map(el => ({ text: el.textContent.slice(0, 200), visible: el.checkVisibility(), html: el.outerHTML.slice(0, 300) })) }));
+  fs.writeFileSync(`${box.root}/find-close-pane.json`, JSON.stringify({ checks, state, errors: ctx.errors }, null, 2));
+  await ctx.page.screenshot({ path: `${box.root}/find-close-pane.png` }).catch(() => undefined);
+  await ctx.app.close();
+  await model.close();
+  killLeftovers(box);
+}

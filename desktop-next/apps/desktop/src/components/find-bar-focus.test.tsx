@@ -36,6 +36,29 @@ async function openFromDraft(editable = false) {
 }
 
 describe('FindBar dismissal focus', () => {
+  it('keeps Find usable after its document closes while the query has focus', async () => {
+    const { draft, query } = await openFromDraft()
+    draft.setAttribute('data-vp', 'composer-input')
+    const preview = document.createElement('article')
+    preview.dataset.previewMarkdown = ''
+    preview.innerHTML = '<p>needle</p><button type="button">Document control</button>'
+    document.body.append(preview)
+    act(() => preview.querySelector('button')!.focus())
+    await waitFor(() => expect(preview.hasAttribute('data-find-root')).toBe(true))
+    act(openFindBar)
+    await waitFor(() => expect(document.activeElement).toBe(query))
+    fireEvent.change(query, { target: { value: 'needle' } })
+    await waitFor(() => expect($findInPage.get().matchCount).toBe(1))
+    act(() => preview.remove())
+    await waitFor(() => expect(draft.closest('section')!.hasAttribute('data-find-root')).toBe(true))
+    expect(document.activeElement).toBe(query)
+    expect($findInPage.get().query).toBe('needle')
+    expect($findInPage.get().matchCount).toBe(0)
+    fireEvent.keyDown(query, { key: 'Escape' })
+    expect(document.activeElement).toBe(draft)
+    expect((draft as HTMLTextAreaElement).value).toBe('Unsent draft')
+  })
+
   it('carries an open query into a rendered document and back without losing the chat draft', async () => {
     const { draft, query } = await openFromDraft()
     const preview = document.createElement('article')

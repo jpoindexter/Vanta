@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Document Find is live before close",
+    "Find input retains focus before Cmd+W"
+  ],
+  "state": {
+    "focus": "<input aria-label=\"Find in page\" autocomplete=\"off\" class=\"h-6 w-40 bg-transparent text-xs text-(--ui-text-primary) outline-none placeholder:text-(--ui-text-tertiary)\" placeholder=\"Find in page\" type=\"search\" value=\"Local brief\">",
+    "roots": []
+  },
+  "errors": []
+}

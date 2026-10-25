@@ -34,6 +34,7 @@ function plantSurface(id: string, html: string, hidden = false): HTMLElement {
 }
 
 afterEach(() => {
+  releaseFindScope()
   noteActiveTreeGroup(null)
   document.body.innerHTML = ''
 })
@@ -365,6 +366,19 @@ describe('scope lifecycle', () => {
 
     a.setAttribute('data-pane-hidden', '')
 
+    expect(currentFindScope()).toBeNull()
+  })
+
+  it('re-targets a detached captured pane and cleans its old marks', () => {
+    const closed = plantSurface('closed', 'needle in closed pane')
+    const surviving = plantSurface('surviving', 'needle in surviving pane')
+    captureFindScope()
+    performScopedFind(closed, 'needle', { forward: true, findNext: false })
+    closed.remove()
+    expect(currentFindScope()).toBe(surviving)
+    expect(closed.querySelector('mark')).toBeNull()
+    expect(closed.hasAttribute('data-find-root')).toBe(false)
+    releaseFindScope()
     expect(currentFindScope()).toBeNull()
   })
 })

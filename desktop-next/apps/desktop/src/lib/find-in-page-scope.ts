@@ -128,6 +128,13 @@ function resetScopeState(): void {
   scheduled = false
 }
 
+// Closing a pane can detach its root while Find still owns the live query.
+function capturedRoots(): HTMLElement[] {
+  const roots = [...document.querySelectorAll<HTMLElement>(`[${ROOT_ATTR}]`)]
+  if (scopeRoot && !roots.includes(scopeRoot)) roots.push(scopeRoot)
+  return roots
+}
+
 /**
  * The scope captured by the open bar, or null if none is active.
  *
@@ -138,10 +145,10 @@ function resetScopeState(): void {
  * actually reading (#81726).
  */
 export function currentFindScope(): HTMLElement | null {
-  const roots = document.querySelectorAll<HTMLElement>(`[${ROOT_ATTR}]`)
+  const roots = capturedRoots()
 
   for (const root of roots) {
-    if (!isElementInHiddenPane(root)) {
+    if (root.isConnected && !isElementInHiddenPane(root)) {
       return root
     }
   }
@@ -152,7 +159,7 @@ export function currentFindScope(): HTMLElement | null {
     return null
   }
 
-  // Every marked root is hidden — the captured surface lost a tab flip while
+  // Every marked root is hidden or detached — the captured surface changed while
   // the bar stayed open. Move the scope to the now-foreground surface.
   return retargetFindScope(roots)
 }
@@ -166,7 +173,7 @@ export function currentFindScope(): HTMLElement | null {
  * surface is visible (the user flipped to a non-chat pane — nothing on screen
  * qualifies as a view).
  */
-function retargetFindScope(roots: NodeListOf<HTMLElement>): HTMLElement | null {
+function retargetFindScope(roots: HTMLElement[]): HTMLElement | null {
   const foreground = resolveCurrentFindScope()
 
   if (!foreground) {
@@ -636,7 +643,7 @@ function reapplying(root: HTMLElement): void {
 
 /** Tear down highlights and the scope marker — called when the bar closes. */
 export function releaseFindScope(): void {
-  const roots = document.querySelectorAll<HTMLElement>(`[${ROOT_ATTR}]`)
+  const roots = capturedRoots()
 
   for (const root of roots) {
     clearHighlights(root)

@@ -633,6 +633,9 @@ long transcript or a busy terminal.
 - Find yields Escape to a focused menu/dialog/list. Returning from window
   chrome and editing the query preserves the captured chat; only explicit
   pane intent or hidden-tab re-targeting changes it.
+- Closing a searched document while the query has focus retains that query
+  and re-targets the surviving visible chat. Escape restores its composer
+  only when the old opener is unavailable and no newer control owns focus.
 - Find counts and steps visible content, not CSS-hidden legacy headers. A
   display:contents wrapper must not exclude its visible children.
 - Cancellation is synchronous in the UI even if cleanup is async: overlays,

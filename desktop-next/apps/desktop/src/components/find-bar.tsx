@@ -7,6 +7,7 @@ import { useFindBarFocus } from '@/components/find-bar-focus'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
 import { findBarKeyAction, formatMatchLabel } from '@/lib/find-in-page'
+import { currentFindScope } from '@/lib/find-in-page-scope'
 import { OVERLAY_SURFACE } from '@/lib/keybinds/combo'
 import { cn } from '@/lib/utils'
 import {
@@ -86,11 +87,17 @@ export function FindBar() {
 
     let rafId: null | number = null
     let observedAside: Element | null = null
+    let observedScope = currentFindScope()
 
     const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => scheduleMeasure())
 
     const measure = () => {
       rafId = null
+      const scope = currentFindScope()
+      if (scope !== observedScope) {
+        observedScope = scope
+        void setFindQuery($findInPage.get().query)
+      }
       const aside = document.querySelector('aside[aria-label="Right sidebar"]')
 
       // The aside can be replaced wholesale (pane closed and reopened, panes

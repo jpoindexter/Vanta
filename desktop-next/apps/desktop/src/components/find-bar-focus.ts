@@ -1,10 +1,19 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
-import { captureFindScope, FIND_SURFACE_SELECTOR } from '@/lib/find-in-page-scope'
+import { isElementInHiddenPane, queryAllVisible } from '@/components/pane-shell/pane-visibility'
+import { captureFindScope, currentFindScope, FIND_SURFACE_SELECTOR } from '@/lib/find-in-page-scope'
 import { $findInPage, closeFindBar, setFindQuery } from '@/store/find-in-page'
 
 const INTENT_SELECTOR = `${FIND_SURFACE_SELECTOR},[data-composer-owner]`
+
+function dismissalOrigin(origin: HTMLElement | null) {
+  if (origin?.isConnected && !isElementInHiddenPane(origin)) return origin
+  const scope = currentFindScope()
+  return queryAllVisible<HTMLElement>('[data-vp="composer-input"]').find(editor => {
+    const owner = editor.closest<HTMLElement>('[data-composer-owner]')?.dataset.composerOwner
+    return scope && (editor.closest('[data-chat-surface]') === scope || (owner && scope.dataset.composerSurfaceId === owner))
+  }) ?? null
+}
 
 function useFindOrigin() {
   const originRef = useRef<HTMLElement | null>(null)
@@ -66,7 +75,7 @@ export function useFindBarFocus(active: boolean, focusRequest: number) {
   }, [active, focusRequest, rememberOrigin])
 
   const dismissFindBar = useCallback(() => {
-    const origin = originRef.current
+    const origin = dismissalOrigin(originRef.current)
     const focused = document.activeElement
     closeFindBar()
     // Only explicit dismissal restores; route teardown must not revive an old pane.
