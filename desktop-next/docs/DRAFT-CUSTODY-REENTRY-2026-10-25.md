@@ -2,6 +2,17 @@
 
 ## Latest parent review
 
+[Supported metadata lookup and actual startup proof](DRAFT-CLEANUP-LOOKUP-2026-10-26.md)
+closes the previous timeout's bounded engineering cause: a missing detail route,
+plus a fixture overwritten by shutdown before its synthetic records were loaded.
+The candidate has read-only metadata, exact-ID/owner validation, conservative
+absence classification and retained unsent queues. Focused UI102/runtime8 pass;
+exact source startup3, corruption/restart11 and queue6 pass, zero renderer errors.
+The combined107-file source packet remains external/uninstalled;69 production
+paths have no new/worse size findings. Empty-backend first-list, explicit legacy
+recovery, native profile routing, HUD/concurrent/unknown-send and exact installed
+gates remain. Start from this newer packet, not by stacking earlier patches.
+
 [Pending-owner and modularized candidate](DRAFT-PENDING-CANDIDATE-2026-10-26.md)
 supersedes the earlier raw-fallback/size-blocker state for the isolated copy:
 unresolved input is gated, recorded owners resolve first-session handoff, and
