@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-25",
+  "updated": "2026-10-26",
   "items": [
     {
       "id": "VOICE-LOCAL-MODELS-AND-PROVIDERS",
@@ -21631,6 +21631,31 @@
       ],
       "parkedReason": "review",
       "notes": "Owner Jason. New defect slice, not a duplicate of shipped credential-pool support. Prior synthetic probe of codex-auth.ts at installed head 12bc974c0383157abcd943f0c129e1fe9c63ef89 observed two refresh requests, one persistence write, one fulfilled caller and one rejected caller when a second 401 preceded the winning write. No live token or account was used. The implementation has not been changed. Existing four Next slots and twelve open cards are retained; prioritize this defect when an active slot clears or the owner explicitly reprioritizes. Re-entry: retain a two-process regression test, then implement the account-scoped persistence boundary. See docs/upstream-agent-desktop-adoption-2026-10-01.md."
+    },
+    {
+      "id": "DELEGATION-NAMED-ROUTE-CONTRACT",
+      "track": "Harness",
+      "title": "Named delegation routes — cheaper workers without hidden authority or cloud fallback",
+      "status": "parked",
+      "size": "L",
+      "tier": "rock",
+      "effort": "high",
+      "lens": "agent-loop",
+      "updated": "2026-10-26",
+      "source": "https://hermes-agent.nousresearch.com/docs/plugins/advanced-delegation; NousResearch/hermes-official-plugins@e404b6816b20237a82f6fbe2749b5a576cf75dba/advanced-delegation; docs/hermes-advanced-delegation-adoption-2026-10-26.md",
+      "after": [
+        "AUTO-ROUTER",
+        "O1",
+        "SUBAGENT-PROVIDER-IDENTITY",
+        "HERMES-PROFILE-ROSTER",
+        "HERMES-DELTA-USAGE-ROUTE-LEDGER",
+        "LOCAL-STATE-ATOMIC-RECOVERY-BOUNDARY",
+        "DESKTOP-NEXT-CUTOVER"
+      ],
+      "summary": "Extend Vanta's existing delegate/router/profile/receipt seams with owner-configured named worker routes, one shared Desktop/CLI setup surface and truthful requested-versus-effective routing. Let bounded work use suitable local or lower-cost models without a second agent runtime, silent privacy/cost escalation or profile authority expansion.",
+      "done": "Owner-configured route labels and short descriptions are the only routing choices exposed to the model; engine validation resolves approved provider/model/endpoint/effort/tier or an explicitly allowlisted specialist profile before any worker/network effect. Default, model-route and profile-route modes preserve inactive settings and unchanged unconfigured behavior. Invalid/duplicate names, missing or disabled routes/profiles, unsupported options and stale choices fail before spawn rather than becoming a permissive default. Existing CLI setup/routes and Desktop Model/Delegation edit the same versioned policy with keyboard access; changes apply to a new chat by default, while an explicit supported apply-now is acknowledged at the next message and discloses tool-schema/cache impact, never fakes success. Current worker lifecycle, policy gateways, isolation, cancellation and inherited aggregate time/turn/token/cost/concurrency limits remain authoritative. Profile routing cannot widen parent-approved accounts, secrets, tools, terminal/filesystem scope or standing grants, and remains blocked until exact profile ownership/restart behavior is proven. Local/private routes never fall back to cloud without separate owner-approved policy. Existing delegation/usage evidence records requested label, policy version, effective provider/model/effort/tier/profile, approved fallback, stop reason and known/unknown cost without secrets or a new public full-prompt receipt. Real source then packaged Desktop and CLI/TUI fixtures prove configured fast/deep/local/default routing, invalid/stale/disabled refusal, profile denial/revocation, budget stop, no unapproved cloud fallback, save/restart and next-chat/apply-now semantics, exact receipts and no duplicate work or lost drafts. Live credential-bearing or paid-provider proof requires separate owner authority.",
+      "parkedReason": "strategy decision",
+      "notes": "Owner requested this comparison on 2026-10-26. Reviewed the catalog and pinned README/model_map.py/profile_routes.py/slash.py plus MIT license, and inspected current Vanta delegate, model router, auto router, delegation receipts and Desktop delegation settings. Existing shipped AUTO-ROUTER/O1/profile/usage work is reused, not reclassified as this feature. Add three dependency-ordered slices: named engine policy; shared Desktop/CLI setup and session-effective mode; route receipts and actual behavior proof. Keep DELEGATION-LIVE-STEERING-BUDGET responsible for live steering/partial-result controls rather than creating another runner. No Hermes plugin/runtime installation or source copy, no inline plaintext API keys, permissive cross-profile credential inheritance, unbounded fan-out or silent provider/privacy/spend fallback. Parked behind current Desktop/recovery commitments; promote only after their executed dependency gates, not by moving this card into the already-full active queue. No implementation, installation, paid service, account grant, main merge, tag/release or completed-card claim. Detailed source/evidence boundary and adoption criteria: docs/hermes-advanced-delegation-adoption-2026-10-26.md."
     },
     {
       "id": "DESKTOP-NEXT-CUTOVER",
