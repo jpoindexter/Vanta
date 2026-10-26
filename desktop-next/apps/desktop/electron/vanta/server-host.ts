@@ -8,6 +8,7 @@ import {
 
 import type { BootProgress } from './shell-state'
 import type { LaunchInput, VantaServer } from './launcher'
+import { assertLocalRuntime, assertRuntimeProfile, readRuntimeOwner, runtimeRoute } from './runtime-owner'
 
 export interface ServerHostDeps {
   boot: { fail: (error: string) => void; ready: () => void; verifying: () => void }
@@ -193,9 +194,17 @@ export class ServerHost {
       }
     },
     request: async (call: VantaCall) => {
-      const transport = await this.whenReady()
-
-      return transport ? transport.request(call) : unavailable(this.lastError ?? 'the Vanta runtime is not running')
+      try {
+        const route = runtimeRoute(call)
+        assertLocalRuntime(route)
+        const transport = await this.whenReady()
+        if (!transport) return unavailable(this.lastError ?? 'the Vanta runtime is not running')
+        // Verify and dispatch through this exact transport/token, never a replacement runtime.
+        if (route.profile) assertRuntimeProfile(route, await readRuntimeOwner(transport.request))
+        return transport.request(call)
+      } catch (error) {
+        return { data: { error: error instanceof Error ? error.message : String(error) }, ok: false, status: 409 }
+      }
     }
   }
 

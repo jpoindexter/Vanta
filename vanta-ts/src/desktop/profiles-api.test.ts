@@ -18,6 +18,13 @@ async function writeDistribution(dir: string, name: string): Promise<void> {
 }
 
 describe("profiles routes", () => {
+  it("reports the running profile independently of a changed sticky default", async () => {
+    expect((await h.get("/api/profiles/current")).body).toEqual({ profile: "default" });
+    await h.post("/api/profiles/create", { name: "writer" });
+    await h.post("/api/profiles/set-default", { name: "writer" });
+    expect((await h.get("/api/profiles/current")).body).toEqual({ profile: "default" });
+    expect((await h.get("/api/profiles")).body.profiles.find((p: { id: string }) => p.id === "writer").isDefault).toBe(true);
+  });
   it("lists the implicit default first and marks it the sticky default", async () => {
     const { profiles } = (await h.get("/api/profiles")).body;
     expect(profiles).toHaveLength(1);

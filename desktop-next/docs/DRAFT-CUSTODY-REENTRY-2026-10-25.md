@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Native profile owner source checkpoint](NATIVE-PROFILE-OWNER-SOURCE-2026-10-26.md)
+records the actual silent-alias cause and a dependency-ready owner guard. The
+native descriptor, REST and direct effects refuse wrong owners; ordinary chat
+and read-only metadata pass actual source Electron checks. This is not live
+profile switching or remembered startup. The reconciled 109-file custody packet
+is frozen outside the repo; original239 files and installed recovery2 remain
+preserved. Continue in a new copy with real profile-owned runtime/event routing,
+then legacy/HUD/concurrent/unknown-send and exact installed acceptance. Do not
+substitute fail-closed refusal for the required switching capability.
+
 [Background queue exhaustion preservation](QUEUE-EXHAUSTION-SOURCE-2026-10-26.md)
 supersedes the inherited removal branch named below: actual source Electron
 reproduced the lost first request, then passes three retention/stop/restart

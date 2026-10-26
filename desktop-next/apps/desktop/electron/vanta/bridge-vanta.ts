@@ -51,6 +51,8 @@ export function createVantaBridge(ipc: IpcRendererLike) {
 }
 
 export interface ApiRequest {
+  connectionId?: null | string
+  profile?: null | string
   body?: unknown
   clientId?: string
   method?: string
@@ -78,6 +80,8 @@ export function createApiProxy(ipc: IpcRendererLike) {
     }
 
     const result = await ipc.invoke<VantaResult>(CH.request, {
+      ...(request.connectionId == null ? {} : { connectionId: request.connectionId }),
+      ...(request.profile == null ? {} : { profile: request.profile }),
       body: request.body,
       clientId: request.clientId,
       method: (request.method ?? 'GET').toUpperCase(),

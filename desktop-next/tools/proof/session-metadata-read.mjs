@@ -8,7 +8,7 @@ const root = process.env.VANTA_PROOF_SOURCE;
 assert.ok(root, 'An isolated source or explicit canonical checkout is required');
 const from = file => import(pathToFileURL(path.join(root, 'desktop-next/tools', file)));
 const { makeSandbox, launchApp, killLeftovers } = await from('done-path/harness.mjs');
-const { newChat, sendText, waitFinished, waitForShell } = await from('done-path/lib.mjs');
+const { newChat, sendText, waitFinished, waitForShell, sleep } = await from('done-path/lib.mjs');
 const { startScriptedModel } = await from('done-path/scripted-model.mjs');
 const output = path.resolve(process.argv[2]);
 fs.mkdirSync(output, { recursive: true });
@@ -27,7 +27,15 @@ try {
   const dir = path.join(box.vantaHome, 'sessions');
   const files = fs.readdirSync(dir).filter(file => file.endsWith('.json'));
   assert.equal(files.length, 1);
-  const file = path.join(dir, files[0]), before = fs.readFileSync(file, 'utf8'), saved = JSON.parse(before);
+  const file = path.join(dir, files[0]);
+  // Streamed text precedes the final save; compare bytes only after that turn is persisted.
+  const deadline = Date.now() + 10_000;
+  while (JSON.parse(fs.readFileSync(file, 'utf8')).messages.at(-1)?.desktopRun?.status !== 'done' && Date.now() < deadline) {
+    await sleep(100);
+  }
+  const before = fs.readFileSync(file, 'utf8'), saved = JSON.parse(before);
+  assert.equal(saved.messages.at(-1)?.desktopRun?.status, 'done');
+  assert.equal(saved.messages.at(-1)?.content, 'Scripted turn finished.');
   const reads = await current.page.evaluate(async id => {
     const read = async query => {
       try { return { value: await window.desktopBridge.api({ path: '/api/sessions/detail?' + query,

@@ -139,7 +139,10 @@ const setSoul: ControlTable[string] = async (ctx) => {
   sendOk(ctx.res);
 };
 
-export const profilesGet: ControlTable = { "/api/profiles": list, "/api/profiles/soul": getSoul };
+const current: ControlTable[string] = async (ctx) => {
+  sendJson(ctx.res, 200, { profile: env(ctx).VANTA_PROFILE || DEFAULT_PROFILE });
+};
+export const profilesGet: ControlTable = { "/api/profiles": list, "/api/profiles/soul": getSoul, "/api/profiles/current": current };
 export const profilesPost: ControlTable = {
   "/api/profiles/create": create,
   "/api/profiles/clone": clone,

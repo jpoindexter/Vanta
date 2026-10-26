@@ -1,6 +1,8 @@
 export type VantaHttpMethod = 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT'
 
 export interface VantaCall {
+  connectionId?: null | string
+  profile?: null | string
   body?: unknown
   /** One id per renderer chat. The Vanta server keeps per-id state and reads it from `x-session-id`. */
   clientId?: string

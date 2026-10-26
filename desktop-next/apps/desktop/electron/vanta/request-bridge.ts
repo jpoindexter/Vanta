@@ -1,11 +1,12 @@
 import type { VantaCall, VantaResult, VantaTransport } from '../../../shared/src/vanta'
 import { z } from 'zod'
+import { runtimeRouteSchema } from './runtime-owner'
 
 const MAX_PATH_LENGTH = 2048
 const MAX_TIMEOUT_MS = 1_800_000
 export const MAX_STREAMS_PER_WINDOW = 32
 
-const callSchema = z.object({
+const callSchema = runtimeRouteSchema.extend({
   body: z.unknown().optional(),
   clientId: z.string().min(1).max(128).optional(),
   method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),

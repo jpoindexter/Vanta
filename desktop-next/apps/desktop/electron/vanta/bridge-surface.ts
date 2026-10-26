@@ -5,7 +5,8 @@ import { windowFeatureApi } from './bridge-window'
 import { createApiProxy, createVantaBridge } from './bridge-vanta'
 import { CH } from './channels'
 import { SURFACE_MANIFEST } from './surface-manifest'
-import { LOCAL_GATEWAY_URL } from './shell-state'
+import { connectionApi } from './bridge-connection'
+import { singleEntryRegistries } from './bridge-profiles'
 
 export interface BridgeEnv {
   customWindowControls: boolean
@@ -29,13 +30,6 @@ const IDLE_BOOTSTRAP = {
   stages: {},
   startedAt: null,
   unsupportedPlatform: null
-}
-
-const SINGLE_LOCAL_REGISTRY = {
-  connections: [],
-  primary: 'local',
-  secureTokenStorage: false,
-  version: 1
 }
 
 function windowAndTheme({ customWindowControls, ipc }: BridgeEnv) {
@@ -85,17 +79,17 @@ function zoomApi({ ipc, zoom }: BridgeEnv) {
 }
 
 function connectionAndBoot({ ipc }: BridgeEnv) {
-  const describe = () => ipc.invoke(CH.connection)
+  const connections = connectionApi(ipc)
 
   return {
     api: createApiProxy(ipc),
     continueBootstrapLocal: () => Promise.resolve({ ok: true }),
     getBootProgress: () => ipc.invoke(CH.bootProgressGet),
     getBootstrapState: () => Promise.resolve(IDLE_BOOTSTRAP),
-    getConnection: describe,
-    getConnectionFor: describe,
-    getGatewayWsUrl: () => Promise.resolve(LOCAL_GATEWAY_URL),
-    getGatewayWsUrlFor: () => Promise.resolve(LOCAL_GATEWAY_URL),
+    getConnection: connections.getConnection,
+    getConnectionFor: connections.getConnectionFor,
+    getGatewayWsUrl: connections.getGatewayWsUrl,
+    getGatewayWsUrlFor: connections.getGatewayWsUrlFor,
     onBackendExit: (callback: (payload: unknown) => void) => subscribe(ipc, CH.backendExit, callback),
     recycleBackend: () => ipc.invoke(CH.backendRecycle),
     resetPlan: (scope: string) => ipc.invoke(CH.resetPlan, scope),
@@ -137,75 +131,6 @@ function nativeAndProject({ ipc, pathForFile }: BridgeEnv) {
       setDefaultProjectDir: (dir: null | string) => ipc.invoke(CH.projectSetDefault, dir)
     },
     writeClipboard: (text: string) => ipc.invoke(CH.writeClipboard, text)
-  }
-}
-
-interface ProfileRow {
-  isDefault?: boolean
-  name: string
-}
-
-const LOCAL_SOURCE = { connectionId: 'local', kind: 'local', label: 'This computer', reachable: true }
-
-/** The profiles the Vanta server lists, as the rows the renderer's roster and default-profile code read. */
-async function listProfiles(ipc: IpcRendererLike): Promise<ProfileRow[]> {
-  const result = await ipc.invoke<{ data?: { profiles?: ProfileRow[] }; ok: boolean }>(CH.request, {
-    method: 'GET',
-    path: '/api/profiles'
-  })
-
-  return result.ok && Array.isArray(result.data?.profiles) ? result.data.profiles : []
-}
-
-/** One local connection. Profiles are the server's: the roster and the default come from /api/profiles. */
-function singleEntryRegistries(ipc: IpcRendererLike) {
-  const defaultListeners = new Set<(route: { connectionId: null | string; profile: string } | null) => void>()
-  const routeFor = (profile: string) => ({ connectionId: null, profile })
-
-  return {
-    connections: { list: () => Promise.resolve(SINGLE_LOCAL_REGISTRY) },
-    getAgentRoster: async () => ({
-      agents: (await listProfiles(ipc)).map(row => ({
-        connectionId: LOCAL_SOURCE.connectionId,
-        connectionKind: LOCAL_SOURCE.kind,
-        connectionLabel: LOCAL_SOURCE.label,
-        handle: row.name,
-        profile: row.name
-      })),
-      sources: [LOCAL_SOURCE]
-    }),
-    profile: {
-      get: () => Promise.resolve({ profile: null }),
-      getDefault: async () => {
-        const rows = await listProfiles(ipc)
-        const found = rows.find(row => row.isDefault) ?? rows[0]
-
-        return found ? routeFor(found.name) : null
-      },
-      onDefaultChanged: (callback: (route: { connectionId: null | string; profile: string } | null) => void) => {
-        defaultListeners.add(callback)
-
-        return () => defaultListeners.delete(callback)
-      },
-      remember: () => Promise.resolve({ profile: null }),
-      set: () => Promise.resolve({ profile: null }),
-      setDefault: async (route: { profile?: unknown }) => {
-        const name = typeof route?.profile === 'string' ? route.profile : ''
-        const result = await ipc.invoke<{ data?: { error?: string }; ok: boolean }>(CH.request, {
-          body: { name },
-          method: 'POST',
-          path: '/api/profiles/set-default'
-        })
-
-        if (!result.ok) {
-          throw new Error(result.data?.error ?? `Could not set ${name || 'that profile'} as the default.`)
-        }
-
-        defaultListeners.forEach(listener => listener(routeFor(name)))
-
-        return routeFor(name)
-      }
-    }
   }
 }
 
