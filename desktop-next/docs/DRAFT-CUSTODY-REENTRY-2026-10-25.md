@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Owner candidate and corrected profile triage](DRAFT-OWNER-CANDIDATE-2026-10-26.md)
+records captured text keys/callers, explicit-owner draft titles and malformed
+owner-key preservation. The isolated copy passes 53 focused checks and eleven
+actual Electron recovery/restart steps. The real Create Profile UI also passes;
+the earlier raw-bridge 404 bypassed the existing shim and was not that UI path.
+Owner-undefined/legacy handling, native profile routing, ten new/worse size
+findings and packaged/installed continuity remain open. The application patch
+stays external; work from a new copy of the preserved packet, not the installed
+app or the older frozen candidate.
+
 [Draft-text recovery](DRAFT-TEXT-RECOVERY-2026-10-25.md) records a reproduced
 bare-session profile collision (still unresolved) and an isolated correction
 for corrupt shared reads erasing known drafts. Nine actual Electron checks

@@ -79,21 +79,26 @@ try {
   const requests = model.requests.length;
   const goodStore = await current.page.evaluate(() => localStorage.getItem("desktop:composer-drafts:v4"));
   assert.ok(goodStore, "Fixture draft must already be persisted");
-  await current.page.evaluate(() => {
-    localStorage.setItem("desktop:composer-drafts:v4", "{broken");
-    window.dispatchEvent(new StorageEvent("storage", { key: "desktop:composer-drafts:v4" }));
-  });
+  const malformedOwner = JSON.stringify({ version: 4, drafts: {
+    '__owned_draft_text_v1__:["local",null,"session"]': { text: "Unattributed fixture words", revision: "00000000-0000-0000-0000-000000000000" }
+  } });
   const warning = current.page.getByTestId("draft-text-storage-status");
-  await warning.waitFor({ state: "visible" });
-  assert.equal(await composerText(current.page), draft);
-  assert.equal(await previewHash(), expectedHash);
-  assert.equal(model.requests.length, requests);
-  checks.push("corrupt shared snapshot leaves exact visible text and PNG intact and announces failure without a send");
-  await warning.getByRole("button", { name: "Retry", exact: true }).click();
-  await warning.waitFor({ state: "visible" });
-  assert.equal(await current.page.evaluate(() => localStorage.getItem("desktop:composer-drafts:v4")), "{broken");
-  assert.equal(await composerText(current.page), draft);
-  checks.push("Retry retains corrupt bytes and current draft instead of treating unreadable data as empty");
+  for (const corrupt of ["{broken", malformedOwner]) {
+    await current.page.evaluate(value => {
+      localStorage.setItem("desktop:composer-drafts:v4", value);
+      window.dispatchEvent(new StorageEvent("storage", { key: "desktop:composer-drafts:v4" }));
+    }, corrupt);
+    await warning.waitFor({ state: "visible" });
+    assert.equal(await composerText(current.page), draft);
+    assert.equal(await previewHash(), expectedHash);
+    assert.equal(model.requests.length, requests);
+    checks.push(`${corrupt === malformedOwner ? "invalid owner identity" : "invalid JSON"} leaves exact visible text and PNG intact and announces failure without a send`);
+    await warning.getByRole("button", { name: "Retry", exact: true }).click();
+    await warning.waitFor({ state: "visible" });
+    assert.equal(await current.page.evaluate(() => localStorage.getItem("desktop:composer-drafts:v4")), corrupt);
+    assert.equal(await composerText(current.page), draft);
+    checks.push("Retry retains corrupt bytes and current draft instead of treating unreadable data as empty");
+  }
   await current.page.screenshot({ path: path.join(output, "corrupt-store-warning.png") });
   await current.page.evaluate(good => localStorage.setItem("desktop:composer-drafts:v4", good), goodStore);
   await warning.getByRole("button", { name: "Retry", exact: true }).click();
