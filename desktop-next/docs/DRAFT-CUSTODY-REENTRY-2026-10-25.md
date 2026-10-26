@@ -2,6 +2,17 @@
 
 ## Latest parent review
 
+[Pending-owner and modularized candidate](DRAFT-PENDING-CANDIDATE-2026-10-26.md)
+supersedes the earlier raw-fallback/size-blocker state for the isolated copy:
+unresolved input is gated, recorded owners resolve first-session handoff, and
+seven extracted modules pass strict limits. The 64-path unchanged size ratchet
+has no new/worse findings. Focused checks pass 205; exact source corruption and
+queue restart journeys pass eleven and six checks. A separate actual startup
+cleanup proof timed out twice and remains unproven; unit checks preserve unsent
+owned/legacy text and image-only drafts. The frozen application packet remains
+external and uninstalled. Legacy recovery UI, native profile continuity,
+fresh/GONE/HUD/concurrent/unknown-send and exact installed gates remain open.
+
 [Owner candidate and corrected profile triage](DRAFT-OWNER-CANDIDATE-2026-10-26.md)
 records captured text keys/callers, explicit-owner draft titles and malformed
 owner-key preservation. The isolated copy passes 53 focused checks and eleven
