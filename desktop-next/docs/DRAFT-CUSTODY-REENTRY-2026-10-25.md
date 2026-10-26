@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Background queue exhaustion preservation](QUEUE-EXHAUSTION-SOURCE-2026-10-26.md)
+supersedes the inherited removal branch named below: actual source Electron
+reproduced the lost first request, then passes three retention/stop/restart
+checks after deleting that branch. Focused58/type/build/size pass. Both requests
+and the spent retry budget survive without replay/model calls. The installed
+app and frozen110-file candidate are unchanged; merge this source correction
+into the next candidate copy while retaining its custody guards. Missing-chat
+recovery, unknown effects, profile/HUD/concurrent ownership and exact packaged/
+installed/owner gates remain. No full queue or Desktop completion is claimed.
+
 [Session lookup and empty-history source checkpoint](SESSION-CLEANUP-SOURCE-2026-10-26.md)
 supersedes the empty-backend notification gap below. The actual empty-history
 candidate replay passes four checks; image/queue restart replays pass again.

@@ -363,17 +363,19 @@ describe('useBackgroundQueueDrain', () => {
     await waitFor(() => expect(getQueuedPrompts('stored-session-a')).toHaveLength(0))
   })
 
-  it("drops a gone session's queued prompt quietly at drain exhaustion instead of erroring (#98015)", async () => {
+  it.each([false, true])('retains a missing session queue at exhaustion, transport failure: %s', async transportError => {
     vi.useFakeTimers()
 
-    // The session list has settled and no row answers to the queued session:
-    // the conversation is gone from this backend (reaped runtime whose stored
-    // resume refuses — the post-restart shape the issue reports).
+    // Even confirmed server absence cannot authorize deleting the person's unsent work.
     setSessions([])
     const runtimeMap = { current: new Map<string, string>() }
-    const submitText = vi.fn(async () => false)
+    const submitText = vi.fn(async () => {
+      if (transportError) throw new Error('offline')
+      return false
+    })
 
-    enqueueQueuedPrompt('stored-session-a', { text: 'never sends', attachments: [] })
+    const first = enqueueQueuedPrompt('stored-session-a', { text: 'never sends', attachments: [] })!
+    const second = enqueueQueuedPrompt('stored-session-a', { text: 'not attempted yet', attachments: [] })!
 
     render(<Harness runtimeMap={runtimeMap} submitText={submitText} />)
 
@@ -389,14 +391,17 @@ describe('useBackgroundQueueDrain', () => {
 
     expect(submitText).toHaveBeenCalledTimes(MAX_AUTO_DRAIN_ATTEMPTS)
 
-    // The entry is dropped and the notice is a quiet info, not the old
-    // "message not sent" error banner.
+    // Stop retrying the first request; preserve it and everything behind it.
     await act(async () => {
       await Promise.resolve()
     })
-    expect(getQueuedPrompts('stored-session-a')).toHaveLength(0)
+    expect(getQueuedPrompts('stored-session-a').map(entry => entry.id)).toEqual([first.id, second.id])
+    expect(getQueuedPrompts('stored-session-a')[0]?.drainFailures).toBe(MAX_AUTO_DRAIN_ATTEMPTS)
+    expect(getQueuedPrompts('stored-session-a')[1]?.drainFailures).toBeUndefined()
     const stuck = $notifications.get().find(n => n.id === 'composer-background-queue-stuck-stored-session-a')
     expect(stuck?.kind).toBe('info')
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
+    expect(submitText).toHaveBeenCalledTimes(MAX_AUTO_DRAIN_ATTEMPTS)
   })
 
   it('keeps the queued prompt for a session the loaded list still knows, with a quiet notice (#98015)', async () => {
