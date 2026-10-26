@@ -2,6 +2,19 @@
 
 ## Latest parent review
 
+[Session lookup and empty-history source checkpoint](SESSION-CLEANUP-SOURCE-2026-10-26.md)
+supersedes the empty-backend notification gap below. The actual empty-history
+candidate replay passes four checks; image/queue restart replays pass again.
+A dependency-ready twelve-file source slice now provides exact read-only
+metadata, explicit healthy-list readiness and non-discarding reference cleanup.
+Its own native-bridge and current-v3 cold-start replays each pass three checks,
+137 UI/27 runtime checks and types/build/size pass. The wider110-file v4/native
+custody candidate remains frozen externally, not integrated or installed.
+Original239 files and installed71cf90cf remain unchanged. Explicit legacy/native
+profile/HUD/concurrent/unknown-send, inherited auto-drain exhaustion removal and
+exact installed gates remain. Reconcile that packet against the new source head;
+do not stack it wholesale. No broader visual/parity/human gate is closed.
+
 [Supported metadata lookup and actual startup proof](DRAFT-CLEANUP-LOOKUP-2026-10-26.md)
 closes the previous timeout's bounded engineering cause: a missing detail route,
 plus a fixture overwritten by shutdown before its synthetic records were loaded.

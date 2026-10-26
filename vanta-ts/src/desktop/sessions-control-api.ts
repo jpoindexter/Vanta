@@ -3,7 +3,7 @@ import { exportSession } from "../sessions/export.js";
 import { forkSessionAt } from "../sessions/fork-at.js";
 import { markAllSessionsRead, setSessionUnread } from "../sessions/read-state.js";
 import { searchSessions } from "../sessions/search.js";
-import { listAllSessions, loadSession } from "../sessions/store.js";
+import { listAllSessions, loadSession, readSessionMetadata } from "../sessions/store.js";
 import { type ControlTable, errorText, parseBody, parseQuery, sendFail, sendOk } from "./control-http.js";
 import { sendJson } from "./handler-http.js";
 
@@ -16,6 +16,19 @@ const UnreadBody = z.union([
 ]);
 
 const SEARCH_SESSION_WINDOW = 300;
+
+const SessionDetailQuery = z.object({ id: z.string().trim().min(1), profile: z.string().trim().optional() });
+const detail: ControlTable[string] = async (ctx) => {
+  const query = parseQuery(ctx, SessionDetailQuery);
+  if (!query) return;
+  const env = ctx.state._env ?? process.env;
+  if (query.profile && query.profile !== (env.VANTA_PROFILE || "default")) {
+    return sendFail(ctx.res, 409, "This backend cannot read that profile's session metadata.");
+  }
+  const metadata = await readSessionMetadata(query.id, env);
+  if (!metadata) return sendFail(ctx.res, 404, "session not found");
+  sendJson(ctx.res, 200, metadata);
+};
 
 const search: ControlTable[string] = async (ctx) => {
   const query = parseQuery(ctx, SearchQuery);
@@ -62,5 +75,5 @@ const fork: ControlTable[string] = async (ctx) => {
   } catch (error) { sendFail(ctx.res, 500, `could not branch session: ${errorText(error)}`); }
 };
 
-export const sessionsControlGet: ControlTable = { "/api/sessions/search": search, "/api/sessions/export": exportOne };
+export const sessionsControlGet: ControlTable = { "/api/sessions/search": search, "/api/sessions/export": exportOne, "/api/sessions/detail": detail };
 export const sessionsControlPost: ControlTable = { "/api/sessions/unread": unread, "/api/sessions/fork": fork };

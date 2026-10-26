@@ -5,7 +5,7 @@ import { resolveVantaHome } from "../store/home.js";
 import type { Message } from "../types.js";
 import { reconcileDanglingToolResults } from "../agent/effect-disposition.js";
 import { deleteUnsavedRunsForSession } from "../runs/store.js";
-import { SessionSchema, type Session, type SessionMeta, type SaveSessionOpts } from "./session-schema.js";
+import { SessionSchema, sessionToMeta, type Session, type SessionMeta, type SaveSessionOpts } from "./session-schema.js";
 import { assertSessionDirectory, atomicReplaceSessionFile, readSessionBytes, sessionFilePath, SessionStoreConflictError, SessionStoreUnreadableError, withSessionLock, writeSessionBytes } from "./atomic-persistence.js";
 export { SessionStoreConflictError, SessionStoreUnreadableError } from "./atomic-persistence.js";
 
@@ -66,25 +66,6 @@ function deriveTitle(messages: Message[]): string {
   const firstUser = messages.find((m) => m.role === "user");
   const text = firstUser?.content.trim().replace(/\s+/g, " ") ?? "(empty session)";
   return text.length > 60 ? `${text.slice(0, 57)}...` : text;
-}
-
-/** Session → listing metadata (turn count = number of user messages). */
-function toMeta(session: Session): SessionMeta {
-  return {
-    id: session.id,
-    title: session.title,
-    started: session.started,
-    updated: session.updated,
-    projectId: session.projectId,
-    cwd: session.cwd,
-    providerId: session.providerId,
-    modelId: session.modelId,
-    archived: session.archived,
-    trashed: session.trashed,
-    pinned: session.pinned,
-    pinOrder: session.pinOrder,
-    turns: session.messages.filter((m) => m.role === "user").length,
-  };
 }
 
 /** Default failure-atomic JSON adapter bound once to its Vanta home. */
@@ -162,7 +143,7 @@ async function listMetadata(env?: NodeJS.ProcessEnv): Promise<SessionMeta[]> {
   const metas: SessionMeta[] = [];
   for (const file of files) {
     const id = file.slice(0, -5);
-    try { const session = await readRawSession(id, env); if (session) metas.push(toMeta(session)); }
+    try { const session = await readRawSession(id, env); if (session) metas.push(sessionToMeta(session)); }
     catch (error) {
       if (!(error instanceof SessionStoreUnreadableError)) throw error;
       metas.push({ id, title: `Session needs recovery: ${id}`, started: "", updated: "", turns: 0,
@@ -195,6 +176,12 @@ export async function checkpointSessionMessages(
 /** Absent sessions return null; corruption/unreadability raises an actionable diagnostic. */
 export async function loadSession(id: string, env?: NodeJS.ProcessEnv): Promise<Session | null> {
   return createFsSessionStore(env).load(id);
+}
+
+/** Read exact metadata without resume-time reconciliation or transcript exposure. */
+export async function readSessionMetadata(id: string, env?: NodeJS.ProcessEnv): Promise<SessionMeta | null> {
+  const session = await readRawSession(id, env);
+  return session ? sessionToMeta(session) : null;
 }
 
 /** Delete a session and any disposable run records linked to it. Saved runs

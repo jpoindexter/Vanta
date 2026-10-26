@@ -214,7 +214,8 @@ export function rawApi<T>(request: VantaApiRequest): Promise<T> {
 // Only the Vanta shell (preload exposes `vantaDesktop`) serves sessions, profiles, config and model settings
 // from what the Vanta server has; every other path passes through.
 function viaShim<T>(request: VantaApiRequest, send: (call: VantaApiRequest) => Promise<unknown>): Promise<T> {
-  const shimmed = typeof window.vantaDesktop === 'undefined' ? null : vantaRestShim(request, send)
+  const scopedSend = (call: VantaApiRequest) => send({ ...request, ...call, method: call.method, body: call.body, upload: call.upload })
+  const shimmed = typeof window.vantaDesktop === 'undefined' ? null : vantaRestShim(request, scopedSend)
 
   return (shimmed ?? send(request)) as Promise<T>
 }

@@ -19,6 +19,7 @@ import { $queuedPromptsBySession, enqueueQueuedPrompt, getQueuedPrompts } from '
 import { $pinnedSessionIds } from '@/store/layout'
 import { $activeGatewayProfile, $profiles } from '@/store/profile'
 import { $sessions } from '@/store/session'
+import { $sessionListLoaded } from '@/store/session-list-readiness'
 
 import { __runDeadSessionPrunePass, resetDeadSessionPrune, watchDeadSessionPrune } from './dead-session-prune'
 
@@ -113,7 +114,7 @@ describe('__runDeadSessionPrunePass', () => {
     expect($pinnedSessionIds.get()).toEqual([])
   })
 
-  it('discards drafts for dead sessions but never the new-chat draft', async () => {
+  it('retains unsent drafts even when their backend row is absent', async () => {
     $sessions.set([row('unrelated')])
     stashSessionDraft('dead-draft-session', 'stale text', [])
     stashSessionDraft('__new__', 'brand new', [])
@@ -121,11 +122,11 @@ describe('__runDeadSessionPrunePass', () => {
 
     await __runDeadSessionPrunePass()
 
-    expect(takeSessionDraft('dead-draft-session').text).toBe('')
+    expect(takeSessionDraft('dead-draft-session').text).toBe('stale text')
     expect(takeSessionDraft('__new__').text).toBe('brand new')
   })
 
-  it('drops queued prompts for dead sessions and keeps live ones', async () => {
+  it('retains pending queued prompts whether their backend row exists or not', async () => {
     $sessions.set([row('unrelated')])
     enqueueQueuedPrompt('dead-queue-session', { text: 'go', attachments: [] })
     enqueueQueuedPrompt('live-queue-session', { text: 'stay', attachments: [] })
@@ -139,8 +140,25 @@ describe('__runDeadSessionPrunePass', () => {
 
     await __runDeadSessionPrunePass()
 
-    expect(getQueuedPrompts('dead-queue-session')).toEqual([])
+    expect(getQueuedPrompts('dead-queue-session').map(prompt => prompt.text)).toEqual(['go'])
     expect(getQueuedPrompts('live-queue-session')).toHaveLength(1)
+  })
+
+  it.each(['404: not found', '500: session not found', '403: session not found', 'session not found during network recovery'])(
+    'does not certify absence from an inconclusive failure: %s', async error => {
+      $pinnedSessionIds.set(['uncertain-pin'])
+      getSessionMock.mockRejectedValue(new Error(error))
+      await __runDeadSessionPrunePass()
+      expect($pinnedSessionIds.get()).toEqual(['uncertain-pin'])
+    }
+  )
+
+  it('preserves an image-only draft without a backend row', async () => {
+    const image = { id: 'unsent-image', kind: 'image' as const, label: 'fixture.png' }
+    stashSessionDraft('dead-draft-session', '', [image])
+    getSessionMock.mockRejectedValue(notFound())
+    await __runDeadSessionPrunePass()
+    expect(takeSessionDraft('dead-draft-session').attachments).toEqual([image])
   })
 
   it('skips ids already covered by loaded sidebar rows', async () => {
@@ -276,6 +294,7 @@ describe('watchDeadSessionPrune', () => {
       getSessionMock.mockRejectedValue(notFound())
 
       $sessions.set([row('boot-row')])
+      $sessionListLoaded.set(true)
 
       vi.advanceTimersByTime(2_000)
       await vi.runOnlyPendingTimersAsync()
@@ -299,6 +318,7 @@ describe('watchDeadSessionPrune', () => {
       // naively re-schedule to +6s. The clamp keeps the earlier deadline —
       // and must not stack a second timer for it.
       $sessions.set([row('a')])
+      $sessionListLoaded.set(true)
       vi.advanceTimersByTime(1_000)
       $sessions.set([row('a'), row('b')])
       expect(vi.getTimerCount()).toBe(1)
@@ -323,6 +343,7 @@ describe('watchDeadSessionPrune', () => {
       $pinnedSessionIds.set(['first-pin'])
       getSessionMock.mockRejectedValue(notFound())
       $sessions.set([row('a')])
+      $sessionListLoaded.set(true)
       vi.advanceTimersByTime(2_000)
       await vi.runOnlyPendingTimersAsync()
       expect($pinnedSessionIds.get()).toEqual([])

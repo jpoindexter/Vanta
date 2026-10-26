@@ -99,3 +99,22 @@ export type SaveSessionOpts = {
   /** Optional compare-and-swap precondition for a previously loaded snapshot; null means create only. */
   expectedVersion?: string | null;
 };
+
+/** Session → listing metadata (turn count = number of user messages). */
+export function sessionToMeta(session: Session): SessionMeta {
+  return {
+    id: session.id,
+    title: session.title,
+    started: session.started,
+    updated: session.updated,
+    projectId: session.projectId,
+    cwd: session.cwd,
+    providerId: session.providerId,
+    modelId: session.modelId,
+    archived: session.archived,
+    trashed: session.trashed,
+    pinned: session.pinned,
+    pinOrder: session.pinOrder,
+    turns: session.messages.filter((message) => message.role === "user").length,
+  };
+}

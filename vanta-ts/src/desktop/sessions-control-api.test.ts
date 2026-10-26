@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { loadSession, saveSession, setSessionArchived, setSessionTrashed } from "../sessions/store.js";
 import type { Message } from "../types.js";
 import { startControlHarness, type ControlHarness } from "./__fixtures__/control-harness.js";
@@ -17,6 +19,32 @@ const TRANSCRIPT: Message[] = [
 ];
 
 const listed = async () => (await h.get("/api/sessions")).body as Array<{ id: string; unread?: boolean; archived?: boolean; title: string }>;
+
+describe("read-only session detail", () => {
+  it("reads exact metadata without opening, reconciling or exposing the transcript", async () => {
+    await saveSession("detail", TRANSCRIPT.slice(0, 3), { env: process.env, title: "Pending", cwd: h.root, modelId: "test-model" });
+    const file = join(h.home, "sessions", "detail.json");
+    const before = await readFile(file, "utf8");
+    const result = await h.get("/api/sessions/detail?id=detail");
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ id: "detail", title: "Pending", cwd: h.root, modelId: "test-model", turns: 1 });
+    expect(result.body).not.toHaveProperty("messages");
+    expect(result.body).not.toHaveProperty("systemPrompt");
+    expect(await readFile(file, "utf8")).toBe(before);
+  });
+
+  it("distinguishes absence, unreadability, invalid input and an unsupported profile", async () => {
+    expect(await h.get("/api/sessions/detail?id=missing")).toMatchObject({ status: 404, body: { error: "session not found" } });
+    expect((await h.get("/api/sessions/detail")).status).toBe(400);
+    expect((await h.get("/api/sessions/detail?id=missing&profile=other")).status).toBe(409);
+    await saveSession("damaged", TRANSCRIPT, { env: process.env });
+    const file = join(h.home, "sessions", "damaged.json");
+    await writeFile(file, "{broken");
+    const result = await h.get("/api/sessions/detail?id=damaged");
+    expect(result.status).toBeGreaterThanOrEqual(500);
+    expect(await readFile(file, "utf8")).toBe("{broken");
+  });
+});
 
 describe("session search", () => {
   it("finds a phrase inside a transcript with a snippet, and skips trashed sessions", async () => {

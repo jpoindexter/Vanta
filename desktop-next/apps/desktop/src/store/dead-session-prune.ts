@@ -21,13 +21,14 @@
 
 import { getSession } from '@/desktop-api'
 import { mapPool } from '@/lib/pool'
-import { clearSessionDraft, stashedDraftScopes } from '@/store/composer'
-import { $queuedPromptsBySession, clearQueuedPrompts } from '@/store/composer-queue'
+import { stashedDraftScopes } from '@/store/composer'
+import { $queuedPromptsBySession } from '@/store/composer-queue'
 import { $pinnedSessionIds, unpinSession } from '@/store/layout'
 import { $activeGatewayProfile, $profiles, normalizeProfileKey } from '@/store/profile'
 import { $sessions } from '@/store/session'
 
 import { forgetPinSyncState } from './session-pin-sync'
+import { $sessionListLoaded } from './session-list-readiness'
 
 const SWEEP_CONCURRENCY = 4
 // After the first list payload, let boot settle (pin reconcile, resume probes)
@@ -58,7 +59,14 @@ let sweepTimer: ReturnType<typeof setTimeout> | undefined
 type Verdict = 'alive' | 'dead' | 'unknown'
 
 function isNotFoundError(error: unknown): boolean {
-  return /session not found/i.test(error instanceof Error ? error.message : String(error))
+  const message = error instanceof Error ? error.message : String(error)
+  const match = /(?:^|Error:\s*)404:\s*(.+)$/s.exec(message)
+  if (!match) return false
+  if (/^session not found(?:$|:)/i.test(match[1]!)) return true
+  try {
+    const body = JSON.parse(match[1]!)
+    return /^session not found(?:$|:)/i.test(body.error ?? body.detail ?? '')
+  } catch { return false }
 }
 
 /**
@@ -177,19 +185,11 @@ function dropDeadId(id: string): void {
     unpinSession(id)
   }
 
-  // No-ops for surfaces that don't hold the id — the guards also skip the
-  // localStorage write a no-op clear would still perform.
-  if (stashedDraftScopes().includes(id)) {
-    clearSessionDraft(id)
-  }
-
-  if ($queuedPromptsBySession.get()[id]?.length) {
-    clearQueuedPrompts(id)
-  }
+  // A missing server row never authorizes discarding unsent drafts or queued prompts.
 }
 
 async function sweepOnce(requireLoaded = true): Promise<void> {
-  if (requireLoaded && !listLoaded) {
+  if (requireLoaded && !$sessionListLoaded.get()) {
     return
   }
 
@@ -249,38 +249,50 @@ export function __runDeadSessionPrunePass(): Promise<void> {
  * Call once per app, next to `watchSessionPins`. Returns the store unsubscribe
  * (used by tests).
  */
+function scheduleSweep(): void {
+  const firstPayload = !listLoaded
+  listLoaded = true
+
+  const delay = firstPayload ? FIRST_PASS_DELAY_MS : RERUN_DELAY_MS
+
+  // Clamp to the EARLIEST change since the last pass: constant list churn
+  // must delay the sweep, not starve it.
+  const dueAt = Date.now() + delay
+  const nextDueAt = sweepTimer ? Math.min(sweepDueAt, dueAt) : dueAt
+
+  if (sweepTimer && nextDueAt !== sweepDueAt) {
+    clearTimeout(sweepTimer)
+    sweepTimer = undefined
+  }
+
+  sweepDueAt = nextDueAt
+
+  // Exactly one timer at a time: a churn that doesn't move the deadline
+  // keeps the existing timer instead of stacking a second one.
+  if (!sweepTimer) {
+    sweepTimer = setTimeout(
+      () => {
+        sweepDueAt = 0
+        sweepTimer = undefined
+        void sweepOnce()
+      },
+      Math.max(0, nextDueAt - Date.now())
+    )
+  }
+}
+
 export function watchDeadSessionPrune(): () => void {
-  return $sessions.listen(() => {
-    const firstPayload = !listLoaded
-    listLoaded = true
-
-    const delay = firstPayload ? FIRST_PASS_DELAY_MS : RERUN_DELAY_MS
-
-    // Clamp to the EARLIEST change since the last pass: constant list churn
-    // must delay the sweep, not starve it.
-    const dueAt = Date.now() + delay
-    const nextDueAt = sweepTimer ? Math.min(sweepDueAt, dueAt) : dueAt
-
-    if (sweepTimer && nextDueAt !== sweepDueAt) {
-      clearTimeout(sweepTimer)
-      sweepTimer = undefined
-    }
-
-    sweepDueAt = nextDueAt
-
-    // Exactly one timer at a time: a churn that doesn't move the deadline
-    // keeps the existing timer instead of stacking a second one.
-    if (!sweepTimer) {
-      sweepTimer = setTimeout(
-        () => {
-          sweepDueAt = 0
-          sweepTimer = undefined
-          void sweepOnce()
-        },
-        Math.max(0, nextDueAt - Date.now())
-      )
-    }
+  const offRows = $sessions.listen(() => {
+    if ($sessionListLoaded.get()) scheduleSweep()
   })
+  const offLoaded = $sessionListLoaded.listen((loaded) => {
+    if (loaded) scheduleSweep()
+  })
+  if ($sessionListLoaded.get()) scheduleSweep()
+  return () => {
+    offRows()
+    offLoaded()
+  }
 }
 
 /**
@@ -293,6 +305,7 @@ export function resetDeadSessionPrune(): void {
   alive.clear()
   inFlight.clear()
   listLoaded = false
+  $sessionListLoaded.set(false)
 
   if (sweepTimer) {
     clearTimeout(sweepTimer)

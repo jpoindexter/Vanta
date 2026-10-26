@@ -2,9 +2,9 @@ import { z } from 'zod'
 
 import type { SessionMessagesResponse, SessionSearchResponse } from '@/types/desktop'
 
-import { vantaMessageSchema } from './schemas'
+import { sessionMetaSchema, vantaMessageSchema } from './schemas'
 import { get, post, segment, type ShimRoute } from './shim-core'
-import { isoToSeconds } from './shim-session-row'
+import { isoToSeconds, sessionInfoFromMeta } from './shim-session-row'
 import { toTranscript } from './transcript'
 
 const searchSchema = z.object({
@@ -78,6 +78,18 @@ export const sessionRoutes: readonly ShimRoute[] = [
     path: /^\/api\/sessions\/search$/
   },
   { handle: patchSession, method: 'PATCH', path: new RegExp(`^${SESSION}$`) },
+  {
+    handle: async call => {
+      const query = new URLSearchParams({ id: segment(call) })
+      const profile = call.query.get('profile')
+      if (profile) query.set('profile', profile)
+      const meta = sessionMetaSchema.parse(await get(call.send, `/api/sessions/detail?${query}`))
+      if (meta.id !== segment(call)) throw new Error('Saved chat identity did not match the requested chat.')
+      return { ...sessionInfoFromMeta(meta), ...(profile ? { profile, is_default_profile: profile === 'default' } : {}) }
+    },
+    method: 'GET',
+    path: new RegExp(`^${SESSION}$`)
+  },
   {
     handle: async (call): Promise<SessionMessagesResponse> => {
       const id = segment(call)

@@ -50,6 +50,7 @@ import {
   tombstoneRowIds
 } from '@/store/session-removal'
 import { $sessionTiles, $workingSessionIds, getRecentlySettledSessionIds } from '@/store/session-states'
+import { acknowledgeSessionListRead } from '@/store/session-list-readiness'
 
 import { refreshCronJobs as refreshCronJobsStore } from '../../cron/cron-actions'
 
@@ -431,6 +432,7 @@ export function useSessionListActions({ profileScope }: UseSessionListActionsArg
 
             return sameCronSignature(prev, next) ? prev : next
           })
+          acknowledgeSessionListRead(result)
           // "Is there another page?" instead of an exact total: the backend
           // reports which profiles filled their window, which costs nothing on
           // top of the rows it already read (the old exact totals ran a COUNT(*)
