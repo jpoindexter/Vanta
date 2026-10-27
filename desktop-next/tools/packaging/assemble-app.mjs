@@ -68,7 +68,7 @@ function asarManifest({ identity, build }) {
     type: "module",
     main: "dist/electron-main.mjs",
     desktopName: identity.appId,
-    vantaBuild: { commit: build.commit, builtAt: build.builtAt },
+    vantaBuild: { commit: build.commit, builtAt: build.builtAt, provenance: build.provenance },
   };
 }
 
@@ -106,5 +106,6 @@ export async function assembleApp({ out, paths, config, identity, build }) {
   copyFile(paths.kernel, path.join(resources, "kernel", "vanta-kernel"));
   fs.chmodSync(path.join(resources, "kernel", "vanta-kernel"), 0o755);
   for (const [from, to] of paths.notices) copyFile(from, path.join(resources, to));
+  fs.writeFileSync(path.join(resources, "vanta-build-provenance.json"), `${JSON.stringify(build, null, 2)}\n`);
   return { out, plist: readPlist(path.join(contents, "Info.plist")) };
 }

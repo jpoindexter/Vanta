@@ -16,6 +16,7 @@ import { legacyBrandFacts, sizeFacts, symlinkFacts } from "./packaging/bundle-re
 import { signAdHoc } from "./packaging/sign-app.mjs";
 import { signDeveloperId } from "./packaging/sign-developer-id.mjs";
 import { stageRuntime } from "./packaging/stage-runtime.mjs";
+import { assemblyInputs, assertSourceUnchanged, captureSource, fingerprintInputs } from "./packaging/package-provenance.mjs";
 
 const require = createRequire(import.meta.url);
 const next = path.resolve(import.meta.dirname, "..");
@@ -37,11 +38,6 @@ function resolveKernel() {
   }
   if (fs.existsSync(release)) return { file: release, profile: "release" };
   return { file: path.join(repo, "target", "debug", "vanta-kernel"), profile: "debug" };
-}
-
-function gitFacts() {
-  const git = (...args) => execFileSync("git", args, { cwd: repo, encoding: "utf8" }).trim();
-  return { commit: git("rev-parse", "--short=8", "HEAD"), builtAt: new Date().toISOString() };
 }
 
 function buildInputs() {
@@ -81,9 +77,13 @@ function sealAndReport({ app, outDir, build, kernel, packages, name }) {
 }
 
 async function main() {
+  // Fail before loading build configuration or compiling a copied/non-Git snapshot.
+  const source = captureSource(repo);
   const config = require("../apps/desktop/electron-builder.config.cjs");
   const identity = require("../apps/desktop/product-identity.cjs");
-  const build = { version: process.env.VANTA_NEXT_VERSION ?? "0.1.0", ...gitFacts() };
+  // Disclose dirty inputs rather than claiming HEAD-only provenance.
+  const build = { version: process.env.VANTA_NEXT_VERSION ?? "0.1.0", commit: source.commit,
+    builtAt: new Date().toISOString(), provenance: source };
   const outDir = path.join(desktop, "release", "mac-arm64");
   const app = path.join(outDir, `${identity.displayName}.app`);
   const scratch = path.join(desktop, "build", "packager");
@@ -94,7 +94,12 @@ async function main() {
   console.log("[package] assemble app");
   const electronDist = path.join(electronPackageRoot(), "dist");
   const paths = { desktop, electronDist, kernel: kernel.file, runtime: path.join(scratch, "vanta-runtime"), work: path.join(scratch, "asar"), notices: noticeFiles(electronDist) };
+  assertSourceUnchanged(source, captureSource(repo));
+  const inputs = assemblyInputs(paths);
+  build.provenance.assembly = fingerprintInputs(inputs);
   await assembleApp({ out: app, config, identity, build, paths });
+  assertSourceUnchanged(source, captureSource(repo));
+  if (fingerprintInputs(inputs).sha256 !== build.provenance.assembly.sha256) throw new Error("Package inputs changed during assembly; refusing to sign mixed inputs.");
   sealAndReport({ app, outDir, build, kernel, packages, name: identity.displayName });
 }
 

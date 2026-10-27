@@ -7,6 +7,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { deliveryReport, refreshDeliveryArchive } from "./packaging/delivery-archive.mjs";
 
 const args = process.argv.slice(2);
 const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
@@ -24,6 +25,9 @@ if (!fs.existsSync(app)) {
   console.error(`No app at ${app}. Build it first: npm run vanta:package with VANTA_SIGN_IDENTITY set.`);
   process.exit(1);
 }
+
+// Refuse stale reports or unproven copied builds before keychain/Apple access.
+deliveryReport(app);
 
 if (!hasProfile()) {
   console.error(`No notary credentials named "${profile}" in the keychain yet. Run this once in Terminal (it asks for an app-specific password):\n\n  xcrun notarytool store-credentials "${profile}" --apple-id <your Apple ID> --team-id <TEAM ID>\n\nThen run this again.`);
@@ -50,4 +54,5 @@ execFileSync("xcrun", ["stapler", "staple", app], { stdio: "inherit" });
 execFileSync("xcrun", ["stapler", "validate", app], { stdio: "inherit" });
 const assess = spawnSync("spctl", ["--assess", "--type", "execute", "--verbose=2", app], { encoding: "utf8" });
 console.log(assess.stderr || assess.stdout);
-process.exit(assess.status === 0 ? 0 : 4);
+if (assess.status !== 0) process.exit(4);
+console.log(JSON.stringify(refreshDeliveryArchive(app), null, 2));

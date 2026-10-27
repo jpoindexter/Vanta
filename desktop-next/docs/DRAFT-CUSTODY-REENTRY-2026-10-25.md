@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Package provenance and final archive](PACKAGE-PROVENANCE-SOURCE-2026-10-27.md)
+now records declared dirty source and assembly inputs and regenerates the ZIP
+after successful staple/assessment. Parent canonical32 focused checks and five
+strict MJS size checks pass; the real old-artifact notarization entry refuses
+missing provenance before keychain access. No real package/sign/notary/install
+occurred. Same-HEAD dirty-source installer binding remains a private follow-up;
+actual profile/custody/dependency integration and all owner gates stay open.
+Preserve the existing candidate and original work. Disk temporarily dipped to
+about5GiB, then recovered to15GiB without deletion; recheck before heavy work.
+
 [Installer freshness](INSTALLER-FRESHNESS-SOURCE-2026-10-27.md) closes the
 bounded old-release selection trap: the real no-package entry refuses the
 canonical f09e827b artifact before replacement/launcher creation; installer20
