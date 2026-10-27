@@ -1,4 +1,3 @@
-import { readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 import { resolveWritablePathAsk } from "./writable-zones.js";
@@ -6,6 +5,7 @@ import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 import { projectControlPlaneConfirmation } from "./project-security-path.js";
+import { captureWriteTarget, commitFileWrite, type FileWriteTarget } from "./file-write-target.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -33,21 +33,19 @@ function checkUniqueness(content: string, old_string: string, replace_all: boole
 }
 
 async function applyEdit(
-  abs: string,
+  target: FileWriteTarget,
   path: string,
   content: string,
   { old_string, new_string, replace_all }: ValidatedArgs,
 ): Promise<import("./types.js").ToolResult> {
+  const abs = target.abs;
   const updated = replace_all
     ? content.split(old_string).join(new_string)
     : content.replace(old_string, new_string);
   const diff = computeDiff(content, updated);
   try {
     const finishDiag = await beginDiagnosticDelta(abs, true);
-    globalFileCheckpointStore.save({ path, absPath: abs, content });
-    await writeFile(abs, updated, "utf8");
-    const readback = await readFile(abs, "utf8").catch(() => null);
-    const verified = readback === updated;
+    const verified = commitFileWrite(target, updated, () => globalFileCheckpointStore.save({ path, absPath: abs, content }));
     const occurrences = replace_all ? content.split(old_string).length - 1 : 1;
     const diagNote = await finishDiag();
     return {
@@ -125,8 +123,11 @@ export const editFileTool: Tool = {
     const abs = r.abs;
 
     let content: string;
+    let target: FileWriteTarget;
     try {
-      content = await readFile(abs, "utf8");
+      target = captureWriteTarget(abs);
+      if (target.previous === null) throw new Error("file does not exist");
+      content = target.previous.toString("utf8");
     } catch (err) {
       return { ok: false, output: `could not read ${path}: ${(err as Error).message}` };
     }
@@ -141,8 +142,8 @@ export const editFileTool: Tool = {
     const approved = controlPlane
       ? await ctx.requestApproval(controlPlane.action, controlPlane.reason, "edit_file", controlPlane.detail)
       : await ctx.requestApproval(`Edit file ${path}`, "modifying existing file content", "edit_file");
-    if (!approved) return { ok: false, output: `edit to ${path} denied — file left unchanged` };
+    if (!approved) return { ok: false, output: `edit to ${path} denied — file left unchanged`, effectDisposition: "denied" };
 
-    return applyEdit(abs, path, content, { path, old_string, new_string, replace_all });
+    return applyEdit(target, path, content, { path, old_string, new_string, replace_all });
   },
 };

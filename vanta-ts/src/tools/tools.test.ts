@@ -445,7 +445,7 @@ describe("shell_cmd", () => {
       expect(created.ok).toBe(true);
 
       const initialized = await shellCmdTool.execute(
-        { command: `cd '${target}' && git init` },
+        { command: `git -C '${target}' init` },
         ctx(),
       );
       expect(initialized.ok).toBe(true);
@@ -455,6 +455,16 @@ describe("shell_cmd", () => {
       else process.env.VANTA_EXTRA_DIRS = previous;
       await rm(target, { recursive: true, force: true });
     }
+  });
+
+  it("refuses compound Git shell commands before execution", async () => {
+    const result = await shellCmdTool.execute(
+      { command: `cd '${root}' && git init` },
+      ctx(),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain("Use a direct Git tool invocation for compound Git shell commands");
+    await expect(readFile(join(root, ".git", "HEAD"), "utf8")).rejects.toThrow();
   });
 
   it("refuses a destructive command locally", async () => {

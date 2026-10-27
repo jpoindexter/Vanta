@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
@@ -9,6 +9,7 @@ import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 import { projectControlPlaneConfirmation } from "./project-security-path.js";
+import { assertWriteParent, captureWriteTarget, commitFileWrite, type FileWriteTarget } from "./file-write-target.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -36,15 +37,6 @@ async function confirmDangerousPath(
   return null;
 }
 
-async function exists(p: string): Promise<boolean> {
-  try {
-    await access(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // CODE-SIZE-GATE in the agent loop: a TS/TSX write that breaks the size limits
 // surfaces the violations in the tool result (file:line + limit + fix) so the
 // agent writes born-small or self-corrects next turn. Advisory — never blocks
@@ -62,46 +54,40 @@ async function sizeNoteFor(displayPath: string, abs: string, content: string): P
 }
 
 /** ACTION-PROOF: re-read the file and confirm the write landed. */
-async function verifyWrite(
+function verifyWrite(
   abs: string,
   content: string,
-): Promise<{ note: string; status: "unverified" | "verified"; evidence: string }> {
-  try {
-    const after = await readFile(abs, "utf8");
-    return after === content
-      ? {
-          note: ` · verified ${after.split("\n").length} lines, ${Buffer.byteLength(after)} bytes on disk`,
-          status: "verified",
-          evidence: `readback matched ${Buffer.byteLength(after)} bytes at ${abs}`,
-        }
-      : {
-          note: " · ⚠ on-disk content differs from what was written",
-          status: "unverified",
-          evidence: `readback mismatch at ${abs}`,
-        };
-  } catch (e) {
-    return {
-      note: ` · ⚠ could not re-read to verify: ${(e as Error).message.split("\n")[0]}`,
-      status: "unverified",
-      evidence: `readback unavailable at ${abs}`,
-    };
-  }
+  verified: boolean,
+): { note: string; status: "unverified" | "verified"; evidence: string } {
+  return verified
+    ? {
+        note: ` · verified ${content.split("\n").length} lines, ${Buffer.byteLength(content)} bytes on disk`,
+        status: "verified",
+        evidence: `readback matched ${Buffer.byteLength(content)} bytes at ${abs}`,
+      }
+    : {
+        note: " · ⚠ on-disk content differs from what was written",
+        status: "unverified",
+        evidence: `readback mismatch at ${abs}`,
+      };
 }
 
 /** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE note. */
-async function writeAndReport(o: { abs: string; displayPath: string; content: string; isExisting: boolean; oldContent: string }): Promise<ToolResult> {
+async function writeAndReport(o: { abs: string; displayPath: string; content: string; target: FileWriteTarget }): Promise<ToolResult> {
   try {
-    const finishDiag = await beginDiagnosticDelta(o.abs, o.isExisting); // diagnostic baseline (opt-in)
+    const isExisting = o.target.previous !== null;
+    const oldContent = o.target.previous?.toString("utf8") ?? "";
+    const finishDiag = await beginDiagnosticDelta(o.abs, isExisting); // diagnostic baseline (opt-in)
+    assertWriteParent(o.target);
     await mkdir(dirname(o.abs), { recursive: true });
-    globalFileCheckpointStore.save({
+    const verified = commitFileWrite(o.target, o.content, () => globalFileCheckpointStore.save({
       path: o.displayPath,
       absPath: o.abs,
-      content: o.isExisting ? o.oldContent : null,
-    });
-    await writeFile(o.abs, o.content, "utf8");
-    const kind = o.isExisting ? "overwritten" : "new file";
-    const diff = computeDiff(o.oldContent, o.content);
-    const proof = await verifyWrite(o.abs, o.content);
+      content: isExisting ? oldContent : null,
+    }));
+    const kind = isExisting ? "overwritten" : "new file";
+    const diff = computeDiff(oldContent, o.content);
+    const proof = verifyWrite(o.abs, o.content, verified);
     const sizeNote = await sizeNoteFor(o.displayPath, o.abs, o.content);
     const diagNote = await finishDiag();
     return {
@@ -158,6 +144,9 @@ export const writeFileTool: Tool = {
     const r = await resolveWritablePathAsk(path, ctx.root, process.env, ctx.requestApproval);
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
+    let target: FileWriteTarget;
+    try { target = captureWriteTarget(abs); }
+    catch (error) { return { ok: false, output: `could not prepare ${path}: ${(error as Error).message}` }; }
 
     const controlPlane = projectControlPlaneConfirmation({ abs, root: ctx.root, displayPath: path, content });
     if (controlPlane && !(await ctx.requestApproval(
@@ -172,22 +161,17 @@ export const writeFileTool: Tool = {
     const dangerous = await confirmDangerousPath(path, abs, ctx);
     if (dangerous) return dangerous;
 
-    const isExisting = await exists(abs);
-    let oldContent = "";
-    if (isExisting) {
-      try { oldContent = await readFile(abs, "utf8"); } catch { /* leave as "" on read error */ }
-      if (!controlPlane) {
-        const approved = await ctx.requestApproval(
-          `Overwrite existing file ${path}`,
-          "file already exists — overwriting is destructive",
-          "write_file",
-        );
-        if (!approved) {
-          return { ok: false, output: `write to ${path} denied — file left unchanged` };
-        }
+    if (target.previous !== null && !controlPlane) {
+      const approved = await ctx.requestApproval(
+        `Overwrite existing file ${path}`,
+        "file already exists — overwriting is destructive",
+        "write_file",
+      );
+      if (!approved) {
+        return { ok: false, output: `write to ${path} denied — file left unchanged` };
       }
     }
 
-    return writeAndReport({ abs, displayPath: path, content, isExisting, oldContent });
+    return writeAndReport({ abs, displayPath: path, content, target });
   },
 };
