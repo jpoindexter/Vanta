@@ -32,7 +32,7 @@ import {
 const FILE = "nd-profile.json";
 
 const GateConfigSchema = z.object({ enabled: z.boolean(), threshold: z.number() }).partial();
-const NdConfigSchema = z.record(GateConfigSchema);
+const NdConfigSchema = z.record(z.string(), GateConfigSchema);
 const PreferencesSchema = z
   .object({
     outputDensity: z.enum(OUTPUT_DENSITIES),

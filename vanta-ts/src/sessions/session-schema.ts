@@ -13,7 +13,7 @@ const MessageSchema: z.ZodType<Message> =
       role: z.literal("assistant"),
       content: z.string(),
       toolCalls: z
-        .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.unknown()), effectState: z.enum(["pending", "started"]).optional() }))
+        .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.string(), z.unknown()), effectState: z.enum(["pending", "started"]).optional() }))
         .optional(),
       desktopRun: z.object({
         status: z.enum(["done", "failed", "interrupted"]),

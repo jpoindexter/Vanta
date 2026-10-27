@@ -7,7 +7,7 @@ export const RuntimeLaunchSpecSchema = z.object({
   id: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/),
   backend: RuntimeEngineBackendSchema,
   model: z.string().min(1),
-  host: z.string().ip().default("127.0.0.1"),
+  host: z.union([z.ipv4(), z.ipv6()]).default("127.0.0.1"),
   port: z.number().int().min(1).max(65535),
   contextTokens: z.number().int().min(256).max(1_000_000).default(8192),
   modelBytes: z.number().int().positive(),

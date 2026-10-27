@@ -9,7 +9,7 @@ const Args = z.object({
   action: z.enum(["status", "index", "query", "generate"]),
   document_id: z.string().min(1).max(512).optional(),
   content: z.string().min(1).optional(),
-  metadata: z.record(z.union([z.string(), z.number().finite(), z.boolean(), z.null()])).optional(),
+  metadata: z.record(z.string(), z.union([z.string(), z.number().finite(), z.boolean(), z.null()])).optional(),
   namespace: z.string().min(1).max(256).optional(),
   query: z.string().min(1).max(65_536).optional(),
   top_k: z.number().int().min(1).max(50).optional(),

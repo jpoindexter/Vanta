@@ -63,7 +63,7 @@ export function isDxtError<T>(r: DxtResult<T>): r is { error: string } {
 const ServerSchema = z.object({
   command: z.string().min(1, "server.command must be a non-empty string"),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
 });
 
 // The manifest: name + server are required; version is optional provenance.

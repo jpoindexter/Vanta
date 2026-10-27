@@ -17,7 +17,7 @@ export const SchemaEvalFixtureSchema = z.object({
   id: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/),
   kind: z.enum(["repo_repair", "browser_workflow", "operator_task"]),
   instruction: z.string().min(1),
-  seed: z.record(z.string()).optional(),
+  seed: z.record(z.string(), z.string()).optional(),
   check: CheckSchema,
   source: z.enum(["held_out", "training", "public"]),
   recoveryExpected: z.boolean().default(false),

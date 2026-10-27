@@ -46,13 +46,13 @@ const ServerShape = z
   .object({
     command: z.string().optional(),
     args: z.array(z.string()).optional(),
-    env: z.record(z.string()).optional(),
+    env: z.record(z.string(), z.string()).optional(),
     url: z.string().optional(),
-    headers: z.record(z.string()).optional(),
+    headers: z.record(z.string(), z.string()).optional(),
   })
   .passthrough();
 const McpConfigShape = z
-  .object({ servers: z.record(ServerShape).optional(), mcpServers: z.record(ServerShape).optional() })
+  .object({ servers: z.record(z.string(), ServerShape).optional(), mcpServers: z.record(z.string(), ServerShape).optional() })
   .passthrough();
 
 export type McpServer = z.infer<typeof ServerShape>;

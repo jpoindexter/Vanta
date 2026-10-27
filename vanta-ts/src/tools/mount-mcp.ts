@@ -16,7 +16,7 @@ const Args = z.object({
   name: z.string().min(1),
   command: z.string().min(1),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
 });
 
 const MOUNT_MCP_SCHEMA: Tool["schema"] = {

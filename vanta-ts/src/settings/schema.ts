@@ -18,7 +18,7 @@ export const SettingsSchema = z.object({
   /** Tool names always blocked. */
   blockedTools: z.array(z.string()).optional(),
   /** VANTA_* env overrides applied on top of .env. Non-secret only. */
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   /** Disable individual EF gates. */
   gates: z.object({
     antiSlop: z.boolean().optional(),

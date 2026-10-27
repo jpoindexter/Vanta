@@ -17,7 +17,7 @@ export const EvalTaskSchema = z.object({
   id: z.string().min(1),
   instruction: z.string().min(1),
   /** Relative-path → file-content, written into the sandbox before the run. */
-  seed: z.record(z.string()).optional(),
+  seed: z.record(z.string(), z.string()).optional(),
   check: CheckSchema,
 });
 export type EvalTask = z.infer<typeof EvalTaskSchema>;

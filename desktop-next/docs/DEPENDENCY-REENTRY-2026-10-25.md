@@ -1,5 +1,18 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest loaded-core source checkpoint — 2026-10-27
+
+[Loaded runtime migration](LOADED-CORE-DEPS-SOURCE-2026-10-27.md) supersedes the
+shared-dependency limitation below for the canonical runtime: Zod4.6.7 and
+OpenAI6.49.0 source plus a separately tested dependency clone are now installed
+locally, with previous dependencies/source retained. Parent20 focused SDK/schema
+checks, types/startup compile/runtime339 bundle and actual native chat/stream4
+pass. Fresh production npm audit0; all-dependency audit9 (2critical/6high/1moderate).
+The private profile worker uses a preserved old dependency tree until its final
+merge; do not overwrite these35 migrated paths from that older source snapshot.
+Installed recovery2 and Desktop/website dependency trees are unchanged. Combined
+profile/custody, fresh package/install and broad security/owner gates remain open.
+
 ## Latest compatible source checkpoint — 2026-10-27
 
 [Compatible runtime pins](COMPATIBLE-RUNTIME-DEPS-SOURCE-2026-10-27.md) records

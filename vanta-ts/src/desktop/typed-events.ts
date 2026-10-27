@@ -53,7 +53,7 @@ export const ApprovalPayloadSchema = z.object({
 });
 
 export const TypedDesktopEventSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("tool.start"), id: z.string().min(1), name: z.string(), args: z.record(z.unknown()), truncated: z.boolean() }),
+  z.object({ type: z.literal("tool.start"), id: z.string().min(1), name: z.string(), args: z.record(z.string(), z.unknown()), truncated: z.boolean() }),
   z.object({ type: z.literal("tool.complete"), id: z.string().min(1), name: z.string(), ok: z.boolean(), output: z.string(), truncated: z.boolean() }),
   z.object({ type: z.literal("thinking"), text: z.string(), truncated: z.boolean() }),
   z.object({ type: z.literal("approval.request"), approval: ApprovalPayloadSchema }),

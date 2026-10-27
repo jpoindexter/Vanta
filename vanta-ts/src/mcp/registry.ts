@@ -43,7 +43,7 @@ const ProbeSchema = z.object({
 });
 const RegistryStateSchema = z.object({
   version: z.literal(1),
-  servers: z.record(ProbeSchema),
+  servers: z.record(z.string(), ProbeSchema),
 });
 type Probe = z.infer<typeof ProbeSchema>;
 type RegistryState = z.infer<typeof RegistryStateSchema>;

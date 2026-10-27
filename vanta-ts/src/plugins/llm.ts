@@ -12,7 +12,7 @@ const BaseRequestSchema = z.object({
 
 const JsonSchema = z.object({
   type: z.enum(["object", "array", "string", "number", "boolean"]),
-  required: z.array(z.string()).optional(), properties: z.record(z.unknown()).optional(), items: z.unknown().optional(),
+  required: z.array(z.string()).optional(), properties: z.record(z.string(), z.unknown()).optional(), items: z.unknown().optional(),
 }).passthrough();
 
 const StructuredRequestSchema = BaseRequestSchema.extend({ schema: JsonSchema }).strict();

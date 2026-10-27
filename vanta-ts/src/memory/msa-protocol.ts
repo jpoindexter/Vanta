@@ -18,7 +18,7 @@ export function sanitizeMsaText(text: string): string {
 
 const ExternalText = z.string().transform(sanitizeMsaText);
 const MetadataValue = z.union([ExternalText, z.number().finite(), z.boolean(), z.null()]);
-export const MsaMetadataSchema = z.record(MetadataValue);
+export const MsaMetadataSchema = z.record(z.string(), MetadataValue);
 export type MsaMetadata = z.infer<typeof MsaMetadataSchema>;
 
 export const MsaDocumentSchema = z.object({

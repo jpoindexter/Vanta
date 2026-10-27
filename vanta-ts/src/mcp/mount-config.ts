@@ -32,11 +32,11 @@ export type McpTrust = { root: string; confirm?: TrustConfirmer };
 const ServerSchema = z.object({
   command: z.string().optional(),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   // MCP remote: HTTP transport support
   url: z.string().url().optional(),
   token: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   // OAuth: when the server requires auth, these drive the `mcp_auth` flow.
   authorizationUrl: z.string().url().optional(),
   tokenUrl: z.string().url().optional(),
@@ -52,8 +52,8 @@ const ServerSchema = z.object({
 // Accept both "servers" (Vanta) and "mcpServers" (common convention) keys; merge with servers winning.
 const ConfigSchema = z
   .object({
-    servers: z.record(ServerSchema).optional(),
-    mcpServers: z.record(ServerSchema).optional(),
+    servers: z.record(z.string(), ServerSchema).optional(),
+    mcpServers: z.record(z.string(), ServerSchema).optional(),
   })
   .transform((d) => ({ servers: { ...(d.mcpServers ?? {}), ...(d.servers ?? {}) } }));
 

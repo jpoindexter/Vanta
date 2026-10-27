@@ -32,7 +32,7 @@ const InferredSchema = DeclaredSchema.extend({
 const OperatorProfileSchema = z.object({
   declared: DeclaredSchema,
   inferred: InferredSchema,
-  approvalPreferences: z.record(ApprovalPref),
+  approvalPreferences: z.record(z.string(), ApprovalPref),
 });
 
 export { OperatorProfileSchema };

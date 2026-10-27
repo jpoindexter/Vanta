@@ -110,7 +110,7 @@ export const LoopDefSchema = z.object({
   trigger: TriggerSchema,
   stages: z.array(StageSchema).min(1),
   rubric: RubricSchema.default({ items: [], passScore: 0.8 }),
-  stop: StopRulesSchema.default({ maxIterations: 10, noProgressWakes: 3 }),
+  stop: StopRulesSchema.prefault({ maxIterations: 10, noProgressWakes: 3 }),
   status: LoopStatus.default("active"),
   createdAt: z.string().min(1),
 });

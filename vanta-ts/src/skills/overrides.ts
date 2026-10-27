@@ -47,7 +47,7 @@ export const SkillOverrideSchema = z
 export type SkillOverride = z.infer<typeof SkillOverrideSchema>;
 
 /** The operator's per-skill-name override map on settings.json. */
-export const SkillOverridesSchema = z.record(SkillOverrideSchema);
+export const SkillOverridesSchema = z.record(z.string(), SkillOverrideSchema);
 
 export type SkillOverrides = z.infer<typeof SkillOverridesSchema>;
 

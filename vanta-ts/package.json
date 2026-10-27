@@ -124,7 +124,7 @@
     "linkedom": "^0.18.12",
     "lucide-react": "^0.468.0",
     "nodemailer": "10.2.1",
-    "openai": "^5.12.0",
+    "openai": "^6.49.0",
     "playwright-core": "^1.60.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -132,7 +132,7 @@
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "web-tree-sitter": "^0.26.10",
     "winnow": "https://github.com/jpoindexter/winnow/archive/7d5756b72c32cb6bb46987ca9b85611a893d7cf1.tar.gz",
-    "zod": "^3.25.0"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",

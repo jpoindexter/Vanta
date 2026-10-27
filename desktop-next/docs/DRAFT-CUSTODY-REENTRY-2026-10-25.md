@@ -2,6 +2,15 @@
 
 ## Latest parent review
 
+[Loaded-core dependency migration](LOADED-CORE-DEPS-SOURCE-2026-10-27.md)
+now updates canonical runtime source/dependencies after isolating the private
+profile worker on its preserved old tree. Parent20 SDK/schema checks, type/
+startup/runtime339 build and actual native chat/stream4 pass; production npm
+audit0, all-deps9 still includes2critical. Source and previous dependencies are
+backed up; original239 and installed app unchanged. Final profile/custody merge
+must retain these35 paths and the newer packaging/token fixes, not restore the
+older candidate's versions. Full pool freeze and installed/owner gates remain.
+
 [Runtime log redaction](RUNTIME-LOG-REDACTION-SOURCE-2026-10-27.md) now prevents
 the launcher's known boundary token from entering logs/excerpts/mirrored stderr,
 including split output arriving after process exit. Parent actual synthetic

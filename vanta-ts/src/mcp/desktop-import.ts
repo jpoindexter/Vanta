@@ -11,12 +11,12 @@ import { resolveVantaHome } from "../store/home.js";
 
 /** A Claude Desktop MCP server entry. Permissive — Desktop servers are command
  * or url based; we preserve every field verbatim so nothing is lost on import. */
-const ServerEntrySchema = z.record(z.unknown());
+const ServerEntrySchema = z.record(z.string(), z.unknown());
 
 /** The slice of Claude Desktop config we care about: its `mcpServers` map. */
 const DesktopConfigSchema = z.object({
-  mcpServers: z.record(ServerEntrySchema).optional(),
-  servers: z.record(ServerEntrySchema).optional(),
+  mcpServers: z.record(z.string(), ServerEntrySchema).optional(),
+  servers: z.record(z.string(), ServerEntrySchema).optional(),
 });
 
 export type DesktopMcpServers = Record<string, Record<string, unknown>>;

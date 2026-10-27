@@ -29,7 +29,7 @@ const QaSchema = z.object({
 
 const LocomoSampleSchema = z.object({
   sample_id: z.union([z.string(), z.number()]),
-  conversation: z.record(z.unknown()),
+  conversation: z.record(z.string(), z.unknown()),
   qa: z.array(QaSchema),
 });
 
