@@ -5,7 +5,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { hasRunningDesktop, installLocalDesktop } from "../../../vanta-ts/scripts/lib/desktop-local-install.mjs";
-import { assertExpectedBuild } from "./build-identity.mjs";
+import { assertExpectedBuild, assertExpectedSource } from "./build-identity.mjs";
 
 export const LAUNCHER_MARKER = "# vanta-next launcher (written by `npm run vanta:install`)";
 
@@ -56,7 +56,7 @@ function installationPaths({ source, destDir, name }) {
 }
 
 /** Installs only the regular Vanta identity; returns the retained rollback receipt. */
-export async function installApp({ source, destDir, name, expectedCommit, run = execFileSync }) {
+export async function installApp({ source, destDir, name, expectedCommit, expectedSource, run = execFileSync }) {
   const { candidate, target, backupRoot } = installationPaths({ source, destDir, name });
   const assertStopped = () => {
     const processes = run("ps", ["-axo", "comm="], { encoding: "utf8" });
@@ -67,8 +67,9 @@ export async function installApp({ source, destDir, name, expectedCommit, run = 
     if (id !== "studio.theft.vanta-next") throw new Error("Candidate or installed app has the wrong Vanta bundle identifier.");
     run("codesign", ["--verify", "--deep", "--strict", bundle], { stdio: "inherit" });
   };
+  if (expectedSource !== undefined) assertExpectedSource({ candidate, expectedCommit, expectedSource });
   assertStopped();
-  assertExpectedBuild({ candidate, expectedCommit, run });
+  assertExpectedBuild({ candidate, expectedCommit, expectedSource, run });
   if (fs.existsSync(target)) verify(target);
   return installLocalDesktop({ candidate, target, backupRoot, verify, assertStopped });
 }

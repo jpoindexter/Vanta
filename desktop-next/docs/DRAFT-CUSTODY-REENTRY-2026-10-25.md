@@ -2,6 +2,14 @@
 
 ## Latest parent review
 
+[Same-commit install freshness](INSTALLER-SOURCE-DIGEST-2026-10-27.md)
+closes the remaining CLI digest gap below: the entry always captures current
+source and checks report/embedded provenance before native app management.
+Parent32 focused checks and strict3-script size pass; actual stale canonical
+artifact refuses with empty private destination/no launcher. Fixtures prove
+same-HEAD changed-source refusal and matching fake-app rollback preservation.
+No actual fresh packaging/signing/installation or owner acceptance is implied.
+
 [Package provenance and final archive](PACKAGE-PROVENANCE-SOURCE-2026-10-27.md)
 now records declared dirty source and assembly inputs and regenerates the ZIP
 after successful staple/assessment. Parent canonical32 focused checks and five

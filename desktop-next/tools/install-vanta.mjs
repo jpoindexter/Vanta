@@ -13,6 +13,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 
 import { installApp, installLauncher } from "./packaging/install-app.mjs";
+import { captureSource } from "./packaging/package-provenance.mjs";
 
 const require = createRequire(import.meta.url);
 const next = path.resolve(import.meta.dirname, "..");
@@ -26,10 +27,10 @@ if (!process.argv.includes("--no-package")) {
 const destDir = process.env.VANTA_INSTALL_APPS_DIR ?? "/Applications";
 const binDir = process.env.VANTA_INSTALL_BIN_DIR ?? path.join(os.homedir(), ".local", "bin");
 // Read after packaging too: a build made before the current source checkpoint is stale.
-const expectedCommit = execFileSync("git", ["rev-parse", "--short=8", "HEAD"], {
-  cwd: path.resolve(next, ".."), encoding: "utf8",
-}).trim();
-const receipt = await installApp({ source: built, destDir, name: identity.displayName, expectedCommit });
+// No caller override: --no-package must match current declared source bytes, even at the same HEAD.
+const expectedSource = captureSource(path.resolve(next, ".."));
+const receipt = await installApp({ source: built, destDir, name: identity.displayName,
+  expectedCommit: expectedSource.commit, expectedSource });
 const appPath = receipt.target;
 console.log(`Installed ${appPath}\nRollback: ${receipt.backup ?? "no previous app"}\nReceipt: ${receipt.receiptPath}`);
 const launcher = installLauncher({ binDir, appPath });
