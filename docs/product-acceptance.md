@@ -15,8 +15,18 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent-first delivery record](agent-delivery-and-priority-2026-10-27.md)
+identifies normal CLI pin `2f39a2b0`: formal pinned cold/warm/cache, 26 actual
+Rust ACP/MCP checks and isolated global-wrapper initialization pass. Old checkout,
+13 dirty files, launcher and all 239 canonical original files are preserved;
+credentials/approvals were not migrated. Owner live-profile/account use is not
+claimed. Signed agent2 Desktop candidate passes four actual chat/restart criteria
+but is not installed: Apple's saved notarization profile is missing. Current
+installed home1 remains valid and unchanged. Two Building lanes now prioritize
+agent trust and review/recovery; no whole-card or full-agent acceptance is implied.
+
 The [home1 installed checkpoint](../desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md)
-is the latest delivery record: code `feea5a4f`, local version
+is the latest installed Desktop record: code `feea5a4f`, local version
 `0.1.0-local.20261027.home1`, Developer ID signed, Apple Accepted/stapled,
 final ZIP independently extracted/validated and installed with recoverable
 archive2 rollback. Candidate and installed paths separately pass 24 bounded

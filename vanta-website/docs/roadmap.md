@@ -8,21 +8,23 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1289 capabilities shipped · 6 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-10-27._
+_1289 capabilities shipped · 6 in flight · 14 parked external-proof items · 5 on the horizon. Updated 2026-10-27._
 
 ## In flight
 
 What we are actively building next.
 
-### Desktop ambient workflow — one agent across chat, mini, work and results
+### Canonical action envelope and scoped capability
 
-**Operator** · L-size
+**Harness** · L-size
 
-Streamline the existing Vanta Desktop into one everyday workflow: invoke, give context, work, intervene, inspect results and resume or schedule. Keep the generalist engine, capabilities and revocable authority. White/grey with Vanta violet; optional mini/avatar opens the same workspace, not another agent. Owner priority 2026-10-03: dependable chat/remembered approvals and Stop first, then browser/native actions with saved results, then local-first voice in the same conversation. Voice model downloads and optional hosted providers have explicit acceptance in VOICE-LOCAL-MODELS-AND-PROVIDERS; historical speech modules are not Desktop voice proof. Sequence and evidence: docs/voice-and-everyday-agent-plan-2026-10-03.md
+Bind actor, account, operation, complete normalized arguments, target, recipient, content/attachment hashes, amount or audience, quota, expiry, nonce, attempts, idempotency, state precondition, evidence, and compensation
 
-### Desktop Next
+### Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
 
-**Operator** · L-size
+**Operator** · M-size
+
+Make the attention contract trustworthy: ordinary conversation creates nothing; only a deterministic blocker with one exact decision or authorization may set WorkItem state to needs human
 
 ### Repository Git probe isolation — project configuration cannot execute host commands
 
@@ -96,14 +98,13 @@ These remain unshipped until the real provider, device, or hosted environment pr
 
 Directional, not committed — grouped by area, newest thinking first.
 
-### Harness — 3 planned
+### Harness — 2 planned
 
-- Canonical action envelope and scoped capability
 - Untrusted-content quarantine across email, web, documents, messages, and social input
 - Safe factory, self-repair, and Vanta Lab production boundary
 
 ### Operator — 3 planned
 
-- Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
+- Desktop ambient workflow — one agent across chat, mini, work and results
 - Contextual Review, first-run usefulness, and cross-host accessibility contract
 - Authenticated browser workspace — visible sessions, takeover, and revocation

@@ -3,7 +3,19 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## CLI startup asset checkpoint — 2026-10-27 (not installed or released)
+## Agent-first local CLI delivery — 2026-10-27 (not a public release)
+
+- Select verified pinned agent source `2f39a2b0` after explicit owner approval;
+  preserve the old checkout, dirty work and launcher selection for rollback.
+  Formal cold/warm/cache and 26 real Rust ACP/MCP checks pass, plus isolated
+  global-wrapper initialization. No credentials or approvals migrated.
+- Build/sign same-source agent2 Desktop candidate; four packaged chat/restart
+  criteria pass. Do not replace valid installed home1 while Apple notarization
+  is blocked by missing saved Keychain credentials. Shift active lanes to agent
+  trust and review/recovery; no card marked shipped or owner gates bypassed.
+  [Delivery evidence and limits](docs/agent-delivery-and-priority-2026-10-27.md).
+
+## CLI startup asset checkpoint — 2026-10-27 (source now in the local CLI pin)
 
 - Include the maintained Fetch helpers in startup compilation and metadata;
   refuse missing/incomplete outputs before cache reuse or replacement. Five

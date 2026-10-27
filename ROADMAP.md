@@ -10,8 +10,8 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 **Building**
 
-1. `DESKTOP-OPERATOR-DOSSIER-HIERARCHY` — Desktop ambient workflow — one agent across chat, mini, work and results
-2. `DESKTOP-NEXT-CUTOVER` — Desktop Next — supervision surface for the company engine, Hermes shell as base, wireframe as spec
+1. `TRUST-03` — Canonical action envelope and scoped capability
+2. `OP-03` — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
 
 **Next**
 
@@ -22,16 +22,15 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 **Horizon**
 
-1. `TRUST-03` — Canonical action envelope and scoped capability
-2. `TRUST-05` — Untrusted-content quarantine across email, web, documents, messages, and social input
-3. `TRUST-06` — Safe factory, self-repair, and Vanta Lab production boundary
-4. `OP-03` — Trustworthy Needs You — deterministic, deduplicated, expiring, and auto-resolving
-5. `UX-04` — Contextual Review, first-run usefulness, and cross-host accessibility contract
-6. `BROWSER-AUTHENTICATED-WORKSPACE` — Authenticated browser workspace — visible sessions, takeover, and revocation
+1. `TRUST-05` — Untrusted-content quarantine across email, web, documents, messages, and social input
+2. `TRUST-06` — Safe factory, self-repair, and Vanta Lab production boundary
+3. `DESKTOP-OPERATOR-DOSSIER-HIERARCHY` — Desktop ambient workflow — one agent across chat, mini, work and results
+4. `UX-04` — Contextual Review, first-run usefulness, and cross-host accessibility contract
+5. `BROWSER-AUTHENTICATED-WORKSPACE` — Authenticated browser workspace — visible sessions, takeover, and revocation
 
 **Blocked**
 
-No cards currently Blocked.
+1. `DESKTOP-NEXT-CUTOVER` — Desktop Next — supervision surface for the company engine, Hermes shell as base, wireframe as spec
 
 Inventory: 1365 cards; 1289 shipped; 12 open; 64 parked.
 
