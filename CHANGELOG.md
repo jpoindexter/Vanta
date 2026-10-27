@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Download tooling checkpoint — 2026-10-27 (not installed or released)
+
+- Patched both existing npm Undici lines within their consumer ranges. Actual
+  canonical node-gyp response-failure proof changes process termination to controlled
+  rejection/natural exit; eight integrity cases, tree and typecheck pass. Runtime
+  npm audit two→one development high, production zero. Separate installed/host
+  built-in fetch probes still fail: this patch does not repair Node's embedded
+  implementation. No whole-security claim or new installed build.
+  [Evidence and runtime gap](desktop-next/docs/UNDICI-TOOLING-SECURITY-2026-10-27.md).
+
 ## Shared native helper checkpoint — 2026-10-27 (not installed or released)
 
 - Extracted the unchanged runtime-environment helper into the existing shared

@@ -75,6 +75,16 @@ rejection plus valid lookup/map-generation/content checks. Scoped tree and runti
 typecheck pass; fresh runtime audit becomes two development high, production zero.
 No expansion stress, full app build or installed update is claimed. Cache semantics
 and undici remain; this is not whole-security closure.
+The subsequent [npm transport repair](../desktop-next/docs/UNDICI-TOOLING-SECURITY-2026-10-27.md)
+updates both compatible Undici lines. Parent actual node-gyp malformed-response
+proof changes exit 1/unhandled stream to controlled rejection/natural exit 0;
+eight in-memory integrity cases, tree and runtime typecheck pass. Fresh npm runtime
+audit becomes one development high (disputed cache semantics), production zero.
+**Separate installed and host built-in fetch probes still terminate after a caught
+malformed-response rejection; installed uppercase integrity mismatch also bypasses.**
+This is a primitive failure, not a full agent exploit/SSRF bypass. A supported
+runtime remedy remains an active trust/release gate; no global-fetch or installed
+security fix is claimed from npm updates.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.

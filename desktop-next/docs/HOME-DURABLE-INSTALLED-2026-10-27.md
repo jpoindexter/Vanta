@@ -64,6 +64,12 @@ accepted-send/cleanup error and concurrent-window storage was not performed.
 
 ## Security and maintenance boundaries
 
+Later investigation: [transport tooling and built-in runtime evidence](UNDICI-TOOLING-SECURITY-2026-10-27.md)
+records a process-terminating malformed-response failure in this exact installed
+runtime's built-in fetch primitive and an uppercase integrity mismatch bypass.
+No full-agent exploit or owner-profile test is claimed. Later npm-only fixes do
+not repair that embedded implementation; the runtime remedy remains open.
+
 The delivered code also includes the separately evidenced Desktop Vite,
 runtime test-tooling, legacy Vite and Fast URI checkpoints. Runtime all-dependency
 audit at that snapshot reports four high findings, production-only zero. The

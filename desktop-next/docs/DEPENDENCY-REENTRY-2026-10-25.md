@@ -1,5 +1,17 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest transport tooling checkpoint — 2026-10-27
+
+[Undici tooling evidence](UNDICI-TOOLING-SECURITY-2026-10-27.md) records compatible
+6.29.1/7.30.1 npm repairs, parent actual node-gyp download failure red→green,
+eight integrity cases per snapshot, scoped tree and runtime typecheck. Fresh
+runtime audit is one development high (disputed cache semantics), production zero.
+This is not whole security: separate probes of the installed and host **built-in**
+fetch primitives still reproduce a process-terminating stream error. Installed
+uppercase integrity mismatch also bypasses. No full agent exploit or SSRF bypass
+is claimed, and npm updates do not patch Node's embedded implementation. Runtime
+remedy remains an active release/trust gate; older counts below are historical.
+
 ## Latest source-map tooling checkpoint — 2026-10-27
 
 [Source-map tooling evidence](SOURCE-MAP-TOOLING-SECURITY-2026-10-27.md) records
