@@ -10,6 +10,7 @@ import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 import { projectControlPlaneConfirmation } from "./project-security-path.js";
 import { assertWriteParent, captureWriteTarget, commitFileWrite, type FileWriteTarget } from "./file-write-target.js";
+import { ordinaryOverwriteConfirmation, requestOrdinaryOverwrite } from "./write-file-overwrite.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -158,19 +159,14 @@ export const writeFileTool: Tool = {
       return { ok: false, output: `write to ${path} denied — project control-plane state left unchanged`, effectDisposition: "denied" };
     }
 
+    const overwrite = ordinaryOverwriteConfirmation({ path, root: ctx.root, target, content, controlPlane: Boolean(controlPlane) });
+    if (overwrite?.ok === false) return { ok: false, output: overwrite.error, effectDisposition: "denied" };
+
     const dangerous = await confirmDangerousPath(path, abs, ctx);
     if (dangerous) return dangerous;
 
-    if (target.previous !== null && !controlPlane) {
-      const approved = await ctx.requestApproval(
-        `Overwrite existing file ${path}`,
-        "file already exists — overwriting is destructive",
-        "write_file",
-      );
-      if (!approved) {
-        return { ok: false, output: `write to ${path} denied — file left unchanged` };
-      }
-    }
+    const denied = await requestOrdinaryOverwrite(overwrite, ctx, path);
+    if (denied) return denied;
 
     return writeAndReport({ abs, displayPath: path, content, target });
   },

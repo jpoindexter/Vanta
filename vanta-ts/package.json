@@ -170,6 +170,7 @@
       "dist-runtime/**/*",
       "desktop-app/electron/**/*.mjs",
       "desktop-native/runtime-env.mjs",
+      "desktop-native/runtime-paths.mjs",
       "desktop-native/runtime-launch.mjs",
       "desktop-native/maintained-fetch.mjs",
       "desktop-native/runtime-fetch-init.mjs",

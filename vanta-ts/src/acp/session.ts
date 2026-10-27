@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { FILE_TOOLS, EDIT_PERMISSION_OPTIONS, decideEditPrompt, pathFromAction } from "./edit-policy.js";
 import type { StreamEvent } from "../agent/agent-types.js";
+import type { ApprovalDetail } from "../permissions/request.js";
 import type { AcpMcpServer } from "./protocol.js";
 
 // ACP session lifecycle — PURE + injectable. Owns the set of live sessions, maps
@@ -21,7 +22,7 @@ export type RunRequest = {
   /** Emit an agent StreamEvent — the session converts it to a session/update. */
   emit: (event: StreamEvent) => void;
   /** Ask the host to approve a gated action; resolves true=allow, false=deny. */
-  approve: (action: string, reason: string, toolName?: string, detail?: { diff?: string }) => Promise<boolean>;
+  approve: (action: string, reason: string, toolName?: string, detail?: ApprovalDetail) => Promise<boolean>;
 };
 
 /** The injected agent runner: drives a Vanta conversation for one prompt turn. */
@@ -62,6 +63,20 @@ export const PERMISSION_OPTIONS: PermissionOption[] = [
   { optionId: "allow", name: "Allow", kind: "allow_once" },
   { optionId: "reject", name: "Reject", kind: "reject_once" },
 ];
+
+type ApprovalAsk = { action: string; reason: string; toolName?: string; detail?: ApprovalDetail };
+
+function permissionRequest(ask: ApprovalAsk, options: PermissionOption[], oneTime: boolean): PermissionRequest {
+  const content: ToolCallContent[] = ask.detail?.diff
+    ? [{ type: "content", content: { type: "text", text: ask.detail.diff } }]
+    : [];
+  if (oneTime && ask.reason) content.push({ type: "content", content: { type: "text", text: ask.reason } });
+  return {
+    toolCall: { toolCallId: ask.toolName ? toolId(ask.toolName) : "approval",
+      title: oneTime ? ask.action : ask.reason || ask.action, content: content.length ? content : undefined },
+    options,
+  };
+}
 
 type Session = {
   id: string;
@@ -172,21 +187,19 @@ export class SessionManager {
    */
   private async approveWithEditPolicy(
     s: Session,
-    ask: { action: string; reason: string; toolName?: string; diff?: string },
+    ask: ApprovalAsk,
   ): Promise<boolean> {
     const isFileTool = ask.toolName !== undefined && FILE_TOOLS.has(ask.toolName);
-    if (isFileTool && decideEditPrompt({ autoApproveEdits: s.autoApproveEdits === true, path: pathFromAction(ask.action) }) === "auto-allow") {
+    const oneTime = ask.detail?.fresh === true || ask.detail?.canRemember === false;
+    const repeatableEdit = isFileTool && !oneTime;
+    if (repeatableEdit && decideEditPrompt({ autoApproveEdits: s.autoApproveEdits === true, path: pathFromAction(ask.action) }) === "auto-allow") {
       return true;
     }
-    const content: ToolCallContent[] | undefined = ask.diff
-      ? [{ type: "content", content: { type: "text", text: ask.diff } }]
-      : undefined;
-    const optionId = await this.sink.requestPermission(s.id, {
-      toolCall: { toolCallId: ask.toolName ? toolId(ask.toolName) : "approval", title: ask.reason || ask.action, content },
-      options: isFileTool ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS,
-    });
-    if (optionId === "allow_always" && isFileTool) s.autoApproveEdits = true;
-    return optionId.startsWith("allow");
+    const options = repeatableEdit ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS;
+    const optionId = await this.sink.requestPermission(s.id, permissionRequest(ask, options, oneTime));
+    const kind = options.find(option => option.optionId === optionId)?.kind;
+    if (kind === "allow_always") s.autoApproveEdits = true;
+    return kind === "allow_once" || kind === "allow_always";
   }
 
   /** Cancel the in-flight prompt for a session (best-effort; no-op if idle). */
@@ -217,8 +230,8 @@ export class SessionManager {
       const update = eventToUpdate(event);
       if (update) this.sink.update(sessionId, update);
     };
-    const approve = (action: string, reason: string, toolName?: string, detail?: { diff?: string }): Promise<boolean> =>
-      this.approveWithEditPolicy(s, { action, reason, toolName, diff: detail?.diff });
+    const approve: RunRequest["approve"] = (action, reason, toolName, detail) =>
+      this.approveWithEditPolicy(s, { action, reason, toolName, detail });
     try {
       const { stopReason } = await this.runner({
         sessionId,

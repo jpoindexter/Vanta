@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import type { VantaRuntimePaths } from '../../../../../vanta-ts/desktop-app/electron/runtime-paths.mjs'
+import type { VantaRuntimePaths } from '../../../../../vanta-ts/desktop-native/runtime-paths.mjs'
 
 /** Folder under `Contents/Resources` that holds the precompiled Vanta runtime in a packaged app. */
 export const PACKAGED_RUNTIME_DIR = 'vanta-runtime'

@@ -1,3 +1,4 @@
+import { WebSocket, type MessageEvent } from "undici";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
@@ -127,7 +128,8 @@ const swallow = (fn: () => void): void => {
   }
 };
 
-// Open one relay `WebSocket`: REQ-subscribe on open (pubkey read lazily), buffer
+// Use Vanta's maintained Undici WebSocket, not the Node-embedded implementation.
+// Open one relay: REQ-subscribe on open (pubkey read lazily), buffer
 // inbound frames into `inbox`. A dead relay is swallowed.
 function openRelaySocket(url: string, subId: string, getPubkey: () => string, inbox: unknown[]): WebSocket {
   const ws = new WebSocket(url);

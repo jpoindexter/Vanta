@@ -12,7 +12,7 @@ import { serverLaunchArgs } from '../../../../../vanta-ts/desktop-native/runtime
 import {
   resolveRuntimePaths,
   type VantaRuntimePaths
-} from '../../../../../vanta-ts/desktop-app/electron/runtime-paths.mjs'
+} from '../../../../../vanta-ts/desktop-native/runtime-paths.mjs'
 
 import { captureRuntimeOutput, type RuntimeOutput } from './runtime-output'
 import { withBundledLoader } from './runtime-root'

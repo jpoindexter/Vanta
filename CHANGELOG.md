@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Scoped replacement and runtime checkpoint — 2026-10-27 (source only)
+
+- Require exact fresh approval for ordinary in-project file replacement under
+  the owner-authorized narrow kernel policy; retain existing hard blocks and
+  captured-file revalidation. Preserve ACP one-time authority and exact previews.
+- Route two Node messaging WebSocket adapters through the existing patched
+  Undici package; share the existing runtime-path resolver without changing its
+  behavior. Focused source, actual kernel and private transport checks passed;
+  new packaged/notarized/installed acceptance remains separate.
+  [Source evidence and gaps](docs/scoped-replacement-and-runtime-checkpoint-2026-10-27.md).
+
 ## Verified agent/app delivery — 2026-10-27 (local, not a public release)
 
 - Deliver agent checkpoint `1d18f846` to the normal CLI and signed/notarized,
