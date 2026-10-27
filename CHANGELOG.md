@@ -3,6 +3,14 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## ACP outcome checkpoint — 2026-10-27 (source only)
+
+- Report blocked/review-required ACP work as `refusal`, not normal `end_turn`;
+  preserve cancellation and existing ordinary outcomes. Parent real stdio
+  baseline/current execution, 88 focused checks and runtime typecheck pass.
+  Local CLI pin and installed Desktop are unchanged by this source checkpoint.
+  [Evidence and limits](docs/acp-outcome-truth-2026-10-27.md).
+
 ## Agent-first local CLI delivery — 2026-10-27 (not a public release)
 
 - Select verified pinned agent source `2f39a2b0` after explicit owner approval;

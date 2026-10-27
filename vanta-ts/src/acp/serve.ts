@@ -1,6 +1,6 @@
 import { runAcpServer, stdioTransport } from "./acp-server.js";
 import type { AgentRunner, RunRequest } from "./session.js";
-import type { StreamEvent } from "../agent/agent-types.js";
+import type { AgentOutcome, StreamEvent } from "../agent/agent-types.js";
 import { createClientMcpRegistry } from "./client-mcp.js";
 import type { ToolRegistry } from "../tools/registry.js";
 
@@ -68,13 +68,15 @@ export function buildAcpRunner(setup: Setup, root: string, buildSummarizer: (p: 
     });
     const outcome = await convo.send(req.prompt, undefined, req.signal);
     events.finish(outcome.finalText);
-    return { stopReason: acpStopReason(outcome.stoppedReason) };
+    return { stopReason: acpStopReason(outcome) };
   };
 }
 
-/** Map a Vanta StoppedReason to the ACP StopReason vocabulary. */
-function acpStopReason(reason: string): "end_turn" | "cancelled" | "max_tokens" | "refusal" {
+/** Map refusal to continue, including uncertain effects, into ACP's existing vocabulary. */
+function acpStopReason(outcome: Pick<AgentOutcome, "stoppedReason" | "needsEffectReview">): "end_turn" | "cancelled" | "max_tokens" | "refusal" {
+  const reason = outcome.stoppedReason;
   if (reason === "interrupted" || reason === "soft_stopped") return "cancelled";
+  if (outcome.needsEffectReview || reason === "blocked") return "refusal";
   if (reason === "max_iterations") return "max_tokens";
   if (reason === "repeated_failure") return "refusal";
   return "end_turn";
