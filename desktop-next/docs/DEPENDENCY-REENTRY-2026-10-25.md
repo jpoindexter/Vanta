@@ -1,5 +1,18 @@
 # Dependency security re-entry — 2026-10-25
 
+## Exact installed closure — 2026-10-27
+
+[Installed profile1 candidate](PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
+contains the combined profile/custody source and upgraded runtime. Actual installed
+chat/restart/native approvals/background streams/PNG/queue checks pass. Static
+artifact review distinguishes Desktop workspace19 findings from the actual247
+runtime-package closure; no demonstrated flagged-version path was found, not a
+security waiver. Runtime all-deps9 including2critical remains source-applicable.
+Next bounded Desktop slice is compatible5.x brace-expansion/source-map-js pins,
+then cache and Vite separately, with exact lock and behavior/package checks.
+External evidence: `dependency-reachability-review-2026-10-27.md` in the combined
+delivery packet. No dependency status is marked Done from installation.
+
 ## Combined Desktop source — 2026-10-27
 
 [Profile/custody integration](PROFILE-CUSTODY-COMBINED-SOURCE-2026-10-27.md)

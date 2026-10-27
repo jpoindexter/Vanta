@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Installed profile1 candidate](PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
+now delivers code0b06904b at `/Applications/Vanta.app`. Developer ID, Apple
+acceptance/staple/assessment and final ZIP readback pass. Actual installed
+profile10/effects7/PNG-recovery11/queue6 pass with zero renderer errors; source
+empty-history4 remains source-only. The unchanged archive verifier needed a
+private TMPDIR because system-temp symlink extraction is locally refused;
+failed receipts remain. Old app/data/release rollback, original239 work and82
+owner app-data files are preserved. Broader visual/parity/human/account/security
+and modularization gates stay open; this is delivery, not whole-product closure.
+
 [Combined profile/custody source](PROFILE-CUSTODY-COMBINED-SOURCE-2026-10-27.md)
 is now integrated against the upgraded dependencies. Parent canonical native
 profile10/effects7/image-recovery11/queue6/empty-retention4 checks pass, with no
