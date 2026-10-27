@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## CLI startup asset checkpoint — 2026-10-27 (not installed or released)
+
+- Include the maintained Fetch helpers in startup compilation and metadata;
+  refuse missing/incomplete outputs before cache reuse or replacement. Five
+  parent regressions pass under normal CLI Node 22.23.1. A private real-launcher
+  cold/warm/cache-hit and 23 ACP/MCP checks pass; joint later-agent verification
+  is still required before the owner-approved pinned launcher switch.
+  [Evidence and delivery boundary](docs/cli-startup-assets-2026-10-27.md).
+
 ## Uncertain agent-action checkpoint — 2026-10-27 (not installed or released)
 
 - Stop direct agent execution after an unknown effect; retain usage/partial work,

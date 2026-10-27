@@ -5,7 +5,7 @@ import { cp, mkdir } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { ensureStartupCompile } from "./lib/startup-compile.mjs";
+import { ensureStartupCompile, STARTUP_RUNTIME_ASSETS } from "./lib/startup-compile.mjs";
 
 const exec = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -32,6 +32,10 @@ await ensureStartupCompile({
       await cp(join(root, asset), join(staging, asset), { recursive: true, force: true }).catch(() => {});
     }
     await copyRuntimeAssets(join(root, "src"), join(staging, "src"));
+    for (const asset of STARTUP_RUNTIME_ASSETS) {
+      await mkdir(dirname(join(staging, asset)), { recursive: true });
+      await cp(join(root, asset), join(staging, asset));
+    }
   },
 });
 

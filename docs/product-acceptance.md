@@ -127,6 +127,11 @@ owned regression and runtime typecheck pass; independent cold admission and
 outer-workflow checks pass. Failed queue writes and transcript compaction do not
 permit replay when independent evidence survives. This is not native delivery,
 all-store failure recovery, a review-clear design or nested-worker parity.
+The [startup asset correction](cli-startup-assets-2026-10-27.md) addresses a
+real compiled-CLI missing-module failure. Parent five regressions pass using the
+actual normal Node; private cold/warm/cache-hit and 23 ACP/MCP checks execute on
+the preceding source plus that patch. Joint current-agent/pinned selection and
+owner continuity remain unexecuted. No normal launcher has changed at this point.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.

@@ -2,7 +2,9 @@ import { access, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "n
 import { join, relative, resolve } from "node:path";
 
 const VERSION = 1;
-const DEFAULT_INPUTS = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.runtime.json"];
+export const STARTUP_RUNTIME_ASSETS = ["desktop-native/runtime-fetch-init.mjs", "desktop-native/maintained-fetch.mjs"];
+const DEFAULT_INPUTS = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.runtime.json", ...STARTUP_RUNTIME_ASSETS];
+const REQUIRED_OUTPUTS = ["src/cli.js", ...STARTUP_RUNTIME_ASSETS];
 
 async function exists(path) {
   try {
@@ -43,11 +45,20 @@ export async function startupManifest(root, inputs = DEFAULT_INPUTS) {
   return out.sort((a, b) => a.path.localeCompare(b.path));
 }
 
+async function missingRequiredOutputs(outputRoot) {
+  const missing = [];
+  for (const file of REQUIRED_OUTPUTS) {
+    const valid = await stat(join(outputRoot, file)).then(info => info.isFile(), () => false);
+    if (!valid) missing.push(file);
+  }
+  return missing;
+}
+
 async function cacheHit(root, outputRoot, inputs) {
   try {
     const saved = JSON.parse(await readFile(join(outputRoot, "manifest.json"), "utf8"));
     if (saved.version !== VERSION || !Array.isArray(saved.sources)) return false;
-    if (!await exists(join(outputRoot, "src", "cli.js"))) return false;
+    if ((await missingRequiredOutputs(outputRoot)).length) return false;
     return JSON.stringify(saved.sources) === JSON.stringify(await startupManifest(root, inputs));
   } catch {
     return false;
@@ -66,6 +77,8 @@ export async function ensureStartupCompile(options) {
   await mkdir(staging, { recursive: true, mode: 0o700 });
   try {
     await options.build(staging);
+    const missing = await missingRequiredOutputs(staging);
+    if (missing.length) throw new Error(`missing required startup output: ${missing.join(", ")}`);
     const sources = await startupManifest(root, inputs);
     await writeFile(
       join(staging, "manifest.json"),
