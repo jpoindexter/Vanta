@@ -2,6 +2,10 @@
 
 ## Boundary first
 
+The later [Fast URI checkpoint](FAST-URI-SECURITY-2026-10-27.md) advances the
+runtime dependency inventory to four high findings, production zero. All older
+six/five-high snapshots on this page retain their original proof scope.
+
 Subsequent [legacy Vite source repair](LEGACY-VITE-SECURITY-2026-10-27.md)
 updates the shared development Vite to 6.4.4 and reduces the runtime all-dependency
 snapshot to five high findings. The six-high/6.4.3 evidence below belongs to

@@ -1,5 +1,15 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest packaging URI checkpoint — 2026-10-27
+
+[Fast URI evidence](FAST-URI-SECURITY-2026-10-27.md) records the compatible
+3.1.5→3.1.9 lock-only repair. Parent actual before/after URI/Ajv/caller checks,
+three real packaging-schema checks and scoped tree pass; original leaf/source
+are retained. Latest runtime all-dependency audit: four development high,
+production zero. Earlier five/six-high snapshots below remain historical.
+No installed update, application exploit, full build, or whole-security closure
+is claimed. Desktop twelve, website/default-branch and owner gates remain separate.
+
 ## Latest legacy developer boundary checkpoint — 2026-10-27
 
 [Legacy Vite evidence](LEGACY-VITE-SECURITY-2026-10-27.md) records the compatible

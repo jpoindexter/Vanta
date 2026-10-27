@@ -46,7 +46,10 @@ removes two critical development findings with 174 selected tests, typecheck,
 startup compilation and unchanged current runtime outputs. The subsequent
 [legacy Vite repair](../desktop-next/docs/LEGACY-VITE-SECURITY-2026-10-27.md)
 passes parent actual boundary fixtures, renderer build and fourteen focused tests;
-the latest runtime audit is five development high findings, production zero.
+that checkpoint reports five development high findings, production zero.
+The subsequent [packaging URI repair](../desktop-next/docs/FAST-URI-SECURITY-2026-10-27.md)
+passes actual parent URI/Ajv/caller and packaging-schema checks; the latest runtime
+audit is four development high findings, production zero.
 The ordinary legacy optimizer/close failure remains. None of these source
 checkpoints is a new installed-app or complete-suite
 acceptance. Website/default-branch findings and whole modularization remain

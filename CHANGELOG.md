@@ -21,6 +21,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Source security checkpoints — 2026-10-27 (not installed or released)
 
+- Updated packaging Fast URI 3.1.5→3.1.9 within Ajv's existing range. Parent
+  actual URI/Ajv/caller red→green checks and real packaging-schema checks pass;
+  runtime all-dependency audit five→four high, production zero. No installed
+  exploit or new package is claimed.
+  [Fast URI evidence](desktop-next/docs/FAST-URI-SECURITY-2026-10-27.md).
+
 - Updated legacy developer Vite 6.4.3→6.4.4 within its existing range. Parent
   actual file/HTML boundary fixtures change red→green; legacy renderer build,
   fourteen focused tests and dependency tree pass. Runtime all-dependency audit
