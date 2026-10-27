@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Runtime log redaction](RUNTIME-LOG-REDACTION-SOURCE-2026-10-27.md) now prevents
+the launcher's known boundary token from entering logs/excerpts/mirrored stderr,
+including split output arriving after process exit. Parent actual synthetic
+child red/green, canonical21 output/launcher checks, Electron types and two-path
+size ratchet pass. No installed update or owner-log cleanup occurred. Full pool
+freeze remains held for query-form terminal owner checks, immutable native Git
+ownership and Default provider/model identity; named-profile proofs alone do
+not close those gaps. Shared dependencies remain unchanged until that worker
+releases them; prepared new dependency files stay separate and backed up.
+
 [Same-commit install freshness](INSTALLER-SOURCE-DIGEST-2026-10-27.md)
 closes the remaining CLI digest gap below: the entry always captures current
 source and checks report/embedded provenance before native app management.

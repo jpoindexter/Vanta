@@ -52,25 +52,52 @@ function openLog(file: string): (line: string) => void {
   }
 }
 
+/** Only the token minted for this launch; an incomplete token fragment stays buffered until safe. */
+function launchTokenRedactor(token?: string) {
+  let pending = ''
+  return {
+    push(chunk: string): string {
+      if (!token) return chunk
+      const text = (pending + chunk).split(token).join('[redacted]')
+      let keep = Math.min(token.length - 1, text.length)
+      while (keep > 0 && !text.endsWith(token.slice(0, keep))) keep -= 1
+      pending = keep ? text.slice(-keep) : ''
+      return keep ? text.slice(0, -keep) : text
+    },
+    flush(): string { const text = pending ? '[redacted]' : ''; pending = ''; return text }
+  }
+}
+
 /**
  * Records everything the runtime prints, in memory (bounded) and, when a file is given, on disk, so a
  * runtime that dies leaves the reason behind instead of a bare exit code.
  */
-export function captureRuntimeOutput(child: ChildProcess, logFile?: string): RuntimeOutput {
+export function captureRuntimeOutput(child: ChildProcess, logFile?: string,
+  options: { boundaryToken?: string; stderr?: (text: string) => void } = {}): RuntimeOutput {
   const tail = boundedTail()
   const write = logFile ? openLog(logFile) : () => undefined
   write(`\n--- runtime started ${new Date().toISOString()} (pid ${child.pid ?? '?'}) ---\n`)
 
+  const flushes: (() => void)[] = []
   for (const [name, stream] of [['out', child.stdout], ['err', child.stderr]] as const) {
-    stream?.on('data', (chunk: Buffer) => {
-      const text = chunk.toString()
+    const redactor = launchTokenRedactor(options.boundaryToken)
+    const emit = (text: string) => {
+      if (!text) return
       tail.push(text)
       const stamp = `[${new Date().toISOString().slice(11, 23)}] `
       write(text.replace(/^(?=.)/gm, name === 'err' ? `${stamp}[err] ` : stamp))
-    })
+      if (name === 'err') options.stderr?.(text)
+    }
+    const flush = () => emit(redactor.flush())
+    stream?.on('data', (chunk: Buffer) => emit(redactor.push(chunk.toString())))
+    stream?.once('end', flush)
+    flushes.push(flush)
   }
 
-  child.once('exit', (code, signal) => write(`\n--- runtime exited ${new Date().toISOString()} (code ${code}, signal ${signal}) ---\n`))
+  child.once('exit', (code, signal) => {
+    write(`\n--- runtime exited ${new Date().toISOString()} (code ${code}, signal ${signal}) ---\n`)
+  })
+  child.once('close', () => flushes.forEach(flush => flush()))
 
   return { excerpt: () => formatExcerpt(tail.text()), includes: pattern => pattern.test(tail.text()) }
 }

@@ -43,6 +43,48 @@ describe('formatExcerpt', () => {
 })
 
 describe('captureRuntimeOutput', () => {
+  it('keeps a token prefix buffered across child exit until trailing stdio ends', async () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'vanta-output-exit-token-')), 'runtime.log')
+    const token = 'a'.repeat(31) + 'b'.repeat(33), child = fakeChild(), mirrored: string[] = []
+    const output = captureRuntimeOutput(child as never, file, { boundaryToken: token, stderr: text => mirrored.push(text) })
+    child.stdout.write('url #boundary=' + token.slice(0, 31))
+    child.stderr.write('error #boundary=' + token.slice(0, 31))
+    child.emit('exit', 1, null)
+    child.stdout.write(token.slice(31) + '\n')
+    child.stderr.write(token.slice(31) + '\n')
+    child.stdout.end(); child.stderr.end()
+    await tick(); child.emit('close')
+    for (const text of [output.excerpt(), mirrored.join(''), readFileSync(file, 'utf8')]) {
+      expect(text).not.toContain(token)
+      expect(text).not.toContain(token.slice(0, 31))
+      expect(text).not.toContain(token.slice(31))
+      expect(text).toContain('[redacted]')
+    }
+  })
+
+  it('redacts each launch token across chunks, stderr, close and a replacement launch sharing the log', async () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'vanta-output-token-')), 'runtime.log')
+    const first = '0123456789abcdef'.repeat(4), second = 'abcdef0123456789'.repeat(4)
+    for (const token of [first, second]) {
+      const child = fakeChild(), mirrored: string[] = []
+      const output = captureRuntimeOutput(child as never, file, { boundaryToken: token, stderr: text => mirrored.push(text) })
+      child.stdout.write('http://127.0.0.1:7790/#boundary=' + token.slice(0, 21))
+      child.stderr.write('diagnostic ' + token.slice(0, 15))
+      child.stdout.write(token.slice(21) + '\n')
+      child.stderr.write(token.slice(15) + '\n')
+      child.stderr.write(token.slice(0, 19)) // A final partial fragment is not released on close.
+      child.emit('exit', 0, null); child.emit('close')
+      await tick()
+      for (const text of [output.excerpt(), mirrored.join(''), readFileSync(file, 'utf8')]) {
+        expect(text).not.toContain(token)
+        expect(text).not.toContain(token.slice(0, 19))
+        expect(text).toContain('[redacted]')
+      }
+    }
+    const log = readFileSync(file, 'utf8')
+    expect(log).not.toContain(first); expect(log).not.toContain(second)
+  })
+
   it('reports what both streams printed', async () => {
     const child = fakeChild()
     const output = captureRuntimeOutput(child as never)

@@ -155,8 +155,7 @@ export async function startVantaServer(input: LaunchInput, deps: Partial<LaunchD
 
   const baseUrl = `http://127.0.0.1:${port}`
   const child = spawnProcess(command, args, { cwd: input.projectRoot, env })
-  child.stderr?.on('data', (chunk: Buffer) => process.stderr.write(chunk))
-  const output = captureRuntimeOutput(child, input.logFile)
+  const output = captureRuntimeOutput(child, input.logFile, { boundaryToken: token, stderr: text => { process.stderr.write(text) } })
 
   const exited = new Promise<{ code: null | number; signal: null | string }>(resolve => {
     child.once('exit', (code, signal) => resolve({ code, signal }))
