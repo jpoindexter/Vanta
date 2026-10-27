@@ -1,5 +1,18 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest Vite source boundary checkpoint — 2026-10-27
+
+[Vite source repair](DESKTOP-VITE-SOURCE-2026-10-27.md) integrates 8.3.3 and its
+required supported closure, retaining both boundary and optimizer cleanup fixes.
+Parent actual red/green reproductions reject three named boundary fixtures
+while retaining ordinary HTML; scoped tree, three mocker guards and renderer/
+main build pass. Final unchanged app-config startup/three routes/close naturally
+exits 0 without a signal/timeout. Five native source checks belong to intermediate
+8.2.4, not final 8.3.3. Fresh production-lock audit 13→12 (no high/critical in
+this specific tree), not security-green. Full npm/Electron dev launcher, Windows/WSL,
+runtime development/website/default-branch and disputed cache behavior stay open.
+Archive2 below remains installed until a new exact artifact is delivered.
+
 ## Latest exact installed checkpoint — 2026-10-27
 
 [Archive2 delivery](ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md) installs code2d31393f
