@@ -38,16 +38,16 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
-**Agent-first delivery — October 27:** normal `vanta` now selects verified pinned
-source `2f39a2b0`, with the prior checkout and work retained. Real launcher,
-ACP/MCP, cancellation and uncertain-action checks passed in isolated profiles.
-The current app remains the working baseline; new visual expansion is deferred.
-The newer signed Desktop candidate passes chat/restart checks but is **not
-installed**: Apple notarization is blocked by a missing saved Keychain profile.
-Installed home1 remains in place. [Current delivery, priorities and explicit
-limits](docs/agent-delivery-and-priority-2026-10-27.md).
+**Agent-first delivery — October 27:** normal `vanta` selects verified pinned
+source `1d18f846`. The same agent checkpoint is signed, Apple Accepted/stapled
+and installed at `/Applications/Vanta.app` as `0.1.0-local.20261027.agent3`.
+Candidate and installed copies pass chat/restart and bounded delegation,
+uncertain-result, cancellation and depth-limit journeys. Existing work, owner
+data and prior app/CLI rollback are preserved. Nested overwrite approval still
+stops before the dialog; whole-agent, parity, security and modularization gates
+remain open. [Exact delivery and remaining limits](docs/agent-rebuild-installed-2026-10-27.md).
 
-**Current integration status — October 27:** the [home1 installed checkpoint](desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md) identifies code `feea5a4f`, signed/Apple Accepted local version `0.1.0-local.20261027.home1`, its verified ZIP and recoverable archive2 rollback. Candidate and installed paths separately pass 24 bounded Home text/project/attachment/restart checks with zero renderer errors. Exact PNG bytes and unsent drafts survive restart without automatic sends. A fresh 57-entry owner app-data snapshot and all 239 preserved work-file hashes remain unchanged. The earlier archive2 42-check suite retains its own build identity; it was not rerun wholesale on home1. This is not full redesign, owner visual/per-item parity, live-account, unfamiliar-person, security or modularization acceptance. Dependency and static Electron fuse hardening gaps remain explicit in the delivery record. Current development is on the unmerged [`claude/desktop-integration-20261013`](https://github.com/jpoindexter/Vanta/tree/claude/desktop-integration-20261013) branch; pushes are not main merges or public releases. [Acceptance record](docs/product-acceptance.md) separates current and historical proof.
+**Earlier Home integration — October 27:** the [home1 checkpoint](desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md) retains its separate 24-check text/project/attachment/restart evidence and archive2 rollback. It is now the retained previous app, not the latest installed version. That whole journey was not rerun wholesale on agent3. Current development remains on the unmerged [`claude/desktop-integration-20261013`](https://github.com/jpoindexter/Vanta/tree/claude/desktop-integration-20261013) branch; pushes are not main merges or public releases. [Acceptance record](docs/product-acceptance.md) separates current and historical proof.
 
 **Historical integration status — October 25:** the [cold-restart recovery delivery](desktop-next/docs/COLD-RECOVERY-2026-10-25.md) identifies installed source `71cf90cf`, version `0.1.0-local.20261025.recovery2`, its signed/notarized local ZIP, owner-data backup and retained rollback. Candidate and installed paths separately pass 13 recovery criteria across six restarts and 13 ordinary chat/approval steps plus seven probes. Recovery retains producer-displayed work and the canonical human request, including attachment references; opening history does not execute work. The approved composer remains in place, but its earlier 22 appearance checks and ten recovery/queue steps belong to the historical [14fee24d composer delivery](desktop-next/docs/COMPOSER-DELIVERY-2026-10-25.md), not whole-app visual acceptance of this build. The [unified design proposal and Astryx integration](desktop-next/docs/UNIFIED-DESIGN-2026-10-25.md) remain open; Astryx is not installed. Earlier bundled-CLI policy and startup observations retain their own source identities and limits. The ordinary terminal launcher is unchanged. Source is on `claude/desktop-integration-20261013`; branch pushes are not main merges or public releases. Unsent image/queue custody, security, wider design/parity, normal-profile/account/hardware and human gates remain open. Older receipts below are historical.
 

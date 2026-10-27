@@ -1,6 +1,20 @@
 # Agent-first delivery and priority — 2026-10-27
 
-## Delivered CLI, preserved work
+## Current delivered checkpoint — supersedes the earlier phases below
+
+Normal CLI and the installed, signed/notarized agent3 app now contain source
+`1d18f846`. Exact identities, Apple acknowledgment, archive/install rollback,
+candidate/installed behavior and preservation receipts are in the
+[current installed delivery record](agent-rebuild-installed-2026-10-27.md).
+The missing saved notary credential is resolved; it is not the current blocker.
+
+Keep agent-first priority and the two existing Building lanes. Next bounded
+trust repair: route nested overwrite confirmation correctly without weakening
+the kernel or claiming an unexecuted human approval. Review-clear UX, remaining
+trust/security, parity/human acceptance and modularization still require work.
+No whole-card closure or main/public release is implied.
+
+## Earlier CLI delivery phase — historical
 
 Normal `vanta` now selects pinned source **`2f39a2b087482fb651ad07f8d1215ef0737ca263`**
 in a separate full Git checkout, after explicit owner approval and isolated
@@ -44,7 +58,7 @@ background propagation remain agent priorities. Conservative queue holds have
 no review-clear operation yet. Rollback reselects the retained old checkout;
 it does not reset dirty work or restore approval authority.
 
-## Desktop candidate: signed, not notarized or installed
+## Earlier agent2 candidate phase — historical, now superseded
 
 Candidate **`0.1.0-local.20261027.agent2`**, source `2f39a2b0`, includes the same
 agent code and 248 runtime dependencies. The actual packaged app, with its own

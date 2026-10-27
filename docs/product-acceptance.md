@@ -15,18 +15,21 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
-The [agent-first delivery record](agent-delivery-and-priority-2026-10-27.md)
-identifies normal CLI pin `2f39a2b0`: formal pinned cold/warm/cache, 26 actual
-Rust ACP/MCP checks and isolated global-wrapper initialization pass. Old checkout,
-13 dirty files, launcher and all 239 canonical original files are preserved;
-credentials/approvals were not migrated. Owner live-profile/account use is not
-claimed. Signed agent2 Desktop candidate passes four actual chat/restart criteria
-but is not installed: Apple's saved notarization profile is missing. Current
-installed home1 remains valid and unchanged. Two Building lanes now prioritize
-agent trust and review/recovery; no whole-card or full-agent acceptance is implied.
+The [agent3 installed delivery](agent-rebuild-installed-2026-10-27.md) identifies
+normal CLI pin and app source `1d18f846`, local version
+`0.1.0-local.20261027.agent3`. Apple Accepted/stapled, archive extraction/signature
+matching and guarded installation pass. Candidate and installed exact bundles
+separately pass four chat/restart criteria and four bounded ACP agent scenarios.
+The normal CLI passes cold/warm/cache, 27 real Rust ACP/MCP checks and private
+global-wrapper routing; post-cutover initialization passes too. No owner account
+or live provider was used. All 239 original integration files, 13 dirty CLI files
+and 57 owner app-data files match; credentials/approvals were not migrated.
+Nested overwrite is kernel-blocked before a human dialog, not a completed
+approval journey. Two Building agent lanes and original card/acceptance gates
+remain open. This supersedes the earlier missing-notary/agent2 delivery blocker.
 
 The [home1 installed checkpoint](../desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md)
-is the latest installed Desktop record: code `feea5a4f`, local version
+is the previous retained Desktop record: code `feea5a4f`, local version
 `0.1.0-local.20261027.home1`, Developer ID signed, Apple Accepted/stapled,
 final ZIP independently extracted/validated and installed with recoverable
 archive2 rollback. Candidate and installed paths separately pass 24 bounded

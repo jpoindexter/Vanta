@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Verified agent/app delivery — 2026-10-27 (local, not a public release)
+
+- Deliver agent checkpoint `1d18f846` to the normal CLI and signed/notarized,
+  installed agent3 app. Exact candidate and installed chat/restart, delegation,
+  uncertain-result, cancellation and depth-limit paths pass with private fixtures.
+- Preserve owner app data, original dirty work and previous app/CLI rollback;
+  archive eight superseded generated items without deletion. Update planning
+  evidence without closing unmet card contracts. Nested overwrite approval,
+  live-account/parity/human, security and modularization gates remain open.
+  [Delivery identity and evidence](docs/agent-rebuild-installed-2026-10-27.md).
+
 ## Background and worker-auth checkpoint — 2026-10-27 (source only)
 
 - Keep durable background custody and truthful parent outcomes; uncertain or
