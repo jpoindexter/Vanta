@@ -75,20 +75,34 @@ export class McpToolCallError extends Error {
   }
 }
 
+/** Terminal stdio/local closure, unlike a recoverable HTTP request failure. */
+class McpTransportClosedError extends Error {
+  constructor(message: string, readonly code?: string) {
+    super(message);
+    this.name = "McpTransportClosedError";
+  }
+}
+
 export class McpClient {
   private nextId = 1;
   private readonly pending = new Map<JsonRpcId, Pending>();
   private buffer = "";
+  private closedError?: Error;
+  private closeRequested = false;
 
   constructor(private readonly transport: Transport, private readonly events: McpClientEvents = {}) {
     transport.onMessage((line) => this.onLine(line));
-    transport.onError((err) => {
-      for (const p of this.pending.values()) p.reject(err);
-      this.pending.clear();
-    });
+    transport.onError((err) => this.rejectPending(err));
+  }
+
+  private rejectPending(error: Error): void {
+    if (error instanceof McpTransportClosedError) this.closedError ??= error;
+    for (const pending of this.pending.values()) pending.reject(error);
+    this.pending.clear();
   }
 
   private onLine(chunk: string): void {
+    if (this.closedError) return;
     this.buffer += chunk;
     let nl: number;
     while ((nl = this.buffer.indexOf("\n")) !== -1) {
@@ -118,15 +132,18 @@ export class McpClient {
   }
 
   private request(method: string, params?: unknown): Promise<unknown> {
+    if (this.closedError) return Promise.reject(this.closedError);
     const id = this.nextId++;
     const payload = JSON.stringify({ jsonrpc: "2.0", id, method, params });
     return new Promise<unknown>((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      this.transport.send(`${payload}\n`);
+      try { this.transport.send(`${payload}\n`); }
+      catch (error) { this.pending.delete(id); reject(error); }
     });
   }
 
   private notify(method: string, params?: unknown): void {
+    if (this.closedError) throw this.closedError;
     this.transport.send(`${JSON.stringify({ jsonrpc: "2.0", method, params })}\n`);
   }
 
@@ -144,6 +161,7 @@ export class McpClient {
     const result = this.events.onElicitation
       ? await this.events.onElicitation({ method, params }).catch(() => fallback)
       : fallback;
+    if (this.closedError) return;
     this.transport.send(`${JSON.stringify({ jsonrpc: "2.0", id, result })}\n`);
     await Promise.resolve(this.events.onElicitationResult?.({ method, result })).catch(() => {});
   }
@@ -201,6 +219,9 @@ export class McpClient {
   }
 
   close(): void {
+    if (this.closeRequested) return;
+    this.closeRequested = true;
+    this.rejectPending(new McpTransportClosedError("MCP client closed"));
     this.transport.close();
   }
 }
@@ -217,14 +238,28 @@ export function stdioTransport(
   const guard = guardLaunch(command, args, process.env);
   if (!guard.ok) throw new Error(guard.error);
   const child = spawn(command, args, { stdio: ["pipe", "pipe", "pipe"], env });
+  let terminalError: McpTransportClosedError | undefined;
+  const errors = new Set<(error: Error) => void>();
+  const terminate = (error: McpTransportClosedError): void => {
+    if (terminalError) return;
+    terminalError = error;
+    for (const callback of errors) callback(error);
+  };
+  child.on("error", (error: NodeJS.ErrnoException) => terminate(new McpTransportClosedError(error.message, error.code)));
+  // Wait for stdio to drain so a final complete response can still settle.
+  child.on("close", (code, signal) => terminate(new McpTransportClosedError(`mcp server exited (${signal ?? code})`)));
+  child.stdin?.on("error", (error: NodeJS.ErrnoException) => terminate(new McpTransportClosedError(error.message, error.code)));
   const transport: Transport = {
-    send: (line) => child.stdin?.write(line),
+    send: (line) => {
+      if (terminalError) throw terminalError;
+      child.stdin?.write(line);
+    },
     onMessage: (cb) => child.stdout?.on("data", (d: Buffer) => cb(d.toString("utf8"))),
     onError: (cb) => {
-      child.on("error", cb);
-      child.on("exit", (code) => code && cb(new Error(`mcp server exited (${code})`)));
+      errors.add(cb);
+      if (terminalError) cb(terminalError);
     },
-    close: () => child.kill(),
+    close: () => { terminate(new McpTransportClosedError("MCP transport closed")); child.kill(); },
   };
   return { transport, child };
 }

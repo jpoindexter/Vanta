@@ -74,10 +74,46 @@ cancellation telemetry remains generically classified, ACP omits usage updates,
 and its runner still creates a fresh conversation per prompt. Multi-turn resume,
 real model/mode switching and arbitrary session CWD behavior are not established.
 
+## Terminal connection lifecycle — subsequent source checkpoint
+
+Clean child exit (0), signal termination and explicit client close previously
+left pending requests unsettled. The shared client now rejects pending and later
+requests after terminal closure. Closing twice sends no new request and closes
+the transport once. Stdio waits for stream closure, retaining a complete final
+response; temporary HTTP failures remain recoverable on the same client.
+
+Parent packet: `mcp-lifecycle-parent-20261027-79DISQ`; independent candidate:
+`mcp-lifecycle-20261027-kuXfrJ`. The parent reproduced the three hangs against
+canonical source, then reran the same actual child/client path using the installed
+Electron executable in Node mode. All three now reject, including later calls.
+The parent also ran 109 focused tests in nine files and runtime typecheck; all
+passed. This is current source executed by that runtime, not a newly installed
+bundle or an external connector. No remote cancellation or rollback is implied.
+A live nonresponding server, or a descendant holding inherited streams open,
+still requires explicit close or a caller-owned timeout. HTTP close does not
+newly abort an already-issued request.
+
+## Actual launcher delivery gap
+
+Read-only audit packet: `agent-launcher-audit-20261027-FfBIFd`. At source
+`b82c5340`, normal `vanta` still selected the detached October 3 checkout at
+`d2be37c3`, 399 ancestry commits behind, with eight modified tracked and five
+untracked files. That work must survive. `vanta-next` separately opens home1;
+the Desktop installer explicitly leaves normal `vanta` unchanged. Neither entry
+automatically adopts current agent source.
+
+Stage and prove a separate pinned runtime with the actual CLI Node before any
+owner-approved launcher selection. Existing `VANTA_REPO` registration persists
+the remembered path; it is not a read-only one-shot. Keep the old checkout,
+launcher and pointer for rollback, and verify profile/configuration continuity
+separately. Do not blindly run the existing updater: its detached-HEAD targeting,
+partial autostash, misleading failure exit and hard-reset rollback are unsuitable
+for preserving this installed work. No owner launcher or runtime state changed.
+
 ## Still not delivered or complete
 
 No new package/install, live provider/account, Codex GUI registration, full MCP
-agent controller or MCP cancellation proof. A clean stdio child exit can still
-leave pending client requests unsettled. No global Codex config was changed.
+agent controller or MCP cancellation proof. Terminal-client settlement is proven
+only in the bounded source paths above. No global Codex config was changed.
 Queued-edit candidate remains frozen; Desktop polish is not resumed. Whole
 agent/trust/Desktop cards remain open; no main merge, release/tag or paid service.

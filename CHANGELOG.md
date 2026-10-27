@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## MCP connection lifecycle checkpoint — 2026-10-27 (not installed or released)
+
+- Pending and later tool requests now reject after clean process exit, signal
+  termination or explicit close, without dropping a complete final response.
+  Temporary HTTP failures can still recover. Parent actual child/client proof,
+  109 focused tests and runtime typecheck pass. No remote-effect cancellation,
+  universal timeout or new installed bundle is claimed.
+- Audited the real launcher split: normal `vanta` still selects an older, dirty
+  checkout; Desktop installation does not update it. Preserve that work and use
+  a separately proven, owner-approved delivery rather than a destructive update.
+  [Evidence and delivery limits](docs/mcp-tool-error-truth-2026-10-27.md).
+
 ## MCP tool-error checkpoint — 2026-10-27 (not installed or released)
 
 - Explicit MCP errors no longer become confirmed successes. Preserve diagnostics,

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { createServer, type Server } from "node:http";
+import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { McpClient } from "./client.js";
 import { httpTransport, resolveTemplate, resolveToken } from "./http-transport.js";
@@ -7,9 +7,17 @@ import { httpTransport, resolveTemplate, resolveToken } from "./http-transport.j
 // A tiny loopback HTTP MCP endpoint: echoes the request id, requires a Bearer
 // token, and replies with a SINGLE JSON object that has NO trailing newline —
 // the shape that previously stalled the newline-framed McpClient.
-function jsonRpcServer(): { server: Server; url: () => string; lastAuth: () => string | undefined } {
+function jsonRpcServer() {
   let lastAuth: string | undefined;
+  let failure: "http" | "network" | undefined;
   const server = createServer((req, res) => {
+    if (failure) {
+      const failed = failure;
+      failure = undefined;
+      if (failed === "network") req.socket.destroy();
+      else { res.writeHead(503); res.end("Temporary failure"); }
+      return;
+    }
     lastAuth = req.headers["authorization"] as string | undefined;
     if ((req.headers["authorization"] ?? "") !== "Bearer good") {
       res.writeHead(401, { "content-type": "text/plain" });
@@ -25,7 +33,8 @@ function jsonRpcServer(): { server: Server; url: () => string; lastAuth: () => s
       res.end(msg.id === undefined ? "" : JSON.stringify({ jsonrpc: "2.0", id: msg.id, result })); // no trailing \n
     });
   });
-  return { server, url: () => `http://127.0.0.1:${(server.address() as AddressInfo).port}`, lastAuth: () => lastAuth };
+  return { server, url: () => `http://127.0.0.1:${(server.address() as AddressInfo).port}`, lastAuth: () => lastAuth,
+    failNext: (mode: "http" | "network") => { failure = mode; } };
 }
 
 describe("resolveToken", () => {
@@ -68,5 +77,13 @@ describe("httpTransport + McpClient", () => {
   it("surfaces an HTTP 401 as a transport error (the auth-required signal)", async () => {
     const client = new McpClient(httpTransport(s.url(), { token: "wrong" }), {});
     await expect(client.initialize()).rejects.toThrow(/HTTP 401/);
+  });
+
+  it.each(["http", "network"] as const)("allows the same client to recover from one %s failure", async (mode) => {
+    const client = new McpClient(httpTransport(s.url(), { token: "good" }));
+    s.failNext(mode);
+    await expect(client.callTool("ping", {})).rejects.toThrow();
+    await expect(client.callTool("ping", {})).resolves.toBe("pong");
+    client.close();
   });
 });

@@ -112,6 +112,14 @@ ACP CLI/Rust read-to-draft and provider-wait cancellation also execute in a priv
 profile. Those are deterministic fixtures, not real research or GUI integration.
 Unknown-effect controller receipt/queue handling, MCP cancellation, ACP continuity
 and delivery remain open. Desktop is now maintenance/delivery-only by owner choice.
+The subsequent terminal-client correction passes the parent's before/after actual
+child-process proof under the installed Node-mode executable, 109 focused tests
+and runtime typecheck. Pending/later requests reject after clean exit, signal or
+explicit close; final responses and temporary HTTP recovery remain. No universal
+timeout, remote cancellation, installed update or connected external client is
+inferred. A separate read-only launcher audit confirms normal `vanta` still uses
+an older dirty checkout and is not updated by installing Desktop. Preserve it;
+owner-approved CLI selection and profile/configuration continuity remain gates.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.
