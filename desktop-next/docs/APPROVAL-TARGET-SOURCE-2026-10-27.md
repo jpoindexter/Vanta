@@ -1,5 +1,9 @@
 # File approvals retain their target — source checkpoint
 
+Subsequent delivery: [installed archive2 evidence](ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md)
+now executes both target swaps through the actual installed UI/runtime/kernel.
+The source-stage installation limitation below is historical, not current.
+
 ## Gap first
 
 This closes the reproduced JavaScript-await target-swap gap in `write_file`

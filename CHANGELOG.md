@@ -3,6 +3,23 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Local Desktop checkpoint — 2026-10-27 (not merged or publicly released)
+
+- Installed signed, Apple Accepted/stapled `0.1.0-local.20261027.archive2`
+  from code `2d31393f`, retaining recoverable app/data/source backups.
+- Restored keyboard access to Archived when the last ordinary chat is archived;
+  extracted archive/restore logic while preserving ownership and rollback.
+- Bound file-tool writes to their pre-approval target/source; stale replacements
+  refuse, and explicit edit denial produces a denied/stopped outcome.
+- Patched Desktop brace/source-map packages and compatible nested resolutions;
+  updated cache Vary handling. The disputed max-stale behavior remains unchanged.
+- Ran42 bounded installed-path checks: approval swaps, archive/restart, profiles,
+  native approvals, image recovery and queues; zero renderer errors. Preserved
+  original239 work files and82 existing owner app-data files unchanged.
+- [Exact artifact, rollback, proof and remaining gates](desktop-next/docs/ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md).
+  Home attachment handoff, Vite integration, complete design/parity, security,
+  modularization and owner/live-account/human acceptance remain open.
+
 ## Development checkpoint — 2026-10-02 (not merged or released)
 
 - Added bounded chat-result routing into the document workbench, including

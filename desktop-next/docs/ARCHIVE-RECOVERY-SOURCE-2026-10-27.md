@@ -1,5 +1,9 @@
 # Archived chat recovery and session-action extraction
 
+Subsequent delivery: [installed archive2 evidence](ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md)
+now repeats the archive/reopen/restart journey at the actual installed path.
+The source-stage installation limitation below is historical, not current.
+
 ## Gap first
 
 Source Electron behavior is executed; the installed profile1 app has not yet

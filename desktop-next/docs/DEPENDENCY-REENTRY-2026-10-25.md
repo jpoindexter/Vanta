@@ -1,5 +1,15 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest exact installed checkpoint — 2026-10-27
+
+[Archive2 delivery](ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md) installs code2d31393f
+with the compatible parser/nested-resolution/cache source changes below. The
+bundled runtime/kernel and42 installed-path checks pass, not a security waiver.
+Fresh Desktop production-lock classification is13 (1high/4moderate/8low); disputed
+cache max-stale behavior is unchanged. Vite8.2.4 is a separately proven private
+candidate, NOT integrated/installed yet; its app dev shutdown caveat remains.
+Runtime development, website/default-branch and full security remain OPEN.
+
 ## Latest compatible cache maintenance — 2026-10-27
 
 [Cache maintenance](DESKTOP-CACHE-MAINTENANCE-2026-10-27.md) adds4.3.0 within the

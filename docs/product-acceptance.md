@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-10-25 with source, delivery and continuity boundaries. Historical release
+Updated 2026-10-27 with source, delivery and continuity boundaries. Historical release
 receipts below retain their original version/date and are not current security attestations.
 This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
@@ -14,6 +14,28 @@ not a public release. Cross-platform packages, live external accounts, external
 participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
+
+The [archive2 installed checkpoint](../desktop-next/docs/ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md)
+is the latest delivery record: code `2d31393f`, local version
+`0.1.0-local.20261027.archive2`, Developer ID signed, Apple Accepted/stapled,
+final archive independently validated and installed with rollback.42 actual
+installed-path checks pass across exact file approval binding, archived chat
+recovery, profile separation/native effects, unsent PNG recovery and queues;
+all six private journeys report zero renderer errors. Original239 preserved work
+files and82 existing owner app-data files retain their saved hashes. These are
+loopback-model/private-profile proofs, not owner visual, live-account,
+unfamiliar-person, all-platform or complete trust/security acceptance.
+
+The [profile1 delivery](../desktop-next/docs/PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
+preceded this candidate. Its former image-custody installation gap and the
+October25 source-only statements below are superseded for the exact bounded
+paths now executed. Home Attach still requires a fresh-draft ownership handoff;
+Vite remains a separate private repair candidate. Desktop production-lock audit13,
+runtime development, website/default-branch findings and whole modularization
+remain open. The canonical roadmap retains its existing IDs/statuses and owner
+gates. Evidence-only documentation commits do not alter the installed code SHA.
+
+### Historical October25 delivery boundary
 
 The [Desktop status](../desktop-next/docs/STATUS-2026-10-15.md) is the current
 entry point; its dated receipts distinguish source from the installed build.

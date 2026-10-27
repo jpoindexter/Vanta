@@ -2,6 +2,15 @@
 
 ## Latest parent review
 
+[Installed archive2 delivery](ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md) supersedes
+the source-only/install status immediately below. Exact code2d31393f is now
+signed, Apple Accepted/stapled, archived and installed.42 actual installed-path
+checks pass across fresh approval binding, archive recovery, profiles/native
+effects, PNG custody and queues, with zero renderer errors. Original239 work and
+82 existing owner-data files match saved hashes; rollback retained. Home Attach,
+Vite, full security/modularization and owner visual/parity/human/account gates
+remain open. This is bounded delivery, not whole-product completion.
+
 [Archived chat recovery](ARCHIVE-RECOVERY-SOURCE-2026-10-27.md) now restores a
 keyboard-accessible Archived route when the sidebar is otherwise empty. The
 combined source Electron archive/restore/reopen/restart path passes five checks,
