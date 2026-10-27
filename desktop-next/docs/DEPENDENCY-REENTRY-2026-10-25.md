@@ -1,5 +1,21 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest XML tooling checkpoint — 2026-10-27
+
+[XML tooling evidence](XML-TOOLING-SECURITY-2026-10-27.md) records two compatible
+patch updates, parent actual 14 before/after caller checks, three unchanged
+default-recovery observations, scoped tree and runtime typecheck. Fresh runtime
+audit is three development high, production zero; prior four-high counts below
+are historical. Default callers still recover malformed XML after diagnostics:
+strict rejection is not fixed. Source-only; no new package/install for this patch.
+
+Latest installed identity is [Home1](HOME-DURABLE-INSTALLED-2026-10-27.md),
+code `feea5a4f`, with 24 bounded checks separately executed on candidate/installed
+paths. It includes the earlier Vite/tooling/URI work, not this XML follow-on.
+Older installed/update-pending statements below retain their dated boundaries.
+Static Electron fuse hardening, owner visual/parity, website/default-branch and
+whole-security/modularization acceptance remain open.
+
 ## Latest packaging URI checkpoint — 2026-10-27
 
 [Fast URI evidence](FAST-URI-SECURITY-2026-10-27.md) records the compatible

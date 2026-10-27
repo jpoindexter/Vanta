@@ -63,6 +63,12 @@ that checkpoint reports five development high findings, production zero.
 The subsequent [packaging URI repair](../desktop-next/docs/FAST-URI-SECURITY-2026-10-27.md)
 passes actual parent URI/Ajv/caller and packaging-schema checks; the latest runtime
 audit is four development high findings, production zero.
+The later source-only [XML tooling repair](../desktop-next/docs/XML-TOOLING-SECURITY-2026-10-27.md)
+updates the two existing compatible parser lines; parent actual before/after
+caller checks, three recovery observations, scoped dependency tree and runtime
+typecheck pass. Fresh runtime audit becomes three development high, production
+zero. Default callers still recover malformed XML after diagnostics. This patch
+is not in installed home1; no strict XML-policy closure is claimed.
 The ordinary legacy optimizer/close failure remains. These dependency changes
 are included in home1, but source tooling proofs are not complete installed-app
 or suite acceptance. Static REA inspection of the delivered Electron framework

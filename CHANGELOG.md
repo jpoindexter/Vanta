@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## XML tooling source checkpoint — 2026-10-27 (not installed or released)
+
+- Patched the two existing xmldom consumer lines to 0.9.12/0.8.15 within their
+  existing ranges. Parent actual parser/plist/app-builder/native-run checks,
+  dependency tree and runtime typecheck pass. Runtime all-dependency audit
+  four→three high, production-only zero. Default callers still recover malformed
+  XML after diagnostics; strict rejection and whole security remain unresolved.
+  Installed home1 is unchanged.
+  [Evidence and limits](desktop-next/docs/XML-TOOLING-SECURITY-2026-10-27.md).
+
 ## Durable Home installed checkpoint — 2026-10-27 (local, not released)
 
 - Delivered code `feea5a4f` as signed, Apple Accepted/stapled
