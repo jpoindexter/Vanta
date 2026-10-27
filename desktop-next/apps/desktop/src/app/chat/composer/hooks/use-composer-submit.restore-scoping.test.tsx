@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react'
 import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { startTransition, Suspense, useLayoutEffect, useRef } from 'react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { createSessionRpcDispatcher } from '@/app/contrib/session-rpc-dispatcher'
 import { NEW_CHAT_ROUTE, routeSessionId, sessionRoute } from '@/app/routes'
@@ -13,13 +13,15 @@ import {
   clearSessionDraft,
   mainComposerScope,
   rotateFreshDraftKey,
+  reloadPersistedDrafts,
   stashSessionDraft,
   takeSessionDraft
 } from '@/store/composer'
 import { requestGatewayForAgent, requestGatewayForProfile } from '@/store/gateway'
-import { $newChatRoute } from '@/store/profile'
+import { $activeGatewayProfile, $newChatRoute } from '@/store/profile'
 import {
   $activeSessionId,
+  $connection,
   $selectedStoredSessionId,
   _resetSessionOwnerHintsForTests,
   setActiveSessionId,
@@ -94,6 +96,14 @@ let handles: {
 let route: string | null = 'stored-B'
 const busyRef = { current: false }
 const getRouteToken = () => `${route ? sessionRoute(route) : NEW_CHAT_ROUTE}::`
+const localOwner = { connectionId: 'local', profile: 'default' }
+const originalConnection = $connection.get(), originalProfile = $activeGatewayProfile.get()
+
+// These are known local conversations, not permission to adopt unassigned legacy drafts.
+beforeEach(() => {
+  $connection.set({ mode: 'local' } as NonNullable<ReturnType<typeof $connection.get>>)
+  $activeGatewayProfile.set('default')
+})
 
 interface HarnessProps {
   pendingScope?: string
@@ -264,8 +274,8 @@ const flushDraft = () => act(() => window.dispatchEvent(new Event('pagehide')))
 afterEach(() => {
   cleanup()
   mainComposerScope.clear()
-  clearSessionDraft('stored-A')
-  clearSessionDraft('stored-B')
+  clearSessionDraft('stored-A', localOwner)
+  clearSessionDraft('stored-B', localOwner)
   clearSessionDraft(null)
   _resetSessionOwnerHintsForTests({ storage: true })
   _resetSessionOwnerHoldsForTests()
@@ -273,6 +283,7 @@ afterEach(() => {
   announceNewSessionDraftKey(null)
   $newChatRoute.set(null)
   window.localStorage.clear()
+  reloadPersistedDrafts()
   vi.resetAllMocks()
   setActiveSessionId(null)
   setSelectedStoredSessionId(null)
@@ -280,6 +291,8 @@ afterEach(() => {
   setBusy(false)
   setAwaitingResponse(false)
   setMessages([])
+  $connection.set(originalConnection)
+  $activeGatewayProfile.set(originalProfile)
 })
 
 it('keeps a late rejected B submit out of A’s draft and next ordinary Send (#66661)', async () => {
@@ -293,8 +306,8 @@ it('keeps a late rejected B submit out of A’s draft and next ordinary Send (#6
       rejectSubmit = reject
     })
   })
-  stashSessionDraft('stored-A', 'A’s own next question', [])
-  stashSessionDraft('stored-B', 'B’s research report', [])
+  stashSessionDraft('stored-A', 'A’s own next question', [], localOwner)
+  stashSessionDraft('stored-B', 'B’s research report', [], localOwner)
   seed()
   act(() => handles.submit.submitDraft())
   await waitFor(() =>
@@ -315,8 +328,8 @@ it('keeps a late rejected B submit out of A’s draft and next ordinary Send (#6
   })
   expect(editorText()).toBe('A’s own next question')
   flushDraft()
-  expect(takeSessionDraft('stored-A').text.trim()).toBe('A’s own next question')
-  expect(takeSessionDraft('stored-B').text.trim()).toBe('B’s research report')
+  expect(takeSessionDraft('stored-A', localOwner).text.trim()).toBe('A’s own next question')
+  expect(takeSessionDraft('stored-B', localOwner).text.trim()).toBe('B’s research report')
 
   vi.mocked(requestGatewayForProfile).mockResolvedValue({ status: 'streaming' })
   act(() => handles.submit.submitDraft())
@@ -347,8 +360,8 @@ it('restores text and attachments by the loaded draft owner, not an uncommitted 
 
   const attachmentA = { id: 'url-a', kind: 'url' as const, label: 'A reference' }
   const attachmentB = { id: 'url-b', kind: 'url' as const, label: 'B reference' }
-  stashSessionDraft('stored-A', 'draft A', [attachmentA])
-  stashSessionDraft('stored-B', 'draft B', [attachmentB])
+  stashSessionDraft('stored-A', 'draft A', [attachmentA], localOwner)
+  stashSessionDraft('stored-B', 'draft B', [attachmentB], localOwner)
   const rendered = seed({ onSubmit })
   act(() => handles.submit.submitDraft())
   expect(onSubmit).toHaveBeenCalledWith(expect.stringContaining('draft B'), {
@@ -371,10 +384,10 @@ it('restores text and attachments by the loaded draft owner, not an uncommitted 
   expect(editorText()).toBe('draft A')
   expect(mainComposerScope.$attachments.get()).toEqual([attachmentA])
   flushDraft()
-  expect(takeSessionDraft('stored-A').text.trim()).toBe('draft A')
-  expect(takeSessionDraft('stored-A').attachments).toEqual([attachmentA])
-  expect(takeSessionDraft('stored-B').text.trim()).toBe('draft B')
-  expect(takeSessionDraft('stored-B').attachments).toEqual([attachmentB])
+  expect(takeSessionDraft('stored-A', localOwner).text.trim()).toBe('draft A')
+  expect(takeSessionDraft('stored-A', localOwner).attachments).toEqual([attachmentA])
+  expect(takeSessionDraft('stored-B', localOwner).text.trim()).toBe('draft B')
+  expect(takeSessionDraft('stored-B', localOwner).attachments).toEqual([attachmentB])
 
   // Abandon the pending render, then really switch. Ordinary draft restore
   // recovers B; a rejection while B stays loaded must still repaint it.
@@ -394,7 +407,7 @@ it('restores text and attachments by the loaded draft owner, not an uncommitted 
   })
   expect(editorText()).toBe('draft B')
   expect(mainComposerScope.$attachments.get()).toEqual([attachmentB])
-  expect(takeSessionDraft('stored-B').text.trim()).toBe('draft B')
+  expect(takeSessionDraft('stored-B', localOwner).text.trim()).toBe('draft B')
 })
 
 it.each([
@@ -406,8 +419,9 @@ it.each([
   'restores a rejected real first send to its created scope ($destination, before create returns: $beforeCreateReturns)',
   async ({ destination, beforeCreateReturns }) => {
     const attachment = { id: 'url-first', kind: 'url' as const, label: 'first reference' }
-    stashSessionDraft(null, 'my first question', [attachment])
-    stashSessionDraft('stored-A', 'A’s own draft', [])
+    const owner = { connectionId: 'connection-first-send', profile: 'default' }
+    stashSessionDraft(null, 'my first question', [attachment], owner)
+    stashSessionDraft('stored-A', 'A’s own draft', [], localOwner)
     $newChatRoute.set({ connectionId: 'connection-first-send', profile: 'default' })
     setYoloActive(beforeCreateReturns)
 
@@ -441,7 +455,7 @@ it.each([
     if (destination !== 'B') {
       // A different stored chat OR a new pre-session draft is not the owner
       // of this submit, even though this submit originally captured null.
-      stashSessionDraft(null, 'another fresh draft', [])
+      stashSessionDraft(null, 'another fresh draft', [], owner)
       act(() => navigate(destination))
     }
 
@@ -453,10 +467,10 @@ it.each([
     )
     expect(mainComposerScope.$attachments.get()).toEqual(destination === 'B' ? [attachment] : [])
     flushDraft()
-    expect(takeSessionDraft('stored-B').text.trim()).toBe('my first question')
-    expect(takeSessionDraft('stored-B').attachments).toEqual([attachment])
-    expect(takeSessionDraft('stored-A').text.trim()).toBe('A’s own draft')
-    expect(takeSessionDraft(null).text.trim()).toBe(destination === 'B' ? '' : 'another fresh draft')
+    expect(takeSessionDraft('stored-B', owner).text.trim()).toBe('my first question')
+    expect(takeSessionDraft('stored-B', owner).attachments).toEqual([attachment])
+    expect(takeSessionDraft('stored-A', localOwner).text.trim()).toBe('A’s own draft')
+    expect(takeSessionDraft(null, owner).text.trim()).toBe(destination === 'B' ? '' : 'another fresh draft')
     act(() => navigate('B'))
     expect(editorText()).toBe('my first question')
     expect(mainComposerScope.$attachments.get()).toEqual([attachment])
@@ -464,8 +478,9 @@ it.each([
 )
 
 it('does not treat arbitrary navigation during a real create as assignment of the rejected draft', async () => {
-  stashSessionDraft(null, 'unsent first question', [])
-  stashSessionDraft('stored-A', 'A’s own draft', [])
+  const owner = { connectionId: 'connection-aborted-create', profile: 'default' }
+  stashSessionDraft(null, 'unsent first question', [], owner)
+  stashSessionDraft('stored-A', 'A’s own draft', [], localOwner)
   $newChatRoute.set({ connectionId: 'connection-aborted-create', profile: 'default' })
   let completeCreate!: (value: unknown) => void
   vi.mocked(requestGatewayForAgent).mockImplementation(async (_connection, _profile, method) => {
@@ -494,9 +509,9 @@ it('does not treat arbitrary navigation during a real create as assignment of th
   expect(route).toBe('stored-A')
   expect(editorText()).toBe('A’s own draft')
   flushDraft()
-  expect(takeSessionDraft('stored-A').text.trim()).toBe('A’s own draft')
-  expect(takeSessionDraft('stored-B').text.trim()).toBe('')
-  expect(takeSessionDraft(null).text.trim()).toBe('unsent first question')
+  expect(takeSessionDraft('stored-A', localOwner).text.trim()).toBe('A’s own draft')
+  expect(takeSessionDraft('stored-B', localOwner).text.trim()).toBe('')
+  expect(takeSessionDraft(null, owner).text.trim()).toBe('unsent first question')
   act(() => navigate(null))
   expect(editorText()).toBe('unsent first question')
 })
@@ -506,7 +521,7 @@ it('sends the first prompt of a chat keyed by its per-lifecycle fresh-draft scop
   // activeQueueSessionKey), not null. That scope must still read as
   // "pre-session" so the created session is not taken for composer drift.
   const freshKey = rotateFreshDraftKey()
-  stashSessionDraft(freshKey, 'hello from a fresh chat', [])
+  stashSessionDraft(freshKey, 'hello from a fresh chat', [], { connectionId: 'connection-fresh-key', profile: 'default' })
   $newChatRoute.set({ connectionId: 'connection-fresh-key', profile: 'default' })
   vi.mocked(requestGatewayForAgent).mockImplementation(async (_connection, _profile, method) => {
     if (method === 'session.create') {

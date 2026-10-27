@@ -3,6 +3,17 @@ import type { SessionOwnerRoute, SessionOwnerScope } from '@/store/session-reque
 import type { SessionTile } from '@/store/session-states'
 import type { SessionInfo } from '@/types/desktop'
 
+/** An unqualified local boot is still the local backend identity. */
+export function tileBackendIdentityChanged(
+  ownerConnectionId: string | null | undefined,
+  activeConnection: { connectionId?: string | null; mode?: string | null } | null | undefined
+): boolean {
+  const owner = String(ownerConnectionId || '').trim()
+  if (!owner || !activeConnection) return false
+  const active = String(activeConnection.connectionId || '').trim() || (activeConnection.mode === 'local' ? 'local' : '')
+  return Boolean(active) && owner !== active
+}
+
 /**
  * The owner a session tile routes its own RPCs through — the tile's explicit
  * route first, then the session row's `(connection, profile)` tag, with

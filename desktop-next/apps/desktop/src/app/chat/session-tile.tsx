@@ -22,7 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'r
 import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { useModelControls } from '@/app/session/hooks/use-model-controls'
 import { blobToDataUrl } from '@/app/session/hooks/use-prompt-actions/utils'
-import { probeStoredSession, resolveStoredSession } from '@/app/session/hooks/use-session-actions/utils'
+import { resolveStoredSession } from '@/app/session/hooks/use-session-actions/utils'
 import { ModelMenuPanel } from '@/app/shell/model-menu-panel'
 import { ReasoningMenuPanel } from '@/app/shell/reasoning-menu-panel'
 import { formatRefValue } from '@/components/assistant-ui/directive-text'
@@ -41,10 +41,10 @@ import { useI18n } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { NEW_SESSION_TITLE, sessionTitle } from '@/lib/chat-runtime'
 import { transcribeAudioClientDirect } from '@/lib/voice-client-direct'
-import { createComposerAttachmentScope, draftTitleFor, takeSessionDraft } from '@/store/composer'
+import { createComposerAttachmentScope, draftTitleFor } from '@/store/composer'
 import { $gatewaySwitching } from '@/store/gateway-switch'
 import { $pinnedSessionIds, pinSession, unpinSession } from '@/store/layout'
-import { $activeGatewayProfile, $gatewaySwapTarget, $profiles } from '@/store/profile'
+import { $activeGatewayProfile } from '@/store/profile'
 import { $projectTree } from '@/store/projects'
 import { sessionAwaitingInput } from '@/store/prompts'
 import {
@@ -54,7 +54,6 @@ import {
   $messagingSessions,
   $selectedStoredSessionId,
   $sessions,
-  ownerLookupSessionRows,
   sessionMatchesStoredId,
   sessionPinId
 } from '@/store/session'
@@ -66,7 +65,6 @@ import {
   $sessionTileDelegateRevision,
   $sessionTiles,
   closeSessionTile,
-  discardSessionTile,
   patchSessionTile,
   type SessionTile,
   sessionTileDelegate
@@ -81,12 +79,17 @@ import { SessionDraftTitle } from './session-draft-title'
 import { startSessionDrag } from './session-drag'
 import { SessionStatusDot } from './session-status-dot'
 import { useSessionTileActions } from './session-tile-actions'
-import { tileOwnerRoute } from './session-tile-owner'
+import { tileBackendIdentityChanged, tileOwnerRoute } from './session-tile-owner'
+import { tileStoredRow } from './session-tile-row'
 import { reasoningEffortPending, type SessionView, SessionViewProvider } from './session-view'
 import { SessionContextMenu } from './sidebar/session-actions-menu'
 import { lastVisibleMessageIsUser } from './thread-loading'
 
 import { ChatView } from '.'
+
+export { tileStoredRow } from './session-tile-row'
+export { tileBackendIdentityChanged } from './session-tile-owner'
+export { startUnrestoredTileTitleBackfill } from './session-tile-backfill'
 
 const NO_MESSAGES: ChatMessage[] = []
 
@@ -116,25 +119,6 @@ export function sessionTileResumeFailure(
   }
 
   return 'Session unavailable — you can retry resuming it.'
-}
-
-/** True when a persisted tile's owner is a different backend than the one that
- *  just became active. An unqualified local boot (no connectionId, mode local)
- *  counts as the local identity — that is the post-update empty backend. */
-export function tileBackendIdentityChanged(
-  ownerConnectionId: string | null | undefined,
-  activeConnection: { connectionId?: string | null; mode?: string | null } | null | undefined
-): boolean {
-  const owner = String(ownerConnectionId || '').trim()
-
-  if (!owner || !activeConnection) {
-    return false
-  }
-
-  const active =
-    String(activeConnection.connectionId || '').trim() || (activeConnection.mode === 'local' ? 'local' : '')
-
-  return Boolean(active) && owner !== active
 }
 
 export function unbindTilesForBackendIdentityChange<
@@ -600,101 +584,6 @@ export function SessionTilePane({ storedSessionId }: { storedSessionId: string }
 // Tile -> pane contribution sync (call once from the app root).
 // ---------------------------------------------------------------------------
 
-/** Resolve a tile's stored row: every loaded sidebar slice first, then the
- *  project tree. A session opened as a tab from a project group is often older
- *  than the paginated recents page, so it has no `$sessions` row at all until
- *  new activity lands it there — resolving through the tree keeps its tab
- *  titled and tinted instead of a grey "Session" placeholder.
- *
- *  The slice scan is `ownerLookupSessionRows`, not `$sessions`: the sidebar
- *  fetch splits its rows three ways, and a telegram/discord/cron conversation
- *  is listed ONLY in `$messagingSessions` / `$cronSessions` — recents excludes
- *  those sources outright. Searching recents alone made every such tab read
- *  "New session" forever, since the row it needed was one atom over and no
- *  amount of activity would ever move it into recents. */
-export function tileStoredRow(storedSessionId: string): SessionInfo | undefined {
-  const match = (s: SessionInfo) => sessionMatchesStoredId(s, storedSessionId)
-
-  return (
-    ownerLookupSessionRows().find(match) ??
-    $projectTree
-      .get()
-      .flatMap(p => [...p.repos.flatMap(r => r.groups.flatMap(g => g.sessions)), ...(p.previewSessions ?? [])])
-      .find(match)
-  )
-}
-
-/** One-shot by-id title fill for restored tiles that never mount (#94167).
- *  A restored background tab has no runtimeId and does not mount its pane, so
- *  the resolution effect above never runs; when its row is outside the recents
- *  page and project tree, `tileTitle()` reads "New session" until first click.
- *  The probe upserts a found row into `$sessions`, which the tab strip already
- *  watches. A tile whose id every profile answered 404 for is retired
- *  (#125678): left alone it is re-probed on every launch and never heals. */
-export function startUnrestoredTileTitleBackfill(lookup = probeStoredSession): () => void {
-  // Only tiles restored from a previous run can be retired: a draft opened in
-  // this run before the gateway answers has no durable row yet either.
-  const restored = new Set($sessionTiles.get().flatMap(tile => (tile.runtimeId ? [] : [tile.storedSessionId])))
-  let stopped = false
-
-  const run = () => {
-    if ($gatewayState.get() !== 'open') {
-      return
-    }
-
-    off()
-
-    // Absence is only authoritative in calm conditions — the same inputs as
-    // `goneSessionVerdict`, plus any scope change while the probes are out
-    // (a profile A→B→A lands the 404s on a backend that never owned the id).
-    let calm = !$gatewaySwitching.get() && !$gatewaySwapTarget.get()
-
-    const unsettle = () => {
-      calm = false
-    }
-
-    const scopes = [$connection, $activeGatewayProfile, $profiles, $gatewayState, $gatewaySwitching, $gatewaySwapTarget]
-    const offScopes = scopes.map(scope => scope.listen(unsettle))
-
-    const probes = $sessionTiles
-      .get()
-      .filter(tile => !tile.runtimeId && !tile.workspaceTabTitle && !tileStoredRow(tile.storedSessionId))
-      .map(tile =>
-        lookup(tile.storedSessionId, tile.ownerRoute)
-          .then(result => {
-            const draft = takeSessionDraft(tile.storedSessionId)
-            const current = $sessionTiles.get().find(candidate => candidate.storedSessionId === tile.storedSessionId)
-
-            if (
-              result.status === 'gone' &&
-              calm &&
-              !stopped &&
-              restored.has(tile.storedSessionId) &&
-              current &&
-              !current.runtimeId &&
-              !tileStoredRow(tile.storedSessionId) &&
-              !tileBackendIdentityChanged(tile.ownerRoute?.connectionId, $connection.get()) &&
-              !draft.text.trim() &&
-              draft.attachments.length === 0
-            ) {
-              // Not `closeSessionTile`: a dead id must not sit on the reopen stack.
-              discardSessionTile(tile.storedSessionId)
-            }
-          })
-          .catch(() => undefined)
-      )
-
-    void Promise.all(probes).finally(() => offScopes.forEach(offScope => offScope()))
-  }
-
-  const off = $gatewayState.listen(run)
-  run()
-
-  return () => {
-    stopped = true
-    off()
-  }
-}
 
 /** Drop persisted tile bindings that belong to a different backend than the
  *  one that just became active, and latch the wrong-backend error so a later
@@ -752,10 +641,11 @@ function tileCaption(storedSessionId: string): string {
 function tileDragPayload(storedSessionId: string): SessionDragPayload {
   const stored = tileStoredRow(storedSessionId)
   const tile = $sessionTiles.get().find(candidate => candidate.storedSessionId === storedSessionId)
+  const owner = captureDraftCustodyOwner(storedSessionId, tile?.ownerRoute)
 
   const title = stored
     ? sessionTitle(stored)
-    : tile?.workspaceTabTitle || draftTitleFor(storedSessionId) || NEW_SESSION_TITLE
+    : tile?.workspaceTabTitle || (owner && draftTitleFor(storedSessionId, owner)) || NEW_SESSION_TITLE
 
   return { id: storedSessionId, profile: stored?.profile ?? '', title: workspaceOwnerTitle(title, tile) }
 }
@@ -981,7 +871,7 @@ export const watchSessionTiles = paneMirror<SessionTile>({
   tabTitle: storedSessionId =>
     tileStoredRow(storedSessionId) ||
     $sessionTiles.get().some(tile => tile.storedSessionId === storedSessionId && tile.workspaceTabTitle) ? null : (
-      <SessionDraftTitle scope={storedSessionId} />
+      <SessionDraftTitle scope={storedSessionId} ownerRoute={$sessionTiles.get().find(tile => tile.storedSessionId === storedSessionId)?.ownerRoute} />
     ),
   render: storedSessionId => <SessionTilePane storedSessionId={storedSessionId} />,
   tabWrap: (storedSessionId, tab) => (
@@ -1002,3 +892,4 @@ export const watchSessionTiles = paneMirror<SessionTile>({
   },
   close: requestCloseSessionTile
 })
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'

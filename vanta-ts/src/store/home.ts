@@ -15,6 +15,8 @@ const GITIGNORE_ENTRIES = [
   "google-tokens.json",
   "mcp-auth-tokens.json",
   "cookies/",
+  "profiles/*/kernel-state/",
+  "kernel-state/",
   "*.cookie",
   "*-qids.json",
   "*.key",

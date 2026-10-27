@@ -3046,6 +3046,8 @@ export interface Translations extends NoticeTranslations {
     queueResume: string
     queueResumeTip: string
     queueStuckTitle: string
+    draftStorageUnavailable: string
+    draftOwnerPending: string
     queueStuckBody: string
     queueDroppedTitle: string
     queueDroppedBody: string

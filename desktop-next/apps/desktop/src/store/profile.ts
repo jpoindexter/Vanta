@@ -34,6 +34,8 @@ import { $connection, clearComposerSelectionOwner, setComposerSelectionOwner, se
 import type { SessionOwnerRoute } from '@/store/session-request-router'
 import { resetStarmapGraph } from '@/store/starmap'
 import type { ProfileInfo } from '@/types/desktop'
+import { requestFreshSession } from './fresh-session-request'
+export { $freshSessionRequest, $restoreFreshDraftRequest, requestFreshSession } from './fresh-session-request'
 
 // Canonical key for a profile: trimmed, empty → "default". Used everywhere we
 // compare a session's owning profile against the live gateway's profile.
@@ -446,12 +448,6 @@ export function resolveActiveSourceOwnerRoute(profile: string): AgentProfileRout
 // draft: a profile switch/create (below), or deleting the project that owns the
 // currently-open session (store/projects). The chat controller subscribes and
 // resets to the intro draft, so we never strand the user in an orphaned view.
-export const $freshSessionRequest = atom(0)
-
-export function requestFreshSession(): void {
-  $freshSessionRequest.set($freshSessionRequest.get() + 1)
-}
-
 // Route profile-scoped REST settings (config/env/skills/tools/model/…) to the
 // profile the live gateway is currently on, and drop cached settings from the
 // previous profile so pages refetch against the right backend. Fires once
@@ -981,7 +977,7 @@ export function selectProfile(name: string): void {
 
   if (switching) {
     leaveForeignProjectScope(target)
-    requestFreshSession()
+    requestFreshSession(true)
   }
 
   // A profile with a remote override can fail to activate because the remote

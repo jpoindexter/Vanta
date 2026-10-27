@@ -95,16 +95,17 @@ export function RenameProfileDialog({
         retireLocalProfileGateways(currentName)
       }
 
-      await (scope == null ? renameProfile(currentName, trimmed) : renameProfile(currentName, trimmed, scope))
+      const renamed = await (scope == null ? renameProfile(currentName, trimmed) : renameProfile(currentName, trimmed, scope))
+      const canonicalName = renamed.name
 
       // The sessions moved with the directory; the tabs, cached tails and
       // remembered ids keyed by the old name must follow, or every open
       // dials a backend that no longer exists (#111868).
-      if (!isDefault && scope == null) {
-        migrateTilesForProfile(currentName, trimmed)
+      if (!isDefault && scope == null && canonicalName !== currentName) {
+        migrateTilesForProfile(currentName, canonicalName)
       }
 
-      await onRenamed?.(trimmed)
+      await onRenamed?.(canonicalName)
       setStatus('done')
       window.setTimeout(onClose, 800)
     } catch (err) {

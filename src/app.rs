@@ -20,18 +20,24 @@ pub fn ensure_private_dir(path: &Path) -> std::io::Result<()> {
 pub struct State {
     pub root: PathBuf,
     pub data_dir: PathBuf,
+    pub scope_id: Option<String>,
 }
 
 impl State {
     pub fn new(root: PathBuf) -> Self {
         let data_dir = root.join(".vanta");
-        Self { root, data_dir }
+        Self { root, data_dir, scope_id: None }
+    }
+
+    pub fn scoped(root: PathBuf, data_dir: PathBuf, owner: &str) -> Result<Self, String> {
+        let scope_id = crate::kernel_state::prepare(&root, &data_dir, owner)?;
+        Ok(Self { root, data_dir, scope_id: Some(scope_id) })
     }
 }
 
 pub fn doctor(state: &State) -> Result<(), String> {
     ensure_private_dir(&state.data_dir).map_err(|e| e.to_string())?;
-    migrate_legacy_data(state);
+    if state.scope_id.is_none() { migrate_legacy_data(state); }
     println!("{{");
     println!("  \"name\": \"Vanta\",");
     println!("  \"status\": \"ready\",");

@@ -8,7 +8,7 @@ import type { BootProgress, ConnectionDescriptor } from './shell-state'
 
 export interface ShellDeps {
   appVersion: () => string
-  baseUrl: () => Promise<string>
+  baseUrl: (owner?: unknown) => Promise<string>
   boot: () => BootProgress
   describe: (baseUrl: string, window: BrowserWindow | null) => ConnectionDescriptor
   getWindow: (sender: unknown) => BrowserWindow | null
@@ -68,7 +68,7 @@ export function registerShellHandlers(deps: ShellDeps): void {
 
   ipc.on(CH.focusClient, (event, clientId: unknown) => requests.setFocusedClient(event.sender as Sender, clientId))
 
-  ipc.handle(CH.connection, async event => deps.describe(await deps.baseUrl(), deps.getWindow(event.sender)))
+  ipc.handle(CH.connection, async (event, owner: unknown) => deps.describe(await deps.baseUrl(owner), deps.getWindow(event.sender)))
   ipc.handle(CH.backendRecycle, async () => {
     await deps.restart()
 

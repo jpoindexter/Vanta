@@ -3,6 +3,7 @@ mod approvals;
 mod audit;
 mod goals;
 mod jsonv;
+mod kernel_state;
 mod loops;
 mod runtime;
 mod safety;
@@ -96,7 +97,21 @@ fn main() {
         },
         "serve" => {
             let port = args.next().and_then(|p| p.parse().ok()).unwrap_or(7788);
-            server::serve(state, port)
+            match args.next() {
+                None => server::serve(state, port),
+                Some(flag) if flag == "--state-dir" => {
+                    let directory = args.next().unwrap_or_default();
+                    let owner_flag = args.next().unwrap_or_default();
+                    let owner = args.next().unwrap_or_default();
+                    if owner_flag != "--state-owner" || args.next().is_some() {
+                        Err("try: serve <port> --state-dir <absolute path> --state-owner <profile>".into())
+                    } else {
+                        app::State::scoped(state.root, directory.into(), &owner)
+                            .and_then(|scoped| server::serve(scoped, port))
+                    }
+                }
+                _ => Err("unknown serve argument".into()),
+            }
         }
         _ => Err(format!(
             "unknown command: {command}\ntry: doctor | assess | scope | log | approvals | goals | run | spawn | serve | audit"

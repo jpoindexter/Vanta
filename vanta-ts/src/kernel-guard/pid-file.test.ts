@@ -47,6 +47,7 @@ describe("isKernelCommand", () => {
   it("matches the exact serve command for the recorded port", () => {
     expect(isKernelCommand("/Applications/Vanta Next.app/Contents/Resources/kernel/vanta-kernel serve 17123", 17_123)).toBe(true);
     expect(isKernelCommand("vanta-kernel serve 17123", 17_123)).toBe(true);
+    expect(isKernelCommand("/x/vanta-kernel serve 17123 --state-dir /private/profile state --state-owner writer", 17_123)).toBe(true);
   });
 
   it("refuses other ports, other binaries and look-alike names", () => {
@@ -55,6 +56,9 @@ describe("isKernelCommand", () => {
     expect(isKernelCommand("/x/not-vanta-kernel serve 17123", 17_123)).toBe(false);
     expect(isKernelCommand("/usr/bin/vim vanta-kernel serve 17123", 17_123)).toBe(false);
     expect(isKernelCommand("/x/vanta-kernel status 17123", 17_123)).toBe(false);
+    expect(isKernelCommand("/x/vanta-kernel serve 17123 --state-dir relative --state-owner writer", 17_123)).toBe(false);
+    expect(isKernelCommand("/x/vanta-kernel serve 17123 --state-dir /private/state --state-owner ../writer", 17_123)).toBe(false);
+    expect(isKernelCommand("/x/vanta-kernel serve 17123 --state-dir /private/state --state-owner writer --other", 17_123)).toBe(false);
   });
 });
 

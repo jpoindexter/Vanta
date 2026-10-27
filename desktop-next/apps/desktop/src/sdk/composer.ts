@@ -8,6 +8,7 @@ import {
   requestComposerSubmit
 } from '@/app/chat/composer/focus'
 import { freshDraftScope, takeSessionDraft } from '@/store/composer'
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
 import { $activeSessionId, $selectedStoredSessionId } from '@/store/session'
 import { $sessionStates } from '@/store/session-states'
 
@@ -70,6 +71,7 @@ export const composerHost = {
    *  nobody on screen is answering, which is reported as null). */
   getDraft: async (sessionId: null | string = null): Promise<null | string> => {
     const { ids, stored } = resolveComposerAddress(sessionId)
+    const owner = captureDraftCustodyOwner(stored)
 
     if (!ids.length) {
       const live = await requestComposerGetDraft([], { active: true })
@@ -83,7 +85,7 @@ export const composerHost = {
       return live.text
     }
 
-    return takeSessionDraft(stored).text || null
+    return owner ? takeSessionDraft(stored, owner).text || null : null
   },
 
   /** Replace a composer's whole draft. `@`-ref / `/` tokens in the text

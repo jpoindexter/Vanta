@@ -33,6 +33,17 @@ function renderPanel(entries: QueuedPromptEntry[], props: Partial<Parameters<typ
 
 afterEach(cleanup)
 
+it('shows unknown native delivery and offers no misleading send or edit action', () => {
+  renderPanel([entry('native-unknown', 'original message', { custody: {
+    address: { owner: { connectionId: 'local', profile: 'default' }, session: 'stored', entryId: 'native-unknown' },
+    revision: '00000000-0000-4000-8000-000000000001', status: 'unknown'
+  } })])
+  expect(screen.getByText(/Delivery unknown/)).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /^Send/ })).toBeNull()
+  expect((screen.getByRole('button', { name: 'Edit' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByRole('button', { name: 'Remove' }) as HTMLButtonElement).disabled).toBe(false)
+})
+
 describe('QueuePanel', () => {
   it('renders one row per queued message with its text', () => {
     renderPanel([entry('a', 'Also update the changelog'), entry('b', 'Then tag the release')])

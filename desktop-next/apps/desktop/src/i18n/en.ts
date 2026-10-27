@@ -3563,6 +3563,8 @@ export const en: Translations = {
     queueDelete: 'Delete',
     queueResume: 'Resume',
     queueResumeTip: 'Paused by Stop — resume sending the queued turns',
+    draftStorageUnavailable: "Saved drafts could not be read or saved. Your current draft stays in this window. Keep it open and retry.",
+    draftOwnerPending: "Connecting to this chat. Your saved drafts stay unchanged.",
     queueStuckTitle: 'Queued message not sent',
     queueStuckBody: 'A queued turn kept failing to send. It is still in the queue — try sending it again.',
     queueDroppedTitle: 'Queued prompt dropped',

@@ -7,6 +7,7 @@ import {
   type QueuedPromptEntry,
 } from "@/store/composer-queue";
 import { Button } from "@/components/ui/button";
+import { isLegacyRestoredAttachment } from "@/store/draft-queue-binding";
 
 export interface QueueRowHandlers {
   busy: boolean;
@@ -30,9 +31,18 @@ export interface QueueRowState {
 }
 
 type PrimaryAction = "retry" | "send" | "steer";
+const custodyStatus: Partial<Record<NonNullable<QueuedPromptEntry["custody"]>["status"], string>> = {
+  unknown: "Delivery unknown — check the conversation. Kept here; never retried automatically.",
+  sending: "Sending once",
+  staging: "Saving attachments",
+  queued: "Saved on this Mac",
+};
 
 /** What a saved message is waiting to do, in the words the previous queue used. */
 export const savedStatus = (entry: QueuedPromptEntry): string => {
+  const native = entry.custody && custodyStatus[entry.custody.status];
+  if (native) return native;
+  if (isLegacyRestoredAttachment(entry)) return "Older attachments need owner-bound review; kept separately and not sent.";
   const saved = entry.remote;
 
   if (!saved) {
@@ -55,6 +65,9 @@ export const savedStatus = (entry: QueuedPromptEntry): string => {
  * steer (a saved message runs next, a window-local one redirects the live turn); an idle or paused queue
  * sends now.
  */
+const canSteerEntry = (entry: QueuedPromptEntry, busy: boolean, hasHandler: boolean): boolean =>
+  busy && hasHandler && isSteerableEntry(entry) && entry.remote?.intent !== "steer";
+
 export function primaryActions(
   entry: QueuedPromptEntry,
   {
@@ -65,6 +78,7 @@ export function primaryActions(
   }: Pick<QueueRowHandlers, "busy" | "onRetry" | "onSteerNow" | "parked">,
 ): PrimaryAction[] {
   const saved = entry.remote;
+  if ((entry.custody && entry.custody.status !== "queued") || isLegacyRestoredAttachment(entry)) return [];
 
   if (saved?.status === "starting") {
     return [];
@@ -74,11 +88,7 @@ export function primaryActions(
     return onRetry ? ["retry"] : [];
   }
 
-  const canSteer =
-    busy &&
-    Boolean(onSteerNow) &&
-    isSteerableEntry(entry) &&
-    saved?.intent !== "steer";
+  const canSteer = canSteerEntry(entry, busy, Boolean(onSteerNow));
 
   return [
     ...(canSteer ? ["steer" as const] : []),
@@ -172,7 +182,8 @@ const PrimaryButtons: FC<QueueRowHandlers & QueueRowState> = (props) => {
 
 export const QueueActions: FC<QueueRowHandlers & QueueRowState> = (props) => {
   const { entry, isEditLocked, isEditing, onDelete, onEdit, onMove } = props;
-  const started = entry.remote?.status === "starting";
+  const started = entry.remote?.status === "starting" || entry.custody?.status === "sending" || entry.custody?.status === "staging";
+  const recovery = (entry.custody && entry.custody.status !== "queued") || isLegacyRestoredAttachment(entry);
 
   return (
     <span className="vp-queue-actions">
@@ -188,7 +199,7 @@ export const QueueActions: FC<QueueRowHandlers & QueueRowState> = (props) => {
       <Button
         size="sm"
         variant="outline"
-        disabled={isEditLocked || started}
+        disabled={isEditLocked || started || Boolean(recovery)}
         onClick={() => onEdit(entry)}
         type="button"
       >

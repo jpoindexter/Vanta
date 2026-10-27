@@ -31,6 +31,29 @@ export function projectFileApi(ipc: IpcRendererLike) {
   };
 }
 
+/** Private unsent custody with captured lease/revision, not a filesystem writer. */
+export function draftCustodyApi(ipc: IpcRendererLike) {
+  return { draftAttachments: {
+    open: (address: unknown) => ipc.invoke(CH.draftOpen, address),
+    read: (address: unknown, lease: unknown) => ipc.invoke(CH.draftRead, address, lease),
+    write: (request: unknown) => ipc.invoke(CH.draftWrite, request),
+    move: (request: unknown) => ipc.invoke(CH.draftMove, request),
+    recover: (address: unknown, lease: unknown) => ipc.invoke(CH.draftRecover, address, lease),
+    beginSend: (ticket: unknown) => ipc.invoke(CH.draftBeginSend, ticket),
+    assignSend: (ticket: unknown, session: string) => ipc.invoke(CH.draftAssignSend, ticket, session),
+    finishSend: (ticket: unknown, outcome: string) => ipc.invoke(CH.draftFinishSend, ticket, outcome),
+    queue: {
+      stage: (request: unknown) => ipc.invoke(CH.draftQueueStage, request),
+      list: (address: unknown, lease: unknown) => ipc.invoke(CH.draftQueueList, address, lease),
+      read: (request: unknown) => ipc.invoke(CH.draftQueueRead, request),
+      update: (request: unknown) => ipc.invoke(CH.draftQueueUpdate, request),
+      begin: (request: unknown) => ipc.invoke(CH.draftQueueBegin, request),
+      finish: (request: unknown) => ipc.invoke(CH.draftQueueFinish, request),
+      remove: (request: unknown) => ipc.invoke(CH.draftQueueRemove, request)
+    }
+  } }
+}
+
 /** A change to a repository: the main process answers with the reason it needs approval, and the call rejects with it. */
 function mutation(ipc: IpcRendererLike, member: string) {
   return async (..._args: unknown[]): Promise<never> => {

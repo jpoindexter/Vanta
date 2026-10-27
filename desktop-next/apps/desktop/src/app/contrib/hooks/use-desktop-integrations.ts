@@ -12,7 +12,8 @@ import { getSession } from '@/desktop-api'
 import { resolveDeepLinkAction } from '@/lib/deeplink-routes'
 import { pathFromVantaDeepLink, resolveVantaOpenPath } from '@/lib/open-target'
 import { storedSessionIdForNotification } from '@/lib/session-ids'
-import { announceNewSessionDraftKey } from '@/store/composer'
+import { announceNewSessionDraftKey, freshDraftScope } from '@/store/composer'
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
 import { recordAction } from '@/store/desktop-metrics'
 import { requestMcpInstallFromDeepLink } from '@/store/mcp-deeplink-install'
 import { startMcpHealthChecker, stopMcpHealthChecker } from '@/store/mcp-health'
@@ -156,6 +157,7 @@ export function useDesktopIntegrations({
         const route = getRememberedRoute(activeProfile)
         const routeSession = route ? routeSessionId(route) : null
         const last = getRememberedSessionId(activeProfile)
+        const draftScope = freshDraftScope(), draftOwner = captureDraftCustodyOwner(null)
 
         const restorableNonSessionRoute =
           !!route && route !== NEW_CHAT_ROUTE && !routeSession && !isOverlayView(appViewForPath(route))
@@ -225,7 +227,7 @@ export function useDesktopIntegrations({
             repairOwnerHintsForRestore(routeSession)
           }
 
-          announceNewSessionDraftKey(routeSession && resolveComposerSessionKey(routeSession, sessions))
+          announceNewSessionDraftKey(routeSession && resolveComposerSessionKey(routeSession, sessions), draftScope, draftOwner)
           navigate(route, { replace: true })
 
           return
@@ -242,7 +244,7 @@ export function useDesktopIntegrations({
           // as before — no by-id fetch on the common cold start.
           if (rowFor(last)?.source !== 'subagent' && sessionBelongsToProfile(sessions, last, activeProfile)) {
             repairOwnerHintsForRestore(last)
-            announceNewSessionDraftKey(resolveComposerSessionKey(last, sessions))
+            announceNewSessionDraftKey(resolveComposerSessionKey(last, sessions), draftScope, draftOwner)
             navigate(sessionRoute(last), { replace: true })
 
             return
@@ -262,7 +264,7 @@ export function useDesktopIntegrations({
               }
 
               repairOwnerHintsForRestore(remembered)
-              announceNewSessionDraftKey(resolveComposerSessionKey(remembered, sessions))
+              announceNewSessionDraftKey(resolveComposerSessionKey(remembered, sessions), draftScope, draftOwner)
               setRememberedSessionId(remembered, activeProfile)
               navigate(sessionRoute(remembered), { replace: true })
             })

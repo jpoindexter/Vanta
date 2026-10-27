@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { CH } from "./channels";
 import type { IpcLike } from "./native-handlers";
+import type { NativeActionTarget } from "./native-action-target";
 import { type CommandOutcome, MAX_QUEUED_COMMANDS, MAX_TERMINALS_PER_WINDOW, registerGatedTerminals, SHELL_LABEL, type Sink } from "./terminal-gated";
 
 function makeSink(id = 1) {
@@ -15,7 +16,8 @@ function setup(options: { client?: string; outcome?: (command: string) => Promis
   const handlers = new Map<string, (event: { sender: unknown }, ...args: unknown[]) => unknown>();
   const ipc = { handle: (c, f) => handlers.set(c, f as never), on: () => undefined } as IpcLike;
   const run = vi.fn(options.outcome ?? (async () => ({ ok: true, output: "done" })));
-  const clientFor = vi.fn(() => ("client" in options ? options.client : "chat-1"));
+  const client = "client" in options ? options.client : "chat-1";
+  const clientFor = vi.fn((): NativeActionTarget | undefined => client ? nativeTarget(client) : undefined);
   const registry = registerGatedTerminals({ clientFor, ipc, projectName: () => "proj", projectRoot: () => "/work/proj", run });
   const call = async (sender: Sink, channel: string, ...args: unknown[]) => handlers.get(channel)!({ sender }, ...args);
 
@@ -23,6 +25,8 @@ function setup(options: { client?: string; outcome?: (command: string) => Promis
 }
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
+const nativeTarget = (clientId: string, profile = "writer"): NativeActionTarget =>
+  Object.freeze({ clientId, profile, connectionId: "local", lease: 1, generation: 1 });
 
 describe("gated terminal session", () => {
   it("starts with a banner saying every command needs approval, and answers with the project folder", async () => {
@@ -44,7 +48,7 @@ describe("gated terminal session", () => {
     await call(sink, CH.terminalWrite, id, "ls\r");
     await flush();
 
-    expect(run).toHaveBeenCalledWith("ls", "chat-1");
+    expect(run).toHaveBeenCalledWith("ls", nativeTarget("chat-1"));
     expect(text()).toContain("waiting for approval");
     expect(text()).toContain("line1\r\nline2\r\n");
   });
@@ -84,6 +88,20 @@ describe("gated terminal session", () => {
     expect(run).toHaveBeenCalledTimes(1);
     await call(sink, CH.terminalWrite, id, "late\n");
     expect(MAX_QUEUED_COMMANDS).toBe(20);
+  });
+
+  it("keeps the submitted owner for queued commands across a later foreground change", async () => {
+    let finish!: (value: CommandOutcome) => void;
+    const { call, run, clientFor } = setup({ outcome: command => command === "first" ? new Promise(resolve => { finish = resolve; }) : Promise.resolve({ ok: true, output: "" }) });
+    const writer = nativeTarget("same-client"), sticky = nativeTarget("same-client", "sticky");
+    clientFor.mockReturnValue(writer);
+    const { sink } = makeSink();
+    const { id } = await call(sink, CH.terminalStart) as { id: string };
+    await call(sink, CH.terminalWrite, id, "first\rsecond\r");
+    clientFor.mockReturnValue(sticky);
+    finish({ ok: true, output: "" });
+    await flush();
+    expect(run.mock.calls).toEqual([["first", writer], ["second", writer]]);
   });
 
   it("prints a blocked or denied command's reason in red and offers a new prompt", async () => {

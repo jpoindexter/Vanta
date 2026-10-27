@@ -2556,6 +2556,8 @@ export const jaOverrides = {
     queueDelete: '削除',
     queueResume: '再開',
     queueResumeTip: '停止により一時停止中 — キュー済みターンの送信を再開します',
+    draftStorageUnavailable: "下書きを読み込むか保存することができませんでした。現在の下書きはこのウィンドウに残っています。開いたまま再試行してください。",
+    draftOwnerPending: "このチャットに接続しています。保存済みの下書きは変更されません。",
     queueStuckTitle: 'キュー内のメッセージを送信できません',
     queueStuckBody:
       'キューに入れたターンの送信が繰り返し失敗しました。まだキューに残っています。もう一度送信してください。',

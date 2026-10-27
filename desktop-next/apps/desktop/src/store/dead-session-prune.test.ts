@@ -18,7 +18,7 @@ import { clearSessionDraft, stashSessionDraft, takeSessionDraft } from '@/store/
 import { $queuedPromptsBySession, enqueueQueuedPrompt, getQueuedPrompts } from '@/store/composer-queue'
 import { $pinnedSessionIds } from '@/store/layout'
 import { $activeGatewayProfile, $profiles } from '@/store/profile'
-import { $sessions } from '@/store/session'
+import { $connection, $sessions } from '@/store/session'
 import { $sessionListLoaded } from '@/store/session-list-readiness'
 
 import { __runDeadSessionPrunePass, resetDeadSessionPrune, watchDeadSessionPrune } from './dead-session-prune'
@@ -38,6 +38,7 @@ const profile = (name: string): ProfileInfo =>
   }) as ProfileInfo
 
 const notFound = () => new Error('404: {"detail":"Session not found"}')
+const draftOwner = { connectionId: 'local', profile: 'default' }
 
 beforeAll(() => {
   ;(globalThis as { window?: unknown }).window ??= {}
@@ -46,6 +47,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   window.localStorage.clear()
+  $connection.set({ connectionId: 'local', mode: 'local' } as never)
   $sessions.set([])
   $pinnedSessionIds.set([])
   $queuedPromptsBySession.set({})
@@ -58,6 +60,9 @@ beforeEach(() => {
 afterEach(() => {
   clearSessionDraft('dead-draft-session')
   clearSessionDraft('__new__')
+  clearSessionDraft('dead-draft-session', draftOwner)
+  clearSessionDraft('__new__', draftOwner)
+  $connection.set(null)
   $sessions.set([])
   $pinnedSessionIds.set([])
   $queuedPromptsBySession.set({})
@@ -76,6 +81,15 @@ describe('__runDeadSessionPrunePass', () => {
     expect(getSessionMock).toHaveBeenCalledWith('dead-pin', undefined)
     expect(getSessionMock).toHaveBeenCalledWith('dead-pin', 'work')
   })
+
+  it.each(['404: session not found', "Error invoking remote method 'vanta:api': Error: 404: session not found"])(
+    'accepts an exact missing-session acknowledgment from the native proxy: %s', async error => {
+      $pinnedSessionIds.set(['dead-pin'])
+      getSessionMock.mockRejectedValue(new Error(error))
+      await __runDeadSessionPrunePass()
+      expect($pinnedSessionIds.get()).toEqual([])
+    }
+  )
 
   it('keeps a pin whose session lives on another profile, and caches it as alive', async () => {
     $sessions.set([row('unrelated')])
@@ -114,19 +128,22 @@ describe('__runDeadSessionPrunePass', () => {
     expect($pinnedSessionIds.get()).toEqual([])
   })
 
-  it('retains unsent drafts even when their backend row is absent', async () => {
+  it('keeps unsent owned and legacy drafts even when the backend chat is gone', async () => {
     $sessions.set([row('unrelated')])
-    stashSessionDraft('dead-draft-session', 'stale text', [])
-    stashSessionDraft('__new__', 'brand new', [])
+    stashSessionDraft('dead-draft-session', 'unsent owned text', [], draftOwner)
+    stashSessionDraft('dead-draft-session', 'unassigned legacy text', [])
+    stashSessionDraft('__new__', 'brand new', [], draftOwner)
     getSessionMock.mockRejectedValue(notFound())
 
     await __runDeadSessionPrunePass()
 
-    expect(takeSessionDraft('dead-draft-session').text).toBe('stale text')
-    expect(takeSessionDraft('__new__').text).toBe('brand new')
+    expect(getSessionMock).toHaveBeenCalledWith('dead-draft-session', undefined)
+    expect(takeSessionDraft('dead-draft-session', draftOwner).text).toBe('unsent owned text')
+    expect(takeSessionDraft('dead-draft-session').text).toBe('unassigned legacy text')
+    expect(takeSessionDraft('__new__', draftOwner).text).toBe('brand new')
   })
 
-  it('retains pending queued prompts whether their backend row exists or not', async () => {
+  it('preserves unsent queued prompts even when their server chat is gone', async () => {
     $sessions.set([row('unrelated')])
     enqueueQueuedPrompt('dead-queue-session', { text: 'go', attachments: [] })
     enqueueQueuedPrompt('live-queue-session', { text: 'stay', attachments: [] })
@@ -144,21 +161,36 @@ describe('__runDeadSessionPrunePass', () => {
     expect(getQueuedPrompts('live-queue-session')).toHaveLength(1)
   })
 
-  it.each(['404: not found', '500: session not found', '403: session not found', 'session not found during network recovery'])(
-    'does not certify absence from an inconclusive failure: %s', async error => {
-      $pinnedSessionIds.set(['uncertain-pin'])
-      getSessionMock.mockRejectedValue(new Error(error))
-      await __runDeadSessionPrunePass()
-      expect($pinnedSessionIds.get()).toEqual(['uncertain-pin'])
-    }
-  )
+  it.each([
+    '404: not found',
+    '500: {"error":"session not found"}',
+    '403: {"detail":"session not found"}',
+    '500: session not found',
+    '403: session not found',
+    'session not found during network recovery'
+  ])('does not interpret a route/permission/server error as authoritative absence: %s', async error => {
+    $pinnedSessionIds.set(['uncertain-pin'])
+    getSessionMock.mockRejectedValue(new Error(error))
+    await __runDeadSessionPrunePass()
+    expect($pinnedSessionIds.get()).toEqual(['uncertain-pin'])
+  })
 
-  it('preserves an image-only draft without a backend row', async () => {
-    const image = { id: 'unsent-image', kind: 'image' as const, label: 'fixture.png' }
-    stashSessionDraft('dead-draft-session', '', [image])
+  it('preserves an image-only draft when its server chat disappears', async () => {
+    const image = { id: 'unsent-image', kind: 'image' as const, label: 'screenshot.png' }
+    stashSessionDraft('dead-draft-session', '', [image], draftOwner)
     getSessionMock.mockRejectedValue(notFound())
     await __runDeadSessionPrunePass()
-    expect(takeSessionDraft('dead-draft-session').attachments).toEqual([image])
+    expect(takeSessionDraft('dead-draft-session', draftOwner).attachments).toEqual([image])
+  })
+
+  it('can prune a dead pin when there is no draft payload', async () => {
+    stashSessionDraft('dead-draft-session', '', [], draftOwner)
+    $pinnedSessionIds.set(['dead-draft-session'])
+    getSessionMock.mockRejectedValue(notFound())
+    await __runDeadSessionPrunePass()
+    expect(getSessionMock).toHaveBeenCalledWith('dead-draft-session', undefined)
+    expect($pinnedSessionIds.get()).toEqual([])
+    expect(takeSessionDraft('dead-draft-session', draftOwner)).toEqual({ text: '', attachments: [] })
   })
 
   it('skips ids already covered by loaded sidebar rows', async () => {

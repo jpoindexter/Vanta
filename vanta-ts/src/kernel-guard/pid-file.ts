@@ -66,9 +66,10 @@ function escapePattern(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** True only for `<path>/vanta-kernel serve <port>`: a name match alone is never enough to signal a pid. */
+/** Exact serve port, optionally followed by the bounded private-state startup arguments. */
 export function isKernelCommand(command: string, port: number): boolean {
-  const pattern = new RegExp(`(^|[\\\\/])vanta-kernel(\\.exe)?\\s+serve\\s+${port}\\s*$`);
+  const state = "(?:\\s+--state-dir\\s+/[^\\r\\n]+\\s+--state-owner\\s+[a-z0-9][a-z0-9_-]{0,63})?";
+  const pattern = new RegExp(`(^|[\\\\/])vanta-kernel(\\.exe)?\\s+serve\\s+${port}${state}\\s*$`);
   return pattern.test(command.trim());
 }
 

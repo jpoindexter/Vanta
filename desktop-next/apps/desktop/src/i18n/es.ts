@@ -3954,6 +3954,8 @@ export const esOverrides = {
     queueDelete: 'Borrar',
     queueResume: 'Reanudar',
     queueResumeTip: 'La cola se pausó al detener; reanuda el envío de los turnos en cola',
+    draftStorageUnavailable: "No se pudieron leer o guardar los borradores. Tu borrador actual permanece en esta ventana. Mantenla abierta y vuelve a intentarlo.",
+    draftOwnerPending: "Conectando con este chat. Tus borradores guardados no cambian.",
     queueStuckTitle: 'Mensaje en cola no enviado',
     queueStuckBody: 'Un turno en cola no llegó a enviarse. Sigue en la cola; vuelve a intentarlo.',
     queueDroppedTitle: 'Entrada en cola descartada',

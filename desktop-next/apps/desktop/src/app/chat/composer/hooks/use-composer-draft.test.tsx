@@ -1,6 +1,6 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react'
 import { useLayoutEffect } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PaneVisibleContext } from '@/components/pane-shell/pane-visibility'
 import {
@@ -18,6 +18,8 @@ import {
   takeSessionDraft
 } from '@/store/composer'
 import { $connection } from '@/store/session'
+import { $activeGatewayProfile } from '@/store/profile'
+import { draftKey } from '@/store/fresh-draft-scope'
 
 import { useComposerActions } from '../../hooks/use-composer-actions'
 import type { QueueEditState } from '../composer-utils'
@@ -28,6 +30,11 @@ import { type ComposerScope, ComposerScopeProvider, MAIN_COMPOSER_SCOPE } from '
 import { useComposerDraft } from './use-composer-draft'
 
 const mockComposerApi = { setText: vi.fn() }
+const TEST_OWNER = { connectionId: 'local', profile: 'default' }
+beforeEach(() => {
+  $connection.set({ connectionId: 'local', mode: 'local' } as never)
+  $activeGatewayProfile.set('default')
+})
 
 vi.mock('@assistant-ui/react', () => ({
   useAui: () => ({ composer: () => mockComposerApi }),
@@ -72,13 +79,13 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
   afterEach(() => {
     cleanup()
     mainComposerScope.clear()
-    clearSessionDraft('session-A')
-    clearSessionDraft('session-B')
+    clearSessionDraft('session-A', TEST_OWNER)
+    clearSessionDraft('session-B', TEST_OWNER)
 
     // Fresh-draft lifecycles rotate per test; the afterEach must sweep the
     // whole map or one test's abandoned bucket leaks into the next.
     for (const scope of ['session-created', NEW_SESSION_DRAFT_KEY, $freshDraftKey.get()]) {
-      clearSessionDraft(scope)
+      clearSessionDraft(scope, TEST_OWNER)
     }
 
     rotateFreshDraftKey()
@@ -89,7 +96,7 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
   it('clears the outgoing session attachments by the layout phase right after switching sessions', () => {
     const attachmentA: ComposerAttachment = { id: 'url-A', kind: 'url', label: 'A' }
-    stashSessionDraft('session-A', 'hi from A', [attachmentA])
+    stashSessionDraft('session-A', 'hi from A', [attachmentA], TEST_OWNER)
 
     const snapshots: ComposerAttachment[][] = []
 
@@ -128,8 +135,8 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     // probe is a useLayoutEffect that runs synchronously after the DOM commit —
     // exactly the last moment before the browser may paint. If the restore
     // lived in a passive effect, the probe would observe A's text here.
-    stashSessionDraft('session-A', 'draft typed in session A', [])
-    stashSessionDraft('session-B', 'draft typed in session B', [])
+    stashSessionDraft('session-A', 'draft typed in session A', [], TEST_OWNER)
+    stashSessionDraft('session-B', 'draft typed in session B', [], TEST_OWNER)
 
     const textSnapshots: string[] = []
 
@@ -168,13 +175,13 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     // The restore also reached the composer core in the same commit.
     expect(mockComposerApi.setText).toHaveBeenCalledWith('draft typed in session B')
 
-    clearSessionDraft('session-A')
-    clearSessionDraft('session-B')
+    clearSessionDraft('session-A', TEST_OWNER)
+    clearSessionDraft('session-B', TEST_OWNER)
   })
 
   it('carries a pre-session draft onto the session the fresh chat is re-homed to, before its runtime id is known', () => {
     const preSessionAttachment: ComposerAttachment = { id: 'file:new', kind: 'file', label: 'new.txt' }
-    stashSessionDraft(null, 'do not lose this draft', [preSessionAttachment])
+    stashSessionDraft(null, 'do not lose this draft', [preSessionAttachment], TEST_OWNER)
 
     const { rerender } = render(
       <ProbeHarness activeQueueSessionKey={null} onLayoutSnapshot={() => undefined} sessionId="" />
@@ -182,22 +189,22 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
     // Cold-start resume-last-session / first-send create: the route flips the
     // composer scope while `session.resume` has not published a runtime id yet.
-    announceNewSessionDraftKey('session-created')
+    announceNewSessionDraftKey('session-created', undefined, TEST_OWNER)
     act(() => {
       rerender(<ProbeHarness activeQueueSessionKey="session-created" onLayoutSnapshot={() => undefined} sessionId="" />)
     })
 
     expect(mainComposerScope.$attachments.get()).toEqual([preSessionAttachment])
-    expect(takeSessionDraft('session-created')).toEqual({
+    expect(takeSessionDraft('session-created', TEST_OWNER)).toEqual({
       attachments: [preSessionAttachment],
       text: 'do not lose this draft'
     })
-    expect(takeSessionDraft(null)).toEqual({ attachments: [], text: '' })
-    clearSessionDraft('session-created')
+    expect(takeSessionDraft(null, TEST_OWNER)).toEqual({ attachments: [], text: '' })
+    clearSessionDraft('session-created', TEST_OWNER)
   })
 
   it('carries the unsent draft of a GONE session into the fresh chat once, with an undoable notice (#111868)', () => {
-    stashSessionDraft('session-gone', 'typed into a session that no longer exists', [])
+    stashSessionDraft('session-gone', 'typed into a session that no longer exists', [], TEST_OWNER)
 
     const { rerender } = render(
       <ProbeHarness activeQueueSessionKey="session-gone" onLayoutSnapshot={() => undefined} sessionId="session-gone" />
@@ -205,15 +212,16 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
     // The resume's gone verdict announces the dead key, then drops the window
     // to a fresh draft (route → /new, scope → the pre-session bucket).
-    announceGoneSessionDraft('session-gone')
+    announceGoneSessionDraft('session-gone', TEST_OWNER)
     act(() => {
       rerender(<ProbeHarness activeQueueSessionKey={null} onLayoutSnapshot={() => undefined} sessionId="" />)
     })
 
-    expect(takeSessionDraft(null).text).toBe('typed into a session that no longer exists')
-    expect(takeSessionDraft('session-gone').text).toBe('')
+    expect(takeSessionDraft(null, TEST_OWNER).text).toBe('typed into a session that no longer exists')
+    expect(takeSessionDraft('session-gone', TEST_OWNER).text).toBe('')
     expect($restoredDraftNotice.get()).toEqual({
-      fromKey: 'session-gone',
+      fromKey: draftKey('session-gone', TEST_OWNER),
+      toKey: draftKey(null, TEST_OWNER),
       text: 'typed into a session that no longer exists'
     })
 
@@ -230,12 +238,12 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     })
 
     expect($restoredDraftNotice.get()).toBeNull()
-    expect(takeSessionDraft(null).text).toBe('typed into a session that no longer exists')
-    clearSessionDraft(null)
+    expect(takeSessionDraft(null, TEST_OWNER).text).toBe('typed into a session that no longer exists')
+    clearSessionDraft(null, TEST_OWNER)
   })
 
   it('leaves the pre-session draft in its bucket when the user opens another session from a fresh chat', () => {
-    stashSessionDraft(null, 'still composing a new chat', [])
+    stashSessionDraft(null, 'still composing a new chat', [], TEST_OWNER)
 
     const { rerender } = render(
       <ProbeHarness activeQueueSessionKey={null} onLayoutSnapshot={() => undefined} sessionId="" />
@@ -247,9 +255,9 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
       )
     })
 
-    expect(takeSessionDraft('session-A')).toEqual({ attachments: [], text: '' })
-    expect(takeSessionDraft(null).text).toBe('still composing a new chat')
-    clearSessionDraft(null)
+    expect(takeSessionDraft('session-A', TEST_OWNER)).toEqual({ attachments: [], text: '' })
+    expect(takeSessionDraft(null, TEST_OWNER).text).toBe('still composing a new chat')
+    clearSessionDraft(null, TEST_OWNER)
   })
 
   it("isolates two concurrent new-chat lifecycles: the second fresh draft never shows the first one's text (#66662)", () => {
@@ -259,21 +267,21 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     expect(firstKey).not.toBe(secondKey)
 
     // First new chat: type unsent text under its own lifecycle key.
-    stashSessionDraft(firstKey, 'first unsent chat', [])
-    expect(takeSessionDraft(firstKey).text).toBe('first unsent chat')
+    stashSessionDraft(firstKey, 'first unsent chat', [], TEST_OWNER)
+    expect(takeSessionDraft(firstKey, TEST_OWNER).text).toBe('first unsent chat')
 
     // A second New Chat rotated the key; its composer must restore empty —
     // the first chat's text is invisible until the user goes back.
     render(<ProbeHarness activeQueueSessionKey={secondKey} onLayoutSnapshot={() => undefined} sessionId="" />)
 
-    expect(takeSessionDraft(secondKey)).toEqual({ attachments: [], text: '' })
+    expect(takeSessionDraft(secondKey, TEST_OWNER)).toEqual({ attachments: [], text: '' })
 
     // The abandoned lifecycle keeps its text — no consumer of the second
     // lifecycle's scope can see or clobber it.
-    expect(takeSessionDraft(firstKey).text).toBe('first unsent chat')
+    expect(takeSessionDraft(firstKey, TEST_OWNER).text).toBe('first unsent chat')
 
-    clearSessionDraft(firstKey)
-    clearSessionDraft(secondKey)
+    clearSessionDraft(firstKey, TEST_OWNER)
+    clearSessionDraft(secondKey, TEST_OWNER)
   })
 
   it("re-homes the ACTIVE lifecycle's draft onto the session its first send creates (#66662)", () => {
@@ -281,17 +289,17 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
     // The user typed in the current new chat; the swap cleanup stashed it
     // under the lifecycle key (null scope resolves to it).
-    stashSessionDraft(null, 'typed before first send', [])
+    stashSessionDraft(null, 'typed before first send', [], TEST_OWNER)
 
     const { rerender } = render(
       <ProbeHarness activeQueueSessionKey={key} onLayoutSnapshot={() => undefined} sessionId="" />
     )
 
-    expect(takeSessionDraft(key).text).toBe('typed before first send')
+    expect(takeSessionDraft(key, TEST_OWNER).text).toBe('typed before first send')
 
     // First send: session.create assigns the stored id; the composer's scope
     // swap follows the announcement and moves THIS lifecycle's bucket.
-    announceNewSessionDraftKey('session-created')
+    announceNewSessionDraftKey('session-created', undefined, TEST_OWNER)
     act(() => {
       rerender(
         <ProbeHarness
@@ -302,10 +310,10 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
       )
     })
 
-    expect(takeSessionDraft('session-created').text).toBe('typed before first send')
-    expect(takeSessionDraft(key).text).toBe('')
+    expect(takeSessionDraft('session-created', TEST_OWNER).text).toBe('typed before first send')
+    expect(takeSessionDraft(key, TEST_OWNER).text).toBe('')
 
-    clearSessionDraft('session-created')
+    clearSessionDraft('session-created', TEST_OWNER)
   })
 
   it("keys a fresh chat's live stash under its lifecycle key, not the shared bucket (#66662)", () => {
@@ -317,13 +325,13 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
     // Stash through the null scope the way the swap cleanup does when the
     // user types and navigates away mid-debounce.
-    stashSessionDraft(null, 'typed in this lifecycle', [])
+    stashSessionDraft(null, 'typed in this lifecycle', [], TEST_OWNER)
 
-    expect(takeSessionDraft(key).text).toBe('typed in this lifecycle')
-    expect(takeSessionDraft(NEW_SESSION_DRAFT_KEY).text).toBe('')
+    expect(takeSessionDraft(key, TEST_OWNER).text).toBe('typed in this lifecycle')
+    expect(takeSessionDraft(NEW_SESSION_DRAFT_KEY, TEST_OWNER).text).toBe('')
 
     unmount()
-    clearSessionDraft(key)
+    clearSessionDraft(key, TEST_OWNER)
   })
 
   it('applies a delayed image preview when it resolves while its attachment draft is inactive', async () => {
@@ -421,7 +429,7 @@ describe('useComposerDraft — rehydrate diagnostic log stays redacted', () => {
       refText: `@url:${secretUrl}`
     }
 
-    stashSessionDraft('session-secret', '', [attachment])
+    stashSessionDraft('session-secret', '', [attachment], TEST_OWNER)
 
     const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => undefined)
 
@@ -453,13 +461,13 @@ describe('useComposerDraft — draft survives full unmount (Settings navigation,
   afterEach(() => {
     cleanup()
     mainComposerScope.clear()
-    clearSessionDraft('session-nav')
+    clearSessionDraft('session-nav', TEST_OWNER)
   })
 
   it('stashes the unsent draft on unmount and restores it on remount', () => {
     // The user typed but has not sent; the draft was stashed by the normal
     // typing debounce path at some earlier point.
-    stashSessionDraft('session-nav', 'unsent thought', [])
+    stashSessionDraft('session-nav', 'unsent thought', [], TEST_OWNER)
 
     const { unmount } = render(
       <ProbeHarness activeQueueSessionKey="session-nav" onLayoutSnapshot={() => undefined} sessionId="session-nav" />
@@ -488,8 +496,8 @@ describe('useComposerDraft — same-draft scope rekey preserves only the focused
   afterEach(() => {
     cleanup()
     mainComposerScope.clear()
-    clearSessionDraft('lineage-root')
-    clearSessionDraft('runtime-tip')
+    clearSessionDraft('lineage-root', TEST_OWNER)
+    clearSessionDraft('runtime-tip', TEST_OWNER)
     markActiveComposer('main')
   })
 
@@ -519,8 +527,8 @@ describe('useComposerDraft — same-draft scope rekey preserves only the focused
   }
 
   it('keeps the caret when reconciliation rekeys an unchanged focused draft', () => {
-    stashSessionDraft('lineage-root', 'alpha beta', [])
-    stashSessionDraft('runtime-tip', 'alpha beta', [])
+    stashSessionDraft('lineage-root', 'alpha beta', [], TEST_OWNER)
+    stashSessionDraft('runtime-tip', 'alpha beta', [], TEST_OWNER)
     const view = renderDraft('lineage-root')
     const editor = view.draft.editorRef.current!
 
@@ -543,7 +551,7 @@ describe('useComposerDraft — same-draft scope rekey preserves only the focused
   })
 
   it('still sends programmatic mutations to the end instead of preserving a stale caret', () => {
-    stashSessionDraft('lineage-root', 'alpha beta', [])
+    stashSessionDraft('lineage-root', 'alpha beta', [], TEST_OWNER)
     const view = renderDraft('lineage-root')
     const editor = view.draft.editorRef.current!
 

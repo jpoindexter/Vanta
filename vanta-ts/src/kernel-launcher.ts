@@ -9,8 +9,9 @@ import { READY_TIMEOUT_MS, waitForKernelReady, type ReadyChild } from "./kernel-
 import { acquireSpawnLock } from "./kernel-guard/spawn-lock.js";
 import { spawnGuardedKernel } from "./kernel-guard/spawn-guarded.js";
 import { resolveVantaHome } from "./store/home.js";
+import { prepareProfileKernelState, profileKernelState, type ProfileKernelState } from "./kernel/profile-state.js";
 
-type KernelStatus = { status?: string; root?: string };
+type KernelStatus = { status?: string; root?: string; scope_id?: string | null };
 export type KernelStatusReader = (baseUrl: string) => Promise<KernelStatus | null>;
 
 const DEFAULT_KERNEL_URL = "http://127.0.0.1:7788";
@@ -49,8 +50,9 @@ async function statusAt(baseUrl: string): Promise<KernelStatus | null> {
   }
 }
 
-function statusMatchesRoot(status: KernelStatus | null, root: string): boolean {
-  return Boolean(status?.root && normalizedRoot(status.root) === normalizedRoot(root));
+function statusMatchesRoot(status: KernelStatus | null, root: string, scopeId?: string): boolean {
+  return Boolean(status?.root && normalizedRoot(status.root) === normalizedRoot(root)
+    && (status.scope_id ?? undefined) === scopeId);
 }
 
 function localUrl(port: number): string {
@@ -77,15 +79,15 @@ export async function resolveRootScopedKernelUrl(
   );
 }
 
-async function resolveKernelEndpoint(baseUrl: string, root: string): Promise<{
+async function resolveKernelEndpoint(baseUrl: string, root: string, scopeId?: string): Promise<{
   baseUrl: string;
   ready: boolean;
 }> {
   const normalizedBaseUrl = normalizedUrl(baseUrl);
   const existing = await statusAt(normalizedBaseUrl);
-  if (statusMatchesRoot(existing, root)) return { baseUrl: normalizedBaseUrl, ready: true };
+  if (statusMatchesRoot(existing, root, scopeId)) return { baseUrl: normalizedBaseUrl, ready: true };
   if (!existing) return { baseUrl: normalizedBaseUrl, ready: false };
-  if (!isDefaultKernelUrl(normalizedBaseUrl)) {
+  if (!isDefaultKernelUrl(normalizedBaseUrl) || scopeId || existing.scope_id) {
     throw new Error(
       `VANTA_KERNEL_URL points to a kernel for ${existing.root ?? "an unknown root"}, not ${normalizedRoot(root)}. `
       + "Stop that kernel or set VANTA_KERNEL_URL to the kernel for this project.",
@@ -105,6 +107,7 @@ type EnsureKernelOptions = {
   /** Test seam: how long to wait for another runtime that is starting this kernel. */
   startLockWaitMs?: number;
 };
+type OwnedKernelOptions = EnsureKernelOptions & { state?: ProfileKernelState };
 
 // Concurrent callers in one process (startup prewarm plus a first request) must share one spawn:
 // a second kernel on the same port would fail to bind and erase the first one's pid file.
@@ -116,16 +119,19 @@ const inflight = new Map<string, Promise<string>>();
  * receive a stable local endpoint rather than crossing a safety/token boundary.
  */
 export function ensureKernel(opts: EnsureKernelOptions): Promise<string> {
-  const key = [normalizedRoot(opts.root), normalizedUrl(opts.baseUrl), opts.ephemeral ? "owned" : "shared"].join("|");
-  const pending = inflight.get(key) ?? ensureKernelOnce(opts).finally(() => inflight.delete(key));
+  const state = profileKernelState(opts.root);
+  const key = [normalizedRoot(opts.root), normalizedUrl(opts.baseUrl), opts.ephemeral ? "owned" : "shared", state?.scopeId ?? ""].join("|");
+  const pending = inflight.get(key) ?? ensureKernelOnce({ ...opts, state }).finally(() => inflight.delete(key));
   inflight.set(key, pending);
   return pending;
 }
 
-function startKernelProcess(opts: EnsureKernelOptions, port: string): ReadyChild {
+function startKernelProcess(opts: OwnedKernelOptions, port: string): ReadyChild {
+  const extraArgs = opts.state ? ["--state-dir", opts.state.directory, "--state-owner", opts.state.owner] : [];
+  if (opts.state) prepareProfileKernelState(opts.state);
   if (opts.ephemeral) {
     // Owned kernel: a guard process (our child) starts it and kills it when this runtime ends, however it ends.
-    const { guard, pidFile } = spawnGuardedKernel({ kernelBin: opts.kernelBin, port, root: opts.root });
+    const { guard, pidFile } = spawnGuardedKernel({ kernelBin: opts.kernelBin, port, root: opts.root, extraArgs });
     registerKernelCleanup(guard, process, {
       forceStop: () => {
         guard.kill("SIGKILL");
@@ -136,7 +142,7 @@ function startKernelProcess(opts: EnsureKernelOptions, port: string): ReadyChild
     return guard;
   }
   // Shared operator kernel: deliberately outlives this process so the next CLI session reuses it.
-  const child = spawn(opts.kernelBin, ["serve", port], {
+  const child = spawn(opts.kernelBin, ["serve", port, ...extraArgs], {
     detached: true,
     stdio: "ignore",
     cwd: opts.root,
@@ -170,11 +176,11 @@ function logAttachedOwner(baseUrl: string): void {
   }
 }
 
-async function ensureKernelOnce(opts: EnsureKernelOptions): Promise<string> {
+async function ensureKernelOnce(opts: OwnedKernelOptions): Promise<string> {
   const waitMs = opts.startLockWaitMs ?? START_LOCK_WAIT_MS;
   const begun = Date.now();
   for (;;) {
-    const endpoint = await resolveKernelEndpoint(opts.baseUrl, opts.root);
+    const endpoint = await resolveKernelEndpoint(opts.baseUrl, opts.root, opts.state?.scopeId);
     if (endpoint.ready) {
       logAttachedOwner(endpoint.baseUrl);
       return endpoint.baseUrl;
@@ -200,10 +206,10 @@ async function ensureKernelOnce(opts: EnsureKernelOptions): Promise<string> {
   }
 }
 
-async function startAndWait(opts: EnsureKernelOptions, baseUrl: string, port: string): Promise<string> {
+async function startAndWait(opts: OwnedKernelOptions, baseUrl: string, port: string): Promise<string> {
   const child = startKernelProcess(opts, port);
   await waitForKernelReady({
-    probe: async () => statusMatchesRoot(await statusAt(baseUrl), opts.root),
+    probe: async () => statusMatchesRoot(await statusAt(baseUrl), opts.root, opts.state?.scopeId),
     child,
     describe: { baseUrl, port, command: `VANTA_ROOT="${opts.root}" ${opts.kernelBin} serve ${port}` },
   });

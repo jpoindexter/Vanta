@@ -3,10 +3,12 @@ import { AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui
 import type { ThreadMessageLike } from '@assistant-ui/react'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 import { mainComposerScope } from '@/store/composer'
+import { $connection } from '@/store/session'
+import { $activeGatewayProfile } from '@/store/profile'
 
 import { composerPlainText, RICH_INPUT_SLOT } from './rich-editor'
 import type { ChatBarState } from './types'
@@ -14,6 +16,11 @@ import type { ChatBarState } from './types'
 import { ChatBar } from './index'
 
 afterEach(cleanup)
+beforeEach(() => {
+  $connection.set({ connectionId: 'local', mode: 'local' } as never)
+  $activeGatewayProfile.set('default')
+})
+afterEach(() => { $connection.set(null) })
 
 // THE INVARIANT: a pasted URL is never swallowed.
 //

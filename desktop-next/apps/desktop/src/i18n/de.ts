@@ -3957,6 +3957,8 @@ export const deOverrides = {
     queueDelete: 'Löschen',
     queueResume: 'Fortsetzen',
     queueResumeTip: 'Durch Stopp pausiert — fortsetzen, um die eingereihten Turns zu senden',
+    draftStorageUnavailable: "Gespeicherte Entwürfe konnten nicht gelesen oder gespeichert werden. Dein aktueller Entwurf bleibt in diesem Fenster. Lass es geöffnet und versuche es erneut.",
+    draftOwnerPending: "Verbindung zu diesem Chat wird hergestellt. Deine gespeicherten Entwürfe bleiben unverändert.",
     queueStuckTitle: 'Eingereihte Nachricht nicht gesendet',
     queueStuckBody:
       'Ein eingereihter Turn konnte nicht gesendet werden. Er ist noch in der Warteschlange — versuchen Sie, ihn erneut zu senden.',

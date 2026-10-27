@@ -3,12 +3,13 @@ import type { GitContext } from "./git-common";
 import { failureReason, type GatedRunner } from "./gated-run";
 import { mutationRequest, planMutation } from "./git-mutations";
 import type { IpcLike } from "./native-handlers";
+import type { NativeActionTarget } from "./native-action-target";
 
 export const NO_CHAT_MESSAGE = "Open a chat first: the approval card for this change appears there.";
 
 export interface MutationDeps extends GitContext {
   /** The chat whose event stream will show the approval card for this window. */
-  clientFor: (sender: unknown) => string | undefined;
+  clientFor: (sender: unknown) => NativeActionTarget | undefined;
   ipc: IpcLike;
   run: GatedRunner;
 }
@@ -27,9 +28,9 @@ export function registerGitMutations(deps: MutationDeps): void {
       return { message: "That change was not understood.", ok: false };
     }
 
-    const clientId = deps.clientFor(event.sender);
+    const target = deps.clientFor(event.sender);
 
-    if (!clientId) {
+    if (!target) {
       return { message: NO_CHAT_MESSAGE, ok: false };
     }
 
@@ -40,7 +41,7 @@ export function registerGitMutations(deps: MutationDeps): void {
     }
 
     for (const command of plan.commands) {
-      const outcome = await deps.run(command, clientId);
+      const outcome = await deps.run(command, target);
 
       if (!outcome.ok) {
         return { message: failureReason(outcome.output), ok: false };

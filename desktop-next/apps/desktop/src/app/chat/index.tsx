@@ -605,7 +605,8 @@ const ChatViewContent = memo(function ChatViewContent({
       return
     }
 
-    migrateSessionDraft(selectedSessionId, queueSessionKey)
+    const draftOwner = captureDraftCustodyOwner(selectedSessionId)
+    if (draftOwner) migrateSessionDraft(selectedSessionId, queueSessionKey, draftOwner)
     migrateQueuedPrompts(selectedSessionId, queueSessionKey)
   }, [queueSessionKey, selectedSessionId, sessions])
 
@@ -874,3 +875,4 @@ const ChatViewContent = memo(function ChatViewContent({
     </div>
   )
 })
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'

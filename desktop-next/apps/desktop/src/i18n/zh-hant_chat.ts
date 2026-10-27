@@ -162,6 +162,8 @@ export const zhHantChat = {
     queueDelete: '刪除',
     queueResume: '繼續',
     queueResumeTip: '已被停止操作暫停 — 繼續傳送排隊的回合',
+    draftStorageUnavailable: "無法讀取或儲存草稿。目前的草稿仍保留在此視窗中。請保持視窗開啟並重試。",
+    draftOwnerPending: "正在連線到此聊天。已儲存的草稿保持不變。",
     queueStuckTitle: '佇列訊息未送出',
     queueStuckBody: '佇列中的對話多次傳送失敗。它仍在佇列中，請重試傳送。',
     queueDroppedTitle: '已捨棄佇列內容',

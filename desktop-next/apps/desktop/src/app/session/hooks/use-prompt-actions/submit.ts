@@ -936,13 +936,14 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
             sessionId,
             recoverStoredSessionId,
             liveId =>
-              withSessionBusyRetry(() =>
-                requestGateway<PromptSubmitResult>(
+              withSessionBusyRetry(async () => {
+                await options?.onDispatchStarted?.()
+                return requestGateway<PromptSubmitResult>(
                   'prompt.submit',
                   submitParams(liveId),
                   PROMPT_SUBMIT_REQUEST_TIMEOUT_MS
                 )
-              ),
+              }),
             {
               requestGateway,
               driftReason: sessionDriftReason,

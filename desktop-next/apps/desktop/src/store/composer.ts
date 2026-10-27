@@ -1,10 +1,9 @@
 import { atom } from 'nanostores'
 
-import { deriveDraftTitle } from '@/lib/draft-title'
 import { triggerHaptic } from '@/lib/haptics'
-import { persistString, storedString } from '@/lib/storage'
 
-import { recordDislike, recordFriction } from './desktop-metrics'
+import { patchStashedCustodyOccurrence } from './draft-custody-registry'
+import { attachmentOccurrenceIndex, patchStashedDraftAttachmentOccurrence } from './session-draft-state'
 
 /** Release blob: chip previews created for OS image drops (see #63682). */
 export function revokeAttachmentPreviewUrl(url?: string | null) {
@@ -125,14 +124,6 @@ export interface ComposerAttachmentScope {
   updateIfCurrent(expected: ComposerAttachment, patch: ComposerAttachmentPatch): boolean
 }
 
-function attachmentOccurrenceIndex(attachments: ComposerAttachment[], expected: ComposerAttachment): number {
-  return attachments.findIndex(item =>
-    expected.occurrenceId === undefined
-      ? item === expected
-      : item.id === expected.id && item.occurrenceId === expected.occurrenceId
-  )
-}
-
 export function createComposerAttachmentScope($attachments = atom<ComposerAttachment[]>([])): ComposerAttachmentScope {
   return {
     $attachments,
@@ -214,11 +205,12 @@ export function createComposerAttachmentScope($attachments = atom<ComposerAttach
       return true
     },
     updateIfCurrent(expected, patch) {
+      const savedOccurrenceUpdated = patchStashedCustodyOccurrence(expected, patch)
       const current = $attachments.get()
       const index = attachmentOccurrenceIndex(current, expected)
 
       if (index < 0) {
-        return false
+        return savedOccurrenceUpdated
       }
 
       const next = [...current]
@@ -234,201 +226,18 @@ export function createComposerAttachmentScope($attachments = atom<ComposerAttach
  *  `$composerAttachments` reader/writer IS this scope. */
 export const mainComposerScope = createComposerAttachmentScope($composerAttachments)
 
-// Per-thread draft stash for the decoupled composer. Session lifecycle never
-// touches this — only ChatBar's scope swap reads/writes it. Text mirrors to
-// localStorage; attachments are memory-only (blobs, upload state).
-export const SESSION_DRAFTS_STORAGE_KEY = 'desktop:composer-drafts:v3'
+export { $freshDraftKey, NEW_SESSION_DRAFT_KEY, freshDraftScope, rotateFreshDraftKey, isFreshDraftScope } from './fresh-draft-scope'
+export { $draftTitles, $restoredDraftNotice, SESSION_DRAFTS_STORAGE_KEY, draftTitleIn, draftTitleFor,
+  reloadPersistedDrafts, noteDraftTextEdit, quoteSessionDraftText, currentDraftTextRevision,
+  consumeSessionDraftText, stashSessionDraft, takeSessionDraft, clearSessionDraft, stashedDraftScopes } from './session-draft-state'
+export type { SessionDraft, RestoredDraftNotice } from './session-draft-state'
+export { migrateSessionDraft, announceNewSessionDraftKey, adoptNewSessionDraft, announceGoneSessionDraft,
+  adoptGoneSessionDraft, dismissRestoredDraftNotice, undoRestoredDraft } from './session-draft-lifecycle'
 
-export const NEW_SESSION_DRAFT_KEY = '__new__'
-const MAX_PERSISTED_DRAFTS = 50
-const EMPTY_SESSION_DRAFT: SessionDraft = { attachments: [], text: '' }
-
-export interface SessionDraft {
-  attachments: ComposerAttachment[]
-  text: string
-}
-
-// Stable only for the lifetime of the current sessionless chat (#66662). The
-// legacy behavior mapped every unsaved chat onto the single NEW_SESSION_DRAFT_KEY
-// bucket, so a second New Chat inherited the first one's unsent text. Persisting
-// the key (rather than just its text) lets a reload restore that exact fresh
-// draft; starting another new chat rotates the key so abandoned unsent drafts
-// cannot bleed into the next lifecycle.
-const FRESH_DRAFT_STORAGE_KEY = 'vanta.desktop.freshDraftKey'
-
-const createFreshDraftKey = (): string =>
-  `__new__:${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`
-
-export const $freshDraftKey = atom<string>(storedString(FRESH_DRAFT_STORAGE_KEY) ?? NEW_SESSION_DRAFT_KEY)
-
-export const freshDraftScope = (): string => $freshDraftKey.get()
-
-export const rotateFreshDraftKey = (): string => {
-  const key = createFreshDraftKey()
-  $freshDraftKey.set(key)
-  persistString(FRESH_DRAFT_STORAGE_KEY, key)
-
-  return key
-}
-
-// A draft key belongs to a fresh-chat lifecycle when it is the legacy shared
-// bucket or one of its per-instance successors (`__new__:<uuid>`, #66662).
-export const isFreshDraftScope = (key: string | null | undefined): boolean =>
-  typeof key === 'string' &&
-  (key === NEW_SESSION_DRAFT_KEY ||
-    (key.startsWith(NEW_SESSION_DRAFT_KEY) && key.length > NEW_SESSION_DRAFT_KEY.length))
-
-// A null/empty scope IS the current fresh-chat lifecycle — resolve it to that
-// lifecycle's own key so every stash/read/migrate consumer below addresses the
-// active fresh bucket instead of the shared legacy one.
-const draftKey = (scope: string | null | undefined) => scope?.trim() || freshDraftScope()
-
-/** Inline "Restored your unsent message" notice for the fresh draft (see
- *  `adoptGoneSessionDraft`). `null` = nothing to show. */
-export interface RestoredDraftNotice {
-  /** The dead stored-session key the text came from. */
-  fromKey: string
-  /** The text as restored — Undo only applies while the draft still equals it. */
-  text: string
-}
-
-export const $restoredDraftNotice = atom<RestoredDraftNotice | null>(null)
-
-const cloneDraft = (draft: SessionDraft): SessionDraft => ({
-  attachments: draft.attachments.map(attachment => ({ ...attachment })),
-  text: draft.text
-})
-
-function loadPersistedDraftTexts(): [string, SessionDraft][] {
-  try {
-    const raw = window.localStorage.getItem(SESSION_DRAFTS_STORAGE_KEY)
-
-    if (!raw) {
-      return []
-    }
-
-    return Object.entries(JSON.parse(raw) as Record<string, string>).map(([key, text]) => [
-      key,
-      { attachments: [], text }
-    ])
-  } catch {
-    return []
-  }
-}
-
-const draftsBySession = new Map<string, SessionDraft>(loadPersistedDraftTexts())
-
-/**
- * Patch one asynchronous attachment occurrence wherever the main composer owns
- * it. During a session switch the occurrence moves from the live atom into the
- * per-session in-memory draft stash; a preview may finish on either side of
- * that handoff. Updating both stores is safe because occurrence ids are unique,
- * and merging into the latest object preserves concurrent staging metadata.
- */
-export function patchMainComposerAttachmentOccurrence(
-  expected: ComposerAttachment,
-  patch: ComposerAttachmentPatch
-): boolean {
-  let updated = mainComposerScope.updateIfCurrent(expected, patch)
-
-  for (const [key, draft] of draftsBySession) {
-    const index = attachmentOccurrenceIndex(draft.attachments, expected)
-
-    if (index < 0) {
-      continue
-    }
-
-    const attachments = [...draft.attachments]
-    attachments[index] = { ...attachments[index]!, ...patch }
-    draftsBySession.set(key, { ...draft, attachments })
-    updated = true
-  }
-
-  return updated
-}
-
-/**
- * What each unsent draft would be called, keyed the same way its text is.
- *
- * A draft has no session to carry a title, so the tab showing it reads this
- * instead of the "New session" placeholder. Written from `stashSessionDraft`,
- * the one funnel every composer's text already flows through — the debounce
- * that persists a draft is the same beat that renames its tab, so typing costs
- * nothing extra. Only tabs showing a draft subscribe, and each selects its own
- * key, so a rename repaints one label rather than the strip.
- *
- * Seeded from the persisted texts: a draft left open across a restart comes
- * back already named.
- */
-export const $draftTitles = atom<Record<string, string>>(
-  Object.fromEntries(
-    [...draftsBySession].map(([key, draft]) => [key, deriveDraftTitle(draft.text)]).filter(([, title]) => title)
-  )
-)
-
-/** Read one draft's title out of the map — for a `useStoreSelector`, so a tab
- *  repaints on its OWN rename rather than on every draft's. */
-export const draftTitleIn = (titles: Record<string, string>, scope: string | null | undefined): string =>
-  titles[draftKey(scope)] ?? ''
-
-export const draftTitleFor = (scope: string | null | undefined): string => draftTitleIn($draftTitles.get(), scope)
-
-function publishDraftTitle(key: string, title: string): void {
-  const current = $draftTitles.get()
-
-  if ((current[key] ?? '') === title) {
-    return
-  }
-
-  const next = { ...current }
-
-  if (title) {
-    next[key] = title
-  } else {
-    delete next[key]
-  }
-
-  $draftTitles.set(next)
-}
-
-/**
- * Re-read the persisted drafts written by ANOTHER window into this one's map.
- *
- * Drafts are per-renderer state backed by shared localStorage, and the map
- * above is read exactly once at module load. Two windows on the same session
- * (HUD mode ⇄ the app window) therefore diverge the moment either one types:
- * whichever window mounted first keeps its stale copy forever, so text typed
- * in the HUD is simply gone when you return to the app.
- *
- * Merge, don't clobber — the local map may hold attachments (never persisted)
- * that the incoming text-only snapshot can't know about.
- */
-export function reloadPersistedDrafts(): void {
-  const incoming = new Map(loadPersistedDraftTexts())
-
-  for (const [key, draft] of incoming) {
-    const local = draftsBySession.get(key)
-    draftsBySession.set(key, local?.attachments.length ? { ...local, text: draft.text } : draft)
-    publishDraftTitle(key, deriveDraftTitle(draft.text))
-  }
-
-  // A key that vanished from storage was cleared (sent) in the other window.
-  for (const key of [...draftsBySession.keys()]) {
-    if (!incoming.has(key)) {
-      draftsBySession.delete(key)
-      publishDraftTitle(key, '')
-    }
-  }
-}
-
-// localStorage `storage` events fire across Electron BrowserWindows of the
-// same origin, so the other window's write is the sync signal.
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', event => {
-    if (event.key === SESSION_DRAFTS_STORAGE_KEY) {
-      reloadPersistedDrafts()
-    }
-  })
+export function patchMainComposerAttachmentOccurrence(expected: ComposerAttachment, patch: ComposerAttachmentPatch): boolean {
+  const live = mainComposerScope.updateIfCurrent(expected, patch)
+  const saved = patchStashedDraftAttachmentOccurrence(expected, patch)
+  return live || saved
 }
 
 /**
@@ -469,208 +278,6 @@ export function onComposerDraftSyncRequest(handler: (detail: ComposerDraftSyncDe
   window.addEventListener(DRAFT_SYNC_EVENT, listener)
 
   return () => window.removeEventListener(DRAFT_SYNC_EVENT, listener)
-}
-
-function persistDraftTexts() {
-  try {
-    const entries = [...draftsBySession]
-      .filter(([, draft]) => draft.text)
-      .slice(-MAX_PERSISTED_DRAFTS)
-      .map(([key, draft]) => [key, draft.text] as const)
-
-    if (entries.length === 0) {
-      window.localStorage.removeItem(SESSION_DRAFTS_STORAGE_KEY)
-    } else {
-      window.localStorage.setItem(SESSION_DRAFTS_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)))
-    }
-  } catch {
-    // Best-effort only — quota/private-mode must never break typing.
-  }
-}
-
-export function stashSessionDraft(scope: string | null | undefined, text: string, attachments: ComposerAttachment[]) {
-  const key = draftKey(scope)
-
-  // Delete-then-set keeps MRU order for MAX_PERSISTED_DRAFTS eviction.
-  draftsBySession.delete(key)
-
-  if (text.trim() || attachments.length > 0) {
-    draftsBySession.set(key, cloneDraft({ attachments, text }))
-  } else if (isFreshDraftScope(key)) {
-    // The fresh draft was sent or emptied — a restore notice has nothing left
-    // to undo.
-    $restoredDraftNotice.set(null)
-  }
-
-  persistDraftTexts()
-  publishDraftTitle(key, deriveDraftTitle(text))
-}
-
-export function takeSessionDraft(scope: string | null | undefined): SessionDraft {
-  const stashed = draftsBySession.get(draftKey(scope))
-
-  return stashed ? cloneDraft(stashed) : EMPTY_SESSION_DRAFT
-}
-
-export const clearSessionDraft = (scope: string | null | undefined) => stashSessionDraft(scope, '', [])
-
-/**
- * Stored draft scopes that hold content, excluding the new-chat key. The
- * dead-session prune sweeps these to discard drafts whose sessions no longer
- * exist on the backend; the new-chat draft is never a session reference.
- */
-export function stashedDraftScopes(): string[] {
-  return [...draftsBySession.keys()].filter(key => key !== NEW_SESSION_DRAFT_KEY)
-}
-
-/**
- * Move a stashed composer draft from one session key onto another.
- *
- * Auto-compression rotates the live stored tip id (root → continuation) while
- * the user may still be typing. Drafts keyed on the obsolete tip would otherwise
- * vanish from the composer when selection follows the new tip. A new chat is
- * stored under the pre-session key until its first session id arrives. No-op
- * unless the destination resolves, the keys differ, and the source has content. Does not overwrite a
- * non-empty destination draft.
- */
-export function migrateSessionDraft(fromKey: string | null | undefined, toKey: string | null | undefined): boolean {
-  const from = draftKey(fromKey)
-  const to = draftKey(toKey)
-
-  if (!toKey?.trim() || from === to) {
-    return false
-  }
-
-  const source = draftsBySession.get(from)
-
-  if (!source || (!source.text.trim() && source.attachments.length === 0)) {
-    return false
-  }
-
-  const dest = draftsBySession.get(to)
-
-  if (dest && (dest.text.trim() || dest.attachments.length > 0)) {
-    return false
-  }
-
-  stashSessionDraft(toKey, source.text, source.attachments)
-  clearSessionDraft(fromKey)
-
-  return true
-}
-
-/**
- * The stored id the pre-session chat is about to be re-homed onto, announced
- * by the site that assigns it (first-send `session.create`, cold-start
- * resume-last-session) and consumed by the composer's scope swap.
- *
- * The swap cannot tell an assignment apart from the user opening another
- * session from a new chat — both flip the scope from the `__new__` bucket to
- * a concrete id — and only the assignment may carry the draft along: a
- * sidebar click keeps per-scope drafts where they were typed.
- */
-let announcedNewSessionDraftKey: string | null = null
-
-export function announceNewSessionDraftKey(toKey: string | null | undefined): void {
-  announcedNewSessionDraftKey = toKey?.trim() || null
-}
-
-/** Consume the announcement; move the `__new__` draft when it names `toKey`. */
-export function adoptNewSessionDraft(toKey: string | null | undefined): boolean {
-  const announced = announcedNewSessionDraftKey
-  announcedNewSessionDraftKey = null
-
-  return !!announced && announced === toKey?.trim() && migrateSessionDraft(null, toKey)
-}
-
-/**
- * Recovery for the unsent text of a session that turned out to be GONE
- * (#111868): deleted, or a stale id from a wiped / renamed backend.
- *
- * The resume path already drops such a window to a fresh draft without
- * toasting or looping (62af32efe7c, bounded by `goneSessionVerdict`). The
- * composer's draft stash is keyed per stored session, so the text the user
- * typed into the dead id is not lost — but nothing will ever open that key
- * again, so it is invisible. The gone verdict announces the dead key here;
- * the composer's scope swap (concrete id → the `__new__` bucket) consumes
- * it AFTER the outgoing cleanup stashed the live editor text, so even
- * keystrokes still inside the persist debounce ride along.
- *
- * Offer, don't hijack: the fresh draft is seeded and an inline notice with
- * Undo is published — no navigation, no focus steal, no toast. Fires once:
- * the source key is cleared by the move, so re-opening the dead id later
- * finds nothing to restore.
- */
-let announcedGoneSessionDraftKey: string | null = null
-
-export function announceGoneSessionDraft(fromKey: string | null | undefined): void {
-  announcedGoneSessionDraftKey = fromKey?.trim() || null
-}
-
-/**
- * Consume the announcement when a composer enters the fresh-draft scope.
- * Moves the dead key's draft into the `__new__` bucket and publishes the
- * notice. Declines (no notice) when nothing was announced, the key holds no
- * text, or the user is already composing a new chat — never clobber what
- * they are typing. Keyed on the announcement, not on the composer observing
- * an id → fresh transition: the composer can remount across the drop (a
- * loading route mounts no composer), so the dead scope may never have been
- * this instance's previous scope.
- */
-export function adoptGoneSessionDraft(): boolean {
-  const announced = announcedGoneSessionDraftKey
-  announcedGoneSessionDraftKey = null
-
-  if (!announced) {
-    return false
-  }
-
-  const source = draftsBySession.get(draftKey(announced))
-
-  if (!source?.text.trim()) {
-    return false
-  }
-
-  const dest = draftsBySession.get(freshDraftScope())
-
-  if (dest && (dest.text.trim() || dest.attachments.length > 0)) {
-    return false
-  }
-
-  const { attachments, text } = source
-  stashSessionDraft(null, text, attachments)
-  clearSessionDraft(announced)
-  $restoredDraftNotice.set({ fromKey: announced, text })
-
-  return true
-}
-
-export function dismissRestoredDraftNotice(): void {
-  recordFriction('notice_dismissed', 'restored_draft')
-  $restoredDraftNotice.set(null)
-}
-
-/**
- * Undo the restore: put the text back under the dead key (where it was,
- * still recoverable by the same path) and empty the fresh draft. Only while
- * the live text is still exactly what was restored — once the user has
- * edited it, Undo would destroy their work, so it only dismisses the notice.
- * Returns whether the fresh draft was emptied (the caller repaints).
- */
-export function undoRestoredDraft(liveText: string): boolean {
-  const notice = $restoredDraftNotice.get()
-  $restoredDraftNotice.set(null)
-
-  if (!notice || liveText !== notice.text) {
-    return false
-  }
-
-  const current = draftsBySession.get(freshDraftScope())
-  stashSessionDraft(notice.fromKey, notice.text, current?.attachments ?? [])
-  clearSessionDraft(null)
-  recordDislike('undo', 'restored_draft')
-
-  return true
 }
 
 export function setComposerDraft(value: string) {

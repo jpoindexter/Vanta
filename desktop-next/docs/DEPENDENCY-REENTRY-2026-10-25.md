@@ -1,5 +1,16 @@
 # Dependency security re-entry — 2026-10-25
 
+## Combined Desktop source — 2026-10-27
+
+[Profile/custody integration](PROFILE-CUSTODY-COMBINED-SOURCE-2026-10-27.md)
+now executes the final source pool, native approvals, background streams and
+restart/image/queue recovery against canonical Zod4/OpenAI6. All35 migration
+paths remain unchanged; the earlier isolated-worker dependency limitation is
+superseded. Runtime production audit0 does not cover the fresh Desktop production
+audit19:7high/4moderate/8low. Receipt: external combined-desktop packet,
+`combined-desktop-prod-audit.json`. No fresh installed closure or whole-security
+acceptance is claimed; development/website/default-branch alerts remain open.
+
 ## Latest loaded-core source checkpoint — 2026-10-27
 
 [Loaded runtime migration](LOADED-CORE-DEPS-SOURCE-2026-10-27.md) supersedes the

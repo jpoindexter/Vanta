@@ -298,12 +298,9 @@ describe('session drafts', () => {
   it('persists draft text (not attachments) to localStorage', () => {
     stashSessionDraft('session-a', 'survives reload', [attachment({ id: 'file:a' })])
 
-    const persisted = JSON.parse(window.localStorage.getItem(SESSION_DRAFTS_STORAGE_KEY) ?? '{}') as Record<
-      string,
-      string
-    >
-
-    expect(persisted['session-a']).toBe('survives reload')
+    const persisted = JSON.parse(window.localStorage.getItem(SESSION_DRAFTS_STORAGE_KEY) ?? '{}')
+    expect(persisted.drafts['session-a'].text).toBe('survives reload')
+    expect(persisted.drafts['session-a'].revision).toMatch(/^[a-f0-9-]{36}$/)
   })
 
   it('evicts empty drafts instead of leaving stale entries behind', () => {

@@ -1,6 +1,6 @@
 import { type IpcRendererLike, mergeSurface, stubsFrom, subscribe } from './bridge-core'
 import { miniWindowApi, type HudWindowingView } from './bridge-mini'
-import { contextMenuApi, fileActionApi, gitApi, projectFileApi, terminalApi } from './bridge-native'
+import { contextMenuApi, draftCustodyApi, fileActionApi, gitApi, projectFileApi, terminalApi } from './bridge-native'
 import { windowFeatureApi } from './bridge-window'
 import { createApiProxy, createVantaBridge } from './bridge-vanta'
 import { CH } from './channels'
@@ -31,6 +31,7 @@ const IDLE_BOOTSTRAP = {
   startedAt: null,
   unsupportedPlatform: null
 }
+
 
 function windowAndTheme({ customWindowControls, ipc }: BridgeEnv) {
   const control = (action: string) => () => ipc.send(CH.windowControl, action)
@@ -134,6 +135,7 @@ function nativeAndProject({ ipc, pathForFile }: BridgeEnv) {
   }
 }
 
+
 export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
   return {
     ...connectionAndBoot(env),
@@ -141,6 +143,7 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
     ...contextMenuApi(env.ipc),
     ...fileActionApi(env.ipc),
     ...projectFileApi(env.ipc),
+    ...draftCustodyApi(env.ipc),
     ...terminalApi(env.ipc),
     ...windowFeatureApi(env.ipc),
     ...miniWindowApi(env),

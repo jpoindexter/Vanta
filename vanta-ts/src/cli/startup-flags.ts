@@ -5,6 +5,12 @@ import { wantsDumpPrompt, stripDumpFlag } from "./dump-prompt.js";
 import { parseLifecycleFlags, type LifecycleFlags } from "./lifecycle.js";
 import { parsePermissionModeFlags } from "./permission-mode.js";
 import { parsePluginSourceFlags, type PluginSource } from "./plugin-source-flags.js";
+import { carryBaseProfileSelection } from "../profiles/base-selection.js";
+
+function replaceStartupEnv(env: NodeJS.ProcessEnv): void {
+  carryBaseProfileSelection(process.env, env);
+  process.env = env;
+}
 
 /**
  * VANTA-BUDGET-CAP: parse `--max-budget-usd <n>` into VANTA_MAX_BUDGET_USD so the
@@ -48,18 +54,18 @@ export function parseStartupFlags(args: string[]): { rest: string[]; lifecycle: 
   const dumpPrompt = wantsDumpPrompt(args);
   const argsNoDump = dumpPrompt ? stripDumpFlag(args) : args;
   const isolationParse = parseIsolationFlags(argsNoDump, process.env);
-  process.env = isolationParse.env;
+  replaceStartupEnv(isolationParse.env);
   const level = isolationLevel(resolveIsolation(process.env));
   if (level !== "normal") console.log(isolationBanner(level));
   const permissionParse = parsePermissionModeFlags(isolationParse.rest, process.env);
   if (permissionParse.error) { console.error(permissionParse.error); process.exit(1); }
-  process.env = permissionParse.env;
+  replaceStartupEnv(permissionParse.env);
   const effortParse = parseEffortFlag(permissionParse.rest, permissionParse.env);
   if (effortParse.error) { console.error(effortParse.error); process.exit(1); }
-  process.env = effortParse.env;
+  replaceStartupEnv(effortParse.env);
   const budgetParse = parseMaxBudgetFlag(effortParse.rest, effortParse.env);
   if (budgetParse.error) { console.error(budgetParse.error); process.exit(1); }
-  process.env = budgetParse.env;
+  replaceStartupEnv(budgetParse.env);
   const pluginParse = parsePluginSourceFlags(budgetParse.rest);
   if (pluginParse.error) { console.error(pluginParse.error); process.exit(1); }
   const lifecycleParse = parseLifecycleFlags(pluginParse.rest);

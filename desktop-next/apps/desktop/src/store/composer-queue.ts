@@ -1,5 +1,7 @@
 import { SLASH_COMMAND_RE } from '@vanta/shared'
 import { atom } from 'nanostores'
+import type { DraftQueueReceipt } from '../../../shared/src/vanta/draft-queue-custody'
+import { interceptNativeQueueRemoval, persistQueueEntry } from './draft-queue-projection'
 
 import {
   type ComposerAttachment,
@@ -9,6 +11,8 @@ import {
 } from './composer'
 
 export interface RemoveQueuedPromptOptions {
+  /** Only after native custody acknowledged this exact entry's terminal state. */
+  nativeConfirmed?: boolean
   /**
    * When true, leave blob: preview URLs alive because submit/optimistic now
    * owns the snapshot (drain handoff). Default false = entry discarded.
@@ -17,6 +21,8 @@ export interface RemoveQueuedPromptOptions {
 }
 
 export interface QueuedPromptEntry {
+  /** Projection pointer only. Native-held leases are never restored from this cache. */
+  custody?: DraftQueueReceipt
   id: string
   text: string
   /** What the queue panel and the sent bubble show, when it differs from the
@@ -124,27 +130,8 @@ const dropFrozenTransportsRemovedFrom = (previous: QueuedPromptEntry[], next: Qu
   }
 }
 
-const toPersistedEntry = (entry: QueuedPromptEntry): QueuedPromptEntry => {
-  const frozen = frozenQueuedTransportById.get(entry.id)?.trim()
-
-  if (!frozen) {
-    return entry
-  }
-
-  // Never write fenced selection CONTENTS into localStorage. Prefer the chip
-  // form already on the entry; if `text` accidentally holds transport, swap it.
-  const persisted: QueuedPromptEntry = { ...entry }
-
-  if (persisted.text === frozen) {
-    persisted.text = persisted.displayText ?? ''
-  }
-
-  if (persisted.displayText === frozen) {
-    delete persisted.displayText
-  }
-
-  return persisted
-}
+const toPersistedEntry = (entry: QueuedPromptEntry): QueuedPromptEntry =>
+  persistQueueEntry(entry, frozenQueuedTransportById.get(entry.id)?.trim())
 
 /** Whether a queued entry can ride a mid-turn redirect: text-only, non-empty,
  *  not a slash command — the same gate `steerDraft` applies to the live draft
@@ -330,6 +317,27 @@ const nextId = () => `queued-${Date.now()}-${Math.random().toString(36).slice(2,
 
 const cloneAttachments = (attachments: ComposerAttachment[]) => attachments.map(a => ({ ...a }))
 
+export const createQueuedPromptEntry = (payload: EnqueueQueuedPromptPayload): QueuedPromptEntry => ({
+  id: nextId(), text: payload.text, attachments: cloneAttachments(payload.attachments), queuedAt: Date.now(),
+  ...(payload.displayText ? { displayText: payload.displayText } : {}),
+  ...(payload.displayKind ? { displayKind: payload.displayKind } : {})
+})
+
+/** Native has acknowledged the envelope. Same IDs are projected idempotently, never minted again. */
+export const projectNativeQueuedPrompt = (sid: string, entry: QueuedPromptEntry, restored = false): boolean => {
+  // Set the pause before publishing a recovered entry, even when no cache survived the crash.
+  if (restored) {
+    $restoredQueueSessions.set({ ...$restoredQueueSessions.get(), [sid]: true })
+    setParked(sid, true)
+  }
+  return mutateSession(sid, queue => {
+    const index = queue.findIndex(value => value.id === entry.id)
+    if (index < 0) return [...queue, entry].sort((left, right) => left.queuedAt - right.queuedAt)
+    if (JSON.stringify(queue[index].custody?.address) !== JSON.stringify(entry.custody?.address)) throw new Error('Queued attachment identity collision; both saved owners were retained.')
+    const next = [...queue]; next[index] = entry; return next
+  })
+}
+
 export const getQueuedPrompts = (key: string | null | undefined): QueuedPromptEntry[] => {
   const sid = sidOf(key)
 
@@ -362,14 +370,7 @@ export const enqueueQueuedPrompt = (
     return null
   }
 
-  const entry: QueuedPromptEntry = {
-    id: nextId(),
-    text: payload.text,
-    ...(payload.displayText ? { displayText: payload.displayText } : {}),
-    ...(payload.displayKind ? { displayKind: payload.displayKind } : {}),
-    attachments: cloneAttachments(payload.attachments),
-    queuedAt: Date.now()
-  }
+  const entry = createQueuedPromptEntry(payload)
 
   if (payload.frozenTransport?.trim()) {
     setFrozenQueuedTransport(entry.id, payload.frozenTransport)
@@ -396,6 +397,7 @@ export const dequeueQueuedPrompt = (key: string | null | undefined): null | Queu
   if (!sid) {
     return null
   }
+  if (current()[sid]?.[0]?.custody) return null
 
   let head: null | QueuedPromptEntry = null
 
@@ -417,6 +419,12 @@ export const removeQueuedPrompt = (
   const sid = sidOf(key)
 
   if (!sid) {
+    return false
+  }
+
+  const nativeEntry = current()[sid]?.find(entry => entry.id === id)
+  if (nativeEntry && interceptNativeQueueRemoval(sid, nativeEntry, options)) {
+    setParked(sid, true)
     return false
   }
 
@@ -509,6 +517,7 @@ export const updateQueuedPrompt = (
   if (!sid) {
     return false
   }
+  if (current()[sid]?.some(entry => entry.id === id && entry.custody)) return false
 
   return mutateSession(sid, queue => {
     let changed = false
@@ -577,12 +586,14 @@ export const clearQueuedPrompts = (key: string | null | undefined) => {
     return
   }
 
+  const native = new Set((current()[sid] ?? []).filter(entry => interceptNativeQueueRemoval(sid, entry)).map(entry => entry.id))
+  if (native.size) setParked(sid, true)
   mutateSession(sid, queue => {
-    for (const entry of queue) {
+    for (const entry of queue.filter(value => !native.has(value.id))) {
       revokeAttachmentPreviewUrls(entry.attachments)
     }
 
-    return []
+    return queue.filter(value => native.has(value.id))
   })
 }
 

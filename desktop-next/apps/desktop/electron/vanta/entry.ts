@@ -13,10 +13,10 @@ import { type LaunchInput } from './launcher'
 import { startWithPortRetry } from './launch-retry'
 import { registerNativeHandlers } from './native-handlers'
 import { registerProjectHandlers } from './project-handlers'
-import { createRequestBridge } from './request-bridge'
+import { createCustodyRequestBridge } from './draft-custody-wiring'
 import { wireReset } from './reset-wiring'
 import { resolveRuntimeRoot } from './runtime-root'
-import { ServerHost } from './server-host'
+import { ProfileRuntimeHost } from './profile-runtime-host'
 import { registerShellHandlers } from './shell-handlers'
 import { createBootTracker } from './shell-state'
 import { installWebviewGuard } from './webview-guard'
@@ -40,7 +40,7 @@ const argv = process.argv.slice(app.isPackaged ? 1 : 2)
 let mainWindow: BrowserWindow | null = null
 let projectRoot = ''
 let shuttingDown = false
-let host: ServerHost | null = null
+let host: ProfileRuntimeHost | null = null
 
 const wiring = createShellWiring({
   devServer: DEV_SERVER,
@@ -80,7 +80,7 @@ function launchInput(root: string): LaunchInput {
 
 interface Services {
   boot: ReturnType<typeof createBootTracker>
-  host: ServerHost
+  host: ProfileRuntimeHost
   log: ReturnType<typeof createAppLog>
 }
 
@@ -90,7 +90,7 @@ function createServices(): Services {
   const broadcast = (channel: string, payload: unknown) => mainWindow?.webContents.send(channel, payload)
   const boot = createBootTracker(progress => broadcast(CH.bootProgress, progress))
 
-  const serverHost = new ServerHost({
+  const serverHost = new ProfileRuntimeHost({
     boot,
     launch: input => startWithPortRetry(input),
     log: log.line,
@@ -104,7 +104,7 @@ function createServices(): Services {
 }
 
 /** Persist the project, restart the runtime in it, and reload the renderer so it reconnects. */
-async function switchProject(root: string, serverHost: ServerHost): Promise<void> {
+async function switchProject(root: string, serverHost: ProfileRuntimeHost): Promise<void> {
   logLine(`[project] switching ${projectRoot || '(none)'} -> ${root}`)
   await saveProjectSetting(app.getPath('userData'), root)
   wiring.closeProjectWatches()
@@ -146,7 +146,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
     shell
   })
   registerWindowHandlers(ipc, windowFor)
-  const requests = createRequestBridge(serverHost.transport, { closed: CH.eventsClosed, frame: CH.eventsFrame })
+  const requests = createCustodyRequestBridge({ ipc, transport: serverHost.transport, userData: app.getPath('userData'), home: path.resolve(process.env.VANTA_HOME ?? path.join(app.getPath('home'), '.vanta')) })
 
   wiring.registerAll(ipc, log.line, serverHost, requests)
 
@@ -172,7 +172,7 @@ function registerHandlers({ boot, host: serverHost, log }: Services): void {
 
   registerShellHandlers({
     appVersion: () => app.getVersion(),
-    baseUrl: () => serverHost.baseUrlWhenReady(),
+    baseUrl: owner => serverHost.baseUrlWhenReady(owner),
     boot: boot.get,
     describe: connectionDescriptor,
     getWindow: windowFor,

@@ -2,6 +2,15 @@
 
 ## Latest parent review
 
+[Combined profile/custody source](PROFILE-CUSTODY-COMBINED-SOURCE-2026-10-27.md)
+is now integrated against the upgraded dependencies. Parent canonical native
+profile10/effects7/image-recovery11/queue6/empty-retention4 checks pass, with no
+renderer errors. Changed renderer183, Electron80, runtime58 and scoped Rust4
+checks pass; types/builds and the corrected 93-path size ratchet pass. Original239
+work files and all35 dependency migration paths remain intact. Prior worker-only
+limitations below are historical; packaged/installed, owner visual/parity/human/
+account gates remain open. Fresh Desktop production audit is19, including7high.
+
 [Loaded-core dependency migration](LOADED-CORE-DEPS-SOURCE-2026-10-27.md)
 now updates canonical runtime source/dependencies after isolating the private
 profile worker on its preserved old tree. Parent20 SDK/schema checks, type/

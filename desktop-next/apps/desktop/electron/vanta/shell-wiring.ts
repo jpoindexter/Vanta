@@ -13,6 +13,8 @@ import type { IpcLike } from './native-handlers'
 import { createProjectGuard, type ProjectGuard } from './project-guard'
 import type { FrameSink, RequestBridge } from './request-bridge'
 import type { ServerHost } from './server-host'
+import type { NativeActionTarget } from './native-action-target'
+import type { ProfileRuntimeHost } from './profile-runtime-host'
 import { registerShellExtras, type ShellExtras } from './shell-extras'
 import { registerGatedTerminals } from './terminal-gated'
 import { registerWindowFeatures, type WindowFeatures } from './window-features'
@@ -20,7 +22,7 @@ import { rendererLocation } from './window-host'
 
 /** How a native feature asks the Vanta server to run a command, and which chat shows the approval card. */
 interface ApprovalLinks {
-  clientFor: (sender: unknown) => string | undefined
+  clientFor: (sender: unknown) => NativeActionTarget | undefined
   run: ReturnType<typeof createGatedRunner>
 }
 
@@ -99,7 +101,7 @@ function showMainWindow(ctx: WiringContext): void {
 
 function registerExtras(
   ctx: WiringContext,
-  parts: { ipc: IpcLike; log: (line: string) => void; openExternal: (url: string) => void; serverHost: ServerHost }
+  parts: { ipc: IpcLike; log: (line: string) => void; openExternal: (url: string) => void; serverHost: Pick<ServerHost, 'transport'> }
 ): ShellExtras {
   const location = rendererLocation(ctx.devServer, app.getAppPath())
 
@@ -142,10 +144,13 @@ export function createShellWiring(ctx: WiringContext) {
     routeDeepLink: (url: string): void => {
       features ? features.deepLinks.handleUrl(url) : earlyLinks.push(url)
     },
-    registerAll: (ipc: IpcLike, log: (line: string) => void, serverHost: ServerHost, requests: RequestBridge): void => {
+    registerAll: (ipc: IpcLike, log: (line: string) => void, serverHost: Pick<ProfileRuntimeHost, 'transport' | 'captureNativeTarget' | 'requestNative'>, requests: RequestBridge): void => {
       const links: ApprovalLinks = {
-        clientFor: sender => requests.latestClientFor(sender as FrameSink),
-        run: createGatedRunner(serverHost.transport)
+        clientFor: sender => {
+          const client = requests.latestClientFor(sender as FrameSink)
+          return client ? serverHost.captureNativeTarget(client) : undefined
+        },
+        run: createGatedRunner(serverHost.requestNative)
       }
 
       closeProjectWatches = registerProjectReaders(ctx, ipc, links)

@@ -198,7 +198,11 @@ export class ServerHost {
         stop?.()
       }
     },
-    request: async (call: VantaCall) => {
+    request: call => this.requestBound(call)
+  }
+
+  /** Native actions revalidate their captured live owner after every readiness/identity await. */
+  async requestBound(call: VantaCall, validate?: () => void): Promise<VantaResult> {
       try {
         const route = runtimeRoute(call)
         assertLocalRuntime(route)
@@ -206,11 +210,11 @@ export class ServerHost {
         if (!transport) return unavailable(this.lastError ?? 'the Vanta runtime is not running')
         // Verify and dispatch through this exact transport/token, never a replacement runtime.
         if (route.profile) assertRuntimeProfile(route, await readRuntimeOwner(transport.request))
+        validate?.()
         return transport.request(call)
       } catch (error) {
         return { data: { error: error instanceof Error ? error.message : String(error) }, ok: false, status: 409 }
       }
-    }
   }
 
   private async whenReady(): Promise<null | VantaTransport> {

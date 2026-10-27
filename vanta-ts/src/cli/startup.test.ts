@@ -14,6 +14,16 @@ describe("findRepoRoot", () => {
 });
 
 describe("loadEnv — returning installation configuration", () => {
+  it("loads a separate env without changing the process and preserves present empty values", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-startup-isolated-"));
+    const home = join(root, "home"); await mkdir(home);
+    await writeFile(join(home, ".env"), "VANTA_MODEL=home-model\nARGO_PROVIDER=custom\n");
+    const previous = { model: process.env.VANTA_MODEL, provider: process.env.VANTA_PROVIDER };
+    const env = { VANTA_HOME: home, VANTA_MODEL: "" } as NodeJS.ProcessEnv;
+    loadEnv(root, env);
+    expect(env).toMatchObject({ VANTA_MODEL: "", VANTA_PROVIDER: "custom" });
+    expect({ model: process.env.VANTA_MODEL, provider: process.env.VANTA_PROVIDER }).toEqual(previous);
+  });
   it("falls back to the persistent Vanta home when a new worktree has no local provider config", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-startup-config-"));
     const home = join(root, "home");

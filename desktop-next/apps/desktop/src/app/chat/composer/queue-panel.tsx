@@ -48,6 +48,7 @@ const attachmentMeta = (count: number): string =>
 const QueueRow: FC<QueueRowHandlers & QueueRowState> = (props) => {
   const { entry, isEditing } = props;
   const attachments = entry.attachments.length;
+  const status = savedStatus(entry);
 
   return (
     <li
@@ -63,8 +64,8 @@ const QueueRow: FC<QueueRowHandlers & QueueRowState> = (props) => {
             · {attachmentMeta(attachments)}
           </span>
         )}
-        {entry.remote && (
-          <span className="vp-queue-meta"> · {savedStatus(entry)}</span>
+        {status && (
+          <span className="vp-queue-meta"> · {status}</span>
         )}
         {isEditing && (
           <span className="vp-queue-meta"> · editing in the composer</span>

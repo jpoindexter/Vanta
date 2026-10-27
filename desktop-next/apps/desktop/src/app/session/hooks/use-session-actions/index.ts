@@ -35,7 +35,7 @@ import { purgeInFlightTurnJournals, recoverInFlightTurnJournal } from '@/lib/inf
 import { latestSessionTodoSnapshot } from '@/lib/todos'
 import { setSessionYolo } from '@/lib/yolo-session'
 import { $clarifyRequests, clearClarifyRequest } from '@/store/clarify'
-import { announceGoneSessionDraft, announceNewSessionDraftKey, migrateSessionDraft } from '@/store/composer'
+import { announceGoneSessionDraft, announceNewSessionDraftKey, freshDraftScope, migrateSessionDraft } from '@/store/composer'
 import { clearQueuedPrompts, migrateQueuedPrompts } from '@/store/composer-queue'
 import { closeHome } from '@/store/home-view'
 import { resetSessionBackground } from '@/store/composer-status'
@@ -68,6 +68,7 @@ import {
   resolveNewChatOwnerRoute
 } from '@/store/profile'
 import { $projectScope } from '@/store/project-scope'
+import type { FreshSessionDraftOptions } from '@/store/fresh-session-request'
 import { projectProfile, resolveNewSessionCwd } from '@/store/projects'
 import { clearAllPrompts } from '@/store/prompts'
 import { clearStoredTranscriptReadOnly, markStoredTranscriptReadOnly } from '@/store/read-only-transcript'
@@ -258,13 +259,6 @@ function applyStoredUsage(stored: { input_tokens?: number | null; output_tokens?
   const output = stored.output_tokens || 0
 
   setCurrentUsage(current => ({ ...current, input, output, total: input + output }))
-}
-
-interface FreshSessionDraftOptions {
-  preserveRoute?: boolean
-  replaceRoute?: boolean
-  rotateFreshDraftKey?: boolean
-  workspaceTarget?: NewChatWorkspaceTarget
 }
 
 /** Drop the pre-hydration request-id row without copying the other messages.
@@ -495,8 +489,11 @@ export function useSessionActions({
         ? resolvedNext
         : (resolveComposerSessionKey(previousId, storedSessions) ?? previousId)
 
-    migrateSessionDraft(previousId, durableKey)
-    migrateSessionDraft(nextId, durableKey)
+    const draftOwner = captureDraftCustodyOwner(previousId)
+    if (draftOwner) {
+      migrateSessionDraft(previousId, durableKey, draftOwner)
+      migrateSessionDraft(nextId, durableKey, draftOwner)
+    }
     migrateQueuedPrompts(previousId, durableKey)
     migrateQueuedPrompts(nextId, durableKey)
 
@@ -536,7 +533,7 @@ export function useSessionActions({
         : undefined
 
       if (draftOptions.rotateFreshDraftKey !== false) {
-        rotateFreshDraftKey()
+        rotateFreshDraftKey(captureDraftCustodyOwner(null), draftOptions.restoreFreshDraft)
       }
 
       resetViewSync()
@@ -628,6 +625,7 @@ export function useSessionActions({
     ): Promise<string | null> => {
       const startingStoredSessionId = selectedStoredSessionIdRef.current
       const startingRouteToken = getRouteToken()
+      const startingDraftScope = freshDraftScope()
 
       creatingSessionRef.current = true
 
@@ -656,6 +654,7 @@ export function useSessionActions({
         // different socket than the one that minted the runtime.
         const capturedRoute = resolveNewChatOwnerRoute()
         const capturedProfile = $newChatProfile.get() || normalizeProfileKey($activeGatewayProfile.get())
+        const capturedDraftOwner = captureDraftCustodyOwner(startingDraftScope)
         const legacyProfileIntent = isLegacyNewChatProfile(capturedProfile)
 
         const params = {
@@ -761,7 +760,7 @@ export function useSessionActions({
           upsertOptimisticSession(created, stored, null, preview?.trim() || null, null, undefined, capturedRoute)
           // Anything still parked under the pre-session draft bucket belongs
           // to this chat now (#114122); the composer moves it on scope swap.
-          announceNewSessionDraftKey(stored)
+          announceNewSessionDraftKey(stored, startingDraftScope, capturedDraftOwner)
           // The draft's preview tabs follow it the same way (#73890).
           adoptDraftPreviewTabs(stored)
           createOverrides?.onComposerScopeAssigned?.(stored)
@@ -1362,6 +1361,7 @@ export function useSessionActions({
         }
       }
 
+      const capturedDraftOwner = captureDraftCustodyOwner(storedSessionId, ownerRoute)
       const storedForProfile = await resolveStoredSession(storedSessionId, ownerRoute)
       const sessionProfile = storedForProfile?.profile
 
@@ -2574,7 +2574,7 @@ export function useSessionActions({
           // still stashed under that key (#111868). Announce it so the
           // composer's swap onto the fresh draft carries it over with an
           // inline, undoable notice instead of leaving it stranded.
-          announceGoneSessionDraft(storedSessionId)
+          announceGoneSessionDraft(storedSessionId, capturedDraftOwner)
           startFreshSessionDraft(true)
 
           return
@@ -3429,3 +3429,4 @@ export function useSessionActions({
     unarchiveSession
   }
 }
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'

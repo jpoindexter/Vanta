@@ -146,7 +146,7 @@ function rehomeNewChatDraft(profile: string, keepExplicitRoute = false): void {
   }
 
   captureNewChatSource()
-  requestFreshSession()
+  requestFreshSession(keepExplicitRoute)
 }
 
 export function setConnectionsRegistry(registry: DesktopConnectionsRegistry): void {

@@ -3438,6 +3438,8 @@ export const zhOverrides = {
     queueDelete: '删除',
     queueResume: '继续',
     queueResumeTip: '已被停止操作暂停 — 继续发送排队的回合',
+    draftStorageUnavailable: "无法读取或保存草稿。当前草稿仍在此窗口中。请保持窗口打开并重试。",
+    draftOwnerPending: "正在连接到此聊天。已保存的草稿保持不变。",
     queueStuckTitle: '排队消息未发送',
     queueStuckBody: '排队的对话多次发送失败。它仍在队列中，请重试发送。',
     queueDroppedTitle: '已丢弃排队内容',

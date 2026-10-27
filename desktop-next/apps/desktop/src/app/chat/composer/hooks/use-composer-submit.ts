@@ -1,7 +1,6 @@
 import { SLASH_COMMAND_RE } from '@vanta/shared'
-import { type RefObject, useLayoutEffect, useRef } from 'react'
+import { type RefObject } from 'react'
 
-import { usePaneVisible } from '@/components/pane-shell/pane-visibility'
 import { translateNow, useI18n } from '@/i18n'
 import { isSlashCommandText } from '@/lib/chat-runtime'
 import { isSideTaskSlashCommand } from '@/lib/desktop-slash-commands'
@@ -19,15 +18,19 @@ import { hasConnectionRequest, skipConnectionRequest } from '@/store/connection-
 import { notify } from '@/store/notifications'
 import { answerParkedCard } from '@/store/parked-card-answers'
 import { hasBlockingPromptRequest } from '@/store/prompts'
+import type { DraftCustodyClient, CustodyReservation } from '@/store/draft-custody-client'
+import type { DraftTextQuote } from '@/store/draft-text-storage'
 
 import { cloneAttachments, type QueueEditState } from '../composer-utils'
-import { onComposerSubmitRequest } from '../focus'
 import { pathifyRefs } from '../path-refs'
 import { composerPlainText } from '../rich-editor'
-import { useComposerScope, useComposerSurfaceId } from '../scope'
+import { useComposerScope } from '../scope'
 import type { ChatBarProps } from '../types'
+import { dispatchReservedComposer } from './composer-custody-dispatch'
+import { useExternalComposerSubmit } from './use-external-composer-submit'
+import type { DraftOwner } from '../../../../../../shared/src/vanta/draft-custody'
 
-interface UseComposerSubmitArgs {
+export interface UseComposerSubmitArgs {
   activeQueueSessionKey: string | null
   activeQueueSessionKeyRef: RefObject<string | null>
   attachments: ComposerAttachment[]
@@ -35,7 +38,10 @@ interface UseComposerSubmitArgs {
   clearDraft: () => void
   disabled: boolean
   draftScopeRef: RefObject<string | null>
+  draftTextOwnerRef?: RefObject<DraftOwner | undefined>
   draftRef: RefObject<string>
+  custodyRef?: RefObject<DraftCustodyClient | null>
+  captureCustodyText?: () => DraftTextQuote | null
   drainNextQueued: () => Promise<boolean>
   editorRef: RefObject<HTMLDivElement | null>
   exitQueuedEdit: (action: 'cancel' | 'save') => boolean
@@ -71,7 +77,10 @@ export function useComposerSubmit({
   clearDraft,
   disabled,
   draftScopeRef,
+  draftTextOwnerRef,
   draftRef,
+  custodyRef,
+  captureCustodyText,
   drainNextQueued,
   editorRef,
   exitQueuedEdit,
@@ -89,9 +98,7 @@ export function useComposerSubmit({
   setComposerText,
   stashAt
 }: UseComposerSubmitArgs) {
-  const paneVisible = usePaneVisible()
   const scope = useComposerScope()
-  const surfaceId = useComposerSurfaceId()
   const { t } = useI18n()
   const copy = t.desktop
 
@@ -99,13 +106,16 @@ export function useComposerSubmit({
   // === false) or throws, re-stash the draft so the words survive. Repaint it
   // only while the same session still owns the visible composer; a late reject
   // must not publish an old session's text into the newly focused one.
-  const dispatchSubmit = (text: string, attachments?: ComposerAttachment[], displayKind?: 'hidden') => {
+  const dispatchSubmit = (text: string, attachments?: ComposerAttachment[], displayKind?: 'hidden', reservation?: CustodyReservation) => {
     // A fresh chat's composer is keyed by its per-lifecycle fresh-draft key
     // (`__new__:<uuid>`), but the submit contract spells "no session yet" as
     // null: the create handoff below and the composer drift prong both key off
     // it, and draftKey(null) resolves to that same fresh bucket.
-    const submittedScope = isFreshDraftScope(draftScopeRef.current) ? null : draftScopeRef.current
-    let restoreScope = submittedScope
+    const actualScope = reservation ? draftScopeRef.current || reservation.client.address.session : draftScopeRef.current
+    const submittedScope = isFreshDraftScope(actualScope) ? null : actualScope
+    const submittedOwner = reservation?.client.address.owner ?? draftTextOwnerRef?.current
+    let restoreScope = actualScope
+    let assignedScope: string | undefined
     const submittedAttachments = attachments ?? []
 
     // Only this operation's explicit session.create handoff may re-home a
@@ -114,7 +124,9 @@ export function useComposerSubmit({
       submittedScope === null
         ? {
             onComposerScopeAssigned: (scope: string) => {
-              restoreScope = scope
+              assignedScope = scope
+              if (reservation) reservation.client.assign(reservation, scope)
+              if (!reservation) restoreScope = scope
             }
           }
         : {}
@@ -122,7 +134,8 @@ export function useComposerSubmit({
     const restore = () => {
       stashAt(restoreScope, text, submittedAttachments)
 
-      if ((isFreshDraftScope(draftScopeRef.current) ? null : draftScopeRef.current) === restoreScope) {
+      const visibleOwner = draftTextOwnerRef?.current ?? custodyRef?.current?.address.owner
+      if (draftScopeRef.current === restoreScope && (!submittedOwner || JSON.stringify(visibleOwner) === JSON.stringify(submittedOwner))) {
         loadIntoComposer(text, submittedAttachments)
       }
     }
@@ -130,6 +143,15 @@ export function useComposerSubmit({
     // A hidden submit is machine text (a setup note, never something the user
     // typed), so a rejection drops it instead of loading it into the draft.
     const rejected = displayKind ? () => {} : restore
+
+    if (reservation) {
+      dispatchReservedComposer({
+        reservation, text, actualScope, submittedScope, assignedScope: () => assignedScope, assignment,
+        onSubmit, sessionId, draftScopeRef, draftRef, custodyRef, clearDraft, stashAt,
+        attachments: scope.attachments
+      })
+      return
+    }
 
     void Promise.resolve(
       attachments
@@ -141,92 +163,12 @@ export function useComposerSubmit({
           })
         : onSubmit(text, { composerScope: submittedScope, ...assignment, ...(displayKind ? { displayKind } : {}) })
     )
-      .then(accepted => void (accepted === false ? rejected() : clearSessionDraft(submittedScope)))
+      .then(accepted => void (accepted === false ? rejected() : attachments ? clearSessionDraft(actualScope, submittedOwner) : undefined))
       .catch(rejected)
   }
 
-  // External "submit this prompt" requests (e.g. the review pane's agent-ship
-  // button) route through the same send path. Match both the composer target
-  // and the exact visible surface captured at click time — every tile stays
-  // mounted, and a session can be rendered in more than one pane.
-  //
-  // Busy: a request from a card the user just clicked must not be dropped
-  // because the agent is mid-sentence — that gap is exactly when they click.
-  // Steer the live turn (the same stop-and-correct a typed message gets), and
-  // if the turn has already ended, or a steer is not possible, queue it so it
-  // runs next. This holds for hidden setup notes and for visible messages a
-  // button sends on the user's behalf alike.
-  const externalSubmitRef = useRef({ busy, dispatchSubmit, onSteer, onSteerHidden, queuedPrompts })
-  externalSubmitRef.current = { busy, dispatchSubmit, onSteer, onSteerHidden, queuedPrompts }
-
-  useLayoutEffect(
-    () =>
-      onComposerSubmitRequest(({ surfaceId: requestedSurfaceId, target, text, displayKind }) => {
-        if (
-          target === scope.target &&
-          surfaceId !== null &&
-          requestedSurfaceId === surfaceId &&
-          paneVisible &&
-          !inputDisabled
-        ) {
-          const current = externalSubmitRef.current
-          const queueKey = activeQueueSessionKeyRef.current
-          const waiting = current.queuedPrompts.length > 0 || getQueuedPrompts(queueKey).length > 0
-
-          if (!current.busy && !waiting) {
-            current.dispatchSubmit(text, undefined, displayKind)
-
-            return
-          }
-
-          // External requests contain only text; the unsent draft and its attachments stay in the composer.
-          const enqueue = () =>
-            void enqueueQueuedPrompt(queueKey, { text, attachments: [], ...(displayKind ? { displayKind } : {}) })
-
-          if (waiting) {
-            enqueue()
-
-            return
-          }
-
-          // A hidden note never becomes a user turn: it rides session.steer into
-          // the model's next tool result, and keeps its kind if it has to queue.
-          if (displayKind) {
-            if (current.onSteerHidden) {
-              void Promise.resolve(current.onSteerHidden(text))
-                .then(accepted => {
-                  if (!accepted) {
-                    enqueue()
-                  }
-                })
-                .catch(enqueue)
-            } else {
-              enqueue()
-            }
-
-            return
-          }
-
-          if (
-            current.onSteer &&
-            !hasBlockingPromptRequest(sessionId) &&
-            text.trim() &&
-            !SLASH_COMMAND_RE.test(text.trim())
-          ) {
-            void Promise.resolve(current.onSteer(text))
-              .then(accepted => {
-                if (!accepted) {
-                  enqueue()
-                }
-              })
-              .catch(enqueue)
-          } else {
-            enqueue()
-          }
-        }
-      }),
-    [activeQueueSessionKeyRef, inputDisabled, paneVisible, scope.target, sessionId, surfaceId]
-  )
+  useExternalComposerSubmit({ activeQueueSessionKeyRef, busy, dispatchSubmit, inputDisabled,
+    onSteer, onSteerHidden, queuedPrompts, sessionId })
 
   // Returns false when the submit was refused and must not refocus the input.
   const submitWhileBusy = (text: string, payloadPresent: boolean, blockingPrompt: boolean) => {
@@ -338,6 +280,9 @@ export function useComposerSubmit({
   }
 
   const submitDraft = () => {
+    // Native restoration must finish before any path can consume unseen saved attachments.
+    const hasLivePayload = (editorRef.current ? composerPlainText(editorRef.current).trim() : draftRef.current.trim()) || attachments.length
+    if (!queueEdit && hasLivePayload && custodyRef?.current && !custodyRef.current.canConsume()) return
     if (disabled) {
       // The backend is down: keep the words as a saved message that runs once Vanta reconnects (the
       // offline banner's promise). Nothing is sent, so a failed send can't lose or duplicate it.
@@ -395,13 +340,16 @@ export function useComposerSubmit({
       void drainNextQueued()
     } else if (payloadPresent) {
       const submittedAttachments = cloneAttachments(attachments)
+      const usesCustody = custodyRef?.current && !isSlashCommandText(text)
+      const reservation = usesCustody ? custodyRef.current!.reserve(submittedAttachments, text, captureCustodyText?.() ?? undefined) : null
+      if (usesCustody && !reservation) return
       triggerHaptic('submit')
       resetBrowseState(sessionId)
-      clearDraft()
+      if (!reservation) clearDraft()
       // Keep blob: previews alive for the optimistic bubble; revoke when that
       // consumer is discarded/replaced (not here — clear would race the clone).
-      scope.attachments.clear({ retainPreviewUrls: true })
-      dispatchSubmit(text, submittedAttachments)
+      if (!reservation) scope.attachments.clear({ retainPreviewUrls: true })
+      dispatchSubmit(text, submittedAttachments, undefined, reservation ?? undefined)
     }
 
     focusInput()

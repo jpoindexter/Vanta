@@ -21,6 +21,7 @@ import {
   idsShareLineage
 } from '@/store/session'
 import { $workingSessionIds } from '@/store/session-states'
+import { canDispatchQueuedEntry, dispatchCustodiedQueueEntry } from '@/store/draft-queue-binding'
 
 import type { SubmitTextOptions } from './use-prompt-actions/utils'
 
@@ -126,6 +127,7 @@ export function useBackgroundQueueDrain({
         if (!liveEntry) {
           return true
         }
+        if (!canDispatchQueuedEntry(sessionKey, liveEntry)) return true
 
         const resolved = resolveQueuedPromptTransport(liveEntry)
 
@@ -142,15 +144,19 @@ export function useBackgroundQueueDrain({
 
         const runtimeSessionId = runtimeIdByStoredSessionIdRef.current.get(sessionKey) ?? null
 
-        const accepted = await Promise.resolve(
-          submitTextRef.current(resolved.transportText, {
-            attachments: liveEntry.attachments,
-            ...(resolved.displayText ? { displayText: resolved.displayText } : {}),
+        const submit = (callbacks = {}, payload = liveEntry) => {
+          const actual = resolveQueuedPromptTransport(payload)
+          if (!actual.ok) return Promise.resolve(false)
+          return Promise.resolve(submitTextRef.current(actual.transportText, {
+            attachments: payload.attachments,
+            ...(actual.displayText ? { displayText: actual.displayText } : {}),
             fromQueue: true,
             sessionId: runtimeSessionId,
-            storedSessionId: sessionKey
-          })
-        )
+            storedSessionId: sessionKey,
+            ...callbacks
+          }))
+        }
+        const accepted = liveEntry.custody ? await dispatchCustodiedQueueEntry(liveEntry, submit).then(status => status === 'accepted') : await submit()
 
         if (accepted === false) {
           return false
@@ -158,7 +164,7 @@ export function useBackgroundQueueDrain({
 
         drainFailuresRef.current.delete(liveEntry.id)
         // Submit owns blob: previews after a successful drain handoff.
-        removeQueuedPrompt(sessionKey, liveEntry.id, { retainPreviewUrls: true })
+        if (!liveEntry.custody) removeQueuedPrompt(sessionKey, liveEntry.id, { retainPreviewUrls: true })
         resetBrowseState(runtimeSessionId)
 
         return true

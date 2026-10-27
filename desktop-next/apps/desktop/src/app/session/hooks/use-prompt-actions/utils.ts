@@ -754,6 +754,8 @@ export interface SubmitTextOptions {
    *  from the foreground session. Never called for a rejected or aborted
    *  submit, and never for slash commands, which never reach prompt.submit. */
   onAccepted?: (identity: { runtimeSessionId: string; storedSessionId: null | string }) => void
+  /** Fired immediately before the actual provider-bound prompt request, not during local preflight. */
+  onDispatchStarted?: () => Promise<void> | void
   /** Runtime session id to submit into. Queue drains pass this so a
    *  backgrounded/source session cannot be replaced by the current foreground
    *  session between enqueue and drain. */

@@ -1,7 +1,16 @@
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { SafetyClient } from "../safety-client.js";
 import type { Goal, Verdict } from "../types.js";
+import { profileKernelState } from "./profile-state.js";
+
+function readProfileToken(directory: string): string {
+  const file = join(directory, "api-token");
+  if (!lstatSync(file).isFile() || realpathSync(file) !== file) throw new Error("The profile kernel token is not private state.");
+  const token = readFileSync(file, "utf8").trim();
+  if (!token) throw new Error("The profile kernel token is unavailable.");
+  return token;
+}
 
 // The KernelClient PORT — the TS-side surface of the Rust safety kernel. Consumers
 // type against this interface, never the concrete SafetyClient; construction
@@ -28,6 +37,8 @@ export type KernelClient = {
  * kernel's root — e.g. tests run in vanta-ts while the kernel is rooted at the repo).
  * Undefined if not found — the client then sends no token (older kernel won't require it). */
 function readApiToken(root?: string): string | undefined {
+  const scoped = profileKernelState(root ?? process.env.VANTA_ROOT ?? process.cwd());
+  if (scoped) return readProfileToken(scoped.directory);
   let dir = root ?? process.env.VANTA_ROOT ?? process.cwd();
   for (let i = 0; i < 20; i++) {
     try {

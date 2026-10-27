@@ -8,6 +8,7 @@ export type GuardedKernelOptions = {
   port: string;
   root: string;
   env?: NodeJS.ProcessEnv;
+  extraArgs?: string[];
 };
 
 export type GuardedKernel = { guard: ChildProcess; pidFile: string };
@@ -25,7 +26,7 @@ export function spawnGuardedKernel(options: GuardedKernelOptions): GuardedKernel
     [
       "-e", KERNEL_GUARD_SOURCE,
       KERNEL_GUARD_MARKER, pidFile, String(process.pid), options.port, options.root,
-      options.kernelBin, "serve", options.port,
+      options.kernelBin, "serve", options.port, ...(options.extraArgs ?? []),
     ],
     // stderr is inherited so a guard that cannot start or record the kernel says why in the runtime log.
     { stdio: ["ignore", "ignore", "inherit"], cwd: options.root, env },

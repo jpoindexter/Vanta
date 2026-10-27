@@ -1,4 +1,5 @@
-import type { VantaTransport } from "../../../shared/src/vanta";
+import type { VantaCall, VantaResult } from "../../../shared/src/vanta";
+import type { NativeActionTarget } from "./native-action-target";
 
 import { COMMAND_TIMEOUT_MS, type CommandOutcome } from "./terminal-gated";
 
@@ -6,15 +7,17 @@ import { COMMAND_TIMEOUT_MS, type CommandOutcome } from "./terminal-gated";
  * Runs one command through the Vanta server's terminal route: the kernel's decision, the approval card in the
  * chat named by `clientId`, and the OS sandbox. This is the only way the shell asks for a command to be run.
  */
-export function createGatedRunner(transport: VantaTransport) {
-  return async (command: string, clientId: string): Promise<CommandOutcome> => {
-    const result = await transport.request({
+export function createGatedRunner(request: (call: VantaCall, target: NativeActionTarget) => Promise<VantaResult>) {
+  return async (command: string, target: NativeActionTarget): Promise<CommandOutcome> => {
+    const result = await request({
       body: { command },
-      clientId,
+      clientId: target.clientId,
+      connectionId: target.connectionId,
+      profile: target.profile,
       method: "POST",
       path: "/api/terminal",
       timeoutMs: COMMAND_TIMEOUT_MS
-    });
+    }, target);
 
     const data = result.data as { error?: unknown; ok?: unknown; output?: unknown } | null;
 

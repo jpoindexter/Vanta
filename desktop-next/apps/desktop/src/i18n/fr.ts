@@ -3967,6 +3967,8 @@ export const frOverrides = {
     queueDelete: 'Supprimer',
     queueResume: 'Reprendre',
     queueResumeTip: "Mis en pause par Arrêter — reprendre l'envoi des tours en file d'attente",
+    draftStorageUnavailable: "Impossible de lire ou d’enregistrer les brouillons. Votre brouillon actuel reste dans cette fenêtre. Gardez-la ouverte et réessayez.",
+    draftOwnerPending: "Connexion à cette conversation. Vos brouillons enregistrés restent inchangés.",
     queueStuckTitle: "Message en file d'attente non envoyé",
     queueStuckBody:
       "Un tour en file d'attente a continué à échouer lors de l'envoi. Il est toujours en file d'attente — essayez de l'envoyer à nouveau.",

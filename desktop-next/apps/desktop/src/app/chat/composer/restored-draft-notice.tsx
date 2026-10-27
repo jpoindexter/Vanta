@@ -3,8 +3,12 @@ import { useStore } from '@nanostores/react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
 import { $restoredDraftNotice, dismissRestoredDraftNotice, undoRestoredDraft } from '@/store/composer'
+import type { DraftOwner } from '../../../../../shared/src/vanta/draft-custody'
+import { ownedDraftTextScope } from '@/store/draft-text-identity'
+import { freshDraftScope } from '@/store/composer'
 
 interface RestoredDraftNoticeProps {
+  owner?: DraftOwner
   /** The composer is showing the fresh draft (no session scope). */
   freshDraft: boolean
   /** Clear the editor after Undo emptied the fresh draft. */
@@ -20,11 +24,12 @@ interface RestoredDraftNoticeProps {
  * nothing outside the fresh draft, so opening another session hides it
  * without consuming the Undo.
  */
-export function RestoredDraftNotice({ freshDraft, onUndone, readLiveText }: RestoredDraftNoticeProps) {
+export function RestoredDraftNotice({ freshDraft, onUndone, readLiveText, owner }: RestoredDraftNoticeProps) {
   const notice = useStore($restoredDraftNotice)
   const { t } = useI18n()
 
-  if (!notice || !freshDraft) {
+  const destination = owner ? ownedDraftTextScope(owner, freshDraftScope()) : freshDraftScope()
+  if (!notice || !freshDraft || (notice.toKey ?? freshDraftScope()) !== destination) {
     return null
   }
 
@@ -39,7 +44,7 @@ export function RestoredDraftNotice({ freshDraft, onUndone, readLiveText }: Rest
         <Button
           className="h-6 rounded-md px-2 text-meta"
           onClick={() => {
-            if (undoRestoredDraft(readLiveText())) {
+            if (undoRestoredDraft(readLiveText(), owner)) {
               onUndone()
             }
           }}

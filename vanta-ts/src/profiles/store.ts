@@ -3,6 +3,7 @@ import { appendFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/pro
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
+import { baseProfileSelection } from "./base-selection.js";
 
 const ProfileStatusSchema = z.enum(["idle", "queued", "archived"]);
 const ProfileSchema = z.object({
@@ -224,9 +225,25 @@ export async function listProfileInbox(nameOrId: string, env: NodeJS.ProcessEnv 
   } catch { return []; }
 }
 
+function activateBaseEnvironment(env: NodeJS.ProcessEnv, base: string, selection: Awaited<ReturnType<typeof baseProfileSelection>>): null {
+  env.VANTA_PROFILE_BASE_HOME = base;
+  env.VANTA_HOME = base;
+  for (const key of ["VANTA_PROVIDER", "VANTA_MODEL", "ARGO_PROVIDER", "ARGO_MODEL"]) delete env[key];
+  if (selection.provider !== null) env.VANTA_PROVIDER = selection.provider;
+  if (selection.model !== null) env.VANTA_MODEL = selection.model;
+  return null;
+}
+
 export async function activateProfileEnvironment(env: NodeJS.ProcessEnv = process.env): Promise<ProfileRecord | null> {
+  const baseSelection = await baseProfileSelection(env);
   const base = profileBaseHome(env);
-  const profile = (await listProfiles({ ...env, VANTA_PROFILE_BASE_HOME: base })).find((item) => item.active);
+  const requested = env.VANTA_PROFILE;
+  if (requested === "default") return activateBaseEnvironment(env, base, baseSelection);
+  const profiles = await listProfiles({ ...env, VANTA_PROFILE_BASE_HOME: base });
+  const profile = profiles.find(item => requested === undefined ? item.active : item.id === requested);
+  if (requested !== undefined && (!profile || profile.status === "archived")) {
+    throw new Error(`Requested runtime profile is unavailable: ${requested.trim() || "empty profile"}`);
+  }
   if (!profile || profile.status === "archived") return null;
   env.VANTA_PROFILE_BASE_HOME = base;
   env.VANTA_HOME = profile.home;

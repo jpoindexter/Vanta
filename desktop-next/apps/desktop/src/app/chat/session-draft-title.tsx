@@ -1,11 +1,15 @@
 import { NEW_SESSION_TITLE } from '@/lib/chat-runtime'
-import { useStoreSelector } from '@/lib/use-session-slice'
+import { useStoresSelector } from '@/lib/use-session-slice'
 import { $draftTitles, draftTitleIn } from '@/store/composer'
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
+import { $activeGatewayProfile } from '@/store/profile'
+import { $connection } from '@/store/session'
 
 export interface SessionDraftTitleProps {
   /** The draft's composer key — a tile's stored session id, or null for the
    *  new chat that has no session yet. */
   scope: null | string
+  ownerRoute?: Parameters<typeof captureDraftCustodyOwner>[1]
 }
 
 /**
@@ -20,6 +24,9 @@ export interface SessionDraftTitleProps {
  * Falls back to the placeholder rather than going blank, so an emptied composer
  * reads the same as one never typed into.
  */
-export function SessionDraftTitle({ scope }: SessionDraftTitleProps) {
-  return useStoreSelector($draftTitles, titles => draftTitleIn(titles, scope)) || NEW_SESSION_TITLE
+export function SessionDraftTitle({ scope, ownerRoute }: SessionDraftTitleProps) {
+  return useStoresSelector([$draftTitles, $connection, $activeGatewayProfile], () => {
+    const owner = captureDraftCustodyOwner(scope, ownerRoute)
+    return owner ? draftTitleIn($draftTitles.get(), scope, owner) : ''
+  }) || NEW_SESSION_TITLE
 }

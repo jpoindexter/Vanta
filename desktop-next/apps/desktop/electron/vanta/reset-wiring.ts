@@ -11,7 +11,7 @@ export interface ResetWiringInput {
   log: (line: string) => void
   /** Starts the runtime again in the current project; used when a reset stops part-way. */
   restartRuntime: () => Promise<void>
-  serverHost: ServerHost
+  serverHost: Pick<ServerHost, 'stop'>
 }
 
 /** Connects the reset calls to the real app: folders, the Trash, window storage and relaunch. */

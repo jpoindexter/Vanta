@@ -8,26 +8,25 @@ import '@/store/suggestion-providers/skill'
 
 import { useAui, useAuiState, useComposerRuntime } from '@assistant-ui/react'
 import { SLASH_COMMAND_RE } from '@vanta/shared'
-import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 
 import { isElementInHiddenPane } from '@/components/pane-shell/pane-visibility'
 import { sanitizeComposerInput } from '@/lib/composer-input-sanitize'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import {
-  adoptGoneSessionDraft,
-  adoptNewSessionDraft,
   type ComposerAttachment,
   type ComposerDraftSyncMode,
   freshDraftScope,
   isFreshDraftScope,
   onComposerDraftSyncRequest,
+  noteDraftTextEdit,
   reloadPersistedDrafts,
   stashSessionDraft,
   takeSessionDraft
 } from '@/store/composer'
 import { isBrowsingHistory } from '@/store/composer-input-history'
 import { $composerPopout } from '@/store/composer-popout'
-import { clearDraftSuggestions, sampleComposerDraft } from '@/store/composer-suggestions'
+import { sampleComposerDraft } from '@/store/composer-suggestions'
 
 import {
   cloneAttachments,
@@ -60,6 +59,11 @@ import {
 import { useComposerScope } from '../scope'
 import type { ChatBarProps } from '../types'
 import { useComposerVisible } from '../visibility'
+import { useDraftCustody } from './use-draft-custody'
+import { useDraftTextCustody } from './use-draft-text-custody'
+import { useSessionDraftScope } from './use-session-draft-scope'
+import type { DraftOwner } from '../../../../../../shared/src/vanta/draft-custody'
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
 
 interface UseComposerDraftArgs {
   activeQueueSessionKey: string | null
@@ -82,7 +86,7 @@ interface UseComposerDraftArgs {
 export function useComposerDraft({
   activeQueueSessionKey,
   focusKey,
-  inputDisabled,
+  inputDisabled: inputUnavailable,
   queueEditRef,
   sessionId
 }: UseComposerDraftArgs) {
@@ -93,7 +97,11 @@ export function useComposerDraft({
   visibleRef.current = paneVisible
   const floating = useStoreSelector($composerPopout, state => state.poppedOut)
   // Which composer this is on the focus bus + which attachment set it owns.
-  const { attachments: attachmentScope, target } = useComposerScope()
+  const composerScope = useComposerScope()
+  const { attachments: attachmentScope, target } = composerScope
+  const draftTextOwner = captureDraftCustodyOwner(activeQueueSessionKey, composerScope)
+  const inputDisabled = inputUnavailable || !draftTextOwner
+  const draftTextOwnerRef = useRef<DraftOwner | undefined>(draftTextOwner)
 
   // Coarse edges only — these flip rarely (empty↔non-empty, the `?` help sigil,
   // steerable-vs-slash), so typing within a line costs no render.
@@ -122,7 +130,7 @@ export function useComposerDraft({
 
   const editorRef = useRef<HTMLDivElement | null>(null)
   const draftRef = useRef('')
-  const pendingDraftPersistRef = useRef<{ scope: string | null; text: string } | null>(null)
+  const pendingDraftPersistRef = useRef<{ scope: string | null; text: string; owner?: DraftOwner } | null>(null)
   const draftPersistTimerRef = useRef<number | undefined>(undefined)
   const activeQueueSessionKeyRef = useRef(activeQueueSessionKey)
   activeQueueSessionKeyRef.current = activeQueueSessionKey
@@ -132,7 +140,7 @@ export function useComposerDraft({
   // pagehide flush) must persist against this, not the render-time ref, or a
   // session switch mid-flight files one session's draft under another's key
   // (#54527).
-  const draftScopeRef = useRef(activeQueueSessionKey)
+  const draftScopeRef = useRef(activeQueueSessionKey || freshDraftScope())
   const sessionIdRef = useRef(sessionId)
   sessionIdRef.current = sessionId
   const queueEditStateRef = useRef<QueueEditState | null>(queueEditRef.current)
@@ -299,8 +307,9 @@ export function useComposerDraft({
     }
   }, [appendExternalText, focusInput, inputDisabled, paintDraft, target])
 
-  const stashAt = (scope: string | null, text = draftRef.current, attachments = attachmentScope.$attachments.get()) =>
-    stashSessionDraft(scope, text, attachments)
+  const stashAt = (scope: string | null, text = draftRef.current, attachments = attachmentScope.$attachments.get()) => {
+    if (draftTextOwner) stashSessionDraft(scope, text, attachments, draftTextOwner)
+  }
 
   // Draft read/write bus (plugin SDK `host.composer`): answer for the sessions
   // this composer owns — the runtime id, the queue/stored key (tiles run with
@@ -438,7 +447,10 @@ export function useComposerDraft({
       }
 
       const scope = draftScopeRef.current
-      const entry = { scope, text }
+      const owner = draftTextOwnerRef.current
+      if (!owner) return
+      noteDraftTextEdit(scope, text, owner)
+      const entry = { scope, text, owner }
       pendingDraftPersistRef.current = entry
       window.clearTimeout(draftPersistTimerRef.current)
       draftPersistTimerRef.current = window.setTimeout(() => {
@@ -452,7 +464,7 @@ export function useComposerDraft({
         }
 
         pendingDraftPersistRef.current = null
-        stashAt(scope, text)
+        stashSessionDraft(scope, text, attachmentScope.$attachments.get(), entry.owner)
       }, DRAFT_PERSIST_DEBOUNCE_MS)
     }
 
@@ -465,6 +477,7 @@ export function useComposerDraft({
   }, [composerRuntime, queueEditRef])
 
   const insertText = (text: string) => {
+    if (inputDisabled) return
     const base = draftRef.current
     const sep = base && !base.endsWith('\n') ? '\n' : ''
 
@@ -474,6 +487,7 @@ export function useComposerDraft({
   // insertInlineRefs mutates the editor in place (chips), so it can't go through
   // paintDraft's re-render — it mirrors the resulting plain text and refocuses.
   const insertInlineRefs = (refs: InlineRefInput[]) => {
+    if (inputDisabled) return false
     const editor = editorRef.current
 
     if (!editor) {
@@ -523,55 +537,9 @@ export function useComposerDraft({
   // ship A's attachments into B's turn (#59305). useLayoutEffect closes the
   // window by running before paint.
 
-  useLayoutEffect(() => {
-    // A pending debounce timer from the outgoing session is now stale — its
-    // scope was correct when scheduled, but the authoritative stash below
-    // (and the cleanup on the way out) already covers that text. Letting it
-    // fire later would just clobber with an older snapshot.
-    window.clearTimeout(draftPersistTimerRef.current)
-    pendingDraftPersistRef.current = null
-
-    // A new chat writes to its own pre-session bucket (the per-lifecycle fresh
-    // key) until its stored id arrives; the assigning site announces that id
-    // (store/composer.ts). Move the bucket at this handoff — after the outgoing
-    // cleanup stashed the live editor text under it, before the incoming scope
-    // is restored — so the text the user kept typing follows the chat instead
-    // of vanishing. Keyed on the scope alone: the runtime id can land a resume
-    // later than the route flips the scope, so it is not a usable signal here.
-    if ((isFreshDraftScope(draftScopeRef.current) || !draftScopeRef.current) && activeQueueSessionKey) {
-      adoptNewSessionDraft(activeQueueSessionKey)
-    } else if (!activeQueueSessionKey) {
-      // The reverse handoff: a session the user was typing into turned out
-      // to be gone and the window dropped to a fresh draft (#111868). The
-      // outgoing composer's cleanup has already stashed the live text under
-      // the dead key — whether that was this instance's previous scope or an
-      // unmounted one's — so move it into the fresh draft when the gone
-      // verdict announced it. No announcement, no-op.
-      adoptGoneSessionDraft()
-    }
-
-    draftScopeRef.current = activeQueueSessionKey
-
-    const { attachments, text } = takeSessionDraft(activeQueueSessionKey)
-    loadIntoComposer(text, attachments, true)
-
-    return () => {
-      const latestText = syncDraftFromEditor()
-      const editing = queueEditStateRef.current
-
-      if (editing?.sessionKey === activeQueueSessionKey) {
-        stashAt(activeQueueSessionKey, editing.draft, editing.attachments)
-      } else if (!isBrowsingHistory(sessionId)) {
-        stashAt(activeQueueSessionKey, latestText)
-      }
-
-      // Withdraw the outgoing session's draft suggestions (and any pending
-      // sample timer). The incoming session re-earns its own from the draft
-      // restore above — without this a leaving session's "Add GitHub" pill
-      // lingers in the map and re-appears stale on the way back.
-      clearDraftSuggestions(sessionIdRef.current)
-    }
-  }, [activeQueueSessionKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  useSessionDraftScope({ activeQueueSessionKey, owner: draftTextOwner, draftScopeRef, draftTextOwnerRef,
+    draftPersistTimerRef, pendingDraftPersistRef, queueEditStateRef, sessionId, sessionIdRef,
+    syncDraftFromEditor, stashAt, loadIntoComposer })
 
   // The HUD handoff's two verbs. Entering HUD mode flushes this editor's text
   // into the shared stash so the HUD's composer boots with it; leaving repaints
@@ -587,9 +555,12 @@ export function useComposerDraft({
       return
     }
 
-    reloadPersistedDrafts()
-    const stashed = takeSessionDraft(draftScopeRef.current)
-    loadIntoComposer(stashed.text, stashed.attachments)
+    if (!reloadPersistedDrafts()) return
+    if (!draftTextOwnerRef.current) return
+    const stashed = takeSessionDraft(draftScopeRef.current, draftTextOwnerRef.current)
+    const custody = custodyRef.current
+    loadIntoComposer(stashed.text, custody ? custody.$attachments.get() : stashed.attachments)
+    void custody?.refresh()
   }
 
   const syncDraftRef = useRef(syncDraft)
@@ -613,13 +584,14 @@ export function useComposerDraft({
       const scope = draftScopeRef.current
       const editing = queueEditStateRef.current
 
-      if (editing?.sessionKey === scope || isBrowsingHistory(sessionIdRef.current)) {
+      if ((editing && (editing.sessionKey === scope || (!editing.sessionKey && isFreshDraftScope(scope)))) || isBrowsingHistory(sessionIdRef.current)) {
         return
       }
 
       const latestText = syncDraftFromEditor()
       pendingDraftPersistRef.current = null
-      stashAt(scope, latestText)
+      const owner = draftTextOwnerRef.current
+      if (owner) stashSessionDraft(scope, latestText, attachmentScope.$attachments.get(), owner)
     }
 
     window.addEventListener('pagehide', flushPendingDraftPersist)
@@ -630,10 +602,20 @@ export function useComposerDraft({
     }
   }, [syncDraftFromEditor])
 
+  const { custodyRef, custodyClient } = useDraftCustody(activeQueueSessionKey, composerScope, queueEditRef)
+  const { retryCustody, captureCustodyText } = useDraftTextCustody({ custodyRef, custodyClient, draftScopeRef,
+    draftRef, queueEditRef, syncDraftFromEditor, stashAt, paintDraft, loadIntoComposer })
+
   return {
+    draftOwnerReady: Boolean(draftTextOwner),
+    custodyRef,
+    custodyClient,
+    retryCustody,
+    captureCustodyText,
     activeQueueSessionKeyRef,
     clearDraft,
     draftScopeRef,
+    draftTextOwnerRef,
     draftRef,
     editorRef,
     focusInput,

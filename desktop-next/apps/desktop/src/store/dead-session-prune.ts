@@ -1,27 +1,13 @@
-/**
- * Prune renderer-stored session references whose sessions no longer exist on
- * the backend.
- *
- * Pins (`vanta.desktop.pinnedSessions`), composer drafts
- * (`desktop:composer-drafts:v3`) and queued prompts
- * (`vanta.desktop.composerQueue.v1`) are keyed by session id and re-asserted
- * or probed at boot. When a session is removed from state.db (retention purge,
- * manual delete, another surface pruning it), those keys go stale: nothing
- * ever drops them, so every boot re-requests the dead ids and the gateway
- * answers `404 {"detail":"Session not found"}` once per stale reference,
- * forever.
- *
- * This module sweeps for dead ids after the sidebar list has spoken. A session
- * is declared dead ONLY when a by-id probe 404s on every known profile — a 404
- * is profile-scoped ("not on this profile's state.db"), so a single miss never
- * prunes anything (a session can legitimately live on a non-active profile).
- * Any non-404 probe failure (gateway mid-restart, network) is inconclusive:
- * the id is deferred to a later pass instead of being dropped.
+/** Reconcile stale pins only after a successful backend list, including empty.
+ * Exact missing-session acknowledgments must cover every known profile.
+ * Unreadable/unsupported routes are inconclusive; unsent words, images and
+ * queued prompts survive even when their server row is absent.
  */
 
 import { getSession } from '@/desktop-api'
 import { mapPool } from '@/lib/pool'
 import { stashedDraftScopes } from '@/store/composer'
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
 import { $queuedPromptsBySession } from '@/store/composer-queue'
 import { $pinnedSessionIds, unpinSession } from '@/store/layout'
 import { $activeGatewayProfile, $profiles, normalizeProfileKey } from '@/store/profile'
@@ -66,7 +52,9 @@ function isNotFoundError(error: unknown): boolean {
   try {
     const body = JSON.parse(match[1]!)
     return /^session not found(?:$|:)/i.test(body.error ?? body.detail ?? '')
-  } catch { return false }
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -100,11 +88,11 @@ async function sessionVerdict(id: string): Promise<Verdict> {
     }
   }
 
-  const knownProfiles = [...new Set($profiles.get().map(profile => normalizeProfileKey(profile.name)))]
+  const knownProfiles = [...new Set($profiles.get().map((profile) => normalizeProfileKey(profile.name)))]
 
   // Without the profile list we can't rule out another profile — defer rather
   // than risk pruning a session that lives elsewhere.
-  const otherProfiles = knownProfiles.filter(key => key !== activeKey)
+  const otherProfiles = knownProfiles.filter((key) => key !== activeKey)
 
   if (knownProfiles.length === 0) {
     return 'unknown'
@@ -128,17 +116,7 @@ async function sessionVerdict(id: string): Promise<Verdict> {
 /** Stored ids no loaded sidebar row covers — the only ids that can be dead. */
 function collectCandidates(): string[] {
   const rows = $sessions.get()
-  const covered = new Set<string>()
-
-  for (const row of rows) {
-    if (row.id) {
-      covered.add(row.id)
-    }
-
-    if (row._lineage_root_id) {
-      covered.add(row._lineage_root_id)
-    }
-  }
+  const covered = new Set(rows.flatMap((row) => [row.id, row._lineage_root_id].filter(Boolean)))
 
   const candidates = new Set<string>()
 
@@ -148,7 +126,8 @@ function collectCandidates(): string[] {
     }
   }
 
-  for (const scope of stashedDraftScopes()) {
+  const draftOwner = captureDraftCustodyOwner(null)
+  for (const scope of draftOwner ? stashedDraftScopes(draftOwner) : []) {
     if (!covered.has(scope)) {
       candidates.add(scope)
     }
@@ -160,7 +139,7 @@ function collectCandidates(): string[] {
     }
   }
 
-  return [...candidates].filter(id => {
+  return [...candidates].filter((id) => {
     const expiresAt = alive.get(id)
 
     return !(expiresAt !== undefined && Date.now() < expiresAt) && !inFlight.has(id)
@@ -171,7 +150,7 @@ function dropDeadId(id: string): void {
   // Cheap re-verification before destructive drops: if a row for this id
   // appeared while the probe was in flight (a session resurrected or a slow
   // page landed), the id is no longer dead — keep every entry.
-  const covered = $sessions.get().some(row => row.id === id || row._lineage_root_id === id)
+  const covered = $sessions.get().some((row) => row.id === id || row._lineage_root_id === id)
 
   if (covered) {
     return
@@ -209,7 +188,7 @@ async function sweepOnce(requireLoaded = true): Promise<void> {
   }
 
   try {
-    await mapPool(candidates, SWEEP_CONCURRENCY, async id => {
+    await mapPool(candidates, SWEEP_CONCURRENCY, async (id) => {
       if (epoch !== sweepEpoch) {
         return
       }

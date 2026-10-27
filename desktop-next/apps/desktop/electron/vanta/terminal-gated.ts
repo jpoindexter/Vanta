@@ -3,6 +3,7 @@ import { z } from "zod";
 import { CH } from "./channels";
 import type { IpcLike } from "./native-handlers";
 import { feedInput, type LineEditorState, sanitizeOutput } from "./terminal-line";
+import type { NativeActionTarget } from "./native-action-target";
 
 export const MAX_TERMINALS_PER_WINDOW = 8;
 export const MAX_QUEUED_COMMANDS = 20;
@@ -32,17 +33,17 @@ export interface Sink {
 
 export interface TerminalDeps {
   /** The chat client whose open event stream will show the approval card for this window, if any. */
-  clientFor: (sink: Sink) => string | undefined;
+  clientFor: (sink: Sink) => NativeActionTarget | undefined;
   ipc: IpcLike;
   projectName: () => string;
   projectRoot: () => string;
   /** Run one command through the Vanta server's terminal route: the kernel check, the approval card and the sandbox. */
-  run: (command: string, clientId: string) => Promise<CommandOutcome>;
+  run: (command: string, target: NativeActionTarget) => Promise<CommandOutcome>;
 }
 
 class GatedTerminal {
   private editor: LineEditorState = { line: "" };
-  private readonly queue: string[] = [];
+  private readonly queue: { command: string; target?: NativeActionTarget }[] = [];
   private running = false;
   private closed = false;
 
@@ -77,8 +78,16 @@ class GatedTerminal {
       return;
     }
 
-    fed.submitted.slice(0, MAX_QUEUED_COMMANDS - this.queue.length).forEach(command => this.queue.push(command));
+    fed.submitted.slice(0, MAX_QUEUED_COMMANDS - this.queue.length).forEach(command => this.enqueue(command));
     void this.pump();
+  }
+
+  private enqueue(command: string): void {
+    try {
+      this.queue.push({ command, target: this.deps.clientFor(this.sink) });
+    } catch (error) {
+      this.emit(`${RED}${error instanceof Error ? error.message : String(error)}${RESET}\r\n${this.prompt()}`);
+    }
   }
 
   dispose(): void {
@@ -126,9 +135,9 @@ class GatedTerminal {
     this.running = true;
 
     try {
-      for (let command = this.queue.shift(); command !== undefined && !this.closed; command = this.queue.shift()) {
-        if (!this.builtin(command)) {
-          await this.execute(command);
+      for (let item = this.queue.shift(); item !== undefined && !this.closed; item = this.queue.shift()) {
+        if (!this.builtin(item.command)) {
+          await this.execute(item.command, item.target);
         }
       }
     } finally {
@@ -136,10 +145,8 @@ class GatedTerminal {
     }
   }
 
-  private async execute(command: string): Promise<void> {
-    const clientId = this.deps.clientFor(this.sink);
-
-    if (!clientId) {
+  private async execute(command: string, target?: NativeActionTarget): Promise<void> {
+    if (!target) {
       this.emit(`${RED}Open a chat first: the approval card for this command appears there.${RESET}\r\n${this.prompt()}`);
 
       return;
@@ -148,7 +155,7 @@ class GatedTerminal {
     this.emit(`${DIM}waiting for approval…${RESET}\r\n`);
 
     try {
-      const outcome = await this.deps.run(command, clientId);
+      const outcome = await this.deps.run(command, target);
       const body = sanitizeOutput(outcome.output, MAX_OUTPUT_CHARS);
 
       this.emit(`${outcome.ok ? "" : RED}${body}${outcome.ok ? "" : RESET}${body && !body.endsWith("\r\n") ? "\r\n" : ""}${this.prompt()}`);

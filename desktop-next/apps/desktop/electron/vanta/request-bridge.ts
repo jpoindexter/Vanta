@@ -45,7 +45,8 @@ export class RequestBridge {
 
   constructor(
     private readonly transport: VantaTransport,
-    private readonly channels: BridgeChannels
+    private readonly channels: BridgeChannels,
+    private readonly profileCustody?: (call: VantaCall) => Promise<VantaResult>
   ) {}
 
   openStreamCount(): number {
@@ -59,7 +60,7 @@ export class RequestBridge {
       return refused(`invalid request: ${parsed.error.issues[0]?.message ?? 'bad shape'}`)
     }
 
-    return this.transport.request(parsed.data as VantaCall)
+    return this.profileCustody ? this.profileCustody(parsed.data as VantaCall) : this.transport.request(parsed.data as VantaCall)
   }
 
   openStream(sink: FrameSink, raw: unknown): { ok: boolean; reason?: string } {
@@ -156,6 +157,6 @@ export class RequestBridge {
   }
 }
 
-export function createRequestBridge(transport: VantaTransport, channels: BridgeChannels): RequestBridge {
-  return new RequestBridge(transport, channels)
+export function createRequestBridge(transport: VantaTransport, channels: BridgeChannels, profileCustody?: (call: VantaCall) => Promise<VantaResult>): RequestBridge {
+  return new RequestBridge(transport, channels, profileCustody)
 }

@@ -115,4 +115,36 @@ describe("profile store", () => {
     await clearActiveProfile(env);
     expect(await readActiveProfileId(env)).toBeNull();
   });
+
+  it("an explicitly requested runtime profile wins without changing the sticky default", async () => {
+    await createProfile({ name: "writer", model: "writer-model", provider: "ollama" }, env);
+    await createProfile({ name: "research", model: "research-model", provider: "custom" }, env);
+    await switchProfile("writer", env);
+    const requested = { VANTA_HOME: baseHome, VANTA_PROFILE: "research" };
+    expect((await activateProfileEnvironment(requested))?.id).toBe("research");
+    expect(requested).toMatchObject({ VANTA_HOME: profileHome("research", env), VANTA_PROFILE: "research",
+      VANTA_PROFILE_BASE_HOME: baseHome, VANTA_MODEL: "research-model", VANTA_PROVIDER: "custom" });
+    expect(await readActiveProfileId(env)).toBe("writer");
+  });
+
+  it("explicit default selects the base home rather than a named sticky default", async () => {
+    await createProfile({ name: "writer" }, env);
+    await switchProfile("writer", env);
+    const requested = { VANTA_HOME: baseHome, VANTA_PROFILE: "default" };
+    expect(await activateProfileEnvironment(requested)).toBeNull();
+    expect(requested.VANTA_HOME).toBe(baseHome);
+    expect(requested.VANTA_PROFILE).toBe("default");
+    expect(await readActiveProfileId(env)).toBe("writer");
+  });
+
+  it("unknown and archived explicit owners fail without changing the environment", async () => {
+    await createProfile({ name: "writer" }, env);
+    await archiveProfile("writer", env);
+    for (const profile of ["absent", "writer", "../writer", " "]) {
+      const requested = { VANTA_HOME: baseHome, VANTA_PROFILE: profile };
+      const before = { ...requested };
+      await expect(activateProfileEnvironment(requested)).rejects.toThrow(/profile/);
+      expect(requested).toEqual(before);
+    }
+  });
 });

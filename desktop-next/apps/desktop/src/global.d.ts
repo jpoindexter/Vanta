@@ -218,6 +218,17 @@ declare global {
         ) => () => void
       }
       getBootProgress: () => Promise<DesktopBootProgress>
+      draftAttachments?: {
+        queue: import('../../shared/src/vanta/draft-queue-custody').DraftQueueApi
+        open: (address: import('../../shared/src/vanta/draft-custody').DraftAddress) => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftOpenResult>
+        read: (address: import('../../shared/src/vanta/draft-custody').DraftAddress, lease: import('../../shared/src/vanta/draft-custody-protocol').DraftLease) => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftSnapshot>
+        write: (request: import('../../shared/src/vanta/draft-custody-protocol').DraftWrite) => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftSnapshot>
+        move: (request: import('../../shared/src/vanta/draft-custody-protocol').DraftMove) => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftSnapshot>
+        recover: (address: import('../../shared/src/vanta/draft-custody').DraftAddress, lease: import('../../shared/src/vanta/draft-custody-protocol').DraftLease) => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftSnapshot>
+        beginSend: (ticket: import('../../shared/src/vanta/draft-custody-protocol').DraftSendTicket) => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftSendTicket>
+        assignSend: (ticket: import('../../shared/src/vanta/draft-custody-protocol').DraftSendTicket, session: string) => Promise<void>
+        finishSend: (ticket: import('../../shared/src/vanta/draft-custody-protocol').DraftSendTicket, outcome: 'accepted' | 'rejected' | 'restore' | 'unknown') => Promise<import('../../shared/src/vanta/draft-custody-protocol').DraftSnapshot>
+      }
       getConnectionConfig: (profile?: null | string) => Promise<DesktopConnectionConfig>
       saveConnectionConfig: (payload: DesktopConnectionConfigInput) => Promise<DesktopConnectionConfig>
       applyConnectionConfig: (payload: DesktopConnectionConfigInput) => Promise<DesktopConnectionConfig>

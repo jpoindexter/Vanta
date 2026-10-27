@@ -1,10 +1,12 @@
 import { atom } from 'nanostores'
+import { freshDraftWindowScope } from './fresh-draft-history'
 
 const STORAGE_KEY = 'vanta.homeOpen'
 
 function readInitial(): boolean {
   try {
-    return window.sessionStorage.getItem(STORAGE_KEY) !== '0'
+    return (window.sessionStorage.getItem(STORAGE_KEY)
+      ?? window.localStorage.getItem(STORAGE_KEY + ':' + freshDraftWindowScope())) !== '0'
   } catch {
     return true
   }
@@ -13,6 +15,7 @@ function readInitial(): boolean {
 function remember(open: boolean): void {
   try {
     window.sessionStorage.setItem(STORAGE_KEY, open ? '1' : '0')
+    window.localStorage.setItem(STORAGE_KEY + ':' + freshDraftWindowScope(), open ? '1' : '0')
   } catch {
     // Storage can be blocked; Home then simply reopens after a reload.
   }

@@ -8,9 +8,9 @@ export function connectionApi(ipc: IpcRendererLike) {
   const describe = async (raw?: unknown) => {
     const route = runtimeRoute(raw)
     assertLocalRuntime(route)
-    const profile = await readRuntimeOwner(call => ipc.invoke(CH.request, call))
+    const profile = await readRuntimeOwner(call => ipc.invoke(CH.request, { ...call, ...route }))
     assertRuntimeProfile(route, profile)
-    return { ...await ipc.invoke<ConnectionDescriptor>(CH.connection), connectionId: 'local', profile,
+    return { ...await ipc.invoke<ConnectionDescriptor>(CH.connection, route), connectionId: 'local', profile,
       wsUrl: 'vanta://local?profile=' + encodeURIComponent(profile) }
   }
   return {

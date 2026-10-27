@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { inspectProfileDistribution } from "../profiles/distribution.js";
 import { listProfiles, profileBaseHome, readActiveProfileId, type ProfileRecord } from "../profiles/store.js";
+import { baseProfileSelection } from "../profiles/base-selection.js";
 
 export const DEFAULT_PROFILE = "default";
 export const SOUL_FILE = "SOUL.md";
@@ -42,9 +43,10 @@ async function viewOf(profile: ProfileRecord, isDefault: boolean): Promise<Profi
 
 async function implicitView(env: NodeJS.ProcessEnv, isDefault: boolean): Promise<ProfileView> {
   const home = profileBaseHome(env);
+  const selection = await baseProfileSelection(env);
   return {
     id: DEFAULT_PROFILE, name: DEFAULT_PROFILE, home, isDefault, isImplicit: true, status: "idle",
-    model: env.VANTA_MODEL ?? null, provider: env.VANTA_PROVIDER ?? null,
+    model: selection.model, provider: selection.provider,
     skillCount: await countSkills(home), hasSoul: await fileExists(join(home, SOUL_FILE)), clonedFrom: null,
   };
 }
