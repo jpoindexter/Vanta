@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
-import { enqueueAsyncResult } from "../subagent/async-delegate.js";
+import { beginAsyncResult, enqueueAsyncResult } from "../subagent/async-delegate.js";
 import { resolveProvider } from "../providers/index.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
 import { recordDelegationNode } from "../subagent/delegation-receipt.js";
@@ -90,16 +90,19 @@ async function resolveWorktree(
   }
 }
 
+async function loadDelegateAgentConfig(data: DelegateArgs, root: string): Promise<DelegateAgentConfig> {
+  const { buildRegistry } = await import("./index.js");
+  const baseNames = buildRegistry({ exclude: ["delegate"] }).schemas().map((schema) => schema.name);
+  return resolveDelegateAgentConfig(data.agent_type, loadAgentDefs(root, process.env), baseNames);
+}
+
 async function runDelegate(
   data: DelegateArgs,
   ctx: import("./types.js").ToolContext,
 ): Promise<import("./types.js").ToolResult> {
   const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = data;
 
-  const { buildRegistry } = await import("./index.js");
-  const baseRegistry = buildRegistry({ exclude: ["delegate"] });
-  const baseNames = baseRegistry.schemas().map((schema) => schema.name);
-  const agent = resolveDelegateAgentConfig(data.agent_type, loadAgentDefs(ctx.root, process.env), baseNames);
+  const agent = await loadDelegateAgentConfig(data, ctx.root);
   const promptError = validatePromptPreset(agent.promptPreset);
   if (promptError) return { ok: false, output: promptError };
   const workerModel = model ?? agent.model;
@@ -122,6 +125,7 @@ async function runDelegate(
     const outcome = await spawnSubagent({
       goal,
       instruction,
+      kernelRoot: ctx.root,
       deps: {
         provider,
         safety: ctx.safety,
@@ -178,14 +182,26 @@ async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outc
 /** VANTA-ASYNC-DELEGATE: kick off the worker detached — return an ack in ~ms; on
  * completion enqueue the result so the REPL re-enters it as a new turn when idle.
  * runDelegate's own worktree cleanup runs in its finally when the promise settles. */
-function startBackgroundDelegate(data: DelegateArgs, ctx: ToolContext): ToolResult {
+async function startBackgroundDelegate(data: DelegateArgs, ctx: ToolContext): Promise<ToolResult> {
   const id = randomUUID();
+  try { await beginAsyncResult(join(ctx.root, ".vanta"), id); }
+  catch { return { ok: false, output: "Could not save background worker custody. No worker was started.", effectDisposition: "unknown" }; }
+  void saveBackgroundResult(data, ctx, id).catch(() => {
+    ctx.onProgress?.("Background result could not be saved. Review the worker receipt; no automatic retry was attempted.");
+  });
+  return { ok: true, output: `delegated in background (id=${id.slice(0, 8)}) — completed results return when idle; uncertain work pauses for review` };
+}
+
+async function saveBackgroundResult(data: DelegateArgs, ctx: ToolContext, id: string): Promise<void> {
   const dataDir = join(ctx.root, ".vanta");
-  const finishedAt = () => new Date().toISOString();
-  void runDelegate(data, ctx)
-    .then((r) => enqueueAsyncResult(dataDir, { id, goal: data.goal, output: r.output, finishedAt: finishedAt() }))
-    .catch((e) => enqueueAsyncResult(dataDir, { id, goal: data.goal, output: `error: ${(e as Error).message}`, finishedAt: finishedAt() }));
-  return { ok: true, output: `delegated in background (id=${id.slice(0, 8)}) — result will re-enter as a new turn when idle` };
+  let result: ToolResult;
+  try { result = await runDelegate(data, ctx); }
+  catch (error) { result = { ok: false, effectDisposition: "unknown", output: `error: ${error instanceof Error ? error.message : String(error)}` }; }
+  await enqueueAsyncResult(dataDir, {
+    id, goal: data.goal, output: result.output, finishedAt: new Date().toISOString(), ok: result.ok,
+    ...(result.effectDisposition ? { effectDisposition: result.effectDisposition } : {}),
+    ...(result.verification ? { verification: { status: result.verification.status } } : {}),
+  });
 }
 
 export const delegateTool: Tool = {

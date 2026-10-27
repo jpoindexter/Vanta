@@ -13,7 +13,8 @@ import { recordWorkOutcome } from "./maintenance/budget.js";
 import { recordTurnReceipt } from "./work-items/turn-receipt.js";
 
 export type { AgentDeps, StreamEvent, AgentOutcome, StoppedReason, Conversation } from "./agent/agent-types.js";
-import type { AgentDeps, AgentOutcome } from "./agent/agent-types.js";
+import type { AgentDeps, AgentOutcome, Conversation } from "./agent/agent-types.js";
+import { recordConversationReview, seedConversationReview } from "./agent/effect-review.js";
 
 async function recordTurnMaintenance(deps: AgentDeps, userText: string, outcome: AgentOutcome, startedAt: number): Promise<void> {
   if (!deps.sessionId && !deps.usageAgent) return;
@@ -67,12 +68,13 @@ export function createConversation(
     requestQuestion: deps.requestQuestion,
     permissionMode: deps.permissionMode,
   };
-  return {
+  const conversation: Conversation = {
     messages,
     send: async (userText: string, images?: ImageAttachment[], signal?: AbortSignal): Promise<AgentOutcome> => {
       const startedAt = Date.now();
       await persistCompaction(messages, deps);
       const outcome = await runTurn({ messages, ctx, deps, userText, images, signal });
+      recordConversationReview(conversation, outcome);
       await recordAgentTurnReceipt(deps, outcome);
       await recordTurnMaintenance(deps, userText, outcome, startedAt);
       return outcome;
@@ -85,6 +87,8 @@ export function createConversation(
       deps.sessionMemory = text;
     },
   };
+  seedConversationReview(conversation);
+  return conversation;
 }
 
 /** One-shot: a fresh conversation with a single user turn. */

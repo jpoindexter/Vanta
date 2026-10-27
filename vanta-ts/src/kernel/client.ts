@@ -58,3 +58,9 @@ function readApiToken(root?: string): string | undefined {
 export function createKernelClient(baseUrl: string, root?: string): KernelClient {
   return new SafetyClient(baseUrl, readApiToken(root));
 }
+
+/** Authenticate a bounded kernel endpoint using the same project/profile authority as the port. */
+export function kernelAuthHeaders(root?: string): Record<string, string> {
+  const token = readApiToken(root);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}

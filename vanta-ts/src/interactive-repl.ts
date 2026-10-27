@@ -1,10 +1,12 @@
 import { createInterface } from "node:readline/promises";
-import { createConversation } from "./agent.js";
+import { createConversation, type AgentOutcome } from "./agent.js";
 import { executeSlash } from "./repl-commands.js";
 import { RESTART_EXIT_CODE } from "./repl/restart-cmd.js";
 import { parseShortcut, runBashShortcut, runMemoryShortcut } from "./repl/shortcuts.js";
 import { fireHooks } from "./hooks/shell-hooks.js";
-import { drainAsyncReentry } from "./subagent/async-delegate.js";
+import { acknowledgeAsyncReentry, drainAsyncReentry, pauseAsyncFollowup } from "./subagent/async-delegate.js";
+import { workerResultComplete } from "./subagent/tool-result.js";
+import { conversationNeedsReview } from "./agent/effect-review.js";
 import type { UserCommand } from "./commands/loader.js";
 import type { RunSetup } from "./session.js";
 import { runSetupHandoff } from "./setup/handoff.js";
@@ -26,7 +28,8 @@ async function tryCheckpointCmd(o: { line: string; firstToken: string; ctx: Slas
   return null;
 }
 
-type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; rs: CpFn; userCommands: UserCommand[]; repoRoot: string; rl: ReplReadline; runUserTurn: (t: string) => Promise<void> };
+type RunUserTurn = (text: string) => Promise<AgentOutcome | void>;
+type SlashOpts = { line: string; firstToken: string; ctx: SlashCtx; cp: CpFn; rb: CpFn; rs: CpFn; userCommands: UserCommand[]; repoRoot: string; rl: ReplReadline; runUserTurn: RunUserTurn };
 
 async function handleSlashLine(o: SlashOpts): Promise<SlashResult> {
   const cpResult = await tryCheckpointCmd({ line: o.line, firstToken: o.firstToken, ctx: o.ctx, cp: o.cp, rb: o.rb, rs: o.rs });
@@ -82,7 +85,7 @@ export type ReplDeps = {
   userCommands: UserCommand[];
   setup: RunSetup;
   repoRoot: string;
-  runUserTurn: (text: string) => Promise<void>;
+  runUserTurn: RunUserTurn;
   /** VANTA-BUDGET-CAP: when its .current is set true mid-turn, the loop ends the
    * session cleanly after that turn (the spend cap was reached). */
   capHaltedRef?: { current: boolean };
@@ -122,13 +125,36 @@ async function replIteration(
   return {};
 }
 
-export async function runReplLoop(d: ReplDeps): Promise<void> {
+function guardedReplDeps(d: ReplDeps): ReplDeps {
+  return { ...d, runUserTurn: async text => {
+    const outcome = await d.runUserTurn(text);
+    if (outcome && !workerResultComplete(outcome)) await pauseAsyncFollowup(d.ctx.dataDir);
+    return outcome;
+  } };
+}
+
+async function deliverBackground(d: ReplDeps, notice: { shown: boolean }): Promise<boolean> {
+  if (conversationNeedsReview(d.convo)) await pauseAsyncFollowup(d.ctx.dataDir);
+  const reentry = await drainAsyncReentry(d.ctx.dataDir);
+  if (reentry?.kind === "ready") {
+    const outcome = await d.runUserTurn(reentry.prompt);
+    if (outcome && workerResultComplete(outcome)) await acknowledgeAsyncReentry(d.ctx.dataDir, reentry.claimId);
+    return true;
+  }
+  if (reentry?.kind === "review" && !notice.shown) {
+    console.log(reentry.message);
+    notice.shown = true;
+  }
+  return false;
+}
+
+export async function runReplLoop(input: ReplDeps): Promise<void> {
+  const d = guardedReplDeps(input);
   const editState = { prefill: null as string | null, msgIdx: null as number | null };
+  const backgroundNotice = { shown: false };
   for (;;) {
-    // VANTA-ASYNC-DELEGATE: at the idle boundary, a finished background worker
-    // re-enters as a fresh turn (preserves message order + the prompt cache).
-    const reentry = await drainAsyncReentry(d.ctx.dataDir);
-    if (reentry) { await d.runUserTurn(reentry); continue; }
+    if (d.capHaltedRef?.current) break;
+    if (await deliverBackground(d, backgroundNotice)) continue;
     let line: string;
     try {
       const q = d.rl.question("\nvanta › ");

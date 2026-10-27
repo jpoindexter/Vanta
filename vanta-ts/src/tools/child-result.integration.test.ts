@@ -11,6 +11,8 @@ import { swarmTool } from "./swarm.js";
 import type { Tool } from "./types.js";
 import * as spawnModule from "../subagent/spawn.js";
 import { listDelegationTrees } from "../subagent/delegation-receipt.js";
+import { runReplLoop, type ReplDeps } from "../interactive-repl.js";
+import * as asyncModule from "../subagent/async-delegate.js";
 
 const control = vi.hoisted(() => ({ provider: vi.fn(), registry: vi.fn() }));
 vi.mock("../providers/index.js", async importOriginal => ({ ...await importOriginal<typeof import("../providers/index.js")>(), resolveProvider: control.provider }));
@@ -94,4 +96,55 @@ it.each([["delegate", delegateTool], ["swarm", swarmTool]] as const)("keeps %s c
   expect(p.outcome).toMatchObject({ stoppedReason: "blocked", needsEffectReview: true, usage: parentUsage });
   expect(await readFile(marker, "utf8")).toBe("partial");
   expect(p.later).not.toHaveBeenCalled(); expect(p.complete).toHaveBeenCalledOnce();
+});
+
+it.each([true, false])("preserves the actual background child's uncertainty=%s through queue and idle consumer", async uncertain => {
+  const f = await fixture(uncertain);
+  const ack = await delegateTool.execute({ goal: "Private background", instruction: "Handle action", background: true },
+    { root: f.root, safety: f.safety, requestApproval: async () => false });
+  expect(ack.ok).toBe(true);
+  const dataDir = join(f.root, ".vanta");
+  const queue = join(dataDir, "async-delegate.jsonl");
+  await vi.waitFor(async () => expect(await readFile(queue, "utf8")).toContain('"finishedAt"'));
+  const records = (await readFile(queue, "utf8")).trim().split("\n");
+  expect(JSON.parse(records[0]!)).toMatchObject({ event: "started" });
+  const stored = JSON.parse(records[1]!) as { ok: boolean; effectDisposition?: string };
+  expect(stored.ok).toBe(!uncertain);
+  if (uncertain) expect(stored.effectDisposition).toBe("unknown");
+  expect((await listDelegationTrees(f.root))[0]?.nodes[0]).toMatchObject({ usage: childUsage, verification: uncertain ? "fail" : "pass" });
+  expect(await childOutcomes(f.root)).toMatchObject([{ usage: childUsage }]);
+  const resumed = vi.fn(async () => {});
+  vi.spyOn(console, "log").mockImplementation(() => {});
+  const deps = { ctx: { dataDir }, runUserTurn: resumed,
+    rl: { question: async () => { throw new Error("Private EOF"); } } } as unknown as ReplDeps;
+  await runReplLoop(deps);
+  await runReplLoop(deps);
+  expect(resumed).toHaveBeenCalledTimes(uncertain ? 0 : 1);
+  expect(f.complete).toHaveBeenCalledOnce();
+});
+
+it("keeps durable custody after a real child's terminal enqueue fails", async () => {
+  const f = await fixture(true);
+  vi.spyOn(asyncModule, "enqueueAsyncResult").mockRejectedValueOnce(new Error("Private terminal write failure"));
+  const progress = vi.fn();
+  await delegateTool.execute({ goal: "Private background", instruction: "Handle action", background: true },
+    { root: f.root, safety: f.safety, requestApproval: async () => false, onProgress: progress });
+  await vi.waitFor(() => expect(progress).toHaveBeenCalledOnce());
+  const dataDir = join(f.root, ".vanta");
+  const stored = (await readFile(join(dataDir, "async-delegate.jsonl"), "utf8")).trim().split("\n");
+  expect(stored).toHaveLength(1);
+  expect(JSON.parse(stored[0]!)).toMatchObject({ event: "started" });
+  expect(await asyncModule.drainAsyncReentry(dataDir)).toMatchObject({ kind: "review" });
+  expect(f.complete).toHaveBeenCalledOnce();
+  expect((await listDelegationTrees(f.root))[0]?.nodes[0]).toMatchObject({ usage: childUsage, verification: "fail" });
+});
+
+it("does not start a child when initial durable custody fails", async () => {
+  const f = await fixture(false);
+  vi.spyOn(asyncModule, "beginAsyncResult").mockRejectedValueOnce(new Error("Private reservation failure"));
+  const result = await delegateTool.execute({ goal: "Private background", instruction: "Handle action", background: true },
+    { root: f.root, safety: f.safety, requestApproval: async () => false });
+  expect(result).toMatchObject({ ok: false, effectDisposition: "unknown" });
+  expect(f.complete).not.toHaveBeenCalled();
+  expect(f.childEffect).not.toHaveBeenCalled();
 });

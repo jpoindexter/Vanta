@@ -97,6 +97,7 @@ async function executeWorker(args: {
     const spawn = args.deps.spawn ?? ((opts) => spawnSubagent({
       goal: opts.spec.title,
       instruction: opts.spec.instruction,
+      kernelRoot: args.baseDeps.root,
       deps: opts.deps,
     }));
     const outcome = await spawn({ spec: args.spec, deps: { ...args.baseDeps, root: handle.path } });

@@ -20,6 +20,8 @@ type WorkerOpts = {
   goal: string;
   instruction: string;
   deps: AgentDeps;
+  /** Existing parent kernel identity when the worker executes in a separate worktree. */
+  kernelRoot?: string;
   maxIterations?: number;
   /** Aborts the worker's loop between steps (the company API's pause uses it). */
   signal?: AbortSignal;
@@ -80,6 +82,7 @@ export async function spawnSubagent(
     parent: spawnLabel(opts.goal, "agent"),
     child: spawnLabel(opts.instruction, "worker"),
     depth: childDepth,
+    root: opts.kernelRoot ?? opts.deps.root,
   });
   if (!guard.allowed) return blockedOutcome(`Spawn refused by kernel: ${guard.reason}`);
   return withSpawnDepth(childDepth, () => runWorker(opts));

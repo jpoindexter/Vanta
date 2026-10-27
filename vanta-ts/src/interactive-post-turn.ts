@@ -35,6 +35,7 @@ import { buildAgentHookDeps } from "./hooks/agent-hook-deps.js";
 import type { HookRunDeps } from "./hooks/shell-hook-run.js";
 import type { TurnDeps } from "./interactive-turn.js";
 import type { createConversation } from "./agent.js";
+import { workerResultComplete } from "./subagent/tool-result.js";
 
 type ConvoRef = ReturnType<typeof createConversation>;
 
@@ -56,6 +57,10 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   pruneVolatileSkills(convo.messages);
   console.log(`\n${outcome.finalText}`);
   if (outcome.usage) await recordTurnCost(outcome, t0, deps);
+  if (!workerResultComplete(outcome)) {
+    await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title, providerId: state.providerId, modelId: state.modelId }).catch(() => {});
+    return { continueWith: null };
+  }
   await handleAutoHandoff(outcome, deps);
   maybeSuggestContextUpgrade(outcome, deps);
   await saveSession(state.sessionId, convo.messages, { started: state.started, title: state.title, providerId: state.providerId, modelId: state.modelId }).catch(() => {});
@@ -73,6 +78,11 @@ export async function runPostTurnPipeline(o: PostTurnOpts): Promise<{ continueWi
   const activeGoalText = setup.goals.find((g) => g.status === "active")?.text ?? "";
   await criticAfterTurn({ provider: setup.provider, goal: activeGoalText, messages: convo.messages, onNote: (note) => console.log(`\n${note}`), ledger });
   gatesRef.current = await runPostTurnGates(gatesRef.current, { messages: convo.messages, safety: setup.safety, dataDir: join(repoRoot, ".vanta"), onNote: (note) => console.log(`\n${note}`), turnIndex: state.turnIndex, startedMs: Date.parse(state.started) || Date.now(), now: Date.now() });
+  return continuationAfterTurn(deps, outcome);
+}
+
+async function continuationAfterTurn(deps: TurnDeps, outcome: PostTurnOpts["outcome"]): Promise<{ continueWith: string | null }> {
+  const { convo, setup, state, repoRoot } = deps;
   const lastUserMsg = [...convo.messages].reverse().find((m) => m.role === "user");
   const lastUserText = lastUserMsg ? (typeof lastUserMsg.content === "string" ? lastUserMsg.content : "") : "";
   await reflectAfterTurn(lastUserText, process.env);

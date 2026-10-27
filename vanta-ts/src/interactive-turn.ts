@@ -20,7 +20,9 @@ import { runPostTurnPipeline, turnHookDeps } from "./interactive-post-turn.js";
 import type { ReplState } from "./repl-commands.js";
 import type { RunSetup } from "./session.js";
 import type { SessionWorkingMemory } from "./memory/working.js";
-import type { AgentDeps, createConversation } from "./agent.js";
+import type { AgentDeps, AgentOutcome, createConversation } from "./agent.js";
+import { workerResultComplete } from "./subagent/tool-result.js";
+import { pauseAsyncFollowup } from "./subagent/async-delegate.js";
 
 export { runPostTurnPipeline } from "./interactive-post-turn.js";
 export type { PostTurnOpts } from "./interactive-post-turn.js";
@@ -51,20 +53,7 @@ export async function resolveDroppedMedia(
 ): Promise<{ text: string; images: ReplState["pendingImages"] }> {
   const { imagePaths, rest } = splitPastedImagePaths(text);
   if (imagePaths.length) {
-    const reads = await Promise.all(imagePaths.map(maybeDroppedImage));
-    const valid = reads.filter((img): img is NonNullable<typeof img> => img !== null);
-    if (valid.length) {
-      (state.pendingImages ??= []).push(...valid);
-      text = rest || "Take a look at this image.";
-    } else if (process.platform === "darwin" && looksLikeTempImagePath(text)) {
-      // The path was a temp preview that's already gone — its bytes are still on
-      // the clipboard, so read them directly.
-      const clip = await readClipboardImage();
-      if (clip) {
-        (state.pendingImages ??= []).push(clip);
-        text = rest || "Take a look at this image.";
-      }
-    }
+    text = await resolveImagePathDrops(imagePaths, text, state, rest);
   } else if (process.platform === "darwin" && looksLikeTempImagePath(text)) {
     // No path survived the splitter (e.g. trailing text glued on with a plain
     // space/double-space rather than a newline, so the temp-preview path never
@@ -88,6 +77,23 @@ export async function resolveDroppedMedia(
   const images = activeImageAttachments(state.pendingImages);
   state.pendingImages = undefined;
   return { text, images };
+}
+
+async function resolveImagePathDrops(imagePaths: string[], text: string, state: ReplState, rest: string): Promise<string> {
+  const reads = await Promise.all(imagePaths.map(maybeDroppedImage));
+  const valid = reads.filter((img): img is NonNullable<typeof img> => img !== null);
+  if (valid.length) {
+    (state.pendingImages ??= []).push(...valid);
+    text = rest || "Take a look at this image.";
+  } else if (process.platform === "darwin" && looksLikeTempImagePath(text)) {
+    // A deleted temp preview may still have its bytes on the clipboard.
+    const clip = await readClipboardImage();
+    if (clip) {
+      (state.pendingImages ??= []).push(clip);
+      text = rest || "Take a look at this image.";
+    }
+  }
+  return text;
 }
 
 /** Print pre-turn notes: complexity gate + topic-shift + closure-gate. */
@@ -118,7 +124,7 @@ export function printPreTurnNotes(
  * Execute one user turn, looping automatically when the active goal has a
  * "done when `<cmd>`" condition that has not yet passed (up to VANTA_GOAL_LOOP_MAX).
  */
-export async function executeUserTurn(text: string, deps: TurnDeps): Promise<void> {
+export async function executeUserTurn(text: string, deps: TurnDeps): Promise<AgentOutcome> {
   const resolved = await resolveDroppedMedia(text, deps.state);
   let turnText = resolved.text;
   let images = resolved.images;
@@ -131,11 +137,12 @@ export async function executeUserTurn(text: string, deps: TurnDeps): Promise<voi
     const turnStart = new Date().toISOString();
     const t0 = Date.now();
     const outcome = await deps.convo.send(buildSendText(turnText, deps.workingMemory), images);
+    if (!workerResultComplete(outcome)) await pauseAsyncFollowup(join(deps.repoRoot, ".vanta"));
     const result = await runPostTurnPipeline({ outcome, text: turnText, t0, turnStart, deps });
     deps.state.lastActionAt = new Date().toISOString(); // ND-TIME-RANGES: powers /time "since last action"
     images = undefined;
-    if (deps.capHaltedRef?.current) break;
-    if (!result.continueWith || loopCount >= loopMax) break;
+    if (deps.capHaltedRef?.current || !workerResultComplete(outcome)) return outcome;
+    if (!result.continueWith || loopCount >= loopMax) return outcome;
     turnText = result.continueWith;
     loopCount++;
   }

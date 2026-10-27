@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Background and worker-auth checkpoint — 2026-10-27 (source only)
+
+- Keep durable background custody and truthful parent outcomes; uncertain or
+  incomplete work pauses automatic followers without blocking explicit input.
+- Authenticate child-agent launches with the existing project/profile authority;
+  reject unavailable or unverified checks and preserve worktree safety scope.
+  Parent combined 81 focused checks, types and strict size pass; independent
+  real conversation and unchanged Rust proofs retain exact source identities.
+  [Evidence and remaining limits](docs/agent-background-and-spawn-truth-2026-10-27.md).
+
 ## Foreground worker checkpoint — 2026-10-27 (source only)
 
 - Preserve uncertain/incomplete delegate and swarm outcomes instead of reporting

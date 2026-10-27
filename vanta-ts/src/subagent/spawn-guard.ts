@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { kernelAuthHeaders } from "../kernel/client.js";
 
 // LIVENESS-WATCHDOG Part 2 (TS side) — every subagent spawn asks the kernel to
 // gate it first. The kernel refuses a spawn whose depth exceeds its ceiling
@@ -20,7 +21,7 @@ export type SpawnGuardVerdict = {
   maxDepth: number;
 };
 
-/** Local mirror of the kernel default — used only when the kernel is unreachable. */
+/** Legacy default metadata for refused/unverified checks; never authorizes a spawn. */
 export const FALLBACK_MAX_DEPTH = 6;
 
 /** Current spawn depth seed, propagated across processes via VANTA_SPAWN_DEPTH. */
@@ -37,38 +38,40 @@ export type SpawnGuardOptions = {
   parent: string;
   child: string;
   depth: number;
+  root?: string;
   baseUrl?: string;
   fetchImpl?: typeof fetch;
 };
 
 /**
  * Ask the kernel to gate a spawn at `depth`. The kernel records the spawn and
- * refuses any depth past its ceiling. If the kernel is unreachable, degrade to a
- * local depth-only check against FALLBACK_MAX_DEPTH — normal spawning still works
- * but a runaway chain is still halted (fail-safe, not fail-open).
+ * refuses any depth past its ceiling. Missing authentication, unavailable or
+ * unverified responses never authorize starting a worker.
  */
 export async function checkSpawnDepth(opts: SpawnGuardOptions): Promise<SpawnGuardVerdict> {
   const base = opts.baseUrl ?? kernelBaseUrl(process.env);
   const doFetch = opts.fetchImpl ?? fetch;
   try {
+    const auth = kernelAuthHeaders(opts.root);
+    if (!auth.Authorization) return unverifiedVerdict(opts.depth);
     const r = await doFetch(`${base}/api/spawn`, {
       method: "POST",
+      headers: { ...auth, "Content-Type": "application/json" },
       body: JSON.stringify({ parent: opts.parent, child: opts.child, depth: opts.depth }),
+      signal: AbortSignal.timeout(5_000),
     });
+    if (!r.ok) return unverifiedVerdict(opts.depth);
     const json = SpawnVerdictSchema.parse(await r.json());
     return { allowed: json.allowed, reason: json.reason, depth: json.depth, maxDepth: json.max_depth };
   } catch {
-    return fallbackVerdict(opts.depth);
+    return unverifiedVerdict(opts.depth);
   }
 }
 
-function fallbackVerdict(depth: number): SpawnGuardVerdict {
-  const allowed = depth <= FALLBACK_MAX_DEPTH;
+function unverifiedVerdict(depth: number): SpawnGuardVerdict {
   return {
-    allowed,
-    reason: allowed
-      ? `kernel unreachable; depth ${depth} within local fallback ${FALLBACK_MAX_DEPTH}`
-      : `kernel unreachable; depth ${depth} exceeds local fallback ${FALLBACK_MAX_DEPTH}: runaway recursion halted`,
+    allowed: false,
+    reason: "kernel spawn authorization could not be verified; spawn refused",
     depth,
     maxDepth: FALLBACK_MAX_DEPTH,
   };

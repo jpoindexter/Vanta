@@ -1,4 +1,7 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   resolveSpawnDepth,
   kernelBaseUrl,
@@ -7,8 +10,18 @@ import {
   FALLBACK_MAX_DEPTH,
 } from "./spawn-guard.js";
 
+let fixtureRoot: string;
+beforeEach(() => {
+  fixtureRoot = mkdtempSync(join(tmpdir(), "vanta-spawn-verdict-"));
+  mkdirSync(join(fixtureRoot, ".vanta"));
+  writeFileSync(join(fixtureRoot, ".vanta/api-token"), "fixture-transport-token");
+  vi.stubEnv("VANTA_ROOT", fixtureRoot);
+  vi.stubEnv("VANTA_PROFILE", "default");
+});
+afterEach(() => { vi.unstubAllEnvs(); rmSync(fixtureRoot, { recursive: true, force: true }); });
+
 const jsonFetch = (verdict: unknown): typeof fetch =>
-  (async () => ({ json: async () => verdict })) as unknown as typeof fetch;
+  (async () => Response.json(verdict));
 const throwingFetch = (async () => {
   throw new Error("kernel down");
 }) as unknown as typeof fetch;
@@ -52,22 +65,22 @@ describe("checkSpawnDepth", () => {
     expect(v.reason).toContain("runaway");
   });
 
-  it("fails safe when the kernel is unreachable: shallow allowed, deep halted", async () => {
+  it("refuses every depth when the kernel is unreachable", async () => {
     const shallow = await checkSpawnDepth({ parent: "a", child: "b", depth: 1, fetchImpl: throwingFetch });
-    expect(shallow.allowed).toBe(true);
+    expect(shallow.allowed).toBe(false);
     const deep = await checkSpawnDepth({ parent: "a", child: "b", depth: FALLBACK_MAX_DEPTH + 1, fetchImpl: throwingFetch });
     expect(deep.allowed).toBe(false);
-    expect(deep.reason).toContain("runaway recursion halted");
+    expect(deep.reason).toContain("could not be verified");
   });
 
-  it("falls back when the kernel returns a malformed verdict", async () => {
+  it("refuses when the kernel returns a malformed verdict", async () => {
     const v = await checkSpawnDepth({
       parent: "a",
       child: "b",
       depth: 1,
       fetchImpl: jsonFetch({ not: "a verdict" }),
     });
-    expect(v.allowed).toBe(true);
+    expect(v.allowed).toBe(false);
     expect(v.maxDepth).toBe(FALLBACK_MAX_DEPTH);
   });
 });

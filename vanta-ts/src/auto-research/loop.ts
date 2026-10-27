@@ -49,7 +49,7 @@ async function candidate(args: {
   const handle = await create(args.repoRoot, "auto-research", join(args.repoRoot, ".vanta", "auto-research-worktrees"));
   try {
     const workerDeps = { ...args.deps, root: handle.path };
-    const spawn = args.hooks.spawn ?? ((o) => spawnSubagent({ goal: args.opts.objective, instruction: o.instruction, deps: o.deps }));
+    const spawn = args.hooks.spawn ?? ((o) => spawnSubagent({ goal: args.opts.objective, instruction: o.instruction, deps: o.deps, kernelRoot: args.deps.root }));
     await spawn({ instruction: instruction(args.opts, args.best), deps: workerDeps });
     const commit = await (args.hooks.commit ?? commitAll)(handle.path, commitMessage(args.iter));
     const metric = await (args.hooks.metric ?? runMetric)(args.opts.metric, handle.path);
