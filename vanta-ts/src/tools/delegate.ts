@@ -12,6 +12,8 @@ import { agentToolFilter } from "../subagent/builtin-agents.js";
 import { isCustomAgentDef, loadAgentDefs, resolveAgentType, type CustomAgentDef, type ResolvedAgentType } from "../subagent/agent-defs.js";
 import { validatePromptPreset, type PromptPreset } from "../prompt/presets.js";
 import type { Settings } from "../settings/store.js";
+import { workerResultComplete, workerToolResult } from "../subagent/tool-result.js";
+import type { ToolRegistry } from "./registry.js";
 
 const Args = z.object({
   goal: z.string().min(1),
@@ -116,31 +118,7 @@ async function runDelegate(
   if ("ok" in wt && !wt.ok) return wt;
   const { handle: worktreeHandle, workerRoot } = wt as { handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string };
   try {
-    const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
-      import("../mcp/mount.js"),
-      import("../settings/store.js"),
-      import("../settings/mcp-access.js"),
-    ]);
-    const workerSettings: Settings = await loadSettings(workerRoot, process.env);
-    if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
-      await mountMcpServers(registry, process.env, () => {}, {
-        cwd: workerRoot,
-        effectGate: {
-          kernel: ctx.safety,
-          approval: {
-            request: (request) => ctx.requestApproval(
-              request.action,
-              request.reason,
-              "mcp_mount",
-              { fresh: true },
-            ),
-          },
-          projectRoot: workerRoot,
-          sessionId: ctx.sessionId,
-          permissionMode: ctx.permissionMode?.() ?? "default",
-        },
-      });
-
+    await mountWorkerMcp(registry, ctx, workerRoot);
     const outcome = await spawnSubagent({
       goal,
       instruction,
@@ -157,10 +135,28 @@ async function runDelegate(
     });
     await persistDelegateReceipt(data, ctx, outcome);
     const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
-    return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
+    return workerToolResult(outcome, `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}`);
   } finally {
     if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
   }
+}
+
+async function mountWorkerMcp(registry: ToolRegistry, ctx: ToolContext, workerRoot: string): Promise<void> {
+  const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
+    import("../mcp/mount.js"), import("../settings/store.js"), import("../settings/mcp-access.js"),
+  ]);
+  const workerSettings: Settings = await loadSettings(workerRoot, process.env);
+  if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
+    await mountMcpServers(registry, process.env, () => {}, {
+      cwd: workerRoot,
+      effectGate: {
+        kernel: ctx.safety,
+        approval: { request: request => ctx.requestApproval(request.action, request.reason, "mcp_mount", { fresh: true }) },
+        projectRoot: workerRoot,
+        sessionId: ctx.sessionId,
+        permissionMode: ctx.permissionMode?.() ?? "default",
+      },
+    });
 }
 
 async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outcome: import("../agent.js").AgentOutcome): Promise<void> {
@@ -172,7 +168,7 @@ async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outc
   await recordDelegationNode(ctx.root, {
     id, treeId, parentId: ctx.sessionId ?? "interactive", parentTask: data.goal, childPrompt: data.instruction,
     model: evidence.model, tools: evidence.tools, summary: outcome.finalText, rawSidechain: evidence.rawSidechain,
-    verification: outcome.stoppedReason === "done" ? "pass" : outcome.stoppedReason === "interrupted" ? "blocked" : "fail",
+    verification: workerResultComplete(outcome) ? "pass" : outcome.stoppedReason === "interrupted" ? "blocked" : "fail",
     stoppedReason: outcome.stoppedReason, durationMs: evidence.durationMs, ...(usage ? { usage } : {}),
     estimatedCostUsd: usage ? estimateCostUsd(evidence.model, usage.inputTokens, usage.outputTokens) : null,
     createdAt: new Date().toISOString(),

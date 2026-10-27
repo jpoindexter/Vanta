@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Foreground worker checkpoint — 2026-10-27 (source only)
+
+- Preserve uncertain/incomplete delegate and swarm outcomes instead of reporting
+  unconditional success. Keep partial summaries, separate child usage and truthful
+  delegation receipts. Parent 37 focused checks, runtime types/strict size and
+  an independent actual mixed-worker proof pass. Running-sibling cancellation,
+  background recovery and delivered app behavior remain separate boundaries.
+  [Evidence and limits](docs/foreground-worker-outcome-truth-2026-10-27.md).
+
 ## ACP outcome checkpoint — 2026-10-27 (source only)
 
 - Report blocked/review-required ACP work as `refusal`, not normal `end_turn`;
