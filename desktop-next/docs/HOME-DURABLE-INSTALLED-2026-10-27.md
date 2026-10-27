@@ -70,6 +70,10 @@ runtime's built-in fetch primitive and an uppercase integrity mismatch bypass.
 No full-agent exploit or owner-profile test is claimed. Later npm-only fixes do
 not repair that embedded implementation; the runtime remedy remains open.
 
+A later [owned-process application repair](MAINTAINED-FETCH-SOURCE-2026-10-27.md)
+passes source/staged compiled and fallback journeys. It has not replaced this
+installed app; do not treat those source results as delivery or security closure.
+
 The delivered code also includes the separately evidenced Desktop Vite,
 runtime test-tooling, legacy Vite and Fast URI checkpoints. Runtime all-dependency
 audit at that snapshot reports four high findings, production-only zero. The

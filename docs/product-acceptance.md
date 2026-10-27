@@ -85,6 +85,15 @@ malformed-response rejection; installed uppercase integrity mismatch also bypass
 This is a primitive failure, not a full agent exploit/SSRF bypass. A supported
 runtime remedy remains an active trust/release gate; no global-fetch or installed
 security fix is claimed from npm updates.
+
+The later [owned-process Fetch checkpoint](../desktop-next/docs/MAINTAINED-FETCH-SOURCE-2026-10-27.md)
+selects maintained Fetch before CLI consumers capture it and explicitly injects
+main-process transports. Parent actual malformed-response and main request/SSE
+checks, full production staging, and compiled plus source/tsx real chat/restart
+journeys pass. Direct Telegram/provider/download compatibility checks pass;
+SDK remains import-neutral. This repair is not installed. Plugin/external process
+coverage, agent/MCP cancellation settlement and whole trust acceptance remain
+separate; no card is closed by this bounded evidence.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.

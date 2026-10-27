@@ -7,6 +7,7 @@ import {
 } from '../../../shared/src/vanta'
 
 import type { BootProgress } from './shell-state'
+import { maintainedFetch } from '../../../../../vanta-ts/desktop-native/maintained-fetch.mjs'
 import type { LaunchInput, VantaServer } from './launcher'
 import { assertLocalRuntime, assertRuntimeProfile, readRuntimeOwner, runtimeRoute } from './runtime-owner'
 
@@ -82,7 +83,7 @@ export class ServerHost {
       this.deps.boot.ready()
       void server.exited.then(exit => this.handleExit(generation, exit))
 
-      return createHttpTransport({ baseUrl: server.baseUrl, token: server.token })
+      return createHttpTransport({ baseUrl: server.baseUrl, fetchImpl: maintainedFetch, token: server.token })
     })
 
     this.launching = ready

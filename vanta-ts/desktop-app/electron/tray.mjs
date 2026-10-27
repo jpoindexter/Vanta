@@ -1,7 +1,9 @@
+import { maintainedFetch } from "../../desktop-native/maintained-fetch.mjs";
+
 export function createTrayController(deps) {
   const state = { status: "connecting", pending: false, deviceCount: 0, wakeEnabled: false, disposed: false };
   const headers = deps.boundaryToken ? { "x-vanta-desktop-boundary": deps.boundaryToken } : {};
-  const ctx = { deps, state, headers, tray: createTray(deps), fetch: deps.fetchImpl ?? fetch };
+  const ctx = { deps, state, headers, tray: createTray(deps), fetch: deps.fetchImpl ?? maintainedFetch };
   const actions = {
     openMain: () => openSurface(ctx, "full"), openQuick: () => openSurface(ctx, "mini"),
     showAvatar: () => Promise.resolve(deps.showAvatar()).catch((error) => showError(ctx, error)),

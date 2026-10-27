@@ -1,3 +1,4 @@
+import "../desktop-native/runtime-fetch-init.mjs";
 import { markLaunch } from "./cli/launch-trace.js";
 import { findRepoRoot, loadEnv } from "./cli/startup-env.js";
 import { initializeStoreAndProfile } from "./cli/startup-store.js";

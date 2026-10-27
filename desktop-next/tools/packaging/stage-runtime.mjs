@@ -8,7 +8,7 @@ import { productionClosure } from "./prod-closure.mjs";
 
 // Packages the old desktop packaging also left out: renderer-only or optional ML/image stacks the runtime never loads.
 const SKIPPED_PACKAGES = /^(@huggingface|@img|adm-zip|global-agent|onnxruntime|lucide-react|sharp)(\/|-|$)/;
-const TEST_FILE = /\.test\.(ts|tsx|mjs)$/;
+const TEST_FILE = /(?:\.test|\.node-test)\.(ts|tsx|mjs)$/;
 
 const copyTree = (from, to, filter) =>
   fs.cpSync(from, to, { recursive: true, dereference: true, filter });
@@ -42,6 +42,7 @@ export function stageRuntime({ vantaTs, dest }) {
   fs.mkdirSync(dest, { recursive: true });
   copyTree(path.join(root, "dist-runtime"), path.join(dest, "dist-runtime"));
   copyTree(path.join(root, "src"), path.join(dest, "src"), (source) => !TEST_FILE.test(source));
+  copyTree(path.join(root, "desktop-native"), path.join(dest, "desktop-native"), (source) => !TEST_FILE.test(source));
   fs.mkdirSync(path.join(dest, "desktop-app"), { recursive: true });
   copyTree(path.join(root, "desktop-app", "dist"), path.join(dest, "desktop-app", "dist"));
   fs.copyFileSync(path.join(root, "package.json"), path.join(dest, "package.json"));

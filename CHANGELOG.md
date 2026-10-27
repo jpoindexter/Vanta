@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Owned runtime transport checkpoint — 2026-10-27 (not installed or released)
+
+- Select maintained Fetch before owned CLI consumers capture defaults; inject it
+  into native readiness/request/events and the classic tray without changing
+  browser globals or the SDK. Include the exact production dependency, notices
+  and fallback bootstrap files. Real compiled/fallback chat and restart, malformed
+  response, main events/cancel, provider, Telegram and download checks pass.
+  Installed home1 remains unchanged; agent/MCP settlement and broader security
+  remain open. [Evidence and limits](desktop-next/docs/MAINTAINED-FETCH-SOURCE-2026-10-27.md).
+
 ## Download tooling checkpoint — 2026-10-27 (not installed or released)
 
 - Patched both existing npm Undici lines within their consumer ranges. Actual

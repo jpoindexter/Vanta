@@ -7,6 +7,7 @@ import { createHttpTransport } from '../../../shared/src/vanta'
 import { stopProcessTree } from '../../../../../vanta-ts/desktop-app/electron/process-tree.mjs'
 import { findAvailablePort } from '../../../../../vanta-ts/desktop-app/electron/project-root.mjs'
 import { desktopRuntimeEnv } from '../../../../../vanta-ts/desktop-native/runtime-env.mjs'
+import { maintainedFetch } from '../../../../../vanta-ts/desktop-native/maintained-fetch.mjs'
 import { serverLaunchArgs } from '../../../../../vanta-ts/desktop-native/runtime-launch.mjs'
 import {
   resolveRuntimePaths,
@@ -59,7 +60,7 @@ export interface LaunchDeps {
 }
 
 async function probeAuthenticated(baseUrl: string, token: string): Promise<boolean> {
-  const result = await createHttpTransport({ baseUrl, defaultTimeoutMs: 5000, token }).request({
+  const result = await createHttpTransport({ baseUrl, defaultTimeoutMs: 5000, fetchImpl: maintainedFetch, token }).request({
     method: 'GET',
     path: '/api/approval'
   })

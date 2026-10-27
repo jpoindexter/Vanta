@@ -2,6 +2,11 @@
 
 ## Important remaining runtime gap
 
+Later [owned-process source/staging repair](MAINTAINED-FETCH-SOURCE-2026-10-27.md)
+selects maintained Fetch in the CLI and explicit main-process callers and passes
+compiled/fallback chat journeys. It is not installed; the installed/built-in
+failures below remain accurate for home1. Separate processes are not all covered.
+
 This patches npm development/build dependencies, **not Node's built-in fetch**.
 A separate tiny loopback-only probe executed the exact installed Home1 executable
 in Node mode: Node 24.22.0 / Electron 43.8.1 / built-in Undici 7.29.1.
