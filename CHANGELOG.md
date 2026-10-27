@@ -3,6 +3,21 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Source security checkpoints — 2026-10-27 (not installed or released)
+
+- Updated Desktop Vite to 8.3.3: reproduced file-boundary cases reject and the
+  unchanged app-config server closes naturally. Specific production-lock audit
+  falls from 13 findings to 12; other inventories remain separate.
+- Updated runtime development-only Vitest/mocker to 4.1.12, removing tinypool;
+  two test-helper type declarations changed, no production implementation edits.
+  Parent package API proof, 174 selected tests, full typecheck, startup compile
+  and runtime build pass. All 340 current emitted runtime files match baseline.
+  Runtime audit critical findings fall from two to zero; six high remain.
+- Preserved original work and dependency/source rollback copies. The full
+  test-framework migration suite and installed/native acceptance are not claimed.
+  [Desktop Vite evidence](desktop-next/docs/DESKTOP-VITE-SOURCE-2026-10-27.md),
+  [runtime tooling evidence](desktop-next/docs/RUNTIME-TEST-SECURITY-2026-10-27.md).
+
 ## Local Desktop checkpoint — 2026-10-27 (not merged or publicly released)
 
 - Installed signed, Apple Accepted/stapled `0.1.0-local.20261027.archive2`

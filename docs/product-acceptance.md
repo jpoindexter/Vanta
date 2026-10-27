@@ -30,9 +30,15 @@ The [profile1 delivery](../desktop-next/docs/PROFILE-CUSTODY-INSTALLED-2026-10-2
 preceded this candidate. Its former image-custody installation gap and the
 October25 source-only statements below are superseded for the exact bounded
 paths now executed. Home Attach still requires a fresh-draft ownership handoff;
-Vite remains a separate private repair candidate. Desktop production-lock audit13,
-runtime development, website/default-branch findings and whole modularization
-remain open. The canonical roadmap retains its existing IDs/statuses and owner
+The newer [Desktop Vite source checkpoint](../desktop-next/docs/DESKTOP-VITE-SOURCE-2026-10-27.md)
+repairs three reproduced development-server boundaries and clean shutdown;
+its production-lock audit is 12, separate from installed archive2. The
+[runtime test-tooling checkpoint](../desktop-next/docs/RUNTIME-TEST-SECURITY-2026-10-27.md)
+removes two critical development findings with 174 selected tests, typecheck,
+startup compilation and unchanged current runtime outputs; six high findings
+remain. Neither source checkpoint is a new installed-app or complete-suite
+acceptance. Website/default-branch findings and whole modularization remain
+open. The canonical roadmap retains its existing IDs/statuses and owner
 gates. Evidence-only documentation commits do not alter the installed code SHA.
 
 ### Historical October25 delivery boundary

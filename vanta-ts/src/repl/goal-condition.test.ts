@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
 import { parseDoneCondition, checkCondition, buildGoalLoopMax, checkGoalLoop, DEFAULT_GOAL_LOOP_MAX } from "./goal-condition.js";
 import type { SafetyClient } from "../safety-client.js";
 
@@ -71,8 +72,8 @@ describe("checkGoalLoop", () => {
     } as unknown as SafetyClient;
   }
 
-  let onNote: ReturnType<typeof vi.fn>;
-  beforeEach(() => { onNote = vi.fn(); });
+  let onNote: Mock<(text: string) => void>;
+  beforeEach(() => { onNote = vi.fn<(text: string) => void>(); });
 
   it("returns null when no active goal exists", async () => {
     const safety = makeSafety({ getGoals: vi.fn().mockResolvedValue([]) });

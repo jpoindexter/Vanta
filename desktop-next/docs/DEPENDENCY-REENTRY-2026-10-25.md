@@ -1,5 +1,17 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest runtime test-tooling checkpoint — 2026-10-27
+
+[Runtime tooling evidence](RUNTIME-TEST-SECURITY-2026-10-27.md) records the
+integrated Vitest 4.1.12 development-only repair. Parent package API proof,
+174 selected tests, full runtime typecheck, startup compilation and runtime build
+pass. All 340 current emitted files match baseline; historical generated outputs
+are preserved, not counted as current. All 408 production lock records are
+unchanged. Fresh all-dependency audit: nine findings→six high, critical two→zero;
+this is not a whole-security claim. Full-suite migration and install-script
+compatibility remain unverified. Original dependencies and four source preimages
+have retained rollback copies; the installed archive2 app is unchanged.
+
 ## Latest Vite source boundary checkpoint — 2026-10-27
 
 [Vite source repair](DESKTOP-VITE-SOURCE-2026-10-27.md) integrates 8.3.3 and its
