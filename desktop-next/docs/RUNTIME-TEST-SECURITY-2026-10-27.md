@@ -2,6 +2,11 @@
 
 ## Boundary first
 
+Subsequent [legacy Vite source repair](LEGACY-VITE-SECURITY-2026-10-27.md)
+updates the shared development Vite to 6.4.4 and reduces the runtime all-dependency
+snapshot to five high findings. The six-high/6.4.3 evidence below belongs to
+this earlier test-tooling checkpoint, not the latest installed dependency tree.
+
 This is an integrated source/dependency checkpoint, not an installed Desktop
 update or whole-security acceptance. Runtime all-dependency audit findings fall
 from nine (two critical, six high, one moderate) to six high. Production-only

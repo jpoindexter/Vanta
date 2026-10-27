@@ -1,5 +1,16 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest legacy developer boundary checkpoint — 2026-10-27
+
+[Legacy Vite evidence](LEGACY-VITE-SECURITY-2026-10-27.md) records the compatible
+6.4.3→6.4.4 lock-only repair and recoverable dependency replacement. Parent actual
+before/after file and HTML-transform fixtures, legacy renderer build, fourteen
+focused tests and scoped tree pass. Fresh runtime all-dependency audit is five
+high, production zero; earlier six-high snapshots below are historical. The
+inherited ordinary legacy optimizer/close failure is explicitly not repaired.
+New Desktop 8.3.3, installed archive2, website/default-branch and broader gates
+remain separate. No whole-security or installed update is claimed.
+
 ## Latest runtime test-tooling checkpoint — 2026-10-27
 
 [Runtime tooling evidence](RUNTIME-TEST-SECURITY-2026-10-27.md) records the

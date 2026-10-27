@@ -21,6 +21,13 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Source security checkpoints — 2026-10-27 (not installed or released)
 
+- Updated legacy developer Vite 6.4.3→6.4.4 within its existing range. Parent
+  actual file/HTML boundary fixtures change red→green; legacy renderer build,
+  fourteen focused tests and dependency tree pass. Runtime all-dependency audit
+  six→five high, production zero. Ordinary legacy optimizer/close failure remains;
+  new Desktop and installed app are unchanged.
+  [Legacy Vite evidence](desktop-next/docs/LEGACY-VITE-SECURITY-2026-10-27.md).
+
 - Updated Desktop Vite to 8.3.3: reproduced file-boundary cases reject and the
   unchanged app-config server closes naturally. Specific production-lock audit
   falls from 13 findings to 12; other inventories remain separate.

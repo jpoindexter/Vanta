@@ -43,8 +43,12 @@ repairs three reproduced development-server boundaries and clean shutdown;
 its production-lock audit is 12, separate from installed archive2. The
 [runtime test-tooling checkpoint](../desktop-next/docs/RUNTIME-TEST-SECURITY-2026-10-27.md)
 removes two critical development findings with 174 selected tests, typecheck,
-startup compilation and unchanged current runtime outputs; six high findings
-remain. Neither source checkpoint is a new installed-app or complete-suite
+startup compilation and unchanged current runtime outputs. The subsequent
+[legacy Vite repair](../desktop-next/docs/LEGACY-VITE-SECURITY-2026-10-27.md)
+passes parent actual boundary fixtures, renderer build and fourteen focused tests;
+the latest runtime audit is five development high findings, production zero.
+The ordinary legacy optimizer/close failure remains. None of these source
+checkpoints is a new installed-app or complete-suite
 acceptance. Website/default-branch findings and whole modularization remain
 open. The canonical roadmap retains its existing IDs/statuses and owner
 gates. Evidence-only documentation commits do not alter the installed code SHA.
