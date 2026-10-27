@@ -15,16 +15,23 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
-The [archive2 installed checkpoint](../desktop-next/docs/ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md)
-is the latest delivery record: code `2d31393f`, local version
-`0.1.0-local.20261027.archive2`, Developer ID signed, Apple Accepted/stapled,
-final archive independently validated and installed with rollback.42 actual
-installed-path checks pass across exact file approval binding, archived chat
-recovery, profile separation/native effects, unsent PNG recovery and queues;
-all six private journeys report zero renderer errors. Original239 preserved work
-files and82 existing owner app-data files retain their saved hashes. These are
-loopback-model/private-profile proofs, not owner visual, live-account,
-unfamiliar-person, all-platform or complete trust/security acceptance.
+The [home1 installed checkpoint](../desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md)
+is the latest delivery record: code `feea5a4f`, local version
+`0.1.0-local.20261027.home1`, Developer ID signed, Apple Accepted/stapled,
+final ZIP independently extracted/validated and installed with recoverable
+archive2 rollback. Candidate and installed paths separately pass 24 bounded
+checks: Home text/project recovery before Attach/Send confirmation, guarded
+pending handoffs, actual project/runtime transition, cancellation, fresh drafts,
+exact selected/image-only PNG bytes, cold restart/reload and explicit sends.
+Each path makes five deliberate loopback-model requests and records zero
+renderer errors. Actual bundled process identity is asserted, not a source
+runtime override. The final OS dialog responses are fixtures. All 239 original
+work-file hashes and the fresh 57-entry owner app-data snapshot remain unchanged.
+No normal owner-profile launch occurred. These are not whole-app, physical-dialog,
+owner visual, live-account, unfamiliar-person, all-platform or complete trust/
+security acceptance. The earlier [archive2 record](../desktop-next/docs/ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md)
+retains its 42-check/six-journey evidence and historical 82-file snapshot; those
+were not rerun or substituted for this delivery's fresh evidence.
 
 The newer [durable Home source checkpoint](../desktop-next/docs/HOME-DURABLE-SOURCE-2026-10-27.md)
 adds pre-capture text/project recovery, one-use guards, ambiguous-send markers,
@@ -35,16 +42,18 @@ tests, types/build and architecture/design checks pass. The preceding
 [attachment checkpoint](../desktop-next/docs/HOME-ATTACHMENT-CONTINUITY-2026-10-27.md)
 retains its earlier image proof; a final current-source repeat separately passes
 all 11 image/text/project/restart checks with exact PNG bytes and zero errors.
-The two current journeys total 24 checks, not whole-app acceptance. New packaging/install and
-owner acceptance remain open. Source proof does not replace archive2 above.
+The two source journeys total 24 checks, not whole-app acceptance. Their later
+candidate/installed executions are separately recorded above; owner acceptance
+remains open. Native failure injection for every cleanup-write/ambiguous-send
+case and concurrent-window storage is not claimed by these journeys.
 
 The [profile1 delivery](../desktop-next/docs/PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
 preceded this candidate. Its former image-custody installation gap and the
 October25 source-only statements below are superseded for the exact bounded
-paths now executed. Installed Home Attach still predates the source handoff;
+paths now executed. Installed Home Attach is now covered by home1 above.
 The newer [Desktop Vite source checkpoint](../desktop-next/docs/DESKTOP-VITE-SOURCE-2026-10-27.md)
 repairs three reproduced development-server boundaries and clean shutdown;
-its production-lock audit is 12, separate from installed archive2. The
+its production-lock audit is 12 (four moderate/eight low, no high/critical). The
 [runtime test-tooling checkpoint](../desktop-next/docs/RUNTIME-TEST-SECURITY-2026-10-27.md)
 removes two critical development findings with 174 selected tests, typecheck,
 startup compilation and unchanged current runtime outputs. The subsequent
@@ -54,9 +63,13 @@ that checkpoint reports five development high findings, production zero.
 The subsequent [packaging URI repair](../desktop-next/docs/FAST-URI-SECURITY-2026-10-27.md)
 passes actual parent URI/Ajv/caller and packaging-schema checks; the latest runtime
 audit is four development high findings, production zero.
-The ordinary legacy optimizer/close failure remains. None of these source
-checkpoints is a new installed-app or complete-suite
-acceptance. Website/default-branch findings and whole modularization remain
+The ordinary legacy optimizer/close failure remains. These dependency changes
+are included in home1, but source tooling proofs are not complete installed-app
+or suite acceptance. Static REA inspection of the delivered Electron framework
+also confirms ASAR integrity/ASAR-only loading are disabled and Node options/
+inspection arguments remain enabled; no running-inspector or exploit claim follows.
+RunAsNode serves the bundled CLI and cannot be disabled blindly. No fuse change
+was made. Website/default-branch findings and whole modularization remain
 open. The canonical roadmap retains its existing IDs/statuses and owner
 gates. Evidence-only documentation commits do not alter the installed code SHA.
 

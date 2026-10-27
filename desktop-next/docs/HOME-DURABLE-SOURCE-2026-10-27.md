@@ -1,5 +1,10 @@
 # Durable Home drafts — source checkpoint, 2026-10-27
 
+Later delivery: [home1 installed checkpoint](HOME-DURABLE-INSTALLED-2026-10-27.md)
+records the exact signed/notarized package and 24 checks separately executed on
+candidate and installed paths. The source-only boundary below is historical;
+its source-test and failure-injection limits still apply.
+
 ## Delivery and proof limits first
 
 This is source integration, not a new installed app, full redesign or completed

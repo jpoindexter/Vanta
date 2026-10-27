@@ -1,5 +1,9 @@
 # Archive recovery and approval binding — installed candidate
 
+Historical delivery: superseded as the installed identity by the
+[home1 checkpoint](HOME-DURABLE-INSTALLED-2026-10-27.md). The 42 checks below
+belong to archive2 and are not claimed as rerun on home1.
+
 ## Gap first
 
 This delivers and exercises the bounded fixes below, not the whole Desktop

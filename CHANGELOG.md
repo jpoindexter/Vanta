@@ -3,7 +3,20 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Home attachment source checkpoint — 2026-10-27 (not installed or released)
+## Durable Home installed checkpoint — 2026-10-27 (local, not released)
+
+- Delivered code `feea5a4f` as signed, Apple Accepted/stapled
+  `0.1.0-local.20261027.home1` at `/Applications/Vanta.app`, with verified final
+  ZIP and recoverable archive2 rollback. Candidate and installed paths separately
+  pass 24 text/project/attachment/restart checks, zero renderer errors. Fresh
+  owner app-data and original work hashes remain unchanged.
+- Full visual/parity, account, hardware, human, security and modularization gates
+  remain open. Static Electron fuse inspection confirms remaining packaging
+  hardening gaps; notarization is not security approval. No main merge, release,
+  tag, CI, paid service or whole-card closure.
+  [Exact delivery and proof limits](desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md).
+
+## Home attachment source chronology — 2026-10-27 (later delivered above)
 
 - Added durable Home words/project/revision, one-use pending-action guards and
   possibly-sent recovery markers. Failed cleanup never silently offers retry;
