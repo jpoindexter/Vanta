@@ -94,8 +94,11 @@ Canonical roadmap IDs, Done contracts, dependencies, shipped history and statuse
 remain unchanged: 1,365 cards, 1,289 shipped, 64 parked, 12 open (two Building,
 four Next, five Horizon, one Blocked). The missing-notary reason is resolved;
 Desktop cutover remains blocked/deferred for its original parity/human gates.
-GitHub integration pushes are not main merges or public releases. Default main
-still reports 176 dependency alerts; scoped local proofs are not security closure.
+GitHub integration pushes are not main merges or public releases. The source
+push reported 176 default-branch dependency alerts; the documentation push at
+18:19 UTC reported 177 (four critical, 87 high, 72 moderate, 14 low). These are
+dated observations, not a security clearance; scoped local proofs do not resolve
+the broader default-branch alerts.
 
 Trello descriptions and one delivery comment were updated and read back on
 [TRUST-03](https://trello.com/c/vjFFEM9t),
