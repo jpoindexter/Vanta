@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1289 capabilities shipped · 6 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-10-26._
+_1289 capabilities shipped · 6 in flight · 14 parked external-proof items · 6 on the horizon. Updated 2026-10-27._
 
 ## In flight
 

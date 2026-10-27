@@ -1,5 +1,15 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest compatible cache maintenance — 2026-10-27
+
+[Cache maintenance](DESKTOP-CACHE-MAINTENANCE-2026-10-27.md) adds4.3.0 within the
+existing range. Actual caller Vary wildcard handling changes red→green; six
+caller checks, saved-policy compatibility and scoped npm tree pass. Parent fresh
+production lock audit17→13 (5high→1high), but the reported disputed max-stale
+behavior is unchanged; the disappearing cache/propagated rows are version-range
+classification, not proof of that security repair. Vite, runtime development,
+website/default-branch security remain OPEN. No new installed update yet.
+
 ## Latest compatible Desktop source — 2026-10-27
 
 [Desktop patch and compatibility repair](DESKTOP-COMPATIBLE-DEPS-2026-10-27.md)
