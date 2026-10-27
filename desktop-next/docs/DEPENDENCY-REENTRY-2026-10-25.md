@@ -1,5 +1,17 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest compatible source checkpoint — 2026-10-27
+
+[Compatible runtime pins](COMPATIBLE-RUNTIME-DEPS-SOURCE-2026-10-27.md) records
+adm-zip0.6.1/sharp0.35.5, private installed archive/native proof and production
+audit6 to2. Parent reran that behavior and verified the source hashes. The
+shared node_modules and installed Desktop remain unchanged: do not treat a
+lockfile audit as their installed audit. Coordinate the combined dependency
+install with the profile-runtime worker, then verify that exact closure. Zod/
+OpenAI, Electron, website/build tooling and broader security remain open.
+
+## Earlier audit and ordering (historical)
+
 Security is not green. These are fresh npm registry/lockfile audit results at
 source checkpoint f5b12a97, not exploit demonstrations. Do not sum the trees or
 equate these counts with GitHub default-branch alerts. No upgrade is claimed.
