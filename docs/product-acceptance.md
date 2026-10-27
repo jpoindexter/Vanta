@@ -69,6 +69,12 @@ caller checks, three recovery observations, scoped dependency tree and runtime
 typecheck pass. Fresh runtime audit becomes three development high, production
 zero. Default callers still recover malformed XML after diagnostics. This patch
 is not in installed home1; no strict XML-policy closure is claimed.
+The subsequent [source-map tooling checkpoint](../desktop-next/docs/SOURCE-MAP-TOOLING-SECURITY-2026-10-27.md)
+patches one existing leaf and executes actual canonical PostCSS malformed-offset
+rejection plus valid lookup/map-generation/content checks. Scoped tree and runtime
+typecheck pass; fresh runtime audit becomes two development high, production zero.
+No expansion stress, full app build or installed update is claimed. Cache semantics
+and undici remain; this is not whole-security closure.
 The ordinary legacy optimizer/close failure remains. These dependency changes
 are included in home1, but source tooling proofs are not complete installed-app
 or suite acceptance. Static REA inspection of the delivered Electron framework

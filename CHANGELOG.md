@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Source-map tooling checkpoint — 2026-10-27 (not installed or released)
+
+- Updated source-map-js 1.2.1→1.2.2 within the existing PostCSS range. Actual
+  canonical caller rejects malformed offsets while retaining valid lookup and
+  generated CSS source contents. Scoped tree/typecheck pass; runtime audit
+  three→two development high, production zero. No stress, full app build or
+  installed security claim; home1 remains unchanged.
+  [Evidence](desktop-next/docs/SOURCE-MAP-TOOLING-SECURITY-2026-10-27.md).
+
 ## XML tooling source checkpoint — 2026-10-27 (not installed or released)
 
 - Patched the two existing xmldom consumer lines to 0.9.12/0.8.15 within their

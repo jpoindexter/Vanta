@@ -1,5 +1,14 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest source-map tooling checkpoint — 2026-10-27
+
+[Source-map tooling evidence](SOURCE-MAP-TOOLING-SECURITY-2026-10-27.md) records
+the compatible 1.2.2 leaf update, actual canonical PostCSS before/after caller
+proof, unchanged valid-map generation/content, scoped tree and runtime typecheck.
+Fresh runtime audit is two development high, production zero; older three/four
+counts below are historical. Cache semantics and undici remain. This is source
+tooling only, not a new installed app or whole-security closure.
+
 ## Latest XML tooling checkpoint — 2026-10-27
 
 [XML tooling evidence](XML-TOOLING-SECURITY-2026-10-27.md) records two compatible
