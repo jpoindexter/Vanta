@@ -583,7 +583,7 @@ describe("tool-output logging is best-effort", () => {
 });
 
 describe("interrupted mutation recovery", () => {
-  it("records an unknown effect, resumes with inspection guidance, and never retries blindly", async () => {
+  it("records an unknown effect, stops for inspection, and never retries blindly", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-effect-root-"));
     const home = await mkdtemp(join(tmpdir(), "vanta-effect-home-"));
     const previousHome = process.env.VANTA_HOME;
@@ -600,13 +600,11 @@ describe("interrupted mutation recovery", () => {
         describeForSafety: () => "publish release",
         execute,
       });
-      const seen: Message[][] = [];
       let turn = 0;
       const provider: LLMProvider = {
         modelId: () => "fake",
         contextWindow: () => 100_000,
-        complete: vi.fn(async (messages): Promise<CompletionResult> => {
-          seen.push(structuredClone(messages));
+        complete: vi.fn(async (): Promise<CompletionResult> => {
           turn++;
           return turn === 1
             ? { text: "", toolCalls: [{ id: "publish-1", name: "publish_release", arguments: { apiKey: "do-not-log" } }], finishReason: "tool_calls" }
@@ -623,10 +621,11 @@ describe("interrupted mutation recovery", () => {
         userText: "publish it",
       });
 
-      expect(out.stoppedReason).toBe("done");
+      expect(out).toMatchObject({ stoppedReason: "blocked", completionState: "needs human", needsEffectReview: true });
       expect(execute).toHaveBeenCalledOnce();
+      expect(provider.complete).toHaveBeenCalledOnce();
       expect(await readFile(marker, "utf8")).toBe("published");
-      const modelReceipt = seen[1]?.find((message) => message.role === "tool");
+      const modelReceipt = messages.find((message) => message.role === "tool");
       expect(modelReceipt).toMatchObject({
         role: "tool",
         toolCallId: "publish-1",

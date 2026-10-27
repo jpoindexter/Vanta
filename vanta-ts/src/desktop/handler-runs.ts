@@ -79,8 +79,15 @@ async function saveLibraryRun(run: RunRecord, saved: boolean): Promise<RunRecord
     : await setRunSaved(run.id, saved, process.env);
 }
 
+function replayNeedsEffectReview(run: RunRecord, action: string): boolean {
+  return run.needsEffectReview === true && ["replay", "fork"].includes(action);
+}
+
 async function prepareLibraryReplay(state: DesktopState, request: { body: RunActionBody; run: RunRecord; action: string }, res: http.ServerResponse): Promise<void> {
   const { body, run, action } = request;
+  if (replayNeedsEffectReview(run, action)) {
+    return sendJson(res, 409, { error: "This run contains an uncertain action. Review its result before preparing another attempt." });
+  }
   const live = await ensureDesktopConversation(state);
   const preview = await previewReplay(run, {
     projectRoot: state.root,

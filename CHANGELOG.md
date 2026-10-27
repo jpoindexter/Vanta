@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Uncertain agent-action checkpoint — 2026-10-27 (not installed or released)
+
+- Stop direct agent execution after an unknown effect; retain usage/partial work,
+  consistent needs-review receipts and safe queue admission across reload and
+  compaction. Refuse blind Retry/Replay and workflow continuation. Parent actual
+  MCP/agent proof, 50 focused checks, one legacy regression and runtime typecheck
+  pass; independent review caught and closed a compound queue-write failure.
+  Nested-worker propagation, review-clear UX and installed delivery remain open.
+  [Evidence and limits](docs/agent-uncertain-effect-settlement-2026-10-27.md).
+
 ## MCP connection lifecycle checkpoint — 2026-10-27 (not installed or released)
 
 - Pending and later tool requests now reject after clean process exit, signal

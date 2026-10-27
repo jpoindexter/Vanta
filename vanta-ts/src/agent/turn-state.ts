@@ -20,6 +20,7 @@ function callSignature(name: string, args: Record<string, unknown>): string {
 }
 
 export type TurnState = {
+  needsEffectReview: boolean;
   consecutiveFailures: number;
   consecutiveErrorResults: number;
   toolIterations: number;
@@ -46,10 +47,11 @@ export type TurnState = {
 };
 
 export function makeInitialState(): TurnState {
-  return { consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], workItemStates: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
+  return { needsEffectReview: false, consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], workItemStates: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
 }
 
 export function turnCompletionState(state: TurnState, stoppedReason: StoppedReason): WorkItemState {
+  if (state.needsEffectReview) return "needs human";
   if (stoppedReason === "blocked") return "waiting";
   if (state.workItemStates.includes("unverified")) return "unverified";
   if (stoppedReason !== "done") return "stopped";
@@ -66,6 +68,7 @@ export function recordUsage(state: TurnState, result: CompletionResult): void {
 }
 
 export function recordToolOutcome(state: TurnState, call: ToolCall, outcome: DispatchOutcome, deps: AgentDeps): string | null {
+  if (outcome.effectDisposition === "unknown") state.needsEffectReview = true;
   state.workItemStates.push(outcome.workItemState);
   if (outcome.executed) recordExecutionErrors(state, outcome, deps);
   if (outcome.ok) recordTodoProgress(state, call);

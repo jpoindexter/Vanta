@@ -12,6 +12,7 @@ import type { WorkflowNodeContext } from "../workflow/execute.js";
 import type { WorkflowNode } from "../workflow/schema.js";
 import type { ToolRegistry } from "./registry.js";
 import { executeToolEffect } from "../effects/tool-effect-gateway.js";
+import { EFFECT_REVIEW_TEXT } from "../agent/effect-review.js";
 
 // WORKFLOWS: Dynamic multi-agent orchestration harness. Vanta composes and runs
 // structured multi-agent workflows on the fly — fan-out/synthesize, adversarial-
@@ -115,6 +116,7 @@ async function executeGraph(graph: WorkflowGraph, ctx: ToolContext, runId?: stri
         deps: { provider: resolveProvider(workerEnv), safety: ctx.safety, registry: workerRegistry, root: ctx.root, requestApproval: ctx.requestApproval },
         maxIterations: node.maxIterations,
       });
+      if (outcome.needsEffectReview) throw new Error(EFFECT_REVIEW_TEXT);
       return parseStatefulAgentOutcome(node, outcome.finalText);
     },
     runTool: (node, graphContext) => executeWorkflowToolNode(node, graphContext, registry, ctx),

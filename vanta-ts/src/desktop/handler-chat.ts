@@ -2,7 +2,8 @@ import type http from "node:http";
 import { claimQueuedChatInput, executeChat } from "./handler-chat-execution.js";
 import { authRequiredText,clearChatExecution,respondAuthRequired,respondChatFailure,type ChatExecution,type ChatInput } from "./handler-chat-lifecycle.js";
 import { readJson,sendJson } from "./handler-http.js";
-import { queueSessionId } from "./handler-queue.js";
+import { queueNeedsEffectReview, queueSessionId } from "./handler-queue.js";
+import { EFFECT_REVIEW_TEXT } from "../agent/effect-review.js";
 import type { DesktopState } from "./handler-state.js";
 import { DESCRIBE_IMAGE,parseDesktopImageInput } from "./image-input.js";
 import { loadProviderAuthRequired } from "./provider-auth-store.js";
@@ -61,6 +62,7 @@ async function handleResumeQueue(state: DesktopState, requestId: unknown, res: h
   adoptSetupGeneration(state);
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   if (state._providerAuthRequired) return sendJson(res, 409, { error: authRequiredText(state) });
+  if (await queueNeedsEffectReview(state)) return sendJson(res, 409, { error: EFFECT_REVIEW_TEXT });
   const claimed = await claimQueuedChatInput(state, typeof requestId === "string" ? requestId : undefined);
   if (!claimed) return sendJson(res, 409, { error: "nothing is queued" });
   const context = startChatExecution(state, claimed.input);

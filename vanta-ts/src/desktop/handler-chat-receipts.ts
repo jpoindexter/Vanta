@@ -1,4 +1,4 @@
-import type { Conversation,StoppedReason } from "../agent.js";
+import type { AgentOutcome,Conversation,StoppedReason } from "../agent.js";
 import { classifyProviderError } from "../providers/error-taxonomy.js";
 import type { DesktopRunFailureKind,DesktopRunReceipt } from "../types.js";
 import { type DesktopEvent } from "./handler-state.js";
@@ -24,8 +24,15 @@ export function classifyDesktopFailure(error: unknown, wasInterrupted: boolean, 
   return "unknown";
 }
 
-export function recoveryActions(status: DesktopRunReceipt["status"]): DesktopRunReceipt["actions"] {
+export function recoveryActions(status: DesktopRunReceipt["status"], needsEffectReview = false): DesktopRunReceipt["actions"] {
+  if (needsEffectReview) return ["edit_request"];
   return status === "done" ? [] : ["retry_failed_step", "edit_request", "start_from_checkpoint"];
+}
+
+export function receiptStatusForOutcome(outcome: AgentOutcome): Pick<DesktopRunReceipt, "status" | "failureKind" | "stoppedReason" | "needsEffectReview"> {
+  return outcome.needsEffectReview
+    ? { status: "failed", failureKind: "tool", stoppedReason: "blocked", needsEffectReview: true }
+    : receiptStatusForStoppedReason(outcome.stoppedReason);
 }
 
 export function receiptStatusForStoppedReason(stoppedReason: StoppedReason): Pick<DesktopRunReceipt, "status" | "failureKind" | "stoppedReason"> {
@@ -54,6 +61,7 @@ export function queuedTurnExceptionReason(failureKind: DesktopRunFailureKind, wa
 }
 
 export function buildRunReceipt(opts: {
+  needsEffectReview?: boolean;
   status: DesktopRunReceipt["status"];
   events: DesktopEvent[];
   instruction: string;
@@ -62,11 +70,12 @@ export function buildRunReceipt(opts: {
   stoppedReason?: StoppedReason;
 }): DesktopRunReceipt {
   return {
+    ...(opts.needsEffectReview ? { needsEffectReview: true } : {}),
     status: opts.status,
     ...(opts.stoppedReason ? { stoppedReason: opts.stoppedReason } : {}),
     ...(opts.failureKind ? { failureKind: opts.failureKind } : {}),
     events: opts.events.map((event) => ({ ...event })),
-    actions: recoveryActions(opts.status),
+    actions: recoveryActions(opts.status, opts.needsEffectReview),
     checkpoint: opts.status === "done" ? undefined : { instruction: opts.instruction, ...(opts.partialText ? { partialText: opts.partialText } : {}) },
   };
 }

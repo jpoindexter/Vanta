@@ -113,6 +113,8 @@ export type StreamEvent =
   | { type: "turn_end"; finalText: string; usage?: { inputTokens: number; outputTokens: number } };
 
 export type AgentOutcome = {
+  /** An attempted effect remains uncertain; inspect it before any retry or continuation. */
+  needsEffectReview?: boolean;
   finalText: string;
   iterations: number;
   stoppedReason: StoppedReason;

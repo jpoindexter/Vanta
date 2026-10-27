@@ -19,6 +19,7 @@ export type QueuedTurn = {
   intent: "next" | "steer";
   status: "queued" | "starting" | "failed";
   failure?: {
+    requiresReview?: boolean;
     reason: string;
     at: string;
     attempts: number;
@@ -43,8 +44,9 @@ export type TurnQueueDeps = {
 };
 
 export class QueueConflictError extends Error {
-  constructor(readonly code: "not_found" | "revision_conflict" | "already_started" | "not_retryable") {
-    super(code === "already_started"
+  constructor(readonly code: "not_found" | "revision_conflict" | "already_started" | "not_retryable" | "review_required") {
+    super(code === "review_required" ? "An earlier action needs review. Inspect its result before submitting a new request."
+      : code === "already_started"
       ? "This queued turn has already started."
       : code === "revision_conflict"
         ? "This queued turn changed. Refresh and try again."
@@ -176,6 +178,7 @@ export class DesktopTurnQueue {
 
   async claimNext(sessionId: string): Promise<QueuedTurn | undefined> {
     return this.mutate((document) => {
+      if (document.items.some(item => item.target.sessionId === sessionId && item.failure?.requiresReview)) return undefined;
       const item = ordered(document.items.filter((candidate) => candidate.target.sessionId === sessionId && candidate.status === "queued"))[0];
       if (!item) return undefined;
       item.status = "starting";
@@ -208,6 +211,7 @@ export class DesktopTurnQueue {
   async retry(id: string, revision: number): Promise<QueuedTurn> {
     return this.mutate((document) => {
       const item = this.mutable(document, id, revision);
+      if (item.failure?.requiresReview) throw new QueueConflictError("review_required");
       if (item.status !== "failed") throw new QueueConflictError("not_retryable");
       item.status = "queued";
       delete item.failure;
@@ -217,6 +221,23 @@ export class DesktopTurnQueue {
 
   async complete(id: string): Promise<void> {
     return this.mutate((document) => { document.items = document.items.filter((item) => item.id !== id); });
+  }
+
+  async needsEffectReview(sessionId: string): Promise<boolean> {
+    return (await this.list(sessionId)).items.some(item => item.failure?.requiresReview === true);
+  }
+
+  async pauseForEffectReview(sessionId: string): Promise<void> {
+    return this.mutate(document => {
+      for (const item of document.items) {
+        if (item.target.sessionId !== sessionId || item.status === "failed") continue;
+        delete item.ownerPid;
+        item.status = "failed";
+        item.failure = { requiresReview: true, reason: "An action may have partially completed. Review its result before continuing; no automatic retry.",
+          at: this.deps.now().toISOString(), attempts: (item.failure?.attempts ?? 0) + 1 };
+        this.touch(item);
+      }
+    });
   }
 
   private mutable(document: QueueDocument, id: string, revision: number): QueuedTurn {

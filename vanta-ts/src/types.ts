@@ -35,6 +35,7 @@ export type DesktopSchemaTrace = {
   transitions: DesktopSchemaTransitionTrace[];
 };
 export type DesktopRunReceipt = {
+  needsEffectReview?: boolean;
   status: "done" | "failed" | "interrupted";
   stoppedReason?: import("./agent/agent-types.js").StoppedReason;
   failureKind?: DesktopRunFailureKind;

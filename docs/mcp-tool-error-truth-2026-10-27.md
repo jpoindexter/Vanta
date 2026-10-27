@@ -50,13 +50,15 @@ Parent packet: `mcp-error-parent-20261027-IbDT65`. Independent V2:
   provider runs twice; final completion state is unverified. Safety is an injected
   allow-only fixture, not live Rust or an external account.
 
-The loop's `stoppedReason` is still `done` in that last case: the loop ended, but
+At that checkpoint, the loop's `stoppedReason` was still `done`: the loop ended, but
 the action was not verified. A separate controller investigation found that this
 distinction needs consistent receipt/queue handling; it is not closed by the MCP
 client repair. Do not broadly convert all unverified answers into failures:
 ordinary chat and successful reads can also carry an unverified completion state.
 Current-instruction unknown effects need turn-owned evidence, safe recovery and
-no automatic queued continuation or blind replay. That follow-up remains open.
+no automatic queued continuation or blind replay. The subsequent bounded
+[agent/controller correction](agent-uncertain-effect-settlement-2026-10-27.md)
+now executes that halt and recovery path in source; its explicit limits remain.
 
 ## Useful agent path, separately verified
 

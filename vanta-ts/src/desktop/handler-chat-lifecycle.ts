@@ -1,6 +1,8 @@
 import type http from "node:http";
+import type { AgentOutcome } from "../agent.js";
+import { EFFECT_REVIEW_TEXT } from "../agent/effect-review.js";
 import { redactForLog } from "../store/redact-structural.js";
-import type { DesktopRunFailureKind,ImageAttachment } from "../types.js";
+import type { DesktopRunFailureKind,DesktopRunReceipt,ImageAttachment } from "../types.js";
 import { buildRunReceipt,classifyDesktopFailure,interrupted,queuedTurnExceptionReason } from "./handler-chat-receipts.js";
 import { ensureDesktopConversation,persistActiveSession,providerRouteStatus } from "./handler-conversation.js";
 import { sendJson } from "./handler-http.js";
@@ -12,6 +14,7 @@ import { pushTurnComplete } from "./typed-emit.js";
 
 export type ChatInput = { instructionText: string; images: ImageAttachment[]; files: string[]; requestId?: string };
 export type ChatExecution = ChatInput & {
+  outcome?: AgentOutcome;
   state: DesktopState;
   controller: AbortController;
   events: DesktopEvent[];
@@ -47,8 +50,9 @@ async function retainAuthFailure(context: ChatExecution): Promise<void> {
   await saveProviderAuthRequired(state.root, state._providerAuthRequired);
 }
 
-function failureText(state: DesktopState, failure: { partial?: string; wasInterrupted: boolean; kind: DesktopRunFailureKind; error: unknown }): string {
+function failureText(state: DesktopState, failure: { partial?: string; wasInterrupted: boolean; kind: DesktopRunFailureKind; error: unknown; needsEffectReview?: boolean }): string {
   const { partial, wasInterrupted, kind, error } = failure;
+  if (failure.needsEffectReview) return [partial, EFFECT_REVIEW_TEXT].filter(Boolean).join("\n\n");
   const safeError = redactForLog(error instanceof Error ? error.message : String(error));
   if (partial) return `${partial}\n\n${wasInterrupted ? "Stopped by operator." : "The run stopped before completing."}`;
   if (wasInterrupted) return "Stopped by operator.";
@@ -61,28 +65,43 @@ function failureStoppedReason(wasInterrupted: boolean, kind: DesktopRunFailureKi
   return kind === "provider_auth" ? "provider_auth" : "failed";
 }
 
+async function settleFailedClaim(context: ChatExecution, kind: DesktopRunFailureKind, wasInterrupted: boolean): Promise<void> {
+  if (context.outcome?.needsEffectReview) {
+    await turnQueue(context.state).pauseForEffectReview(context.activeQueueSessionId).catch(() => undefined);
+    context.claimedTurnId = undefined;
+    return;
+  }
+  if (!context.claimedTurnId) return;
+  await turnQueue(context.state).release(context.claimedTurnId, queuedTurnExceptionReason(kind, wasInterrupted)).catch(() => undefined);
+  context.claimedTurnId = undefined;
+}
+
+function failedReceipt(context: ChatExecution, failure: { wasInterrupted: boolean; partial?: string; kind: DesktopRunFailureKind }): DesktopRunReceipt {
+  return buildRunReceipt({ status: failure.wasInterrupted ? "interrupted" : "failed", events: context.events,
+    instruction: context.instructionText, partialText: failure.partial || undefined, failureKind: failure.kind,
+    ...(context.outcome?.needsEffectReview ? { status: "failed", failureKind: "tool", needsEffectReview: true, stoppedReason: "blocked" } : {}) });
+}
+
 export async function respondChatFailure(context: ChatExecution, error: unknown, res: http.ServerResponse): Promise<void> {
   const { state, controller, events, live, instructionText } = context;
   const wasInterrupted = interrupted(error, controller);
-  const partial = state._chatDeltas?.join("").trim();
+  const review = context.outcome?.needsEffectReview === true;
+  const partial = state._chatDeltas?.join("").trim() || context.outcome?.finalText;
   const failureKind = classifyDesktopFailure(error, wasInterrupted, events);
-  if (context.claimedTurnId) {
-    await turnQueue(state).release(context.claimedTurnId, queuedTurnExceptionReason(failureKind, wasInterrupted)).catch(() => undefined);
-    context.claimedTurnId = undefined;
-  }
+  await settleFailedClaim(context, failureKind, wasInterrupted);
   if (failureKind === "provider_auth") await retainAuthFailure(context);
-  const finalText = failureText(state, { partial, wasInterrupted, kind: failureKind, error });
+  const finalText = failureText(state, { partial, wasInterrupted, kind: failureKind, error, needsEffectReview: review });
   events.push({ label: wasInterrupted ? "Stopped by operator." : failureKind === "provider_auth" ? "Provider authentication required." : "Run failed before completion.", ok: false });
-  const receipt = buildRunReceipt({ status: wasInterrupted ? "interrupted" : "failed", events, instruction: instructionText, partialText: partial || undefined, failureKind });
-  if (failureKind === "provider_auth") receipt.actions = ["edit_request", "start_from_checkpoint"];
+  const receipt = failedReceipt(context, { wasInterrupted, partial, kind: failureKind });
+  if (failureKind === "provider_auth" && !review) receipt.actions = ["edit_request", "start_from_checkpoint"];
   if (live) {
     live.convo.messages.push({ role: "assistant", content: finalText, desktopRun: receipt });
-    await finishRunCapture(state, wasInterrupted ? "interrupted" : "failed", finalText);
+    await finishRunCapture(state, receipt, finalText, context.outcome?.usage);
     await persistActiveSession(state);
   }
-  const stoppedReason = failureStoppedReason(wasInterrupted, failureKind);
-  pushTurnComplete(state, { finalText, stoppedReason });
-  sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, stoppedReason, receipt });
+  const stoppedReason = review ? "blocked" : failureStoppedReason(wasInterrupted, failureKind);
+  pushTurnComplete(state, { finalText, stoppedReason, usage: context.outcome?.usage });
+  sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, stoppedReason, receipt, usage: context.outcome?.usage });
 }
 
 export function clearChatExecution(state: DesktopState, controller: AbortController): void {

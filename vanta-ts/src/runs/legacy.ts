@@ -48,6 +48,7 @@ export function deriveLegacyRuns(session: Session, projectRoot: string): RunReco
       startedAt: turnIndex === 0 ? session.started : session.updated,
       completedAt: session.updated,
       status: receipt?.status ?? legacyReplyStatus(assistant),
+      ...(receipt?.needsEffectReview ? { needsEffectReview: true } : {}),
       saved: false,
       tags: [],
       provenance: "derived",

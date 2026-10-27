@@ -1,6 +1,7 @@
 import { appendRunLibraryMetric,captureRunInputs,newRunId,saveRun,type RunRecord } from "../runs/store.js";
 import { redactForLog } from "../store/redact-structural.js";
 import { type DesktopState } from "./handler-state.js";
+import type { DesktopRunReceipt } from "../types.js";
 
 export function runTitle(instruction: string): string {
   const title = redactForLog(instruction).trim().replace(/\s+/g, " ");
@@ -36,12 +37,13 @@ export async function beginRunCapture(
 
 export async function finishRunCapture(
   state: DesktopState,
-  status: RunRecord["status"],
+  status: RunRecord["status"] | Pick<DesktopRunReceipt, "status" | "needsEffectReview">,
   finalOutput: string,
   usage?: RunRecord["usage"],
 ): Promise<RunRecord | null> {
   const capture = state.activeRunCapture;
   if (!capture || !state.sessionId) return null;
+  const receipt = typeof status === "string" ? { status } : status;
   const record = await saveRun({
     version: 1,
     id: capture.id,
@@ -54,7 +56,8 @@ export async function finishRunCapture(
     modelId: state.modelId,
     startedAt: capture.startedAt,
     completedAt: new Date().toISOString(),
-    status,
+    status: receipt.status,
+    ...(receipt.needsEffectReview ? { needsEffectReview: true } : {}),
     saved: false,
     tags: [],
     provenance: "captured",
@@ -67,7 +70,7 @@ export async function finishRunCapture(
   if (capture.lineage.mode !== "original") {
     await appendRunLibraryMetric("run_reuse_completed", {
       mode: capture.lineage.mode,
-      status,
+      status: receipt.status,
     }, process.env).catch(() => undefined);
   }
   state.activeRunCapture = undefined;

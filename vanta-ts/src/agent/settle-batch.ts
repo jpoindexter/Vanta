@@ -56,6 +56,7 @@ export async function settleUnansweredCalls(args: SettleArgs): Promise<void> {
   const { calls, messages, ctx, deps, state } = args;
   for (const call of unansweredCalls(calls, messages)) {
     const disposition = interruptedDisposition(call, call.effectState === "started");
+    if (disposition === "unknown") state.needsEffectReview = true;
     messages.push(interruptedToolResult(call, disposition));
     await persistEffectTransition(ctx.root, deps.sessionId, call, "settled", disposition);
     state.workItemStates.push("stopped");

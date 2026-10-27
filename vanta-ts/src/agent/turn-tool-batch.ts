@@ -106,6 +106,7 @@ async function dispatchTrackedCall(args: ProcessToolCallsArgs, call: ToolCall): 
 
 async function settleCall(args: ProcessToolCallsArgs, call: ToolCall, outcome: DispatchOutcome, batch: ToolBatch): Promise<string | null> {
   const { deps, ctx, state, messages } = args;
+  if (outcome.effectDisposition === "unknown") state.needsEffectReview = true;
   batch.push({ name: call.name, ok: outcome.ok, output: outcome.output });
   state.toolNames.push(call.name);
   state.toolIterations++;
@@ -147,7 +148,7 @@ export async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ st
       const outcome = await dispatchTrackedCall(args, call);
       stuckTool = await settleCall(args, call, outcome, batch);
     }
-    if (stuckTool) break;
+    if (stuckTool || state.needsEffectReview) break;
   }
   // Single settle point for every early exit above (a stuck tool breaks the loop
   // and leaves the rest of the batch un-answered). One result per call is a

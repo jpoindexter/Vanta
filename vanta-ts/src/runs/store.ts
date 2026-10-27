@@ -1,10 +1,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { appendFile, chmod, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
-import { z } from "zod";
+import { RunRecordSchema, type RunInput, type RunEvent, type RunLineage, type RunRecord } from "./record-schema.js";
+export { RunInputSchema, RunEventSchema, RunLineageSchema, RunRecordSchema, type RunInput, type RunEvent, type RunLineage, type RunRecord } from "./record-schema.js";
 import { resolveVantaHome } from "../store/home.js";
 import { hasSecrets } from "../store/secret-scan.js";
 import { redactForLog } from "../store/redact-structural.js";
+import type { ReplayInputState, ReplayPreview, RunLibraryMetric } from "./library-types.js";
+export type { ReplayInputState, ReplayPreview, RunLibraryMetric } from "./library-types.js";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_RUN_BYTES = 50 * 1024 * 1024;
@@ -12,92 +15,7 @@ const PRIVATE_FILE = /(^|\/)(?:\.env(?:\.[^/]*)?|credentials?(?:\.[^/]*)?|secret
 const PRIVATE_DIR = /(^|\/)(?:\.git|\.vanta|\.ssh|\.aws|\.gnupg)(?:\/|$)/i;
 const SECRET_KEY = /(?:authorization|cookie|token|secret|password|passwd|api[_-]?key|credential)/i;
 
-export const RunInputSchema = z.object({
-  path: z.string(),
-  sha256: z.string().optional(),
-  bytes: z.number().int().nonnegative().optional(),
-  snapshotRef: z.string().optional(),
-  capture: z.enum(["snapshotted", "linked", "missing", "redacted"]),
-  note: z.string().optional(),
-});
 
-export const RunEventSchema = z.object({
-  at: z.string(),
-  kind: z.enum(["tool_start", "tool_end", "approval", "note"]),
-  toolName: z.string().optional(),
-  ok: z.boolean().optional(),
-  args: z.record(z.string(), z.unknown()).optional(),
-  output: z.string().optional(),
-  approval: z.object({
-    decision: z.enum(["allow", "always", "deny", "never"]),
-    reason: z.string(),
-  }).optional(),
-});
-
-export const RunLineageSchema = z.object({
-  mode: z.enum(["original", "fork", "replay"]),
-  parentRunId: z.string().optional(),
-});
-
-export const RunRecordSchema = z.object({
-  version: z.literal(1),
-  id: z.string(),
-  sessionId: z.string(),
-  turnIndex: z.number().int().nonnegative(),
-  title: z.string(),
-  prompt: z.string(),
-  projectRoot: z.string(),
-  providerId: z.string().optional(),
-  modelId: z.string().optional(),
-  startedAt: z.string(),
-  completedAt: z.string(),
-  status: z.enum(["done", "failed", "interrupted"]),
-  saved: z.boolean(),
-  tags: z.array(z.string()),
-  provenance: z.enum(["captured", "derived"]),
-  lineage: RunLineageSchema,
-  inputs: z.array(RunInputSchema),
-  events: z.array(RunEventSchema),
-  finalOutput: z.string(),
-  usage: z.object({
-    inputTokens: z.number().int().nonnegative(),
-    outputTokens: z.number().int().nonnegative(),
-  }).optional(),
-});
-
-export type RunInput = z.infer<typeof RunInputSchema>;
-export type RunEvent = z.infer<typeof RunEventSchema>;
-export type RunLineage = z.infer<typeof RunLineageSchema>;
-export type RunRecord = z.infer<typeof RunRecordSchema>;
-
-export type ReplayInputState = {
-  path: string;
-  expectedSha256?: string;
-  actualSha256?: string;
-  state: "ready" | "changed" | "missing" | "redacted";
-};
-
-export type ReplayPreview = {
-  runId: string;
-  canExecute: boolean;
-  project: { recorded: string; current: string; changed: boolean };
-  provider: { recorded?: string; current?: string; changed: boolean };
-  model: { recorded?: string; current?: string; changed: boolean };
-  tools: { recorded: string[]; unavailable: string[] };
-  inputs: ReplayInputState[];
-  warning: string;
-};
-
-export type RunLibraryMetric =
-  | "run_captured"
-  | "run_saved"
-  | "run_unsaved"
-  | "run_fork_prepared"
-  | "run_replay_blocked"
-  | "run_replay_prepared"
-  | "run_reuse_submitted"
-  | "run_reuse_completed"
-  | "run_deleted";
 
 function runsDir(env: NodeJS.ProcessEnv = process.env): string {
   return join(resolveVantaHome(env), "runs");

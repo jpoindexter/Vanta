@@ -120,6 +120,13 @@ timeout, remote cancellation, installed update or connected external client is
 inferred. A separate read-only launcher audit confirms normal `vanta` still uses
 an older dirty checkout and is not updated by installing Desktop. Preserve it;
 owner-approved CLI selection and profile/configuration continuity remain gates.
+The subsequent [uncertain-action settlement](agent-uncertain-effect-settlement-2026-10-27.md)
+halts the direct agent and preserves consistent controller/receipt/queue evidence.
+Parent actual stdio MCP partial-effect proof, 50 focused checks, one existing
+owned regression and runtime typecheck pass; independent cold admission and
+outer-workflow checks pass. Failed queue writes and transcript compaction do not
+permit replay when independent evidence survives. This is not native delivery,
+all-store failure recovery, a review-clear design or nested-worker parity.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.

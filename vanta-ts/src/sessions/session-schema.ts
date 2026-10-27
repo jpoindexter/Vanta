@@ -16,6 +16,7 @@ const MessageSchema: z.ZodType<Message> =
         .array(z.object({ id: z.string(), name: z.string(), arguments: z.record(z.string(), z.unknown()), effectState: z.enum(["pending", "started"]).optional() }))
         .optional(),
       desktopRun: z.object({
+        needsEffectReview: z.boolean().optional(),
         status: z.enum(["done", "failed", "interrupted"]),
         stoppedReason: z.enum(["done", "blocked", "max_iterations", "repeated_failure", "interrupted", "soft_stopped", "tool_budget"]).optional(),
         failureKind: z.enum(["setup", "tool", "model", "model_mismatch", "provider_auth", "user_denied", "interrupted", "unknown"]).optional(),

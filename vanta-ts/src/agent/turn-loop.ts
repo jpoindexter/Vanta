@@ -27,6 +27,7 @@ import { completeTurnIteration,prepareTurnRuntime,usesCorrectionLeash,type TurnR
 import type { TurnState } from "./turn-state.js";
 import { MAX_CONSECUTIVE_FAILURES,MAX_IDENTICAL_CALLS,recordUsage,turnCompletionState } from "./turn-state.js";
 import { processToolCalls } from "./turn-tool-batch.js";
+import { EFFECT_REVIEW_TEXT, appendEffectReviewFailure, effectReviewOutcome } from "./effect-review.js";
 
 export type TurnOpts = {
   messages: Message[];
@@ -103,7 +104,7 @@ async function terminalOutcome(args: {
   const { messages, deps, state, iter, reason, text } = args;
   messages.push({ role: "assistant", content: text });
   const shown = await displayText(deps, text);
-  return {
+  return effectReviewOutcome({
     finalText: shown,
     iterations: iter,
     stoppedReason: reason,
@@ -111,7 +112,7 @@ async function terminalOutcome(args: {
     completionState: turnCompletionState(state, reason),
     usage: state.sawUsage ? { ...state.turnUsage } : undefined,
     tokensSaved: state.tokensSaved > 0 ? state.tokensSaved : undefined,
-  };
+  }, state.needsEffectReview);
 }
 
 async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutcome | null> {
@@ -142,6 +143,8 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
     toolBudgetClosure: state.toolBudgetClosure,
     prefetched,
   });
+  if (state.needsEffectReview)
+    return terminalOutcome({ messages, deps, state, iter, reason: "blocked", text: EFFECT_REVIEW_TEXT });
   if (processed.budgetExhausted)
     return terminalOutcome({ messages, deps, state, iter, reason: "tool_budget", text: buildToolBudgetSummary(state.toolNames, usesCorrectionLeash(support, deps)) });
   const stuckTool = processed.stuckTool;
@@ -165,9 +168,22 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
 
 export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const runtime = prepareTurnRuntime(opts);
-  const { messages, ctx, deps, userText } = opts;
+  try { return effectReviewOutcome(await runTurnIterations(runtime), runtime.state.needsEffectReview); }
+  catch (error) {
+    if (!runtime.state.needsEffectReview) throw error;
+    // A failed checkpoint/display must not erase already observed effect uncertainty.
+    appendEffectReviewFailure(opts.messages);
+    return effectReviewOutcome({ finalText: EFFECT_REVIEW_TEXT, iterations: runtime.iteration,
+      stoppedReason: "blocked", toolIterations: runtime.state.toolIterations,
+      ...(runtime.state.sawUsage ? { usage: { ...runtime.state.turnUsage } } : {}) }, true);
+  }
+}
+
+async function runTurnIterations(runtime: TurnRuntime): Promise<AgentOutcome> {
+  const { messages, ctx, deps, userText } = runtime.opts;
   const { effectScopeId, effectiveSignal, maxIter, adaptiveSupport, hardToolBudget, state } = runtime;
   for (let iter = 1; iter <= maxIter; iter++) {
+    runtime.iteration = iter;
     if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter: iter - 1, reason: "interrupted", text: "Interrupted." });
     const { schemas, prefetched, completion } = await completeTurnIteration(runtime, iter);
     if (completion.ok) {
