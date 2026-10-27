@@ -2,6 +2,13 @@
 
 ## Latest parent review
 
+[Installer freshness](INSTALLER-FRESHNESS-SOURCE-2026-10-27.md) closes the
+bounded old-release selection trap: the real no-package entry refuses the
+canonical f09e827b artifact before replacement/launcher creation; installer20
+checks pass and installed hashes remain unchanged. Dirty-input provenance and
+post-staple delivery ZIP remain separate gates, as do actual candidate package/
+installation and all runtime/owner acceptance. This guard is not app delivery.
+
 [Gateway and event ownership](GATEWAY-OWNER-STREAM-SOURCE-2026-10-27.md)
 pins the actual renderer gateway's HTTP requests and event subscriptions to the
 verified connection owner. Canonical actual chat/stream4 and exhausted queue3

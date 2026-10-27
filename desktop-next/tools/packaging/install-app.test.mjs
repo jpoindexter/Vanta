@@ -8,6 +8,7 @@ import test, { afterEach } from "node:test";
 import { installApp, installLauncher, LAUNCHER_MARKER, launcherScript } from "./install-app.mjs";
 
 const roots = [];
+const SOURCE_COMMIT = "5be5fe58";
 const tmp = () => {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "vanta-install-test-")));
   roots.push(root);
@@ -18,7 +19,10 @@ afterEach(() => roots.splice(0).forEach(root => fs.rmSync(root, { recursive: tru
 function fakeApp(root, content = "new", id = "studio.theft.vanta-next") {
   const app = path.join(root, "Vanta.app");
   fs.mkdirSync(path.join(app, "Contents", "Resources"), { recursive: true });
-  fs.writeFileSync(path.join(app, "Contents", "Info.plist"), JSON.stringify({ CFBundleIdentifier: id }));
+  fs.writeFileSync(path.join(app, "Contents", "Info.plist"), JSON.stringify({
+    CFBundleIdentifier: id, VantaBuildCommit: SOURCE_COMMIT,
+    CFBundleShortVersionString: "0.1.0-fixture", CFBundleVersion: "0.1.0-fixture",
+  }));
   fs.writeFileSync(path.join(app, "Contents", "Resources", "icon.icns"), "icns");
   fs.writeFileSync(path.join(app, "Contents", "Resources", "app.asar"), content);
   return app;
@@ -29,15 +33,60 @@ function fixture() {
   const destDir = path.join(root, "Applications");
   const source = fakeApp(path.join(root, "built"));
   const target = fakeApp(destDir, "old");
+  fs.writeFileSync(path.join(path.dirname(source), "bundle-report.json"), JSON.stringify({
+    app: source, build: { commit: SOURCE_COMMIT, version: "0.1.0-fixture" },
+  }));
   const run = (command, args) => {
     if (command === "ps") return "";
-    if (command === "plutil") return JSON.parse(fs.readFileSync(args.at(-1), "utf8")).CFBundleIdentifier;
+    if (command === "plutil") return JSON.parse(fs.readFileSync(args.at(-1), "utf8"))[args[1]];
     assert.equal(command, "codesign");
   };
-  return { root, target, source, destDir, name: "Vanta", run };
+  return { root, target, source, destDir, name: "Vanta", expectedCommit: SOURCE_COMMIT, run };
 }
 
 const content = app => fs.readFileSync(path.join(app, "Contents", "Resources", "app.asar"), "utf8");
+
+test("a stale source build is refused before any backup or replacement", async () => {
+  const options = fixture();
+  const report = path.join(path.dirname(options.source), "bundle-report.json");
+  const value = JSON.parse(fs.readFileSync(report));
+  value.build.commit = "f09e827b";
+  fs.writeFileSync(report, JSON.stringify(value));
+  await assert.rejects(installApp(options), /does not match the expected source/);
+  assert.equal(content(options.target), "old");
+  assert.deepEqual(fs.readdirSync(options.destDir), ["Vanta.app"]);
+});
+
+test("source build metadata must match both the report and expected commit", async () => {
+  const options = fixture();
+  const plist = path.join(options.source, "Contents", "Info.plist");
+  const value = JSON.parse(fs.readFileSync(plist));
+  value.VantaBuildCommit = "f09e827b";
+  fs.writeFileSync(plist, JSON.stringify(value));
+  await assert.rejects(installApp(options), /bundle metadata does not match/);
+  assert.equal(content(options.target), "old");
+  assert.deepEqual(fs.readdirSync(options.destDir), ["Vanta.app"]);
+});
+
+test("installation refuses a missing expected source build identity", async () => {
+  const options = fixture();
+  await assert.rejects(installApp({ ...options, expectedCommit: undefined }), /expected source commit/);
+  assert.equal(content(options.target), "old");
+  assert.deepEqual(fs.readdirSync(options.destDir), ["Vanta.app"]);
+});
+
+test("a build report from another app path or version cannot authorize installation", async () => {
+  for (const change of [value => { value.app += ".other"; }, value => { value.build.version = "different"; }]) {
+    const options = fixture();
+    const report = path.join(path.dirname(options.source), "bundle-report.json");
+    const value = JSON.parse(fs.readFileSync(report));
+    change(value);
+    fs.writeFileSync(report, JSON.stringify(value));
+    await assert.rejects(installApp(options), /report|metadata/);
+    assert.equal(content(options.target), "old");
+    assert.deepEqual(fs.readdirSync(options.destDir), ["Vanta.app"]);
+  }
+});
 
 test("installs the exact app and preserves the previous app with a receipt", async () => {
   const options = fixture();

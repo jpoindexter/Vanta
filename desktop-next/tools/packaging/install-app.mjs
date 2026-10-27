@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { hasRunningDesktop, installLocalDesktop } from "../../../vanta-ts/scripts/lib/desktop-local-install.mjs";
+import { assertExpectedBuild } from "./build-identity.mjs";
 
 export const LAUNCHER_MARKER = "# vanta-next launcher (written by `npm run vanta:install`)";
 
@@ -55,7 +56,7 @@ function installationPaths({ source, destDir, name }) {
 }
 
 /** Installs only the regular Vanta identity; returns the retained rollback receipt. */
-export async function installApp({ source, destDir, name, run = execFileSync }) {
+export async function installApp({ source, destDir, name, expectedCommit, run = execFileSync }) {
   const { candidate, target, backupRoot } = installationPaths({ source, destDir, name });
   const assertStopped = () => {
     const processes = run("ps", ["-axo", "comm="], { encoding: "utf8" });
@@ -67,6 +68,7 @@ export async function installApp({ source, destDir, name, run = execFileSync }) 
     run("codesign", ["--verify", "--deep", "--strict", bundle], { stdio: "inherit" });
   };
   assertStopped();
+  assertExpectedBuild({ candidate, expectedCommit, run });
   if (fs.existsSync(target)) verify(target);
   return installLocalDesktop({ candidate, target, backupRoot, verify, assertStopped });
 }

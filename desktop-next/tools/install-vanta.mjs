@@ -25,7 +25,11 @@ if (!process.argv.includes("--no-package")) {
 
 const destDir = process.env.VANTA_INSTALL_APPS_DIR ?? "/Applications";
 const binDir = process.env.VANTA_INSTALL_BIN_DIR ?? path.join(os.homedir(), ".local", "bin");
-const receipt = await installApp({ source: built, destDir, name: identity.displayName });
+// Read after packaging too: a build made before the current source checkpoint is stale.
+const expectedCommit = execFileSync("git", ["rev-parse", "--short=8", "HEAD"], {
+  cwd: path.resolve(next, ".."), encoding: "utf8",
+}).trim();
+const receipt = await installApp({ source: built, destDir, name: identity.displayName, expectedCommit });
 const appPath = receipt.target;
 console.log(`Installed ${appPath}\nRollback: ${receipt.backup ?? "no previous app"}\nReceipt: ${receipt.receiptPath}`);
 const launcher = installLauncher({ binDir, appPath });
