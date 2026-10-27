@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
-import type { McpClient, McpToolDef } from "./client.js";
+import { McpToolCallError, type McpClient, type McpToolDef } from "./client.js";
 import type { Tool } from "../tools/types.js";
 import {
   executeEffect,
@@ -148,9 +148,11 @@ function buildMcpToolExecutor(
       acknowledgementId: `${server}.${def.name}:response`,
     }));
     if (result.outcome !== "confirmed" && result.outcome !== "verified") {
+      const diagnostic = result.operationError instanceof McpToolCallError
+        ? `: ${result.operationError.message}` : "";
       return {
         ok: false,
-        output: `mcp ${server}.${def.name} ${result.outcome}; do not retry automatically`,
+        output: `mcp ${server}.${def.name} ${result.outcome}${diagnostic}; do not retry automatically`,
         effectDisposition: result.outcome === "unknown" ? "unknown" : "denied",
       };
     }

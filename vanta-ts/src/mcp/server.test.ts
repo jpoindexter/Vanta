@@ -18,6 +18,10 @@ import type { SafetyClient } from "../safety-client.js";
 import type { Verdict } from "../types.js";
 import type { ToolContext } from "../tools/types.js";
 
+let defaultRoot: string;
+beforeEach(async () => { defaultRoot = await mkdtemp(join(tmpdir(), "vanta-serve-default-")); });
+afterEach(async () => { await rm(defaultRoot, { recursive: true, force: true }); });
+
 /** A SafetyClient stub that returns a fixed verdict for assess(). */
 function fakeSafety(risk: Verdict["risk"], reason = "test"): SafetyClient {
   return {
@@ -34,7 +38,7 @@ function deps(overrides: Partial<ServerDeps> = {}): ServerDeps {
     registry: overrides.registry ?? buildRegistry(),
     safety,
     allowlist: overrides.allowlist ?? resolveServeAllowlist({} as NodeJS.ProcessEnv),
-    ctx: overrides.ctx ?? ({ root: "/tmp", safety, requestApproval: async () => false } as ToolContext),
+    ctx: overrides.ctx ?? ({ root: defaultRoot, safety, requestApproval: async () => false } as ToolContext),
     env: overrides.env,
   };
 }
@@ -286,8 +290,7 @@ describe("reciprocal: real McpClient drives the server through the kernel gate",
     );
     const client = new McpClient(clientT);
     await client.initialize();
-    const out = await client.callTool("read_file", { path: "anything" });
-    expect(out).toContain("blocked by safety");
-    expect(out).toContain("destructive keyword");
+    await expect(client.callTool("read_file", { path: "anything" }))
+      .rejects.toThrow(/blocked by safety.*destructive keyword/);
   });
 });

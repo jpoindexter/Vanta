@@ -103,6 +103,15 @@ read/refusal/resource journeys with source and installed executable/runtime/kern
 pairings in private profiles. This does not establish Codex GUI configuration,
 full agent delegation, MCP cancellation, the pending explicit-tool-error repair,
 or installation of the new agent code. No whole trust/Desktop card closes.
+
+The later [MCP tool-error repair](mcp-tool-error-truth-2026-10-27.md) preserves
+explicit errors and uncertain partial effects rather than false confirmation.
+Parent3red→79focusedgreen, types/size and actual agent/stdio/mapper/journal proof
+pass; same-operation replay does not repeat the partial fixture mutation. Existing
+ACP CLI/Rust read-to-draft and provider-wait cancellation also execute in a private
+profile. Those are deterministic fixtures, not real research or GUI integration.
+Unknown-effect controller receipt/queue handling, MCP cancellation, ACP continuity
+and delivery remain open. Desktop is now maintenance/delivery-only by owner choice.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.

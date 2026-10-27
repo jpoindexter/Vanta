@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## MCP tool-error checkpoint — 2026-10-27 (not installed or released)
+
+- Explicit MCP errors no longer become confirmed successes. Preserve diagnostics,
+  unknown partial effects, human-readback guidance and replay prevention. Three
+  canonical regression failures become 79 focused passes; actual agent-to-stdio
+  fixture preserves uncertainty. Existing external ACP read-to-draft/cancel flow
+  also executes; no real model/research or GUI connection claim. Agent work now
+  takes priority; Desktop stays maintenance/delivery-only.
+  [Evidence and open gaps](docs/mcp-tool-error-truth-2026-10-27.md).
+
 ## Agent cancellation checkpoint — 2026-10-27 (not installed or released)
 
 - Late Stop after a provider result now settles interrupted before text/tool

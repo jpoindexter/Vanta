@@ -67,6 +67,14 @@ export function textFromContent(result: unknown): string {
     .join("\n");
 }
 
+/** A received tools/call execution failure, distinct from RPC/transport errors. */
+export class McpToolCallError extends Error {
+  constructor(tool: string, output: string) {
+    super(output || `MCP tool "${tool}" reported an error`);
+    this.name = "McpToolCallError";
+  }
+}
+
 export class McpClient {
   private nextId = 1;
   private readonly pending = new Map<JsonRpcId, Pending>();
@@ -157,7 +165,11 @@ export class McpClient {
 
   async callTool(name: string, args: Record<string, unknown>): Promise<string> {
     const res = await this.request("tools/call", { name, arguments: args });
-    return textFromContent(res);
+    const output = textFromContent(res);
+    if (res && typeof res === "object" && "isError" in res && res.isError === true) {
+      throw new McpToolCallError(name, output);
+    }
+    return output;
   }
 
   /** List resources exposed by the server. Unsupported capability → caller may catch. */

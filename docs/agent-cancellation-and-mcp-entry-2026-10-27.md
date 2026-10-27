@@ -74,6 +74,12 @@ separate repair remains in review, not declared fixed here.
 
 ## Next
 
+Later [MCP tool-error source repair](mcp-tool-error-truth-2026-10-27.md) corrects
+the false-confirmed boundary while retaining uncertain partial effects. The
+owner's latest priority makes Desktop maintenance-only and agent execution/MCP
+primary. Whole delegation, continuity and unknown-effect queue handling remain
+open; this is not installed delivery or client GUI configuration.
+
 Integrate the reviewed MCP error propagation without treating an error as proof
 that an external effect did nothing. Then verify a useful agent workflow and
 client lifecycle/cancellation before expanding exposure. Rebuild/install a
