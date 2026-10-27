@@ -14,6 +14,7 @@ import { $sessionDotStateById } from '@/store/session-dot-state'
 import type { BlockState, HomeActions, HomeBlock, HomeProps } from '../types'
 
 import { companyItemRoute, mergeNeedsYou, useCompanyNeedsYou } from '../company/adapters/company-needs-you'
+import { reportHomeActionError } from './home-submit-state'
 
 import {
   type ArtifactEntry,
@@ -90,7 +91,7 @@ function useHomeActions(wiring: HomeWiring, outputs: BlockState<ArtifactEntry>, 
       onRunSchedule: () => navigate(CRON_ROUTE),
       onStopRun: id => void wiring.stopRun(id).catch(error => notifyError(error, 'Could not stop that run.')),
       onSubmitTask: (text, projectId) =>
-        void wiring.startTask(text, projectId).catch(error => notifyError(error, 'Could not start that task.'))
+        void wiring.startTask(text, projectId).catch(error => reportHomeActionError(error, 'Could not start that task.'))
     }),
     [navigate, outputs, reload, wiring]
   )

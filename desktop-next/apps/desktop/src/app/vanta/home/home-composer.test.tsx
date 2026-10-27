@@ -57,3 +57,17 @@ describe('Home composer shared presentation seam', () => {
     expect(state.onSubmit).toHaveBeenCalledTimes(1)
   })
 })
+
+it.each(['pending', 'blocked'] as const)('prevents click/Enter resubmission while %s but retains editable words', state => {
+  const actions = props()
+  render(<HomeComposer {...actions} {...{ [state]: true }} value="Keep editable words" />)
+  const send = screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement
+  const input = screen.getByRole('textbox', { name: 'Start a task' }) as HTMLTextAreaElement
+  expect(send.disabled).toBe(true)
+  expect(send.getAttribute('aria-disabled')).toBe('true')
+  fireEvent.click(send); fireEvent.keyDown(input, { key: 'Enter' })
+  expect(actions.onSubmit).not.toHaveBeenCalled()
+  expect(input.disabled).toBe(false)
+  fireEvent.change(input, { target: { value: 'Newer editable words' } })
+  expect(actions.onValueChange).toHaveBeenCalledWith('Newer editable words')
+})

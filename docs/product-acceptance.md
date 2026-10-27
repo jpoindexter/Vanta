@@ -26,13 +26,17 @@ files and82 existing owner app-data files retain their saved hashes. These are
 loopback-model/private-profile proofs, not owner visual, live-account,
 unfamiliar-person, all-platform or complete trust/security acceptance.
 
-The newer [Home attachment source checkpoint](../desktop-next/docs/HOME-ATTACHMENT-CONTINUITY-2026-10-27.md)
-adds fresh-draft attachment handoff and explicit fresh-route restoration.
-An actual canonical-source replay passes 11 checks including project switching,
-text/image-only cold recovery and exact first-send image bytes; no extra model
-requests or renderer errors. Pre-capture Home/pending-handoff persistence is
-still open, as are new packaging/install and owner acceptance. This source proof
-does not replace archive2's installed identity above.
+The newer [durable Home source checkpoint](../desktop-next/docs/HOME-DURABLE-SOURCE-2026-10-27.md)
+adds pre-capture text/project recovery, one-use guards, ambiguous-send markers,
+capacity preservation and reactive cold-start readiness. Current canonical
+source passes 13 native checks across three quit/relaunch cycles and two
+explicit plain-text requests, with zero renderer errors; 122 selected source
+tests, types/build and architecture/design checks pass. The preceding
+[attachment checkpoint](../desktop-next/docs/HOME-ATTACHMENT-CONTINUITY-2026-10-27.md)
+retains its earlier image proof; a final current-source repeat separately passes
+all 11 image/text/project/restart checks with exact PNG bytes and zero errors.
+The two current journeys total 24 checks, not whole-app acceptance. New packaging/install and
+owner acceptance remain open. Source proof does not replace archive2 above.
 
 The [profile1 delivery](../desktop-next/docs/PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
 preceded this candidate. Its former image-custody installation gap and the

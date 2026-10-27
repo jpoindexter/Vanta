@@ -11,6 +11,7 @@ import {
   sameDraftOwner,
   type HomeAttachmentHandoff
 } from '@/app/vanta/home/attachment-handoff'
+import { waitForHomeOwner } from '@/app/vanta/home/home-draft'
 
 interface PendingAttachmentBridge {
   acknowledgePendingProjectTask?: (id: string) => Promise<boolean>
@@ -30,14 +31,6 @@ async function waitForDraft(request: HomeAttachmentHandoff): Promise<boolean> {
   return false
 }
 
-async function waitForOwner(request: HomeAttachmentHandoff): Promise<void> {
-  for (let attempt = 0; attempt < 100; attempt++) {
-    if (sameDraftOwner(request.owner)) return
-    await new Promise(resolve => window.setTimeout(resolve, 100))
-  }
-  throw new Error('The attachment owner is not ready. Your request was retained.')
-}
-
 /** The existing owner-bound draft must be mounted before the native chooser can act. */
 export function useHomeAttachmentHandoff(options: {
   startFresh: (options: { rotateFreshDraftKey: boolean }) => void
@@ -45,6 +38,8 @@ export function useHomeAttachmentHandoff(options: {
 }) {
   const request = useStore($homeAttachmentHandoff)
   const picker = useRef(options.pickAttachments)
+  const mounted = useRef(true)
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
   useLayoutEffect(() => { picker.current = options.pickAttachments }, [options.pickAttachments])
   useEffect(() => {
     if (!request) return
@@ -64,7 +59,8 @@ export function useHomeAttachmentHandoff(options: {
     return () => { live = false }
   }, [request])
   return useCallback(async (next: HomeAttachmentHandoff) => {
-    await waitForOwner(next)
+    await waitForHomeOwner(next.owner)
+    if (!mounted.current) throw new Error('The attachment window closed. Your saved words were retained.')
     prepareHomeAttachmentDraft(next, options.startFresh)
   }, [options.startFresh])
 }

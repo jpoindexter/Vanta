@@ -1,10 +1,13 @@
 import { useEffect } from 'react'
 
-import { notify, notifyError } from '@/store/notifications'
+import { notify } from '@/store/notifications'
 import type { HomeAttachmentHandoff } from '@/app/vanta/home/attachment-handoff'
+import type { HomeDraftSource } from '@/app/vanta/home/home-draft'
+import { resumePendingHomeTask } from './pending-home-task'
+import { reportHomeActionError } from '@/app/vanta/home/home-submit-state'
 
 interface PendingTask {
-  draft: { folder: string; prompt: string; intent?: 'prepare-attachment'; owner?: HomeAttachmentHandoff['owner'] }
+  draft: { folder: string; prompt: string; intent?: 'prepare-attachment' | 'submit-home'; owner?: HomeAttachmentHandoff['owner']; source?: HomeDraftSource }
   id: string
 }
 
@@ -40,18 +43,13 @@ export function usePendingProjectTask(
           return
         }
 
-        if (pending.draft.intent === 'prepare-attachment') {
-          try {
-            if (!prepareAttachment || !pending.draft.owner) throw new Error('The attachment draft cannot be resumed.')
-            await prepareAttachment({ id: pending.id, owner: pending.draft.owner, text: pending.draft.prompt })
-          } catch (error) { notifyError(error, 'Could not resume the attachment draft. Your request was retained.') }
-          return // Its mounted draft consumes the native intent before opening the picker.
-        }
+        if (await resumePendingHomeTask(pending, { startTask, prepareAttachment, isCurrent: () => !cancelled,
+          acknowledge: bridge.acknowledgePendingProjectTask?.bind(bridge) })) return
         await startTask(pending.draft.prompt)
         await bridge.acknowledgePendingProjectTask?.(pending.id)
         notify({ kind: 'info', message: `Started your task in ${folderName(pending.draft.folder)}.`, title: 'Project changed' })
       })
-      .catch(() => undefined)
+      .catch(error => reportHomeActionError(error, 'Could not resume the Home draft. Your saved words were retained.'))
 
     return () => {
       cancelled = true

@@ -1,6 +1,8 @@
 import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
 import { sameDraftOwner, type HomeAttachmentHandoff } from './attachment-handoff'
 import { projectFolderOf, type ProjectTaskBridge } from './project-task'
+import type { HomeDraftSource } from './home-draft'
+import type { DraftOwner } from '../../../../../shared/src/vanta/draft-custody'
 
 function requiredBridge(bridge: ProjectTaskBridge | undefined): Required<ProjectTaskBridge> {
   if (!bridge?.currentDir || !bridge.switchForNewTask) throw new Error('The project handoff is not available.')
@@ -22,17 +24,20 @@ export async function prepareAttachmentInProject(input: {
   prepareHere: (request: HomeAttachmentHandoff) => Promise<void>
   projectId: string | null
   text: string
+  owner?: DraftOwner
+  source?: HomeDraftSource
 }): Promise<void> {
-  const owner = captureDraftCustodyOwner(null)
+  const owner = input.owner ?? captureDraftCustodyOwner(null)
   if (!owner) throw new Error('The new chat owner is not available. Your words were retained.')
   const bridge = requiredBridge(input.bridge)
   const folder = await attachmentFolder(input, bridge)
   if (!sameDraftOwner(owner)) throw new Error('The attachment destination changed. Your words were retained.')
   const result = await bridge.switchForNewTask({
     agent: 'vanta', approvals: true, branch: '', folder, host: 'local',
-    intent: 'prepare-attachment', model: '', owner, prompt: input.text, worktree: false
+    intent: 'prepare-attachment', model: '', owner, prompt: input.text, worktree: false,
+    ...(input.source ? { source: input.source } : {})
   }) as { id?: string; switching?: boolean }
   if (result.switching) return
   if (!result.id || !sameDraftOwner(owner)) throw new Error('The attachment destination changed. Your request was retained.')
-  await input.prepareHere({ id: result.id, owner, text: input.text })
+  await input.prepareHere({ id: result.id, owner, text: input.text, ...(input.source ? { source: input.source } : {}) })
 }

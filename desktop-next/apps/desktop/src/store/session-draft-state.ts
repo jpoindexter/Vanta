@@ -5,7 +5,7 @@ import type { ComposerAttachment, ComposerAttachmentPatch } from './composer'
 import { draftKey, freshDraftScope, isFreshDraftScope } from './fresh-draft-scope'
 import { draftTextIdentity } from './draft-text-identity'
 import { rememberFreshDraft } from './fresh-draft-history'
-import { DRAFT_TEXT_STORAGE_KEY, LEGACY_DRAFT_TEXT_STORAGE_KEY, loadDraftTextRecords, saveDraftTextRecords, type DraftTextQuote, type DraftTextRecord } from './draft-text-storage'
+import { DRAFT_TEXT_STORAGE_KEY, HOME_DRAFT_SCOPE_PREFIX, LEGACY_DRAFT_TEXT_STORAGE_KEY, MAX_PERSISTED_DRAFT_TEXTS, loadDraftTextRecords, saveDraftTextRecords, type DraftTextQuote, type DraftTextRecord, type HomeDraftMetadata } from './draft-text-storage'
 
 export function attachmentOccurrenceIndex(attachments: ComposerAttachment[], expected: ComposerAttachment): number {
   return attachments.findIndex(item =>
@@ -17,12 +17,12 @@ export function attachmentOccurrenceIndex(attachments: ComposerAttachment[], exp
 
 export const SESSION_DRAFTS_STORAGE_KEY = DRAFT_TEXT_STORAGE_KEY
 
-const MAX_PERSISTED_DRAFTS = 50
 const EMPTY_SESSION_DRAFT: SessionDraft = { attachments: [], text: '' }
 
 export interface SessionDraft {
   attachments: ComposerAttachment[]
   text: string
+  home?: HomeDraftMetadata
 }
 
 /** Inline "Restored your unsent message" notice for the fresh draft (see
@@ -38,6 +38,8 @@ export interface RestoredDraftNotice {
 export const $restoredDraftNotice = atom<RestoredDraftNotice | null>(null)
 
 const cloneDraft = (draft: SessionDraft): SessionDraft => ({
+  ...draft,
+  ...(draft.home ? { home: { ...draft.home } } : {}),
   attachments: draft.attachments.map(attachment => ({ ...attachment })),
   text: draft.text
 })
@@ -45,7 +47,7 @@ const cloneDraft = (draft: SessionDraft): SessionDraft => ({
 const initialTextRecords = loadDraftTextRecords() ?? new Map<string, DraftTextRecord>()
 const textRevisions = new Map([...initialTextRecords].map(([key, value]) => [key, value.revision]))
 const observedDraftTexts = new Map([...initialTextRecords].map(([key, value]) => [key, value.text]))
-export const draftsBySession = new Map<string, SessionDraft>([...initialTextRecords].map(([key, value]) => [key, { text: value.text, attachments: [] }]))
+export const draftsBySession = new Map<string, SessionDraft>([...initialTextRecords].map(([key, value]) => [key, { text: value.text, attachments: [], ...(value.home ? { home: value.home } : {}) }]))
 
 /**
  * Patch one asynchronous attachment occurrence wherever the main composer owns
@@ -89,9 +91,11 @@ export function patchStashedDraftAttachmentOccurrence(
  * Seeded from the persisted texts: a draft left open across a restart comes
  * back already named.
  */
+const titleForDraft = (key: string, text: string) => draftTextIdentity(key)?.session.startsWith(HOME_DRAFT_SCOPE_PREFIX) ? '' : deriveDraftTitle(text)
+
 export const $draftTitles = atom<Record<string, string>>(
   Object.fromEntries(
-    [...draftsBySession].map(([key, draft]) => [key, deriveDraftTitle(draft.text)]).filter(([, title]) => title)
+    [...draftsBySession].map(([key, draft]) => [key, titleForDraft(key, draft.text)]).filter(([, title]) => title)
   )
 )
 
@@ -135,14 +139,14 @@ function publishDraftTitle(key: string, title: string): void {
 export function reloadPersistedDrafts(): boolean {
   const records = loadDraftTextRecords()
   if (records === null) return false
-  const incoming = new Map([...records].map(([key, value]) => [key, { text: value.text, attachments: [] }]))
+  const incoming = new Map([...records].map(([key, value]) => [key, { text: value.text, attachments: [], ...(value.home ? { home: value.home } : {}) }]))
 
   for (const [key, draft] of incoming) {
     textRevisions.set(key, records.get(key)!.revision)
     observedDraftTexts.set(key, draft.text)
     const local = draftsBySession.get(key)
-    draftsBySession.set(key, local?.attachments.length ? { ...local, text: draft.text } : draft)
-    publishDraftTitle(key, deriveDraftTitle(draft.text))
+    draftsBySession.set(key, local?.attachments.length ? { ...draft, attachments: local.attachments } : draft)
+    publishDraftTitle(key, titleForDraft(key, draft.text))
   }
 
   // A key that vanished from storage was cleared (sent) in the other window.
@@ -168,8 +172,8 @@ if (typeof window !== 'undefined') {
 }
 
 function persistDraftTexts() {
-  return saveDraftTextRecords(new Map([...draftsBySession].filter(([, draft]) => draft.text).slice(-MAX_PERSISTED_DRAFTS)
-    .map(([key, draft]) => [key, { text: draft.text, revision: textRevisions.get(key) || noteDraftTextEdit(key, draft.text) }])))
+  return saveDraftTextRecords(new Map([...draftsBySession].filter(([, draft]) => draft.text || draft.home).slice(-MAX_PERSISTED_DRAFT_TEXTS)
+    .map(([key, draft]) => [key, { text: draft.text, revision: textRevisions.get(key) || noteDraftTextEdit(key, draft.text), ...(draft.home ? { home: draft.home } : {}) }])))
 }
 
 /** Record edit identity at input time, even when delete/retype falls inside the persistence debounce. */
@@ -187,29 +191,48 @@ export function currentDraftTextRevision(scope: string | null | undefined, owner
 export function consumeSessionDraftText(quote: DraftTextQuote): boolean {
   const current = draftsBySession.get(quote.scope)
   if (!current || textRevisions.get(quote.scope) !== quote.revision) return false
-  stashSessionDraft(quote.scope, '', current.attachments)
-  return true
+  const notice = $restoredDraftNotice.get()
+  const cleared = { ...current, text: '', ...(current.home ? { home: { projectId: current.home.projectId } } : {}) }
+  if (stashDraft(quote.scope, cleared)) return true
+  draftsBySession.set(quote.scope, current)
+  textRevisions.set(quote.scope, quote.revision)
+  observedDraftTexts.set(quote.scope, current.text)
+  $restoredDraftNotice.set(notice)
+  publishDraftTitle(quote.scope, titleForDraft(quote.scope, current.text))
+  return false
 }
 
-export function stashSessionDraft(scope: string | null | undefined, text: string, attachments: ComposerAttachment[], owner?: DraftOwner) {
+function stashDraft(scope: string | null | undefined, draft: SessionDraft, owner?: DraftOwner) {
+  const { text, attachments } = draft
   const key = draftKey(scope, owner)
   const captured = draftTextIdentity(key)
   if (captured?.session === freshDraftScope() && (text.trim() || attachments.length)) rememberFreshDraft(captured.owner, captured.session)
   noteDraftTextEdit(key, text)
+  if (draftsBySession.get(key)?.home?.projectId !== draft.home?.projectId) textRevisions.set(key, crypto.randomUUID())
 
   // Delete-then-set keeps MRU order for MAX_PERSISTED_DRAFTS eviction.
   draftsBySession.delete(key)
 
-  if (text.trim() || attachments.length > 0) {
-    draftsBySession.set(key, cloneDraft({ attachments, text }))
+  if (text.trim() || attachments.length > 0 || draft.home) {
+    draftsBySession.set(key, cloneDraft(draft))
   } else if (isFreshDraftScope(key)) {
     // The fresh draft was sent or emptied — a restore notice has nothing left
     // to undo.
     $restoredDraftNotice.set(null)
   }
 
-  persistDraftTexts()
-  publishDraftTitle(key, deriveDraftTitle(text))
+  const persisted = persistDraftTexts()
+  publishDraftTitle(key, titleForDraft(key, text))
+  return persisted
+}
+
+export const stashSessionDraft = (scope: string | null | undefined, text: string, attachments: ComposerAttachment[], owner?: DraftOwner): void => {
+  stashDraft(scope, { text, attachments }, owner)
+}
+
+/** Home uses the same atomic text/revision store, with a bounded selected-project field. */
+export function stashHomeSessionDraft(input: { scope: string; text: string; projectId: string | null; owner: DraftOwner; delivery?: 'submitting' }): void {
+  stashDraft(input.scope, { text: input.text, attachments: [], home: { projectId: input.projectId, ...(input.delivery ? { delivery: input.delivery } : {}) } }, input.owner)
 }
 
 export function takeSessionDraft(scope: string | null | undefined, owner?: DraftOwner): SessionDraft {

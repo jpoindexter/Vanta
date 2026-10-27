@@ -59,7 +59,17 @@ export interface HomeActions {
   onSubmitTask: (text: string, projectId: string | null) => void
 }
 
+export interface HomeDraftControl {
+  available?: boolean
+  pending?: boolean
+  blocked?: boolean
+  attention?: string
+  initial: { text: string; projectId: string | null }
+  change: (value: { text: string; projectId: string | null }) => void
+}
+
 export interface HomeProps {
+  draft?: HomeDraftControl
   actions: HomeActions
   needsYou: BlockState<NeedsYouItem>
   nextUp: BlockState<NextUpItem>

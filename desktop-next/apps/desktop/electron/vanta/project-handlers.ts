@@ -113,7 +113,7 @@ function registerNewTaskHandlers(deps: ProjectDeps, grants: FolderGrants): void 
     }
 
     pending.set(intent ? { ...prepared, draft: { ...prepared.draft, ...intent } } : prepared)
-    const switching = !intent || prepared.targetRoot !== deps.projectRoot()
+    const switching = intent?.intent !== 'prepare-attachment' || prepared.targetRoot !== deps.projectRoot()
     if (switching) setImmediate(() => void deps.switchTo(prepared.targetRoot))
 
     return { id: prepared.id, projectRoot: prepared.targetRoot, switching }

@@ -2,6 +2,11 @@
 
 ## Gaps first
 
+Later [durable Home source integration](HOME-DURABLE-SOURCE-2026-10-27.md)
+executes pre-capture cold recovery and ordinary Home Send on the final current
+source. The pre-capture limitation below belongs to this earlier checkpoint;
+archive2 remains installed, and wider delivery/owner gates are still open.
+
 This is source integration, not an installed-app update or completed redesign.
 The installed app remains archive2/code `2d31393f`. Text still in Home, or an
 attachment handoff not yet captured in its fresh draft, lacks process-restart

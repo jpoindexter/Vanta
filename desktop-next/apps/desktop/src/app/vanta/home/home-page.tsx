@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import { HOME_COPY } from '../copy'
 import type { BlockState, HomeProps } from '../types'
 import { VpChip } from '../ui/button'
@@ -7,16 +5,16 @@ import { VpChip } from '../ui/button'
 import { HomeComposer } from './home-composer'
 import { HomeSections } from './home-sections'
 import { TodaySection } from './today-section'
+import { useHomeComposerDraft } from './use-home-composer-draft'
 
 function isEmptyReady(state: BlockState<unknown>): boolean {
   return state.status === 'ready' && state.items.length === 0
 }
 
 /** Home: start a task, then supervise (Needs you, Running now, Next up, Recent outputs). */
-export function HomePage({ actions, needsYou, nextUp, projects, recent, running, starterPrompt }: HomeProps) {
-  const [value, setValue] = useState('')
-  const [projectId, setProjectId] = useState<string | null>(projects[0]?.id ?? null)
-  const selectedProjectId = projects.some(project => project.id === projectId) ? projectId : projects[0]?.id ?? null
+export function HomePage({ actions, draft, needsYou, nextUp, projects, recent, running, starterPrompt }: HomeProps) {
+  const { value, projectId, change, clear } = useHomeComposerDraft(draft)
+  const selectedProjectId = projectId ?? projects[0]?.id ?? null
   const allEmpty = [needsYou, running, nextUp, recent].every(isEmptyReady)
 
   const submit = () => {
@@ -24,7 +22,7 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
 
     if (text) {
       actions.onSubmitTask(text, selectedProjectId)
-      setValue('')
+      clear()
     }
   }
 
@@ -33,17 +31,21 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
       <div className="vp-col" data-testid="page-column">
         <h2 className="sr-only">Home</h2>
         <HomeComposer
+          disabled={draft?.available === false}
+          pending={draft?.pending}
+          blocked={draft?.blocked}
+          attention={draft?.attention}
           onAttach={() => actions.onAttachTask(value, selectedProjectId)}
-          onProjectChange={setProjectId}
+          onProjectChange={id => change(value, id)}
           onSubmit={submit}
-          onValueChange={setValue}
+          onValueChange={text => change(text, selectedProjectId)}
           projectId={selectedProjectId}
           projects={projects}
           value={value}
         />
         <div aria-label={HOME_COPY.projectLabel} className="vp-chips" role="group">
           {projects.map(project => (
-            <VpChip aria-pressed={project.id === selectedProjectId} data-testid="home-project-chip" key={project.id} onClick={() => setProjectId(project.id)}>
+            <VpChip aria-pressed={project.id === selectedProjectId} data-testid="home-project-chip" disabled={draft?.available === false || draft?.pending} key={project.id} onClick={() => change(value, project.id)}>
               {project.name}
             </VpChip>
           ))}
@@ -52,7 +54,7 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
         <HomeSections actions={actions} needsYou={needsYou} nextUp={nextUp} recent={recent} running={running} />
         {allEmpty && starterPrompt && (
           <div className="vp-chips">
-            <VpChip onClick={() => setValue(starterPrompt)}>{starterPrompt}</VpChip>
+            <VpChip disabled={draft?.available === false} onClick={() => change(starterPrompt, selectedProjectId)}>{starterPrompt}</VpChip>
           </div>
         )}
       </div>

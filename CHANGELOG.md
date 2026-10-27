@@ -5,6 +5,16 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Home attachment source checkpoint — 2026-10-27 (not installed or released)
 
+- Added durable Home words/project/revision, one-use pending-action guards and
+  possibly-sent recovery markers. Failed cleanup never silently offers retry;
+  full/corrupt storage retains prior bytes. Fixed stale cold-Home readiness.
+  Parent current-source native replay passes 13 checks, two explicit requests,
+  three cold restart cycles and zero renderer errors; 122 focused tests pass.
+  A separate current-source image-only/restart regression passes 11 checks
+  with exact PNG bytes and zero renderer errors (24 journey checks total).
+  [Later durable-source evidence](desktop-next/docs/HOME-DURABLE-SOURCE-2026-10-27.md)
+  supersedes the earlier pre-capture gap below, not the installed-app boundary.
+
 - Route Home Attach through an owner-bound fresh draft and the existing picker,
   retaining selected project/text without sending or borrowing another chat.
 - Guard acknowledgement rerenders and stale image reads; keep Quick Entry's

@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { clearSessionDraft, currentDraftTextRevision, draftTitleFor, reloadPersistedDrafts, stashSessionDraft, takeSessionDraft } from './composer'
+import { $restoredDraftNotice, clearSessionDraft, consumeSessionDraftText, currentDraftTextRevision, draftTitleFor, quoteSessionDraftText, reloadPersistedDrafts, stashSessionDraft, takeSessionDraft } from './composer'
 import { $draftTextStorageUnavailable, DRAFT_TEXT_STORAGE_KEY, LEGACY_DRAFT_TEXT_STORAGE_KEY } from './draft-text-storage'
 
 afterEach(() => { vi.restoreAllMocks(); localStorage.removeItem(DRAFT_TEXT_STORAGE_KEY); localStorage.removeItem(LEGACY_DRAFT_TEXT_STORAGE_KEY); reloadPersistedDrafts(); clearSessionDraft('corrupt-recovery') })
@@ -54,4 +54,28 @@ it('rejects a malformed owned identity before replacing known drafts or overwrit
   stashSessionDraft('another-id', 'More known words', [], owner)
   expect(localStorage.getItem(DRAFT_TEXT_STORAGE_KEY)).toBe(invalid)
   expect($draftTextStorageUnavailable.get()).toBe(true)
+})
+
+it('returns false and restores the same text/title/revision when consumption cannot persist', () => {
+  stashSessionDraft('corrupt-recovery', 'Retain on failed cleanup', [])
+  const quote = quoteSessionDraftText('corrupt-recovery')!, title = draftTitleFor('corrupt-recovery')
+  const raw = localStorage.getItem(DRAFT_TEXT_STORAGE_KEY)
+  const failure = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota') })
+  expect(consumeSessionDraftText(quote)).toBe(false)
+  expect(takeSessionDraft('corrupt-recovery').text).toBe('Retain on failed cleanup')
+  expect(currentDraftTextRevision('corrupt-recovery')).toBe(quote.revision)
+  expect(draftTitleFor('corrupt-recovery')).toBe(title)
+  expect(localStorage.getItem(DRAFT_TEXT_STORAGE_KEY)).toBe(raw)
+  failure.mockRestore(); reloadPersistedDrafts()
+  expect(consumeSessionDraftText(quote)).toBe(true)
+})
+
+it('preserves the fresh-draft Undo notice on failed consumption and keeps stashSessionDraft void', () => {
+  expect(stashSessionDraft('__new__:rollback', 'Fresh words', [])).toBeUndefined()
+  const quote = quoteSessionDraftText('__new__:rollback')!
+  const notice = { fromKey: 'gone', text: 'Fresh words' }
+  $restoredDraftNotice.set(notice)
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota') })
+  expect(consumeSessionDraftText(quote)).toBe(false)
+  expect($restoredDraftNotice.get()).toBe(notice)
 })
