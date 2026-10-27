@@ -9,6 +9,7 @@ import { openExternalLink } from '@/lib/external-link'
 import { AlertTriangle, ExternalLink } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { VANTA_DOCS_URL } from '@/lib/vanta-endpoints'
+import { setSidebarShowArchived } from '@/store/layout'
 import { $corruptSessionStores } from '@/store/session'
 
 import { SidebarRowCluster, SidebarRowShell, SidebarRowStack } from './chrome'
@@ -42,6 +43,10 @@ export function SidebarBlankState({ onNewProject }: { onNewProject: () => void }
         <Button className="mt-0.5 text-(--ui-text-secondary)" onClick={onNewProject} size="sm" variant="ghost">
           <Codicon name="add" size="0.75rem" />
           {s.projects.newButton}
+        </Button>
+        <Button onClick={() => setSidebarShowArchived(true)} size="sm" variant="ghost">
+          <Codicon name="archive" size="0.75rem" />
+          {s.filter.archived}
         </Button>
       </div>
     </div>
