@@ -19,6 +19,7 @@ vi.mock('../company/adapters/company-needs-you', async importOriginal => ({
 import { useHomeProps, type HomeWiring } from './use-home-props'
 
 const wiring: HomeWiring = {
+  prepareAttachment: vi.fn(() => Promise.resolve()),
   allowOnce: vi.fn(() => Promise.resolve()),
   openSession: vi.fn(),
   revealPath: vi.fn(),

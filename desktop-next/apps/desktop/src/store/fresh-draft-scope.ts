@@ -45,6 +45,15 @@ export const rotateFreshDraftKey = (owner?: DraftOwner, restore = false): string
   return key
 }
 
+/** Resume a native handoff's stable fresh key without borrowing another draft's bucket. */
+export function selectFreshDraftKey(key: string, owner: DraftOwner): void {
+  if (!/^__new__:[a-z0-9-]{1,128}$/i.test(key)) throw new Error('The new chat draft identity is invalid.')
+  initializedOwners.add(windowOwnerKey(owner))
+  $freshDraftKey.set(key)
+  if (freshDraftWindowScope() === 'main') persistString(FRESH_DRAFT_STORAGE_KEY, key)
+  rememberFreshDraft(owner, key)
+}
+
 // A draft key belongs to a fresh-chat lifecycle when it is the legacy shared
 // bucket or one of its per-instance successors (`__new__:<uuid>`, #66662).
 export const isFreshDraftScope = (key: string | null | undefined): boolean =>

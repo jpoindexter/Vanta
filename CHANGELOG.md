@@ -3,6 +3,22 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Home attachment source checkpoint — 2026-10-27 (not installed or released)
+
+- Route Home Attach through an owner-bound fresh draft and the existing picker,
+  retaining selected project/text without sending or borrowing another chat.
+- Guard acknowledgement rerenders and stale image reads; keep Quick Entry's
+  text path unchanged. Extract new-chat entry orchestration without growing the
+  existing oversized wiring or session-actions index.
+- Honor explicitly remembered fresh navigation on restart rather than donate
+  its words/images to the older stored chat. Preserve resume/deep-link/owner gates.
+- Parent canonical source: 90 Home UI tests, nine native-handler tests and 70
+  restart tests pass; types/build pass. Actual cross-project/text/image-only
+  restart/send journey passes 11 checks with zero renderer errors.
+- Immediate quit before the Home handoff is captured remains a persistence gap.
+  Installed archive2 is unchanged; no full design, continuity or security closure.
+  [Evidence and limits](desktop-next/docs/HOME-ATTACHMENT-CONTINUITY-2026-10-27.md).
+
 ## Source security checkpoints — 2026-10-27 (not installed or released)
 
 - Updated Desktop Vite to 8.3.3: reproduced file-boundary cases reject and the

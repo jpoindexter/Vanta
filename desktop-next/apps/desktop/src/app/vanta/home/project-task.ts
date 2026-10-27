@@ -18,6 +18,10 @@ export function projectTaskBridge(): ProjectTaskBridge | undefined {
 
 const trimEnd = (path: string): string => path.replace(/\/+$/, '')
 
+export const projectFolderOf = (id: string): string =>
+  projectRootCwd($projectTree.get().find(node => node.id === id)) ||
+  $projects.get().find(project => project.id === id)?.primary_path?.trim() || ''
+
 export const sameFolder = (a: string, b: string): boolean => trimEnd(a) === trimEnd(b)
 
 export type TaskStart = 'started' | 'switching'
@@ -35,8 +39,7 @@ export async function startTaskInProject(input: {
   text: string
 }): Promise<TaskStart> {
   const { bridge, projectId, startHere, text } = input
-  const folderOf = input.folderOf ?? ((id: string) =>
-    projectRootCwd($projectTree.get().find(node => node.id === id)) || $projects.get().find(project => project.id === id)?.primary_path?.trim() || '')
+  const folderOf = input.folderOf ?? projectFolderOf
   const folder = projectId ? folderOf(projectId) : ''
   const current = folder && bridge?.currentDir ? ((await bridge.currentDir())?.dir ?? '') : ''
 

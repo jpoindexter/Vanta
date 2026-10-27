@@ -1,5 +1,12 @@
 import type { SessionInfo } from '@/types/desktop'
 
+import { NEW_CHAT_ROUTE } from '../../routes'
+
+/** Explicit fresh-chat intent outranks an older stored id, even for empty or image-only drafts. */
+export function shouldKeepFreshChatOnRestore(resumeLastSession: boolean, rememberedRoute: null | string): boolean {
+  return !resumeLastSession || rememberedRoute === NEW_CHAT_ROUTE
+}
+
 /**
  * Returns the session safe to remember/restore: a delegate child
  * (`source === 'subagent'`) is replaced by its parent, everything else keeps

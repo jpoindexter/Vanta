@@ -65,7 +65,7 @@ import { $backendRestartRequest, $routeRequest, setBackendStopped } from '@/stor
 import { useAgentDotFeed } from './hooks/use-agent-dot-feed'
 import { useApprovalPrompt } from './hooks/use-approval-prompt'
 import { useLookCaptureEntries } from './hooks/use-look-capture'
-import { usePendingProjectTask } from './hooks/use-pending-project-task'
+import { useNewChatEntry } from './hooks/use-new-chat-entry'
 import {
   $activeSessionId,
   $connection,
@@ -161,7 +161,6 @@ import {
 } from './hooks/use-background-sync'
 import { useDesktopIntegrations } from './hooks/use-desktop-integrations'
 import { useDesktopMetrics } from './hooks/use-desktop-metrics'
-import { useQuickEntryBridge } from './hooks/use-quick-entry-bridge'
 import { useSessionTileDelegate } from './hooks/use-session-tile-delegate'
 import { McpInstallDeepLinkDialog } from './mcp-install-deeplink-dialog'
 import { type KickoffSlashCommand, useOnboardingKickoff } from './onboarding-kickoff'
@@ -732,11 +731,10 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   })
 
 
-  // The global-hotkey Quick Entry window's bridge: its captured text rides the
-  // SAME submit machinery the normal composer uses (current chat / picked
-  // session / new session), and it hears gateway truth from this window.
-  useQuickEntryBridge({ submitText, submitTextToNewSession })
-  usePendingProjectTask(submitTextToNewSession)
+  const prepareHomeAttachment = useNewChatEntry(
+    { submitText, submitTextToNewSession },
+    { startFresh: startFreshSessionDraft, pickAttachments: composer.pickAttachments }
+  )
 
   // Leaving HUD mode hands this window the session back (see hud/handoff).
   useHudHandoff({ navigate, resumeSession })
@@ -1144,6 +1142,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
     requestGateway,
     selectModel,
     submitTextToNewSession: text => submitTextToNewSession(text),
+    prepareHomeAttachment,
     toggleCommandCenter
   }
 

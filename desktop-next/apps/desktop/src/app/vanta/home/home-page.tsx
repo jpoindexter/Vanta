@@ -33,6 +33,7 @@ export function HomePage({ actions, needsYou, nextUp, projects, recent, running,
       <div className="vp-col" data-testid="page-column">
         <h2 className="sr-only">Home</h2>
         <HomeComposer
+          onAttach={() => actions.onAttachTask(value, selectedProjectId)}
           onProjectChange={setProjectId}
           onSubmit={submit}
           onValueChange={setValue}

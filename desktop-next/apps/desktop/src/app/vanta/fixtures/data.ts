@@ -104,7 +104,8 @@ export function homeProps(state: FixtureState): HomeProps {
       onRevealOutput: record('revealOutput'),
       onRunSchedule: record('runSchedule'),
       onStopRun: record('stopRun'),
-      onSubmitTask: record('submitTask')
+      onSubmitTask: record('submitTask'),
+      onAttachTask: record('attachTask')
     },
     needsYou: blockFor(state, NEEDS_YOU),
     nextUp: blockFor(state, NEXT_UP),

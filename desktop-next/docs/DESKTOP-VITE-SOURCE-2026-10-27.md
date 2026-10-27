@@ -64,8 +64,11 @@ Official 8.3.1/8.3.2 have cleanup but remain in the security advisory ranges;
 The official [optimizer cleanup](https://github.com/vitejs/vite/blob/v8.3.3/packages/vite/src/node/optimizer/optimizer.ts)
 cancels scheduled/in-flight work and settles pending processing before close.
 The private two-line diagnostic edit was inconsistent and never shipped.
-Windows/WSL/editor, full rendered HMR and npm concurrent Electron/signal behavior
-are not executed. Packaging/install and owner acceptance need exact new proof.
+The subsequent [Home continuity source checkpoint](HOME-ATTACHMENT-CONTINUITY-2026-10-27.md)
+runs the actual canonical-source Electron application on final Vite 8.3.3:
+11 bounded cross-project/text/image-only restart checks pass, with zero renderer
+errors. This is not full rendered HMR, Windows/WSL/editor or npm concurrent
+Electron/signal acceptance. Packaging/install and owner acceptance need exact new proof.
 
 Parent receipts: `desktop-flow-vite-20261027-pBbpGZ`; original intermediate
 packet `desktop-vite-20261027-9JBOfR` and supported forward packet

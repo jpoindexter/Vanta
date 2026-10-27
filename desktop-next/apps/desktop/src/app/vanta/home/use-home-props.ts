@@ -25,6 +25,7 @@ import {
 } from './home-model'
 
 export interface HomeWiring {
+  prepareAttachment: (text: string, projectId: null | string) => Promise<void>
   /** Approve the one pending approval of a chat, once. */
   allowOnce: (sessionId: string) => Promise<void>
   openSession: (sessionId: string) => void
@@ -68,6 +69,8 @@ function useHomeActions(wiring: HomeWiring, outputs: BlockState<ArtifactEntry>, 
 
   return useMemo<HomeActions>(
     () => ({
+      onAttachTask: (text, projectId) =>
+        void wiring.prepareAttachment(text, projectId).catch(error => notifyError(error, 'Could not open the attachment draft.')),
       onAllowOnce: id => void wiring.allowOnce(id).catch(error => notifyError(error, 'Could not allow that.')),
       onEditSchedule: () => navigate(CRON_ROUTE),
       onOpenOutput: () => navigate(ARTIFACTS_ROUTE),

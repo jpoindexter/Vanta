@@ -5,9 +5,18 @@ import { HomeComposer } from './home-composer'
 
 afterEach(cleanup)
 
-const props = () => ({ onProjectChange: vi.fn(), onSubmit: vi.fn(), onValueChange: vi.fn(), projectId: null, projects: [], value: '' })
+const props = () => ({ onAttach: vi.fn(), onProjectChange: vi.fn(), onSubmit: vi.fn(), onValueChange: vi.fn(), projectId: null, projects: [], value: '' })
 
 describe('Home composer shared presentation seam', () => {
+  it('activates Attach without clearing or sending the typed draft', () => {
+    const state = props()
+    render(<HomeComposer {...state} value="Keep these words" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Attach' }))
+    expect(state.onAttach).toHaveBeenCalledOnce()
+    expect(state.onSubmit).not.toHaveBeenCalled()
+    expect(state.onValueChange).not.toHaveBeenCalled()
+    expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('Keep these words')
+  })
   it('uses shared surface/input/footer slots and the real quiet Button without changing empty send semantics', () => {
     render(<HomeComposer {...props()} />)
     const input = screen.getByRole('textbox', { name: 'Start a task' })

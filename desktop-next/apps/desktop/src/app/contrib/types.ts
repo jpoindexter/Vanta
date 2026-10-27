@@ -61,6 +61,7 @@ export type ChatActions = Pick<
  * the latest closure.
  */
 export interface WiringActions extends SidebarActions, ChatActions {
+  prepareHomeAttachment: (request: import('../vanta/home/attachment-handoff').HomeAttachmentHandoff) => Promise<void>
   /** Re-home a chat's workspace: the primary's, or `sessionId` (a focused tile's runtime id). */
   changeSessionCwd: (cwd: string, sessionId?: string) => Promise<void>
   followDefaultModel: () => void

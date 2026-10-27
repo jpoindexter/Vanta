@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 
-import { notify } from '@/store/notifications'
+import { notify, notifyError } from '@/store/notifications'
+import type { HomeAttachmentHandoff } from '@/app/vanta/home/attachment-handoff'
 
 interface PendingTask {
-  draft: { folder: string; prompt: string }
+  draft: { folder: string; prompt: string; intent?: 'prepare-attachment'; owner?: HomeAttachmentHandoff['owner'] }
   id: string
 }
 
@@ -19,7 +20,10 @@ const folderName = (folder: string): string => folder.replace(/\/+$/, '').split(
  * project, this starts the chat with the words that were typed, then tells the shell it was picked up (so it never
  * starts twice).
  */
-export function usePendingProjectTask(startTask: (text: string) => Promise<unknown>): void {
+export function usePendingProjectTask(
+  startTask: (text: string) => Promise<unknown>,
+  prepareAttachment?: (request: HomeAttachmentHandoff) => Promise<void>
+): void {
   useEffect(() => {
     const bridge = window.vantaDesktop as PendingBridge | undefined
 
@@ -36,6 +40,13 @@ export function usePendingProjectTask(startTask: (text: string) => Promise<unkno
           return
         }
 
+        if (pending.draft.intent === 'prepare-attachment') {
+          try {
+            if (!prepareAttachment || !pending.draft.owner) throw new Error('The attachment draft cannot be resumed.')
+            await prepareAttachment({ id: pending.id, owner: pending.draft.owner, text: pending.draft.prompt })
+          } catch (error) { notifyError(error, 'Could not resume the attachment draft. Your request was retained.') }
+          return // Its mounted draft consumes the native intent before opening the picker.
+        }
         await startTask(pending.draft.prompt)
         await bridge.acknowledgePendingProjectTask?.(pending.id)
         notify({ kind: 'info', message: `Started your task in ${folderName(pending.draft.folder)}.`, title: 'Project changed' })

@@ -19,6 +19,17 @@ function bridge(pending: unknown) {
 }
 
 describe('usePendingProjectTask', () => {
+  it('prepares a handed-over attachment draft without submitting or consuming its picker intent early', async () => {
+    const owner = { connectionId: 'local', profile: 'writer' }
+    const acknowledge = bridge({ draft: { folder: '/work/bravo', intent: 'prepare-attachment', owner, prompt: 'Keep me' }, id: 'p1' })
+    const start = vi.fn(async () => undefined)
+    const prepare = vi.fn(async () => undefined)
+    renderHook(() => usePendingProjectTask(start, prepare))
+    await waitFor(() => expect(prepare).toHaveBeenCalledWith({ id: 'p1', owner, text: 'Keep me' }))
+    expect(start).not.toHaveBeenCalled()
+    expect(acknowledge).not.toHaveBeenCalled()
+    expect($notifications.get()).toEqual([])
+  })
   it('starts the handed-over task once and tells the shell it was picked up', async () => {
     const acknowledge = bridge({ draft: { folder: '/work/bravo/', prompt: 'plan the launch' }, id: 'p1' })
     const start = vi.fn(async () => undefined)

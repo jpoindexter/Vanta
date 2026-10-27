@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { ProjectPicker } from './project-picker'
 
 interface HomeComposerProps {
+  onAttach: () => void
   onProjectChange: (id: string) => void
   onSubmit: () => void
   onValueChange: (value: string) => void
@@ -16,7 +17,7 @@ interface HomeComposerProps {
   value: string
 }
 
-export function HomeComposer({ onProjectChange, onSubmit, onValueChange, projectId, projects, value }: HomeComposerProps) {
+export function HomeComposer({ onAttach, onProjectChange, onSubmit, onValueChange, projectId, projects, value }: HomeComposerProps) {
   const canSend = value.trim().length > 0
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -45,7 +46,7 @@ export function HomeComposer({ onProjectChange, onSubmit, onValueChange, project
         value={value}
       />
       <div className="flex flex-wrap items-center gap-1.5" data-slot="composer-controls">
-        <Button aria-label={HOME_COPY.attachLabel} data-testid="home-composer-attach" size="icon-sm" type="button" variant="ghost">
+        <Button aria-label={HOME_COPY.attachLabel} data-testid="home-composer-attach" onClick={onAttach} size="icon-sm" type="button" variant="ghost">
           <IconPlus aria-hidden size={16} stroke={1.75} />
         </Button>
         <span className="flex-1" />

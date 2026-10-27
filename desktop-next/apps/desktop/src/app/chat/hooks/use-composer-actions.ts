@@ -30,8 +30,9 @@ import {
 import { notify, notifyError } from '@/store/notifications'
 
 import type { ImageDetachResponse } from '../../types'
+import { isImagePath, useAttachmentPickers } from './use-attachment-pickers'
+export { isImagePath } from './use-attachment-pickers'
 
-const IMAGE_EXTENSION_PATTERN = /\.(png|jpe?g|gif|webp|bmp|tiff?|svg|ico)$/i
 
 const BLOB_MIME_EXTENSION: Record<string, string> = {
   'image/bmp': '.bmp',
@@ -74,10 +75,6 @@ const isImageBlob = (blob: Blob): boolean => blob.size > 0 && (!blob.type || blo
 
 const blobLabel = (blob: Blob): string =>
   blob instanceof File && blob.name ? blob.name : `pasted-image${blobExtension(blob)}`
-
-export function isImagePath(filePath: string): boolean {
-  return IMAGE_EXTENSION_PATTERN.test(filePath)
-}
 
 /**
  * Read an attachment's thumbnail preview, local disk first. Paperclip picks,
@@ -436,6 +433,27 @@ interface ComposerActionsOptions {
   scope?: ComposerActionsScope
 }
 
+function failStaleImageRead(
+  scope: Pick<ComposerActionsScope, 'updateIfCurrent'>,
+  attachment: ComposerAttachment,
+  isCurrent: () => boolean
+): boolean {
+  if (isCurrent()) return false
+  scope.updateIfCurrent(attachment, { uploadState: 'error' })
+  return true
+}
+
+function imagePathAttachment(filePath: string): ComposerAttachment {
+  return {
+    id: attachmentId('image', filePath),
+    occurrenceId: createComposerAttachmentOccurrenceId(),
+    kind: 'image',
+    label: pathLabel(filePath),
+    detail: filePath,
+    path: filePath
+  }
+}
+
 export function useComposerActions({
   activeSessionId,
   currentCwd,
@@ -578,22 +596,12 @@ export function useComposerActions({
    * (prompt.submit images[]), so the path only labels the chip. Returns false only when nothing was reported.
    */
   const attachImagePath = useCallback(
-    async (filePath: string, previewSource?: Blob | null) => {
-      if (!filePath) {
+    async (filePath: string, previewSource?: Blob | null, isCurrent: () => boolean = () => true) => {
+      if (!filePath || !isCurrent()) {
         return false
       }
 
-      const label = pathLabel(filePath)
-
-      const baseAttachment: ComposerAttachment = {
-        id: attachmentId('image', filePath),
-        occurrenceId: createComposerAttachmentOccurrenceId(),
-        kind: 'image',
-        label,
-        detail: filePath,
-        path: filePath
-      }
-
+      const baseAttachment = imagePathAttachment(filePath)
       attachToMain(baseAttachment)
 
       // A refused image never stays as a chip that would fail at send time.
@@ -605,7 +613,8 @@ export function useComposerActions({
       }
 
       try {
-        const loaded = await loadChipImage(filePath, label, previewSource)
+        const loaded = await loadChipImage(filePath, baseAttachment.label, previewSource)
+        if (failStaleImageRead(scope, baseAttachment, isCurrent)) return false
 
         if (!loaded.read.ok) {
           return refuse(loaded.read.error)
@@ -622,6 +631,7 @@ export function useComposerActions({
         return true
       } catch (err) {
         // Unreadable bytes cannot be sent, so the chip goes too instead of failing later at submit.
+        if (failStaleImageRead(scope, baseAttachment, isCurrent)) return false
         scope.remove(baseAttachment.id)
         notifyError(err, copy.imagePreviewFailed)
 
@@ -680,26 +690,10 @@ export function useComposerActions({
     [attachToMain, copy.imageAttachFailed, otherChips, rejectImage]
   )
 
-  const pickImages = useCallback(async () => {
-    const paths = await selectDesktopPaths({
-      title: copy.attachImages,
-      defaultPath: currentCwd || undefined,
-      filters: [
-        {
-          name: t.composer.images,
-          extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff']
-        }
-      ]
-    })
-
-    if (!paths?.length) {
-      return
-    }
-
-    for (const path of paths) {
-      await attachImagePath(path)
-    }
-  }, [attachImagePath, copy.attachImages, currentCwd, t.composer.images])
+  const { pickAttachments, pickImages } = useAttachmentPickers({
+    currentCwd, imagesTitle: copy.attachImages, imagesLabel: t.composer.images,
+    attachImage: attachImagePath, attachFile: attachContextFilePath
+  })
 
   const pasteClipboardImage = useCallback(
     async ({ silent = false }: { silent?: boolean } = {}) => {
@@ -923,6 +917,7 @@ export function useComposerActions({
     insertContextPathInlineRef,
     pasteClipboardImage,
     pickContextPaths,
+    pickAttachments,
     pickImages,
     removeAttachment
   }

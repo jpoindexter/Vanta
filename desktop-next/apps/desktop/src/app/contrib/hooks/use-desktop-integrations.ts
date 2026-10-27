@@ -49,7 +49,7 @@ import type { SessionInfo } from '@/types/desktop'
 import { requestComposerFocus, requestComposerInsert } from '../../chat/composer/focus'
 import { appViewForPath, isOverlayView, NEW_CHAT_ROUTE, routeSessionId, sessionRoute } from '../../routes'
 
-import { resolveRememberedSessionId } from './remembered-session'
+import { resolveRememberedSessionId, shouldKeepFreshChatOnRestore } from './remembered-session'
 
 type RememberedSession = Pick<SessionInfo, '_lineage_root_id' | 'id' | 'parent_session_id' | 'profile' | 'source'>
 
@@ -148,19 +148,19 @@ export function useDesktopIntegrations({
           return
         }
 
-        if (!resumeLastSession) {
+        const route = getRememberedRoute(activeProfile)
+        if (shouldKeepFreshChatOnRestore(resumeLastSession, route)) {
           restoredRef.current = true
 
           return
         }
 
-        const route = getRememberedRoute(activeProfile)
         const routeSession = route ? routeSessionId(route) : null
         const last = getRememberedSessionId(activeProfile)
         const draftScope = freshDraftScope(), draftOwner = captureDraftCustodyOwner(null)
 
         const restorableNonSessionRoute =
-          !!route && route !== NEW_CHAT_ROUTE && !routeSession && !isOverlayView(appViewForPath(route))
+          !!route && !routeSession && !isOverlayView(appViewForPath(route))
 
         // Boot adoption can publish renderer.ready before its async session
         // refresh completes. Keep the restore latch open until ownership can be
@@ -216,7 +216,6 @@ export function useDesktopIntegrations({
 
         if (
           route &&
-          route !== NEW_CHAT_ROUTE &&
           !isOverlayView(appViewForPath(route)) &&
           (!routeSession || (restorableRouteSession && sessionBelongsToProfile(sessions, routeSession, activeProfile)))
         ) {

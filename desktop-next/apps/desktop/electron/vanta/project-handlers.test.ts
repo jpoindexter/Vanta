@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -14,7 +14,7 @@ let picked: string
 let other: string
 
 beforeAll(() => {
-  base = mkdtempSync(path.join(tmpdir(), 'vanta-project-'))
+  base = realpathSync(mkdtempSync(path.join(tmpdir(), 'vanta-project-')))
   current = path.join(base, 'current')
   picked = path.join(base, 'picked')
   other = path.join(base, 'other')
@@ -50,6 +50,52 @@ function setup(answer = false) {
   }
 }
 
+// Home preparation shares the native project gate but never starts a turn.
+  it('prepares a same-project attachment draft without restarting or creating a turn', async () => {
+    const { call, switchTo } = setup()
+    const draft = { agent: 'vanta', approvals: true, branch: '', folder: current, host: 'local',
+      intent: 'prepare-attachment', model: '', owner: { connectionId: 'local', profile: 'writer' },
+      prompt: 'Keep my Home text', worktree: false }
+    const result = await call(CH.switchProjectForNewTask, draft) as { id: string; switching: boolean }
+    expect(result.switching).toBe(false)
+    expect(switchTo).not.toHaveBeenCalled()
+    await expect(call(CH.readPendingProjectTask)).resolves.toMatchObject({
+      id: result.id, draft: { intent: 'prepare-attachment', owner: draft.owner, prompt: draft.prompt }
+    })
+    await expect(call(CH.acknowledgePendingProjectTask, result.id)).resolves.toBe(true)
+    await expect(call(CH.acknowledgePendingProjectTask, result.id)).resolves.toBe(false)
+  })
+
+  it('carries the immutable owner/text through a confirmed project reload and rejects a denied move', async () => {
+    const original = current
+    const { call } = setup(true)
+    const owner = { connectionId: 'local', profile: 'writer' }
+    const draft = { agent: 'vanta', approvals: true, branch: '', folder: other, host: 'local',
+      intent: 'prepare-attachment', model: '', owner, prompt: 'Saved cross-project words', worktree: false }
+    const result = await call(CH.switchProjectForNewTask, draft) as { id: string; switching: boolean }
+    owner.profile = 'changed-after-capture'
+    expect(result.switching).toBe(true)
+    await expect(call(CH.readPendingProjectTask)).resolves.toBeNull()
+    try {
+      current = other
+      await expect(call(CH.readPendingProjectTask)).resolves.toMatchObject({
+        id: result.id, draft: { intent: 'prepare-attachment', owner: { profile: 'writer' }, prompt: draft.prompt }
+      })
+    } finally { current = original }
+    const refused = setup(false)
+    await expect(refused.call(CH.switchProjectForNewTask, draft)).rejects.toThrow('cancelled')
+    await expect(refused.call(CH.readPendingProjectTask)).resolves.toBeNull()
+  })
+
+  it('rejects malformed attachment intent/owner before a project mutation', async () => {
+    const { call, switchTo } = setup(true)
+    const draft = { agent: 'vanta', approvals: true, branch: '', folder: other, host: 'local',
+      intent: 'prepare-attachment', model: '', owner: { connectionId: '', profile: 'writer' }, prompt: 'keep', worktree: false }
+    await expect(call(CH.switchProjectForNewTask, draft)).rejects.toThrow()
+    await expect(call(CH.switchProjectForNewTask, { ...draft, intent: 'submit-automatically' })).rejects.toThrow('intent')
+    expect(switchTo).not.toHaveBeenCalled()
+    await expect(call(CH.readPendingProjectTask)).resolves.toBeNull()
+  })
 describe('changing the project the agent works in', () => {
   it('moves without asking to a folder the user just chose in the native picker', async () => {
     const { call, confirmSwitch, switchTo } = setup()

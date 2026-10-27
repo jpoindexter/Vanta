@@ -10,6 +10,7 @@ import { usableDirectory } from '../../../../../vanta-ts/desktop-app/electron/pr
 
 import { CH } from './channels'
 import type { IpcLike } from './native-handlers'
+import { homeAttachmentIntent } from './home-attachment-intent'
 
 export interface ProjectDeps {
   /** Ask the user, in a native dialog the renderer cannot script, whether the runtime may move to `dir`. */
@@ -104,16 +105,18 @@ function registerNewTaskHandlers(deps: ProjectDeps, grants: FolderGrants): void 
   const pending = createPendingProjectTaskStore()
 
   ipc.handle(CH.switchProjectForNewTask, async (_event, draft: unknown) => {
+    const intent = homeAttachmentIntent(draft)
     const prepared = await prepareProjectSwitch(draft)
 
     if (!(await mayMoveTo(deps, grants, prepared.targetRoot))) {
       throw new Error('Project change cancelled.')
     }
 
-    pending.set(prepared)
-    setImmediate(() => void deps.switchTo(prepared.targetRoot))
+    pending.set(intent ? { ...prepared, draft: { ...prepared.draft, ...intent } } : prepared)
+    const switching = !intent || prepared.targetRoot !== deps.projectRoot()
+    if (switching) setImmediate(() => void deps.switchTo(prepared.targetRoot))
 
-    return { projectRoot: prepared.targetRoot, switching: true }
+    return { id: prepared.id, projectRoot: prepared.targetRoot, switching }
   })
 
   ipc.handle(CH.readPendingProjectTask, () => pending.read(deps.projectRoot()))

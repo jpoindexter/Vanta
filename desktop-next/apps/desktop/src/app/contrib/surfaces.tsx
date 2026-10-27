@@ -94,6 +94,7 @@ function HomeOrChat({ actions, chat }: { actions: WiringActions; chat: ReactNode
 
   return homeOpen ? (
     <HomeSurface
+      prepareAttachment={actions.prepareHomeAttachment}
       openSession={actions.onResumeSession}
       requestGateway={actions.requestGateway}
       startTask={actions.submitTextToNewSession}

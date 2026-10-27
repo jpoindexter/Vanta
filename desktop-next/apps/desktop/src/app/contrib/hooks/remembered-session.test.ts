@@ -2,7 +2,19 @@ import { describe, expect, it } from 'vitest'
 
 import type { SessionInfo } from '@/types/desktop'
 
-import { resolveRememberedSessionId } from './remembered-session'
+import { resolveRememberedSessionId, shouldKeepFreshChatOnRestore } from './remembered-session'
+
+it.each([
+  [true, '/', true],
+  [true, null, false],
+  [true, '/stored-session', false],
+  [true, '/capabilities', false],
+  [false, '/', true],
+  [false, null, true],
+  [false, '/stored-session', true]
+] as const)('keeps fresh intent for resume=%s and remembered route=%s: %s', (resume, route, keepFresh) => {
+  expect(shouldKeepFreshChatOnRestore(resume, route)).toBe(keepFresh)
+})
 
 const session = (overrides: Partial<SessionInfo>): SessionInfo =>
   ({

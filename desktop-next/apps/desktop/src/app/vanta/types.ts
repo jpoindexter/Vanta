@@ -47,6 +47,7 @@ export interface RecentOutputItem {
 export type HomeBlock = 'nextUp' | 'needsYou' | 'recent' | 'running'
 
 export interface HomeActions {
+  onAttachTask: (text: string, projectId: string | null) => void
   onAllowOnce: (id: string) => void
   onEditSchedule: (id: string) => void
   onOpenOutput: (id: string) => void

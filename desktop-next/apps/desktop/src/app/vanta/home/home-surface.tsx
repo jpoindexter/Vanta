@@ -11,20 +11,21 @@ import { $sessionStates } from '@/store/session-states'
 import type { GatewayRequester } from '@/app/contrib/types'
 
 import { HomePage } from './home-page'
-import { projectTaskBridge, startTaskInProject } from './project-task'
 import { type HomeWiring, useHomeProps } from './use-home-props'
+import { homeTaskActions } from './home-task-actions'
+import type { HomeAttachmentHandoff } from './attachment-handoff'
 
 interface HomeSurfaceProps {
+  prepareAttachment: (request: HomeAttachmentHandoff) => Promise<void>
   openSession: (sessionId: string) => void
   requestGateway: GatewayRequester
   startTask: (text: string) => Promise<unknown>
 }
 
 /** Home on live data: the supervision blocks, and a composer that starts a new chat. */
-export function HomeSurface({ openSession, requestGateway, startTask }: HomeSurfaceProps) {
+export function HomeSurface({ openSession, prepareAttachment, requestGateway, startTask }: HomeSurfaceProps) {
   const states = useStore($sessionStates)
   const approvals = useStore($approvalRequests)
-
   const gatewayState = useStore($gatewayState)
 
   // The project chips read the project list, which needs an open gateway: ask once it is open instead of waiting for the
@@ -40,6 +41,7 @@ export function HomeSurface({ openSession, requestGateway, startTask }: HomeSurf
       Object.entries(states).find(([, state]) => state.storedSessionId === storedId)?.[0]
 
     return {
+      ...homeTaskActions({ prepareAttachment, startTask }),
       allowOnce: async storedId => {
         const runtimeId = runtimeIdOf(storedId)
         const request = runtimeId ? approvals[runtimeId] : undefined
@@ -53,10 +55,6 @@ export function HomeSurface({ openSession, requestGateway, startTask }: HomeSurf
         openSession(id)
       },
       revealPath: path => void revealFile(path),
-      startTask: async (text, projectId) => {
-        closeHome()
-        await startTaskInProject({ bridge: projectTaskBridge(), projectId, startHere: startTask, text })
-      },
       stopRun: async storedId => {
         const runtimeId = runtimeIdOf(storedId)
 
@@ -65,7 +63,7 @@ export function HomeSurface({ openSession, requestGateway, startTask }: HomeSurf
         }
       }
     }
-  }, [approvals, openSession, requestGateway, startTask, states])
+  }, [approvals, openSession, prepareAttachment, requestGateway, startTask, states])
 
   const props = useHomeProps(wiring)
 

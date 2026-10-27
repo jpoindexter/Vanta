@@ -26,10 +26,18 @@ files and82 existing owner app-data files retain their saved hashes. These are
 loopback-model/private-profile proofs, not owner visual, live-account,
 unfamiliar-person, all-platform or complete trust/security acceptance.
 
+The newer [Home attachment source checkpoint](../desktop-next/docs/HOME-ATTACHMENT-CONTINUITY-2026-10-27.md)
+adds fresh-draft attachment handoff and explicit fresh-route restoration.
+An actual canonical-source replay passes 11 checks including project switching,
+text/image-only cold recovery and exact first-send image bytes; no extra model
+requests or renderer errors. Pre-capture Home/pending-handoff persistence is
+still open, as are new packaging/install and owner acceptance. This source proof
+does not replace archive2's installed identity above.
+
 The [profile1 delivery](../desktop-next/docs/PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
 preceded this candidate. Its former image-custody installation gap and the
 October25 source-only statements below are superseded for the exact bounded
-paths now executed. Home Attach still requires a fresh-draft ownership handoff;
+paths now executed. Installed Home Attach still predates the source handoff;
 The newer [Desktop Vite source checkpoint](../desktop-next/docs/DESKTOP-VITE-SOURCE-2026-10-27.md)
 repairs three reproduced development-server boundaries and clean shutdown;
 its production-lock audit is 12, separate from installed archive2. The
