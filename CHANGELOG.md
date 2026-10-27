@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent cancellation checkpoint — 2026-10-27 (not installed or released)
+
+- Late Stop after a provider result now settles interrupted before text/tool
+  handling, preserving reported usage. Three canonical regression failures become
+  30 focused passing checks. Existing streaming AbortError behavior remains.
+- Verified the existing MCP stdio read/refusal entry with source and installed
+  runtime pairings. This is not full agent delegation, a connected Codex GUI,
+  MCP cancellation or the separate pending MCP error-propagation repair.
+  [Evidence and exact limits](docs/agent-cancellation-and-mcp-entry-2026-10-27.md).
+
 ## Owned runtime transport checkpoint — 2026-10-27 (not installed or released)
 
 - Select maintained Fetch before owned CLI consumers capture defaults; inject it

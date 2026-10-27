@@ -170,10 +170,13 @@ export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   for (let iter = 1; iter <= maxIter; iter++) {
     if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter: iter - 1, reason: "interrupted", text: "Interrupted." });
     const { schemas, prefetched, completion } = await completeTurnIteration(runtime, iter);
+    if (completion.ok) {
+      recordUsage(state, completion.result);
+      recordPromptUsage(completion.result, messages, deps);
+    }
+    if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter, reason: "interrupted", text: "Interrupted." });
     if (!completion.ok) return terminalOutcome({ messages, deps, state, iter, reason: "repeated_failure", text: completion.error });
     const result = completion.result;
-    recordUsage(state, result);
-    recordPromptUsage(result, messages, deps);
     if (result.toolCalls.length === 0) {
       const outcome = await handleNoToolCalls({ result, messages, deps, iter, state, userText, schemas });
       if (outcome) return outcome;

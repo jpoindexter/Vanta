@@ -94,6 +94,15 @@ journeys pass. Direct Telegram/provider/download compatibility checks pass;
 SDK remains import-neutral. This repair is not installed. Plugin/external process
 coverage, agent/MCP cancellation settlement and whole trust acceptance remain
 separate; no card is closed by this bounded evidence.
+
+The [agent cancellation and MCP entry checkpoint](agent-cancellation-and-mcp-entry-2026-10-27.md)
+repairs late-provider cancellation settlement in source while retaining returned
+usage. Parent actual runTurn/receipt regressions turn three failures into 30
+focused passes; types/size pass. Existing MCP serve also passes real stdio
+read/refusal/resource journeys with source and installed executable/runtime/kernel
+pairings in private profiles. This does not establish Codex GUI configuration,
+full agent delegation, MCP cancellation, the pending explicit-tool-error repair,
+or installation of the new agent code. No whole trust/Desktop card closes.
 The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
 retains exact helper behavior and classic compatibility/package inclusion while
 adding the previously omitted shared-native folder to source fingerprints.
