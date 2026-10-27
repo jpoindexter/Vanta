@@ -75,6 +75,15 @@ rejection plus valid lookup/map-generation/content checks. Scoped tree and runti
 typecheck pass; fresh runtime audit becomes two development high, production zero.
 No expansion stress, full app build or installed update is claimed. Cache semantics
 and undici remain; this is not whole-security closure.
+The [shared native environment extraction](../desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md)
+retains exact helper behavior and classic compatibility/package inclusion while
+adding the previously omitted shared-native folder to source fingerprints.
+Parent 8 helper/layout, 12 launcher and 13 provenance/installer-source checks,
+actual child environment probes, types/native bundling and four source-app
+chat/restart checks pass. No new installed artifact, real MCP process or complete
+modularization/legacy-retirement acceptance is inferred. Six direct legacy native
+modules remain across nine import declarations; source provenance is still
+declared/non-hermetic, not guaranteed exhaustive.
 The ordinary legacy optimizer/close failure remains. These dependency changes
 are included in home1, but source tooling proofs are not complete installed-app
 or suite acceptance. Static REA inspection of the delivered Electron framework

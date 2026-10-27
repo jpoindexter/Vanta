@@ -8,7 +8,7 @@ const SOURCE_ROOTS = ["src", "Cargo.toml", "Cargo.lock", "build.rs", "desktop-ne
   "desktop-next/apps/shared", "desktop-next/scripts", "desktop-next/tools", "desktop-next/package.json",
   "desktop-next/package-lock.json", "desktop-next/NOTICE.md", "desktop-next/LICENSE-THIRD-PARTY-MIT",
   "vanta-ts/src", "vanta-ts/scripts", "vanta-ts/package.json", "vanta-ts/package-lock.json",
-  "vanta-ts/desktop-app", "LICENSE"];
+  "vanta-ts/desktop-app", "vanta-ts/desktop-native", "LICENSE"];
 const GENERATED = /(^|\/)(node_modules|dist|dist-runtime|release|target|coverage|\.git)(\/|$)/;
 const SECRET = /(^|\/)(\.env(?:\..*)?|\.npmrc|\.netrc|id_rsa|id_ed25519|credentials\.json|secrets\.json)$|\.(pem|p12|pfx|key)$/i;
 const digest = (value) => createHash("sha256").update(value).digest("hex");

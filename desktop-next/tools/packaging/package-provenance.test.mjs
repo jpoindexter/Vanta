@@ -51,6 +51,25 @@ test("new source inputs change provenance even when absent from the Git file lis
   assert.equal(after.source.files, before.source.files + 1);
 });
 
+test("shared native helper edits invalidate source provenance at the same commit", (t) => {
+  const fixture = sourceFixture(t);
+  const native = path.join(fixture.repo, "vanta-ts", "desktop-native");
+  fs.mkdirSync(native, { recursive: true });
+  for (const file of ["runtime-env.mjs", "runtime-launch.mjs"]) {
+    fs.writeFileSync(path.join(native, file), "export const value = 1;\n");
+  }
+  let before = captureSource(fixture.repo, fixture);
+  for (const file of ["runtime-env.mjs", "runtime-launch.mjs"]) {
+    fs.appendFileSync(path.join(native, file), "export const changed = true;\n");
+    const after = captureSource(fixture.repo, fixture);
+    assert.equal(after.fullCommit, before.fullCommit);
+    assert.equal(after.source.files, before.source.files);
+    assert.notEqual(after.source.sha256, before.source.sha256);
+    assert.throws(() => assertSourceUnchanged(before, after), /changed during the build/);
+    before = after;
+  }
+});
+
 test("dotenv and secret-shaped files refuse before reading their contents", (t) => {
   const fixture = sourceFixture(t);
   fs.writeFileSync(path.join(fixture.repo, ".env.local"), "DO_NOT_HASH=this_is_not_an_input\n");

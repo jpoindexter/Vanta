@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Shared native helper checkpoint — 2026-10-27 (not installed or released)
+
+- Extracted the unchanged runtime-environment helper into the existing shared
+  native folder, retaining the classic import and explicit package inclusion.
+  Added that folder to source provenance after a red→green same-commit regression
+  exposed missing fingerprint coverage. Parent focused helper/launcher/provenance
+  checks, child environment probes, types/native bundle and four actual source
+  chat/restart checks pass. Installed home1 remains unchanged; full modularization
+  and classic-renderer retirement are not claimed.
+  [Evidence](desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md).
+
 ## Source-map tooling checkpoint — 2026-10-27 (not installed or released)
 
 - Updated source-map-js 1.2.1→1.2.2 within the existing PostCSS range. Actual
