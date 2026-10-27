@@ -65,18 +65,9 @@ async function cacheHit(root, outputRoot, inputs) {
   }
 }
 
-export async function ensureStartupCompile(options) {
-  const root = resolve(options.root);
-  const outputRoot = resolve(options.outputRoot ?? join(root, ".startup-cache"));
-  const inputs = options.inputs ?? DEFAULT_INPUTS;
-  if (await cacheHit(root, outputRoot, inputs)) return { status: "hit", outputRoot };
-
-  const staging = `${outputRoot}.next-${process.pid}`;
-  const backup = `${outputRoot}.previous-${process.pid}`;
-  await rm(staging, { recursive: true, force: true });
-  await mkdir(staging, { recursive: true, mode: 0o700 });
+async function buildStaging({ root, staging, inputs, build }) {
   try {
-    await options.build(staging);
+    await build(staging);
     const missing = await missingRequiredOutputs(staging);
     if (missing.length) throw new Error(`missing required startup output: ${missing.join(", ")}`);
     const sources = await startupManifest(root, inputs);
@@ -89,6 +80,19 @@ export async function ensureStartupCompile(options) {
     await rm(staging, { recursive: true, force: true });
     throw error;
   }
+}
+
+export async function ensureStartupCompile(options) {
+  const root = resolve(options.root);
+  const outputRoot = resolve(options.outputRoot ?? join(root, ".startup-cache"));
+  const inputs = options.inputs ?? DEFAULT_INPUTS;
+  if (await cacheHit(root, outputRoot, inputs)) return { status: "hit", outputRoot };
+
+  const staging = `${outputRoot}.next-${process.pid}`;
+  const backup = `${outputRoot}.previous-${process.pid}`;
+  await rm(staging, { recursive: true, force: true });
+  await mkdir(staging, { recursive: true, mode: 0o700 });
+  await buildStaging({ root, staging, inputs, build: options.build });
 
   let movedCurrent = false;
   try {

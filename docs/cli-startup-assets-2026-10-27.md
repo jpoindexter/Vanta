@@ -22,6 +22,10 @@ Parent source packet: `startup-cache-parent-20261027-8kDvOq`.
 - The three new cache regressions fail before correction. Afterward the parent
   runs all five focused Node tests using the actual normal CLI Node 22.23.1;
   all pass, retaining the existing failed-build recovery checks.
+- A subsequent parent JavaScript size check found the existing orchestration
+  above its complexity ceiling. Extract the staged build/validation/cleanup as
+  one cohesive helper, retaining errors and rollback. All five tests pass again
+  and all three changed JavaScript files have zero strict size findings.
 - The independent private copy of source `73db4498` plus this exact patch executes
   unchanged `run.sh`: cold compile, warm start and an explicit cache hit. The hit
   does not rebuild or alter manifest inode/mtime; required source/output hashes
