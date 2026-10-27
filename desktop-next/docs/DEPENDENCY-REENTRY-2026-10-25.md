@@ -1,5 +1,17 @@
 # Dependency security re-entry — 2026-10-25
 
+## Latest compatible Desktop source — 2026-10-27
+
+[Desktop patch and compatibility repair](DESKTOP-COMPATIBLE-DEPS-2026-10-27.md)
+integrates brace5.0.12/source-map1.2.2 plus the minimal older-major nested closure
+needed by four existing minimatch consumers. Actual five-consumer and12 API/CSS/
+Mermaid checks pass; scoped npm tree is valid and the combined source Electron
+archive/chat/restart path passes. Parent fresh matching-workspace production
+lock audits19→17 (7high→5high), removing only the two named findings. The worker's
+earlier16→14 registry snapshot is historical. Cache/Vite and propagated native
+chain, runtime development, website/default-branch security remain OPEN. Profile1
+below is still installed; no new package or whole-security acceptance is claimed.
+
 ## Exact installed closure — 2026-10-27
 
 [Installed profile1 candidate](PROFILE-CUSTODY-INSTALLED-2026-10-27.md)

@@ -2,6 +2,19 @@
 
 ## Latest parent review
 
+[Archived chat recovery](ARCHIVE-RECOVERY-SOURCE-2026-10-27.md) now restores a
+keyboard-accessible Archived route when the sidebar is otherwise empty. The
+combined source Electron archive/restore/reopen/restart path passes five checks,
+with exact messages and no resend; session-action extraction reduces the old
+index by104 lines without broad modularization claims. Source only until the
+next exact package is delivered. Profile1 below remains the installed app.
+
+[File approval target binding](APPROVAL-TARGET-SOURCE-2026-10-27.md) rejects
+the reproduced approval/diagnostic-await swaps and records explicit edit denial.
+Parent real-tool and scripted-agent receipts preserve bytes and never report
+verified success after refusal. Cross-process races and full boundary closure
+remain open; this does not authorize live-account or normal-profile actions.
+
 [Installed profile1 candidate](PROFILE-CUSTODY-INSTALLED-2026-10-27.md)
 now delivers code0b06904b at `/Applications/Vanta.app`. Developer ID, Apple
 acceptance/staple/assessment and final ZIP readback pass. Actual installed
