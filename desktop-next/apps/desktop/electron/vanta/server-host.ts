@@ -176,16 +176,21 @@ export class ServerHost {
 
   /** A transport that outlives restarts. */
   readonly transport: VantaTransport = {
-    openEvents: (clientId: string, handlers: VantaEventHandlers) => {
+    openEvents: (clientId: string, handlers: VantaEventHandlers, owner) => {
       let stop: (() => void) | undefined
       let cancelled = false
 
-      void this.whenReady().then(transport => {
+      void this.whenReady().then(async transport => {
+        const route = runtimeRoute(owner)
+        assertLocalRuntime(route)
+        if (transport && route.profile) assertRuntimeProfile(route, await readRuntimeOwner(transport.request))
         if (!cancelled && transport) {
           stop = transport.openEvents(clientId, handlers)
         } else if (!cancelled) {
           handlers.onClose(this.lastError ?? 'the Vanta runtime is not running')
         }
+      }).catch(error => {
+        if (!cancelled) handlers.onClose(error instanceof Error ? error.message : String(error))
       })
 
       return () => {

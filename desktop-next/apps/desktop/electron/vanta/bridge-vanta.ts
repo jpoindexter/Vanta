@@ -1,4 +1,4 @@
-import type { VantaCall, VantaEventHandlers, VantaResult } from '../../../shared/src/vanta'
+import type { VantaCall, VantaEventHandlers, VantaOwnerRoute, VantaResult } from '../../../shared/src/vanta'
 
 import { type IpcRendererLike } from './bridge-core'
 import { CH } from './channels'
@@ -31,12 +31,12 @@ export function createVantaBridge(ipc: IpcRendererLike) {
   }
 
   return {
-    openEvents: (clientId: string, handlers: StreamHandlers): (() => void) => {
+    openEvents: (clientId: string, handlers: StreamHandlers, owner?: VantaOwnerRoute): (() => void) => {
       ensureListening()
       counter += 1
       const streamId = `s${Date.now().toString(36)}${counter}`
       streams.set(streamId, handlers)
-      ipc.send(CH.eventsOpen, streamId, clientId)
+      ipc.send(CH.eventsOpen, streamId, clientId, owner)
 
       return () => {
         if (streams.delete(streamId)) {

@@ -15,7 +15,10 @@ const callSchema = runtimeRouteSchema.extend({
 })
 
 const focusSchema = z.string().min(1).max(128).nullable()
-const openStreamSchema = z.object({ clientId: z.string().min(1).max(128), streamId: z.string().min(1).max(64) })
+const openStreamSchema = z.object({
+  clientId: z.string().min(1).max(128), streamId: z.string().min(1).max(64),
+  owner: runtimeRouteSchema.optional()
+})
 
 /** A window the bridge can push frames to. `webContents` in Electron; a fake in tests. */
 export interface FrameSink {
@@ -66,7 +69,7 @@ export class RequestBridge {
       return { ok: false, reason: 'invalid stream request' }
     }
 
-    const { clientId, streamId } = parsed.data
+    const { clientId, streamId, owner } = parsed.data
     const key = this.keyFor(sink, streamId)
 
     if (this.streams.has(key)) {
@@ -83,7 +86,7 @@ export class RequestBridge {
         this.push(sink, this.channels.closed, streamId, reason)
       },
       onFrame: frame => this.push(sink, this.channels.frame, streamId, frame)
-    })
+    }, owner)
 
     this.streams.set(key, { clientId, sink, stop })
 

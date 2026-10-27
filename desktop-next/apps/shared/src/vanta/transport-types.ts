@@ -1,8 +1,11 @@
 export type VantaHttpMethod = 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT'
 
-export interface VantaCall {
+export interface VantaOwnerRoute {
   connectionId?: null | string
   profile?: null | string
+}
+
+export interface VantaCall extends VantaOwnerRoute {
   body?: unknown
   /** One id per renderer chat. The Vanta server keeps per-id state and reads it from `x-session-id`. */
   clientId?: string
@@ -32,6 +35,6 @@ export interface VantaEventHandlers {
  */
 export interface VantaTransport {
   /** Subscribe to `GET /api/events` for one client id. The returned function closes the stream without calling onClose. */
-  openEvents: (clientId: string, handlers: VantaEventHandlers) => () => void
+  openEvents: (clientId: string, handlers: VantaEventHandlers, owner?: VantaOwnerRoute) => () => void
   request: (call: VantaCall) => Promise<VantaResult>
 }

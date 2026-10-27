@@ -4,8 +4,17 @@ import { VantaGateway as VantaHttpGateway } from './vanta-gateway'
 
 // The Vanta shell's gateway: HTTP plus one SSE stream per chat, through the Electron bridge.
 class VantaBridgeGateway extends VantaHttpGateway {
+  private readonly bridge: ReturnType<typeof bridgeTransport>
+
   constructor() {
-    super({ notConnectedMessage: GATEWAY_NOT_CONNECTED_MESSAGE, transport: bridgeTransport() })
+    const bridge = bridgeTransport()
+    super({ notConnectedMessage: GATEWAY_NOT_CONNECTED_MESSAGE, transport: bridge })
+    this.bridge = bridge
+  }
+
+  override async connect(url: string): Promise<void> {
+    this.bridge.bindOwner(url)
+    return super.connect(url)
   }
 }
 

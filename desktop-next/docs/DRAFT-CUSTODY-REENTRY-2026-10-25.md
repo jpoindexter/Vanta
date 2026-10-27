@@ -2,6 +2,16 @@
 
 ## Latest parent review
 
+[Gateway and event ownership](GATEWAY-OWNER-STREAM-SOURCE-2026-10-27.md)
+pins the actual renderer gateway's HTTP requests and event subscriptions to the
+verified connection owner. Canonical actual chat/stream4 and exhausted queue3
+journeys pass; UI7/Electron45/types/build/strict9-production-path size pass.
+The wider111-file candidate is frozen externally and passes native queue6.
+This is not a profile runtime pool or installed acceptance. Continue with
+actual owner-specific lifecycle and native client binding, preserving background
+work and all existing drafts. The installed app and original239 files remain
+unchanged. Do not substitute stream refusal for actual profile switching.
+
 [Native profile owner source checkpoint](NATIVE-PROFILE-OWNER-SOURCE-2026-10-26.md)
 records the actual silent-alias cause and a dependency-ready owner guard. The
 native descriptor, REST and direct effects refuse wrong owners; ordinary chat

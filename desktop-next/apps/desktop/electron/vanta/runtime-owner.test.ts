@@ -110,4 +110,27 @@ describe('the one native runtime has an explicit owner', () => {
       expect(urls.every(url => url.startsWith('http://127.0.0.1:7801/'))).toBe(true)
     } finally { await host.stopAndWait(); vi.unstubAllGlobals() }
   })
+
+  it('never opens a wrong-profile or foreign-device event stream on the primary runtime', async () => {
+    const urls: string[] = []
+    vi.stubGlobal('fetch', vi.fn(async (url: URL) => {
+      urls.push(url.pathname)
+      return new Response('{"profile":"default"}')
+    }))
+    const host = hostFixture()
+    const wrong = { onClose: vi.fn(), onFrame: vi.fn() }
+    const foreign = { onClose: vi.fn(), onFrame: vi.fn() }
+    try {
+      await host.start({} as never)
+      host.transport.openEvents('same-client', wrong, { profile: 'writer' })
+      host.transport.openEvents('same-client', foreign, { connectionId: 'elsewhere' })
+      await vi.waitFor(() => {
+        expect(wrong.onClose).toHaveBeenCalledWith(expect.stringContaining('not running here'))
+        expect(foreign.onClose).toHaveBeenCalledWith(expect.stringContaining('not connected'))
+      })
+      expect(urls).toEqual(['/api/profiles/current'])
+      expect(wrong.onFrame).not.toHaveBeenCalled()
+      expect(foreign.onFrame).not.toHaveBeenCalled()
+    } finally { await host.stopAndWait(); vi.unstubAllGlobals() }
+  })
 })

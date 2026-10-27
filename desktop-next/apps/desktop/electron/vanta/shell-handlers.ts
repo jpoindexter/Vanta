@@ -47,9 +47,9 @@ export function registerShellHandlers(deps: ShellDeps): void {
 
   ipc.handle(CH.request, (_event, call: unknown) => requests.request(call))
 
-  ipc.on(CH.eventsOpen, (event, streamId: unknown, clientId: unknown) => {
+  ipc.on(CH.eventsOpen, (event, streamId: unknown, clientId: unknown, owner: unknown) => {
     const sender = event.sender as Sender
-    const opened = requests.openStream(sender, { clientId, streamId })
+    const opened = requests.openStream(sender, { clientId, streamId, owner })
 
     if (!opened.ok) {
       sender.send(CH.eventsClosed, streamId, opened.reason ?? 'could not open the event stream')
