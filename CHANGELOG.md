@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Terminal approval ordering — 2026-10-28 (source checkpoint)
+
+- Keep rapid arrow/Enter input on the selected approval, preventing an old
+  one-time Yes from replacing “don't ask again” or No.
+- Forty focused approval checks, native types and a real terminal saved-rule /
+  restart / second-edit replay pass. Normal CLI and installed Desktop remain
+  unchanged pending exact-pin delivery; policy and owner authority are unchanged.
+  [Evidence and retained failures](docs/tui-approval-input-order-2026-10-28.md).
+
 ## Agent11 Desktop delivery — 2026-10-28 (local, not a release)
 
 - Install signed, Apple Accepted/stapled agent11 from source94c622b9, delivering

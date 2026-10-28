@@ -73,7 +73,9 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
   ).filter((choice) =>
     choice.outcome !== "allow" || !canContinue,
   ).filter((choice) => request.canRemember || !["always", "never"].includes(choice.outcome));
-  const [sel, setSel] = useState(() => Math.max(0, choiceIndex(props.focusedTarget, choices)));
+  const [sel, setSelection] = useState(() => Math.max(0, choiceIndex(props.focusedTarget, choices)));
+  const selection = useRef(sel);
+  const setSel = (index: number): void => { selection.current = index; setSelection(index); };
   const decision = useApprovalDecision(pending, onDone);
   const pick = (i: number): void => { void decision.pick(choices[i]!.outcome); };
   useEffect(() => {
@@ -82,9 +84,9 @@ export function ApprovalPrompt(props: { focusedTarget?: FocusTarget; onDone: () 
   }, [props.focusedTarget]);
 
   useInput((input, key) => {
-    if (key.upArrow) moveChoice(sel, -1, { choices, setSel, onFocus: props.onFocusTargetChange });
-    else if (key.downArrow) moveChoice(sel, 1, { choices, setSel, onFocus: props.onFocusTargetChange });
-    else if (key.return) pick(sel);
+    if (key.upArrow) moveChoice(selection.current, -1, { choices, setSel, onFocus: props.onFocusTargetChange });
+    else if (key.downArrow) moveChoice(selection.current, 1, { choices, setSel, onFocus: props.onFocusTargetChange });
+    else if (key.return) pick(selection.current);
     else if (key.escape) pick(choices.findIndex((choice) => choice.outcome === "deny"));
     else if (/^[1-4]$/.test(input)) { const index = Number(input) - 1; if (index < choices.length) pick(index); }
   });
