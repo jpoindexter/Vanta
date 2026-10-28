@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-10-27 with source, delivery and continuity boundaries. Historical release
+Updated 2026-10-28 with source, delivery and continuity boundaries. Historical release
 receipts below retain their original version/date and are not current security attestations.
 This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
@@ -15,7 +15,20 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
-The [agent3 installed delivery](agent-rebuild-installed-2026-10-27.md) identifies
+The [agent4 installed delivery](agent4-installed-2026-10-27.md) identifies app and
+normal CLI code `7d32e58f`, version `0.1.0-local.20261027.agent4`. Apple Accepted,
+stapling, extracted-archive fingerprint matching, guarded installation and actual
+installed signature/ticket/Gatekeeper checks pass. Candidate and installed paths
+separately pass four chat/restart criteria and six actual file-tool ACP turns:
+five decisions, twelve completions, exact replacement previews, deny/approve
+once/re-deny, separate instruction denial and retained routine edit permission.
+All original work/data/rollback remain preserved. Source 195 focused tests,
+79 kernel tests and independent actual 29-case classifier replay pass. These are
+private scripted decisions/providers, not owner accounts or full parity/security
+acceptance. The prior nested-overwrite Block gap is resolved for the scoped
+ordinary-file contract; unrelated hard blocks and original card gates remain.
+
+The previous [agent3 installed delivery](agent-rebuild-installed-2026-10-27.md) identifies
 normal CLI pin and app source `1d18f846`, local version
 `0.1.0-local.20261027.agent3`. Apple Accepted/stapled, archive extraction/signature
 matching and guarded installation pass. Candidate and installed exact bundles
@@ -24,8 +37,8 @@ The normal CLI passes cold/warm/cache, 27 real Rust ACP/MCP checks and private
 global-wrapper routing; post-cutover initialization passes too. No owner account
 or live provider was used. All 239 original integration files, 13 dirty CLI files
 and 57 owner app-data files match; credentials/approvals were not migrated.
-Nested overwrite is kernel-blocked before a human dialog, not a completed
-approval journey. Two Building agent lanes and original card/acceptance gates
+At that version, nested overwrite was kernel-blocked before a human dialog, not
+a completed approval journey. Two Building agent lanes and original card/acceptance gates
 remain open. This supersedes the earlier missing-notary/agent2 delivery blocker.
 
 The [home1 installed checkpoint](../desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md)

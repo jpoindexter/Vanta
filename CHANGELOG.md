@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Verified agent4 delivery — 2026-10-27 (local, not a public release)
+
+- Deliver verified code `7d32e58f` to the normal CLI and Developer ID signed,
+  Apple Accepted/stapled `agent4` app. Exact candidate and installed chat/restart
+  and six-turn deny/approve-once/re-deny journeys pass with private fixtures.
+- Preserve original work/data and previous app/CLI rollback; update roadmap and
+  Trello evidence without closing unmet security, agent or owner-acceptance gates.
+  [Delivery identity and limits](docs/agent4-installed-2026-10-27.md).
+
 ## Scoped replacement and runtime checkpoint — 2026-10-27 (source only)
 
 - Require exact fresh approval for ordinary in-project file replacement under

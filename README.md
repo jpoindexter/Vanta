@@ -38,14 +38,25 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
-**Agent-first delivery — October 27:** normal `vanta` selects verified pinned
+**Current agent4 delivery — October 27:** normal `vanta` and the signed,
+Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `7d32e58f`,
+version `0.1.0-local.20261027.agent4`. Exact candidate and installed chat/restart
+and six-turn approval journeys pass: ordinary session edits remain remembered,
+file replacement requires a fresh exact decision, and denial preserves bytes.
+Two messaging transports use the existing patched WebSocket library and one
+native launcher helper is shared. Existing work/data and rollback copies are
+preserved. These are bounded repairs, not whole-agent/security/parity completion.
+[Exact delivery and remaining limits](docs/agent4-installed-2026-10-27.md).
+
+**Previous agent3 delivery — October 27:** normal `vanta` selected verified pinned
 source `1d18f846`. The same agent checkpoint is signed, Apple Accepted/stapled
-and installed at `/Applications/Vanta.app` as `0.1.0-local.20261027.agent3`.
+and was installed as `0.1.0-local.20261027.agent3`; it is now a rollback copy.
 Candidate and installed copies pass chat/restart and bounded delegation,
 uncertain-result, cancellation and depth-limit journeys. Existing work, owner
-data and prior app/CLI rollback are preserved. Nested overwrite approval still
-stops before the dialog; whole-agent, parity, security and modularization gates
-remain open. [Exact delivery and remaining limits](docs/agent-rebuild-installed-2026-10-27.md).
+data and prior app/CLI rollback were preserved. At that checkpoint, nested
+overwrite stopped before the dialog; agent4 supersedes that bounded gap.
+Whole-agent, parity, security and modularization gates remain open.
+[Previous delivery and its limits](docs/agent-rebuild-installed-2026-10-27.md).
 
 **Earlier Home integration — October 27:** the [home1 checkpoint](desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md) retains its separate 24-check text/project/attachment/restart evidence and archive2 rollback. It is now the retained previous app, not the latest installed version. That whole journey was not rerun wholesale on agent3. Current development remains on the unmerged [`claude/desktop-integration-20261013`](https://github.com/jpoindexter/Vanta/tree/claude/desktop-integration-20261013) branch; pushes are not main merges or public releases. [Acceptance record](docs/product-acceptance.md) separates current and historical proof.
 
