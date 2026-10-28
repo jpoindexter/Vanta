@@ -15,6 +15,18 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent11 installed delivery](agent11-installed-2026-10-28.md) supersedes
+agent10 as the local Desktop build. Source94c622b9 plus declared preserved dirty
+inputs passes candidate AND installed compiled MCP16/HTTP23 checks and actual
+Electron approval/reload/branch/cold restart with zero observed renderer errors.
+CLI-reachable module graphs and five core identities agree, not arbitrary stale
+chunk text. Original Apple wait timed out; the same exact Accepted submission
+was recovered without re-upload, and all ticket/signature/archive-equality gates
+passed. Full installed app/agent10 rollback and original work/data agree. Normal
+CLI70 is still older. Deterministic provider/safety fixtures are not real-model,
+external-client or new Rust-policy proof; full trust/security/modularization,
+owner/human/live-account and design/parity/accessibility gates remain open.
+
 The [website URI leaf](website-fast-uri-checkpoint-2026-10-28.md) selects
 compatible fast-uri3.1.9 through four existing manifest/lock values. Twenty
 actual validator/caller checks pass; matched lock-only audit36→35 removes only
@@ -22,7 +34,7 @@ fast-uri, with all remaining rows identical. Seventeen critical tooling rows
 remain. There is no canonical dependency installation, website build/deployment,
 default-main alert reduction or app/CLI change; overall security stays open.
 
-The [agent10 installed delivery](agent10-installed-2026-10-28.md) now delivers
+The previous [agent10 installed delivery](agent10-installed-2026-10-28.md) delivered
 sourceb67af10b and preserved declared dirty inputs as signed/Apple Accepted/
 stapled agent10. Both exact candidate and installed paths pass full-reload
 same-approval recovery, actual Allow once/one effect, cross-profile unsent draft/

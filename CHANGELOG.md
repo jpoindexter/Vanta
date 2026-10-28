@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent11 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Install signed, Apple Accepted/stapled agent11 from source94c622b9, delivering
+  MCP request correlation and per-client admission/cleanup/stream ownership.
+- Exact candidate and installed copies pass 16 compiled MCP and 23 compiled HTTP
+  checks, two real approval/reload rounds and six chat/branch/restart checkpoints.
+  Full archive/app/rollback identity and original-work preservation agree.
+- Recover the same Accepted Apple submission after its wait command timed out;
+  no resubmission or validation waiver. Normal CLI70 and full product/security/
+  modularization/owner gates remain open. [Evidence](docs/agent11-installed-2026-10-28.md).
+
 ## Agent chat ownership — 2026-10-28 (source checkpoint)
 
 - Reserve per-client admission across body/auth/queue reads; stale cleanup

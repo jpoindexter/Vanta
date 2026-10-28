@@ -1,5 +1,8 @@
 # Agent10 local Desktop delivery — 2026-10-28
 
+Historical delivery: [agent11](agent11-installed-2026-10-28.md) now replaces this
+installed version. The original evidence below remains unchanged in scope/date.
+
 `/Applications/Vanta.app` is now signed, Apple Accepted and stapled
 **`0.1.0-local.20261028.agent10`**, built from source
 `b67af10bcc4e8d74748f305564c7c7e8e7d84d96` with preserved dirty inputs explicitly

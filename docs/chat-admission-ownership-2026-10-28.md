@@ -1,5 +1,9 @@
 # Chat admission ownership — 2026-10-28 source checkpoint
 
+Delivery update: [agent11](agent11-installed-2026-10-28.md) now includes this repair
+and passes 23 actual compiled-router checks on both candidate and installed copies.
+Normal CLI70 remains older; the original source-checkpoint limits below are retained.
+
 The slice's criterion is one admitted execution per client state across body,
 authentication and queue awaits; rejected overlaps must not claim a queued item,
 stop the owner's stream or emit completion. Independent clients remain usable,

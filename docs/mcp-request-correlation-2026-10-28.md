@@ -1,5 +1,9 @@
 # MCP request correlation — 2026-10-28 source checkpoint
 
+Delivery update: [agent11](agent11-installed-2026-10-28.md) now includes this repair
+and passes it against actual candidate/installed compiled exports. Normal CLI70
+remains older. The source-checkpoint boundaries below are historical, not erased.
+
 Done for this slice means a server request using an outstanding client request's
 ID receives its own response without settling that client call; only the actual
 tool response may settle the mapped effect. This is not whole-agent acceptance.
