@@ -1,7 +1,7 @@
 import http from "node:http";
 import { loadSession } from "../sessions/store.js";
 import { listRuns } from "../runs/store.js";
-import type { Message } from "../types.js";
+import { messagesNeedEffectReview } from "../agent/effect-review.js";
 import { readJson,sendJson } from "./handler-http.js";
 import { DESCRIBE_IMAGE,parseDesktopImageInput } from "./image-input.js";
 import { type DesktopState } from "./handler-state.js";
@@ -28,16 +28,12 @@ export function queueSessionId(state: DesktopState): string {
   return state.sessionId ?? state._sseSessionId ?? "default";
 }
 
-function hasEffectReviewReceipt(messages: readonly Message[] = []): boolean {
-  return messages.some(message => message.role === "assistant" && message.desktopRun?.needsEffectReview === true);
-}
-
 /** A failed queue write must not make a durable uncertain effect safe to resume. */
 export async function queueNeedsEffectReview(state: DesktopState): Promise<boolean> {
   const id = queueSessionId(state);
   if (await turnQueue(state).needsEffectReview(id)) return true;
-  if (hasEffectReviewReceipt(state.convo?.messages) || hasEffectReviewReceipt(state._resumeHistory)) return true;
-  if (hasEffectReviewReceipt((await loadSession(id, process.env))?.messages)) return true;
+  if (messagesNeedEffectReview(state.convo?.messages) || messagesNeedEffectReview(state._resumeHistory)) return true;
+  if (messagesNeedEffectReview((await loadSession(id, process.env))?.messages)) return true;
   return (await listRuns({}, process.env)).some(run => run.sessionId === id && run.projectRoot === state.root && run.needsEffectReview === true);
 }
 

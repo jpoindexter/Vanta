@@ -7,10 +7,15 @@ import { workerResultComplete } from "../subagent/tool-result.js";
 export const EFFECT_REVIEW_TEXT = "An action may have partially completed. Review its result before continuing; Vanta will not retry it automatically.";
 const reviewConversations = new WeakSet<Conversation>();
 
+/** Hosts must recognize the same typed evidence, including sessions saved outside Desktop. */
+export function messagesNeedEffectReview(messages: readonly Message[] = []): boolean {
+  return messages.some(message => message.role === "tool" ? message.effectDisposition === "unknown"
+    : message.role === "assistant" && message.desktopRun?.needsEffectReview === true);
+}
+
 /** Seed once from typed persisted evidence, never from prose or a message cursor. */
 export function seedConversationReview(conversation: Conversation): void {
-  if (conversation.messages.some(message => message.role === "tool" ? message.effectDisposition === "unknown"
-    : message.role === "assistant" && message.desktopRun?.needsEffectReview === true)) reviewConversations.add(conversation);
+  if (messagesNeedEffectReview(conversation.messages)) reviewConversations.add(conversation);
 }
 
 export function recordConversationReview(conversation: Conversation, outcome: AgentOutcome): void {

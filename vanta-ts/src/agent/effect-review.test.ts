@@ -12,12 +12,23 @@ import type { Message } from "../types.js";
 import { persistCompaction } from "./context-pipeline.js";
 import { toolPairingViolation } from "./tool-pairing.js";
 import { buildOperatorSpine, formatOperatorSpine } from "../work-items/operator-spine.js";
+import { messagesNeedEffectReview } from "./effect-review.js";
 
 const roots: string[] = [];
 afterEach(async () => { vi.unstubAllEnvs(); vi.restoreAllMocks(); await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 const usage = { inputTokens: 100, outputTokens: 10 };
 const toolCall = { id: "effect-one", name: "fixture", arguments: {} };
 const answer: CompletionResult = { text: "Ordinary answer.", toolCalls: [], finishReason: "stop", usage };
+
+describe("typed effect-review evidence", () => {
+  it("recognizes an unknown tool result but never infers a hold from prose", () => {
+    expect(messagesNeedEffectReview([{ role: "tool", name: "gmail_send", toolCallId: "one", content: "", effectDisposition: "unknown" }])).toBe(true);
+    expect(messagesNeedEffectReview([{ role: "assistant", content: "An unknown action needsEffectReview; please review it." }])).toBe(false);
+    expect(messagesNeedEffectReview([{ role: "tool", name: "gmail_send", toolCallId: "one", content: "Unknown result", effectDisposition: "confirmed" }])).toBe(false);
+    expect(messagesNeedEffectReview([{ role: "tool", name: "read_file", toolCallId: "two", content: "Unknown result" }])).toBe(false);
+    expect(messagesNeedEffectReview()).toBe(false);
+  });
+});
 
 async function fixture(result?: ToolResult, sessionId?: string) {
   vi.stubEnv("VANTA_AUTOCONTINUE", "0");

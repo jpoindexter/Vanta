@@ -17,7 +17,10 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) and
 [T03-4 local delivery acceptance](agent14-cli-delivery-2026-10-28.md) are executed.
 The next Trust slice is T03-2: host draft/review recovery after restart remains
-unproven. O03-1 reuses current agent evidence for
+unproven. [Cross-host typed review evidence](cross-host-review-continuity-2026-10-28.md)
+now prevents a saved CLI uncertainty record from unlocking Desktop queued work;
+fresh-server HTTP source proof is not full process/installed restart acceptance.
+O03-1 reuses current agent evidence for
 false attention: [O03-1 source proof](agent-attention-routing-2026-10-28.md)
 is now executed, including the repaired positive-control blocker projection.
 [O03-2 source acceptance](uncertain-action-attention-2026-10-28.md) now proves

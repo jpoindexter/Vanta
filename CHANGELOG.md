@@ -5,10 +5,17 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
+- Keep Desktop queued work held by typed unknown tool results from live,
+  resuming or saved sessions, including CLI sessions without Desktop receipts.
+  Reuse the agent's existing evidence check. Real source HTTP replay and 32
+  focused checks pass; manual questions and independent chats remain usable.
+  Source only, not review clearing or installed restart acceptance.
+  [Evidence and limits](docs/cross-host-review-continuity-2026-10-28.md).
+
 - Bind automatic blocker identity to its host source and full request; keep
   registered ticket decisions session-scoped. Resolving one chat's repeated
   blocker no longer clears another chat's ticket. Two actual agent/kernel/CLI
-  journeys and 37 focused checks pass. Source only; canonical unknown-effect
+  journeys and 39 focused checks pass. Source only; canonical unknown-effect
   review clearing remains open. [Evidence and limits](docs/attention-chat-ownership-2026-10-28.md).
 
 - Merge repeated uncertainty for the exact session-bound operation set into one

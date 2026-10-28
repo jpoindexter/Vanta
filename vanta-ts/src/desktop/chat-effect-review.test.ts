@@ -11,10 +11,11 @@ import { DesktopTurnQueue, fileTurnQueueDeps } from "./turn-queue.js";
 import type { DesktopState } from "./handler-state.js";
 import type { AgentOutcome } from "../agent.js";
 import type { RunSetup } from "../session.js";
-import { loadSession } from "../sessions/store.js";
+import { loadSession, saveSession } from "../sessions/store.js";
 import { listRuns } from "../runs/store.js";
 import { InMemoryToolRegistry } from "../tools/registry.js";
 import { deriveLegacyRuns } from "../runs/legacy.js";
+import type { Message } from "../types.js";
 
 const homes: string[] = [];
 afterEach(async () => { vi.unstubAllEnvs(); await Promise.all(homes.splice(0).map(home => rm(home, { recursive: true, force: true }))); });
@@ -162,5 +163,20 @@ describe("uncertain queue and replay recovery", () => {
       expect(reply.result().status).toBe(409);
       expect(f.state.sessionId).toBe(priorSession);
     }
+  });
+});
+
+describe("cross-host uncertain result recovery", () => {
+  it.each(["live", "resuming", "saved"])("holds queued work from %s typed tool evidence without a Desktop receipt", async source => {
+    const f = await fixture(false);
+    const evidence: Message = { role: "tool", name: "gmail_send", toolCallId: "cli-operation", content: "Uncertain", effectDisposition: "unknown" };
+    if (source === "live") f.state.convo!.messages.push(evidence);
+    else if (source === "resuming") f.state._resumeHistory = [evidence];
+    else await saveSession(f.state.sessionId!, [{ role: "system", content: "test" }, evidence]);
+    const item = await f.state._turnQueue!.enqueue({ instruction: "Must remain queued", target: f.target });
+    const reply = response(); await handleChat(f.state, request({ resumeQueue: true }), reply.res);
+    expect(reply.result()).toMatchObject({ status: 409, body: { error: expect.stringContaining("will not retry") } });
+    expect(f.send).not.toHaveBeenCalled();
+    expect((await f.state._turnQueue!.list(f.target.sessionId)).items).toEqual([item]);
   });
 });
