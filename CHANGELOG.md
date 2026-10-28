@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## LinkedIn author binding — 2026-10-28 (source checkpoint)
+
+- Resolve and preview the personal author before fresh publication approval;
+  revalidate token/client, scope/expiry and author before using the approved
+  credential. Preserve cancellation and refuse drift without publication.
+- Twelve actual agent/kernel/local HTTP journeys and 28 focused checks pass.
+  Source only; no live post, readback or installed-preview acceptance.
+  [Evidence and limits](docs/linkedin-author-binding-2026-10-28.md).
+
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
 - Source recovery proof: three real Desktop host exit/restart journeys retain

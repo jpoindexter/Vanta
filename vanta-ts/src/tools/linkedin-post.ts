@@ -49,29 +49,51 @@ async function postingCredential(ctx: LinkedInPostContext): Promise<LinkedInCred
   return credential;
 }
 
-async function publish(input: LinkedInPostArgs, ctx: LinkedInPostContext): Promise<ToolResult> {
+function sameCredential(left: LinkedInCredential, right: LinkedInCredential): boolean {
+  return left.accessToken === right.accessToken && left.clientId === right.clientId;
+}
+
+async function revalidateAuthor(credential: LinkedInCredential, author: string, ctx: LinkedInPostContext, doFetch: LinkedInPostFetch): Promise<void> {
+  ctx.signal?.throwIfAborted();
+  const changed = "LinkedIn account or author changed; review the connected profile and request fresh approval";
+  if (!sameCredential(credential, await postingCredential(ctx))) throw new Error(changed);
+  if (await resolveLinkedInPersonUrn(credential, doFetch) !== author) throw new Error(changed);
+  if (!sameCredential(credential, await postingCredential(ctx))) throw new Error(changed);
+  ctx.signal?.throwIfAborted();
+}
+
+async function publish(input: LinkedInPostArgs, original: LinkedInPostContext): Promise<ToolResult> {
+  const ctx = { ...original, env: { ...(original.env ?? process.env) } };
+  const fetch = ctx.linkedinFetch ?? (globalThis.fetch as LinkedInPostFetch);
+  const doFetch: LinkedInPostFetch = (url, init) => fetch(url, { ...init, signal: ctx.signal });
   let credential: LinkedInCredential;
+  let author: string;
   try {
-    credential = await postingCredential(ctx);
+    ctx.signal?.throwIfAborted();
+    const loaded = await postingCredential(ctx);
+    credential = { ...loaded, scopes: [...loaded.scopes] };
+    author = await resolveLinkedInPersonUrn(credential, doFetch);
   } catch (error) {
     return { ok: false, output: (error as Error).message, effectDisposition: "denied" };
   }
   const approval = linkedInPostApproval(input);
   const approved = await ctx.requestApproval(
-    approval.action,
+    `${approval.action} as ${JSON.stringify(author)}`,
     "publishes once to the connected personal LinkedIn profile",
     "linkedin_post",
-    { fresh: true, diff: approval.detail },
+    { fresh: true, diff: `Author: ${JSON.stringify(author)}\n${approval.detail}` },
   );
   if (!approved) return { ok: false, output: "LinkedIn post denied by user", effectDisposition: "denied" };
 
-  const doFetch = ctx.linkedinFetch ?? (globalThis.fetch as LinkedInPostFetch);
-  let author: string;
   try {
-    author = await resolveLinkedInPersonUrn(credential, doFetch);
+    await revalidateAuthor(credential, author, ctx, doFetch);
   } catch (error) {
     return { ok: false, output: (error as Error).message, effectDisposition: "denied" };
   }
+  return submitPost(input, credential, author, doFetch);
+}
+
+async function submitPost(input: LinkedInPostArgs, credential: LinkedInCredential, author: string, doFetch: LinkedInPostFetch): Promise<ToolResult> {
   try {
     const result = await createLinkedInTextPost(credential, author, input, doFetch);
     if (result.outcome === "rejected") {

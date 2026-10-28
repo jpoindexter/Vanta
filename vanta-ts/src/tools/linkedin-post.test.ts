@@ -73,7 +73,7 @@ describe("linkedin_post tool", () => {
   });
 
   it("shows exact preview but hashes the safety action, then stops on denial", async () => {
-    const doFetch = vi.fn();
+    const doFetch = sequence(response(200, { sub: "member-1" }));
     const ctx = context({ linkedinFetch: doFetch, requestApproval: vi.fn(async () => false) });
     const result = await linkedinPostTool.execute({ text: body, visibility: "CONNECTIONS" }, ctx);
     expect(result).toMatchObject({ ok: false, effectDisposition: "denied" });
@@ -81,18 +81,23 @@ describe("linkedin_post tool", () => {
     expect(call?.[0]).toMatch(/CONNECTIONS.*sha256 [a-f0-9]{64}/);
     expect(call?.[0]).not.toContain(body);
     expect(call?.[3]).toMatchObject({ fresh: true, diff: expect.stringContaining(body) });
-    expect(doFetch).not.toHaveBeenCalled();
+    expect(doFetch).toHaveBeenCalledTimes(1);
   });
 
   it("fails closed when identity resolution fails before the post request", async () => {
     const doFetch = sequence(response(401));
-    const result = await linkedinPostTool.execute({ text: body }, context({ linkedinFetch: doFetch }));
+    const ctx = context({ linkedinFetch: doFetch });
+    const result = await linkedinPostTool.execute({ text: body }, ctx);
     expect(result).toMatchObject({ ok: false, effectDisposition: "denied" });
     expect(doFetch).toHaveBeenCalledTimes(1);
+    expect(ctx.requestApproval).not.toHaveBeenCalled();
   });
+});
 
+describe("LinkedIn publication outcomes", () => {
   it("reports a provider-confirmed post without claiming readback", async () => {
     const doFetch = sequence(
+      response(200, { sub: "member-1" }),
       response(200, { sub: "member-1" }),
       response(201, {}, "urn:li:ugcPost:12345"),
     );
@@ -107,17 +112,20 @@ describe("linkedin_post tool", () => {
   });
 
   it("reports an ambiguous post failure as unknown and never retries", async () => {
-    const doFetch = sequence(response(200, { sub: "member-1" }), new Error("reset"));
+    const doFetch = sequence(response(200, { sub: "member-1" }), response(200, { sub: "member-1" }), new Error("reset"));
     const result = await linkedinPostTool.execute({ text: body }, context({ linkedinFetch: doFetch }));
     expect(result).toMatchObject({ ok: false, effectDisposition: "unknown" });
     expect(result.output).toContain("inspect the profile before any retry");
-    expect(doFetch).toHaveBeenCalledTimes(2);
+    expect(doFetch).toHaveBeenCalledTimes(3);
   });
+});
 
+describe("LinkedIn durable publication boundary", () => {
   it("uses the durable effect claim to prevent a duplicate provider call", async () => {
     const root = await mkdtemp(join(tmpdir(), "vanta-linkedin-effect-"));
     roots.push(root);
     const doFetch = sequence(
+      response(200, { sub: "member-1" }),
       response(200, { sub: "member-1" }),
       response(201, {}, "urn:li:share:12345"),
     );
@@ -132,7 +140,7 @@ describe("linkedin_post tool", () => {
     const replay = await executeToolEffect("linkedin_post", args, linkedinPostTool, ctx);
     expect(first).toMatchObject({ ok: true, effectDisposition: "confirmed" });
     expect(replay.output).toContain("was already confirmed");
-    expect(doFetch).toHaveBeenCalledTimes(2);
+    expect(doFetch).toHaveBeenCalledTimes(3);
     const receipts = await readFile(join(root, ".vanta", "action-receipts.jsonl"), "utf8");
     expect(receipts).not.toContain(body);
     expect(receipts).not.toContain(credential.accessToken);
