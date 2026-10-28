@@ -95,17 +95,8 @@ else
   TSX="npx tsx"   # degraded fallback (deps not installed) — still carries the IPC server
 fi
 
-# QUICKSILVER-STARTUP: use a metadata-validated JavaScript compile for normal
-# launches. Source/config changes rebuild atomically; a failed or interrupted
-# rebuild leaves the last runnable compile intact and falls back to tsx.
-RUNTIME="src/cli.ts"
-if node scripts/ensure-startup-compile.mjs >/dev/null 2>&1 && [ -f ".startup-cache/src/cli.js" ]; then
-  TSX="node"
-  RUNTIME=".startup-cache/src/cli.js"
-fi
-
-# Relaunch loop: /restart exits with code 75 → re-run tsx so edited source is
-# picked up without quitting to the shell. Any other exit code passes through.
+# Relaunch loop: /restart exits with code 75 and selects the current source again.
+# Any other exit code passes through.
 # VANTA_RELAUNCH tells the agent the loop is active (so /restart is offered).
 export VANTA_RELAUNCH=1
 
@@ -125,7 +116,14 @@ VANTA_HEAP_OPTION="--max-old-space-size=${VANTA_NODE_MAX_MB:-$VANTA_NODE_MAX_DEF
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }$VANTA_HEAP_OPTION"
 
 while :; do
-  if $TSX "$RUNTIME" "$@"; then code=0; else code=$?; fi
+  # Pin this process to one complete build; another launch must not replace it.
+  RUNTIME="src/cli.ts"
+  RUNNER="$TSX"
+  if COMPILED_ROOT=$(node scripts/ensure-startup-compile.mjs 2>/dev/null) && [ -f "$COMPILED_ROOT/src/cli.js" ]; then
+    RUNNER="node"
+    RUNTIME="$COMPILED_ROOT/src/cli.js"
+  fi
+  if $RUNNER "$RUNTIME" "$@"; then code=0; else code=$?; fi
   [ "$code" = 75 ] || exit "$code"
   echo "vanta: reloading…" >&2
 done

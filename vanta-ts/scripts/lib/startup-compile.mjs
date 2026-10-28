@@ -1,17 +1,18 @@
-import { access, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
-import { join, relative, resolve } from "node:path";
+import { mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { basename, join, relative, resolve } from "node:path";
 
 const VERSION = 1;
 export const STARTUP_RUNTIME_ASSETS = ["desktop-native/runtime-fetch-init.mjs", "desktop-native/maintained-fetch.mjs"];
 const DEFAULT_INPUTS = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.runtime.json", ...STARTUP_RUNTIME_ASSETS];
 const REQUIRED_OUTPUTS = ["src/cli.js", ...STARTUP_RUNTIME_ASSETS];
 
-async function exists(path) {
+async function currentGeneration(outputRoot) {
   try {
-    await access(path);
-    return true;
+    const generation = JSON.parse(await readFile(join(outputRoot, "current.json"), "utf8"));
+    return typeof generation === "string" && /^generation-[A-Za-z0-9]+$/.test(generation)
+      ? join(outputRoot, generation) : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -67,10 +68,13 @@ async function cacheHit(root, outputRoot, inputs) {
 
 async function buildStaging({ root, staging, inputs, build }) {
   try {
+    const sources = await startupManifest(root, inputs);
     await build(staging);
     const missing = await missingRequiredOutputs(staging);
     if (missing.length) throw new Error(`missing required startup output: ${missing.join(", ")}`);
-    const sources = await startupManifest(root, inputs);
+    if (JSON.stringify(sources) !== JSON.stringify(await startupManifest(root, inputs))) {
+      throw new Error("source changed during startup compilation");
+    }
     await writeFile(
       join(staging, "manifest.json"),
       `${JSON.stringify({ version: VERSION, sources })}\n`,
@@ -86,27 +90,20 @@ export async function ensureStartupCompile(options) {
   const root = resolve(options.root);
   const outputRoot = resolve(options.outputRoot ?? join(root, ".startup-cache"));
   const inputs = options.inputs ?? DEFAULT_INPUTS;
-  if (await cacheHit(root, outputRoot, inputs)) return { status: "hit", outputRoot };
+  const current = await currentGeneration(outputRoot);
+  if (current && await cacheHit(root, current, inputs)) return { status: "hit", outputRoot: current };
 
-  const staging = `${outputRoot}.next-${process.pid}`;
-  const backup = `${outputRoot}.previous-${process.pid}`;
-  await rm(staging, { recursive: true, force: true });
-  await mkdir(staging, { recursive: true, mode: 0o700 });
+  await mkdir(outputRoot, { recursive: true, mode: 0o700 });
+  const staging = await mkdtemp(join(outputRoot, "generation-"));
   await buildStaging({ root, staging, inputs, build: options.build });
 
-  let movedCurrent = false;
   try {
-    if (await exists(outputRoot)) {
-      await rm(backup, { recursive: true, force: true });
-      await rename(outputRoot, backup);
-      movedCurrent = true;
-    }
-    await rename(staging, outputRoot);
-    if (movedCurrent) await rm(backup, { recursive: true, force: true });
+    await writeFile(join(staging, "current.json"), JSON.stringify(basename(staging)), { mode: 0o600 });
+    await rename(join(staging, "current.json"), join(outputRoot, "current.json"));
   } catch (error) {
-    if (!await exists(outputRoot) && movedCurrent && await exists(backup)) await rename(backup, outputRoot);
     await rm(staging, { recursive: true, force: true });
     throw error;
   }
-  return { status: "built", outputRoot };
+  // Old generations may still serve a live process's dynamic imports.
+  return { status: "built", outputRoot: staging };
 }

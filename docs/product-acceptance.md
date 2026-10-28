@@ -15,6 +15,18 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [startup-cache generation checkpoint](startup-cache-generations-2026-10-28.md)
+repairs three reproduced cache defects with retained immutable outputs and an atomic
+pointer. Eleven focused checks, actual concurrent compiled launches and 26 actual
+ACP/MCP/file/denial/Cancel checks pass. The historical missing-module crash was not
+reproduced by timing alone. This is source evidence; installed agent6/normal CLI
+remain on their earlier delivered code, and no whole Trust/Operator gate closes.
+
+The [website source-map checkpoint](website-source-map-checkpoint-2026-10-28.md)
+updates one compatible lock leaf. Actual CSS-consumer checks pass; the matched
+audit removes only that leaf, leaving 42 package findings. No current whole-site
+build/deployment, default-branch clearance or installed app/CLI update is claimed.
+
 The [agent6 installed delivery](agent6-installed-2026-10-28.md) delivers d6260ace
 to normal CLI and signed/Apple Accepted/stapled installed app. Exact candidate and
 installed chat/restart, six-turn fresh approval and five swarm cases pass. Real

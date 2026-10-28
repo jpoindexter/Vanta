@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Startup and CSS-consumer repairs — 2026-10-28 (source only)
+
+- Pin each launch to a retained complete startup generation; reject source edits
+  during compilation and refresh the selected generation on exit 75. Eleven focused
+  checks, actual concurrent compiled launches and 26 ACP/MCP behavior checks pass.
+- Patch only the website source-map-js lock leaf to 1.2.2. Eight actual consumer
+  checks pass; a matched audit removes one finding, leaving 42. No guards waived.
+- Installed agent6 and the selected normal CLI remain unchanged. No new app/site
+  delivery, whole-security/parity clearance, main merge, public release/tag or CI.
+  [Startup evidence](docs/startup-cache-generations-2026-10-28.md) ·
+  [CSS-consumer evidence](docs/website-source-map-checkpoint-2026-10-28.md).
+
 ## Verified agent6 delivery — 2026-10-28 (local, not a public release)
 
 - Deliver source `d6260ace` to normal CLI and signed, Apple Accepted/stapled

@@ -17,7 +17,7 @@ const compiler = packagedCompiler && existsSync(packagedCompiler)
   ? packagedCompiler
   : join(root, "node_modules", "@typescript", "native", "bin", "tsc");
 
-await ensureStartupCompile({
+const result = await ensureStartupCompile({
   root,
   build: async (staging) => {
     await exec(process.execPath, [
@@ -38,6 +38,7 @@ await ensureStartupCompile({
     }
   },
 });
+console.log(result.outputRoot);
 
 async function copyRuntimeAssets(source, target) {
   const { readdir } = await import("node:fs/promises");
