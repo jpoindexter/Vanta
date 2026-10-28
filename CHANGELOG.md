@@ -3,7 +3,21 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## New chat/fork route guard and activity reads — 2026-10-28 (source only)
+## Agent8 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Signed, Apple Accepted/stapled installed agent8 delivers source430530cd and
+  preserved dirty renderer inputs. Normal CLI stays on2d739e68; agent7 rollback,
+  original work and owner data are retained.
+- Exact candidate AND installed New chat/Branch/child continuation/switch/cold
+  restart pass with exact three-chat histories and zero renderer errors. Fresh
+  six-turn file approval, final extracted archive and full fingerprints pass.
+- Retain two Apple timeout failures; acceptance readback and unchanged archive
+  validator recovery pass without a second submission or relaxed checks.
+- Durable fork ancestry, whole design/parity, owner/human/live-account, security
+  and modularization gates remain open. No main merge, release/tag, CI or spend.
+  [Exact delivery and remaining work](docs/agent8-installed-2026-10-28.md).
+
+## New chat/fork route guard and activity reads — 2026-10-28 (source checkpoint)
 
 - Extract the complete pending-created-session route guard, retaining the external
   owner ref, live finally reads, three-second timer and recovery behavior.
@@ -12,8 +26,9 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
   Reject and fully restore an ID-based candidate that failed the real app.
 - Twenty-four focused checks, types and architecture pass. Rebuilt source Electron
   passes create/branch/continuation/switch/cold restart with exact history and zero
-  renderer errors. Installed agent7/normal CLI remain unchanged; durable fork
-  parent linkage, packaged delivery and whole-card gates remain open.
+  renderer errors. At that source checkpoint, installed agent7/normal CLI were
+  unchanged. Agent8 above adds exact package/install evidence; durable fork
+  parent linkage and whole-card gates remain open.
   [Proof and limits](docs/created-session-guard-2026-10-28.md).
 
 ## Website compression cleanup — 2026-10-28 (source only)

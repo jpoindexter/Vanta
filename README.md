@@ -38,16 +38,25 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
-**New chat/fork source checkpoint — October 28:** extract the route hold without
+**Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
+`0.1.0-local.20261028.agent8` is installed from source `430530cd`. Exact candidate
+and installed create/branch/continue/switch/cold-restart checks pass with exact
+three-chat history and zero renderer errors; fresh file-approval regression,
+archive extraction, installed/rollback fingerprints and preservation also pass.
+Normal `vanta` remains on `2d739e68`; existing work, profiles and agent7 rollback
+are retained. This is not whole design/security/parity or owner acceptance.
+[Delivery identities, timeout recovery and remaining work](docs/agent8-installed-2026-10-28.md).
+
+**New chat/fork source checkpoint — October 28 (delivered in agent8 above):** extract the route hold without
 changing session ownership and prevent activity reads from dereferencing a removed
 message during empty chat switches. Twenty-four focused checks and the real source
 Electron create/branch/switch/cold-restart journey pass with zero renderer errors.
-This is not yet packaged/installed; agent7 below remains the local delivered build.
+The original source-only proof is supplemented by exact agent8 delivery above.
 [Evidence, rejected candidate and remaining gaps](docs/created-session-guard-2026-10-28.md).
 
-**Current local delivery — October 28:** normal `vanta` selects source
-`2d739e68`, also installed as signed, Apple Accepted/stapled Desktop
-`0.1.0-local.20261028.agent7`. Exact candidate and installed chat/restart,
+**Previous Desktop delivery / current CLI — October 28:** normal `vanta` selects source
+`2d739e68`, previously installed as signed, Apple Accepted/stapled Desktop
+`0.1.0-local.20261028.agent7` and now retained as rollback. Exact candidate and installed chat/restart,
 fresh file approvals and five worker cases pass with private fixtures. Real
 terminal restart and a remembered project choice surviving restart also pass.
 Previous app/pin and original work/data remain recoverable. This is not a finished

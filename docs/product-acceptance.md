@@ -15,6 +15,16 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent8 local Desktop delivery](agent8-installed-2026-10-28.md) now delivers
+source430530cd as signed/Apple Accepted/stapled installed agent8. Exact candidate
+AND installed create/branch/continue/switch/cold-restart journeys preserve three
+exact histories with zero renderer errors including post-close collection. Both
+packaged file-approval regressions, extracted archive, installed/agent7 rollback
+fingerprints and original work/data checks pass. Apple wait/CloudKit timeout
+failures remain recorded; the same submission's Accepted readback and unchanged
+archive validator recovery pass without resubmission. Normal CLI remains2d739e68.
+No whole visual/parity/owner/human/live-account/security/modularization clearance.
+
 The [New chat/fork source checkpoint](created-session-guard-2026-10-28.md)
 extracts the route guard and repairs an observed empty-thread activity read race.
 Pre-extraction and guard-only Electron runs both reproduce the console error;
@@ -23,11 +33,13 @@ selector guard passes the complete six-checkpoint source Electron journey with
 zero errors, exact copied/continued/switched/cold-restarted histories and private
 profiles. Twenty-four focused checks, types, source build and architecture pass.
 This source replay uses the maintained 2d739e68 backend/kernel, not a new packaged
-or installed app. Agent7/normal CLI below remain unchanged. Persistent fork-parent
-linkage, next exact package/install and whole-card/owner/parity gates remain open.
+or installed app. Agent8 above supplies that separate exact delivery evidence;
+normal CLI remains unchanged. Persistent fork-parent linkage and whole-card/
+owner/parity gates remain open.
 
-The [agent7 local delivery](agent7-installed-2026-10-28.md) delivers source `2d739e68`
-to normal CLI and signed/Apple Accepted/stapled installed agent7. Exact candidate
+The historical [agent7 local delivery](agent7-installed-2026-10-28.md) delivered source `2d739e68`
+to normal CLI and the then-installed signed/Apple Accepted/stapled agent7. Normal
+CLI remains on that source; Desktop is now agent8 above. Exact candidate
 AND installed chat/restart, six-turn fresh file approval and five worker cases
 pass. Actual terminal restart/context and a saved project choice surviving restart
 without another prompt pass. Final ZIP/extraction/installed/agent6 rollback and
