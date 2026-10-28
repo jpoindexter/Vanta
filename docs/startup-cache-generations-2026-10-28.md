@@ -52,6 +52,24 @@ deterministic regressions establish cache defects, not forensic certainty about
 that historical run. An initial launcher-test fixture had a string-escaping error;
 correcting that fixture preceded its passing execution, without a production bypass.
 
+### Exact-kernel follow-up
+
+The first private copy used the canonical generated kernel, hash `6755fd43…`.
+An additional worker harness refused it before starting a kernel/model because
+its identity did not match the previously verified CLI kernel. The failed setup
+and binary are retained; no failure was recast as product success. Only the
+private copy was changed to the existing d626 pin's exact kernel:
+`0a8511a6d09ef67a05e2eb303234792d5fcb6b0cb5a1209fe3b02a2721017a78`.
+Canonical kernel, normal CLI and installed app were not changed.
+
+The 26 actual ACP/MCP checks then passed again in `after-known-kernel`. Five
+additional actual compiled-runtime/Rust worker cases passed from the new immutable
+generation: uncertain effect with sibling containment, independent success,
+read-limit completion, held approval with a late reply/fresh rejection, and parent
+Cancel. Each uses a fresh private profile and scripted loopback model, preserves
+its actual effects/receipts and exits naturally. These checks use the compiled
+runtime directly; they complement, not replace, the actual launcher checks above.
+
 ## Remaining boundaries
 
 The cache uses source metadata rather than content hashes and checks its entry
