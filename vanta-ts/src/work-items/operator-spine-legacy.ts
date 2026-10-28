@@ -102,6 +102,19 @@ export async function loadTickets(dataDir: string): Promise<LoadedSource> {
   });
 }
 
+function ticketAttention(value: Record<string, unknown>, state: WorkItemState) {
+  if (!["draft", "running"].includes(state) || !(value.labels as unknown[]).includes("needs-human")) return {};
+  const attention = { state: "needs human" as const, waitCondition: "Operator input", blocker: value.title as string };
+  for (const comment of [...value.comments as unknown[]].reverse()) {
+    if (!comment || typeof comment !== "object" || !("text" in comment) || typeof comment.text !== "string") continue;
+    const match = /^Reason: ([\s\S]*?)\nNext action: ([\s\S]*?)(?:\nSource: [\s\S]*)?$/.exec(comment.text);
+    if (match?.[1]?.trim() && match[2]?.trim()) {
+      return { ...attention, blocker: match[1].trim(), nextAction: match[2].trim() };
+    }
+  }
+  return attention;
+}
+
 function ticketItem(id: string, value: Record<string, unknown>, path: string): OperatorWorkItem | null {
   const states: Record<string, WorkItemState> = {
     open: "draft",
@@ -119,6 +132,7 @@ function ticketItem(id: string, value: Record<string, unknown>, path: string): O
     state,
     updatedAt: text(value.updatedAt, epoch),
     ...(state === "unverified" ? { nextAction: "Verify the ticket outcome" } : {}),
+    ...ticketAttention(value, state),
   });
 }
 

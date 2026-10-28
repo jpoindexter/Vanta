@@ -3,6 +3,14 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent attention routing — 2026-10-28 (source checkpoint)
+
+- Keep routine conversation/status/public reads quiet; show genuine active
+  needs-human tickets in the operator view with their reason and next action.
+- Actual isolated CLI/kernel replay and 27 focused/architecture checks pass.
+  No grant/policy change, installed delivery or whole OP-03 completion.
+  [Evidence and limits](docs/agent-attention-routing-2026-10-28.md).
+
 ## Website shell-quote — 2026-10-28 (source checkpoint)
 
 - Update one compatible website lock entry to shell-quote1.11.0;18 targeted

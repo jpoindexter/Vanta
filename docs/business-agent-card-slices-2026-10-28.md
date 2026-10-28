@@ -18,7 +18,9 @@ Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) is executed;
 the next Trust slice is T03-4, putting that repair into the pinned CLI and exact
 packaged app before expanding another adapter. T03-2's replay evidence is partial:
 host draft/review recovery is not proven. O03-1 reuses current agent evidence for
-false attention; O03-2 remains unexecuted. Maximum one active slice per
+false attention: [O03-1 source proof](agent-attention-routing-2026-10-28.md)
+is now executed, including the repaired positive-control blocker projection.
+O03-2 is next and remains unexecuted. Maximum one active slice per
 Building parent. Next parents and later checklist rows are not concurrent work.
 Reuse existing implementation and receipts before changing code. A failed proof
 selects the next fix; it does not justify another framework or generic audit.
@@ -41,7 +43,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 
 ## OP-03 — building
 
-- [ ] O03-1: Noise control: ordinary question, greeting, status and successful research each create zero Needs You items in an actual agent journey; reuse existing receipts before adding code.
+- [x] O03-1: Noise control: ordinary question, greeting, status and successful public read each create zero Needs You items in an actual isolated CLI/kernel journey; one real stopped-run blocker projects to Needs You. SOURCE acceptance only; not installed UI or research-quality proof.
 - [ ] O03-2: One blocked outreach action: a Gmail account-change or unknown-delivery fixture produces one understandable blocker with its source and smallest safe resolution; preserve the draft.
 - [ ] O03-3: Deduplicate and resolve: repeat that exact blocker, merge its timeline, then resolve it; the item clears and another chat's attention state stays unchanged.
 - [ ] O03-4: Expiry and restart: retain the blocker through restart, expire it once and reject a late response without executing or dismissing a newer approval.
