@@ -3,6 +3,9 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { reloadPersistedDrafts, stashSessionDraft, takeSessionDraft } from '@/store/composer'
 import { DRAFT_TEXT_STORAGE_KEY } from '@/store/draft-text-storage'
 import { $connection } from '@/store/session'
+import { $activeGatewayProfile, $newChatProfile, $newChatRoute, captureNewChatSource } from '@/store/profile'
+import { freshDraftScope, rotateFreshDraftKey } from '@/store/fresh-draft-scope'
+import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
 import { ComposerScopeProvider, MAIN_COMPOSER_SCOPE } from '../scope'
 import { useComposerDraft } from './use-composer-draft'
 
@@ -77,5 +80,37 @@ it('loads only the resolved owner’s draft when readiness arrives after an unre
   } finally {
     cleanup()
     $connection.set(previous)
+  }
+})
+
+it('retains fresh words when a selected profile activates after typing starts', () => {
+  const previous = { connection: $connection.get(), active: $activeGatewayProfile.get(), profile: $newChatProfile.get(), route: $newChatRoute.get() }
+  $connection.set({ connectionId: 'local', mode: 'local' } as never)
+  $activeGatewayProfile.set(A.profile)
+  $newChatProfile.set(B.profile)
+  $newChatRoute.set(null)
+  captureNewChatSource(null)
+  const key = rotateFreshDraftKey(captureDraftCustodyOwner(null), true)
+  function FreshProbe() {
+    current = useComposerDraft({ activeQueueSessionKey: freshDraftScope(), focusKey: null, inputDisabled: false,
+      queueEditRef: { current: null }, sessionId: null })
+    return <div contentEditable data-slot="composer-rich-input" ref={current.editorRef} />
+  }
+  try {
+    const mounted = render(<FreshProbe />)
+    act(() => current.insertText('Words typed before activation finishes'))
+    act(() => { $activeGatewayProfile.set(B.profile); mounted.rerender(<FreshProbe />) })
+    expect(current.editorRef.current?.textContent).toBe('Words typed before activation finishes')
+    expect(current.draftRef.current).toBe('Words typed before activation finishes')
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(takeSessionDraft(key, B).text).toBe('Words typed before activation finishes')
+    expect(takeSessionDraft(key, A).text).toBe('')
+  } finally {
+    cleanup()
+    $connection.set(previous.connection)
+    $activeGatewayProfile.set(previous.active)
+    $newChatProfile.set(previous.profile)
+    $newChatRoute.set(previous.route)
+    captureNewChatSource(null)
   }
 })

@@ -83,7 +83,7 @@ import {
   setTileSessionFocusStartedAt,
   setTurnStartedAt
 } from './session'
-import { secondaryProfileOwnerForEvent } from './session-event-provenance'
+import { createSessionRuntimeOwnership } from './session-runtime-ownership'
 import { $focusedStoredSessionId, TILE_PANE_PREFIX } from './session-focus'
 import { assertSessionOwnerResolved } from './session-owner-resolution'
 import {
@@ -115,45 +115,21 @@ export const $sessionStates = atom<Record<string, ClientSessionState>>({})
 // or secondary marker and record nothing, so single-source behavior is untouched.
 // ---------------------------------------------------------------------------
 
-const sessionScopeByRuntimeId = new Map<string, string>()
-
 // Structured twin of the scope ledger: inbound events can carry either an
 // exact (connectionId, profile) owner or a producer-proven profile-only pool
 // owner. Consumed as the LAST rung of knownOwnerForSession so a runtime whose
 // event source already proved its owner can still route session-scoped RPCs
 // (approval.respond) when every durable binding (tile / hint / row) is absent
 // — while durable stored identity keeps outranking it (#97511).
-const sessionOwnerByRuntimeId = new Map<string, SessionOwnerScope>()
+const runtimeEventOwnership = createSessionRuntimeOwnership(normalizeProfileKey)
 
 export function recordSessionEventScope(event: { connectionId?: string; profile?: string; session_id?: string }): void {
   if (!event.session_id) {
     return
   }
 
-  if (event.connectionId) {
-    sessionScopeByRuntimeId.set(event.session_id, registryBackendScopeKey(event.connectionId, event.profile))
-    sessionOwnerByRuntimeId.set(event.session_id, {
-      connectionId: event.connectionId,
-      profile: String(event.profile ?? '').trim() || 'default'
-    })
-
-    // An owner resolved after the focus moved must still re-home the rail.
-    syncPreviewScope()
-
-    return
-  }
-
-  // Only gateway.ts's secondary closure can add this non-serializable marker.
-  // A profile field from a primary or arbitrary inbound event is descriptive,
-  // not an owner route, and must keep failing closed in multi-profile installs.
-  const profile = secondaryProfileOwnerForEvent(event as GatewayEvent)
-
-  if (profile) {
-    const profileKey = normalizeProfileKey(profile)
-    sessionOwnerByRuntimeId.set(event.session_id, profileKey)
-    sessionScopeByRuntimeId.set(event.session_id, profileKey)
-  }
-
+  runtimeEventOwnership.record(event)
+  // An owner resolved after the focus moved must still re-home the rail.
   syncPreviewScope()
 }
 
@@ -165,7 +141,7 @@ export function recordSessionEventScope(event: { connectionId?: string; profile?
 export function runtimeSessionOwner(sessionId: null | string | undefined): SessionOwnerScope {
   const id = String(sessionId ?? '').trim()
 
-  return id ? sessionOwnerByRuntimeId.get(id) : undefined
+  return id ? runtimeEventOwnership.ownerForRawId(id) : undefined
 }
 
 /** The composite source scope (connection + profile) a runtime's own events
@@ -178,7 +154,7 @@ export function runtimeSessionOwner(sessionId: null | string | undefined): Sessi
 export function sessionEventScopeFor(runtimeId: null | string | undefined): string | undefined {
   const id = String(runtimeId ?? '').trim()
 
-  return id ? sessionScopeByRuntimeId.get(id) : undefined
+  return id ? runtimeEventOwnership.scopeForRawId(id) : undefined
 }
 
 /** Forget only profile-pool runtime owners during permanent LOCAL profile
@@ -186,14 +162,7 @@ export function sessionEventScopeFor(runtimeId: null | string | undefined): stri
  * producer; exact connection descriptors must survive a same-named remote
  * profile's local delete/rename. */
 export function forgetProfileOnlyRuntimeOwners(profile: string): void {
-  const retired = normalizeProfileKey(profile)
-
-  for (const [runtimeId, owner] of sessionOwnerByRuntimeId) {
-    if (typeof owner === 'string' && normalizeProfileKey(owner) === retired) {
-      sessionOwnerByRuntimeId.delete(runtimeId)
-      sessionScopeByRuntimeId.delete(runtimeId)
-    }
-  }
+  runtimeEventOwnership.forgetProfileOnly(profile)
 }
 
 /** Composite scopes of registry-sourced sessions that are live (busy or
@@ -207,7 +176,7 @@ export function liveSessionScopes(): Set<string> {
       continue
     }
 
-    const scope = sessionScopeByRuntimeId.get(runtimeId)
+    const scope = runtimeEventOwnership.scopeForRawId(runtimeId)
 
     if (scope) {
       scopes.add(scope)
@@ -279,7 +248,7 @@ export function foregroundSessionScopes(): Set<string> {
       return
     }
 
-    const scope = sessionScopeByRuntimeId.get(runtimeId)
+    const scope = runtimeEventOwnership.scopeForRawId(runtimeId)
 
     if (scope) {
       scopes.add(scope)
@@ -967,8 +936,7 @@ export function dropSessionState(runtimeId: string) {
   clearWatchdog(runtimeId)
   clearEventSilence(runtimeId)
   clearSessionProviderWait(runtimeId)
-  sessionScopeByRuntimeId.delete(runtimeId)
-  sessionOwnerByRuntimeId.delete(runtimeId)
+  runtimeEventOwnership.drop(runtimeId)
   // A runtime that never bound a stored id never will now (#73890).
   forgetPendingRuntimeTabs(runtimeId)
 
@@ -1004,8 +972,7 @@ export function clearAllSessionStates() {
   settledExpiry.clear()
   unconfirmedReconnectSettles.clear()
   clearAllProviderWaits()
-  sessionScopeByRuntimeId.clear()
-  sessionOwnerByRuntimeId.clear()
+  runtimeEventOwnership.clear()
   forgetPendingRuntimeTabs()
   $stalledSessionIds.set([])
   $sessionStates.set({})
@@ -1065,7 +1032,7 @@ export function reconcileBusyStatesOnReconnect(scope?: string) {
         continue
       }
 
-      const recorded = sessionScopeByRuntimeId.get(runtimeId)
+      const recorded = runtimeEventOwnership.scopeForRawId(runtimeId)
 
       if (scope === undefined ? recorded !== undefined : recorded !== scope) {
         continue
@@ -1773,7 +1740,7 @@ export function openTileGatewayScopes(): Set<string> {
  * hint outranks the row for the same reason as contrib/wiring's ladder: a
  * row can be stamped from the ambient profile and carries no connection.
  * Last rung: the owner recorded from the inbound runtime event itself
- * (sessionOwnerByRuntimeId, #97511) — an orphan runtime whose tile/hint/row
+ * (runtimeEventOwnership, #97511) — an orphan runtime whose tile/hint/row
  * binding is absent or stale still routes through the exact
  * (connectionId, profile) or secondary socket's proven local profile. It sits
  * BELOW every durable EXACT route, so a stored-id collision never inherits a
@@ -1803,7 +1770,7 @@ export function knownOwnerForSession(sessionId: null | string | undefined): Sess
     return durable
   }
 
-  return sessionOwnerByRuntimeId.get(sessionId) ?? durable
+  return runtimeEventOwnership.ownerForRawId(sessionId) ?? durable
 }
 
 // Session-scoped REST reads (detail / messages / timeline) resolve their

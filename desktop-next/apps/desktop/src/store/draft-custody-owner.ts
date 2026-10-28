@@ -1,5 +1,5 @@
 import { isFreshDraftScope } from './fresh-draft-scope'
-import { $activeGatewayProfile, resolveNewChatOwnerRoute } from './profile'
+import { $activeGatewayProfile, $newChatProfile, resolveNewChatOwnerRoute } from './profile'
 import { $connection, getSessionOwnerHint, getSessionOwnerHints } from './session'
 import type { DraftOwner } from '../../../shared/src/vanta/draft-custody'
 import type { SessionOwnerRoute } from './session-request-router'
@@ -21,10 +21,16 @@ function draftOwnerRoute(session: string | null | undefined, explicit: ExplicitO
   return resolveNewChatOwnerRoute()
 }
 
+function draftProfile(session: string | null | undefined, explicit?: ExplicitOwner): string {
+  const fresh = !session || isFreshDraftScope(session)
+  // A legacy profile pick precedes activation; its draft already belongs to the selected profile.
+  return explicit?.profile || (fresh && $newChatProfile.get()) || $activeGatewayProfile.get()
+}
+
 /** Exactly the same owner door used for session.create; never ambient-read after an await. */
 export function captureDraftCustodyOwner(session: string | null | undefined, explicit?: ExplicitOwner): DraftOwner | undefined {
   const activeConnection = activeDraftConnectionId()
-  const profile = explicit?.profile || $activeGatewayProfile.get()
+  const profile = draftProfile(session, explicit)
   const route = draftOwnerRoute(session, explicit, activeConnection, profile)
   if (route === null && session && !isFreshDraftScope(session)) return undefined
   const connectionId = route?.connectionId || activeConnection

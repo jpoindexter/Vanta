@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Draft ownership and runtime ledger — 2026-10-28 (source checkpoint)
+
+- Preserve fresh draft words through delayed profile activation by using the
+  selected profile before its gateway finishes switching.
+- Extract the event-owner ledger into a 70-line module, retaining proven
+  provenance, durable-owner precedence and cleanup semantics.
+- Fifty-eight focused tests and the real source-Electron single-approval round
+  pass. Full-reload approval recovery still fails and is the next repair;
+  installed app, normal CLI and whole-card completion remain unchanged.
+  [Evidence and limits](docs/draft-owner-ledger-checkpoint-2026-10-28.md).
+
 ## Website editor dependency — 2026-10-28 (source checkpoint)
 
 - Update one existing lock record to compatible launch-editor2.14.2; retain

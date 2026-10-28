@@ -15,6 +15,15 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [draft-owner/ledger source checkpoint](draft-owner-ledger-checkpoint-2026-10-28.md)
+repairs delayed profile activation clearing a fresh draft and extracts the event
+ownership ledger without changing its authority ladder. Fifty-eight focused tests,
+six-file type checks, size checks, builds and the actual source-Electron draft/
+background-approval/one-click single-effect round pass. Full renderer reload still
+fails to recover the pending card: actual old/new client reads confirm a separate
+live-client adoption gap and false Done presentation. That failure is not waived.
+Installed agent9/CLI70 and whole-card statuses remain unchanged.
+
 The [website editor leaf](website-launch-editor-checkpoint-2026-10-28.md)
 selects compatible launch-editor2.14.2 in one existing lock record. Actual
 webpack-dev-server HTTP→headless Vim reproduces old command interpretation and

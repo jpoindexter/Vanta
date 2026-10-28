@@ -38,6 +38,13 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Draft continuity checkpoint — October 28 (source only):** delayed profile
+activation no longer clears a newly typed draft in the executed source-Electron
+journey. The runtime event-owner ledger is extracted without widening authority.
+Full reload still loses the pending approval card; that recovery gap remains open.
+Installed agent9 and normal CLI are unchanged.
+[Source proof and remaining work](docs/draft-owner-ledger-checkpoint-2026-10-28.md).
+
 **Website dependency checkpoint — October 28:** launch-editor 2.14.2 is selected
 in the source lock after actual HTTP/editor old-failure/new-success replay and
 independent verification. Matched website audit 39→38 removes only that package;
