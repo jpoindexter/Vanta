@@ -135,6 +135,7 @@ export async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ st
   let stuckTool: string | null = null;
   let budgetExhausted = false;
   for (let index = 0; index < calls.length; index++) {
+    if (ctx.signal?.aborted) break;
     const call = calls[index]!;
     if (hardToolBudget > 0 && state.toolIterations >= hardToolBudget) {
       budgetExhausted = true;

@@ -22,19 +22,27 @@ async function savedExactChoice(call: ToolCall, deps: AgentDeps, request: ExactC
 export function executionContext(call: ToolCall, deps: AgentDeps, ctx: ToolContext, forceFreshApproval = false): ToolContext {
   const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
   const autoApprove = !forceFreshApproval && (mode === "fullAccess" || acceptsEditsWithoutKernel(mode, call.name));
+  // Explicit background delegation owns a durable lifecycle beyond this turn.
+  const signal = call.name === "delegate" && call.arguments.background === true ? undefined : ctx.signal;
   return {
     ...ctx,
     requestApproval: async (action, reason, requestedToolName, detail) => {
+      signal?.throwIfAborted();
       if (forceFreshApproval) detail = { ...detail, fresh: true };
       if (!detail?.fresh) {
         const saved = await savedExactChoice(call, deps, { action, toolName: requestedToolName, root: ctx.root });
+        signal?.throwIfAborted();
         if (saved !== null) return saved;
-        return autoApprove ? true : ctx.requestApproval(action, reason, requestedToolName, detail);
+        const approved = autoApprove ? true : await ctx.requestApproval(action, reason, requestedToolName, detail);
+        signal?.throwIfAborted();
+        return approved;
       }
       await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "requested");
       try {
         const approved = await ctx.requestApproval(action, reason, requestedToolName, detail);
+        signal?.throwIfAborted();
         await persistApprovalTransition(ctx.root, deps.sessionId, call, action, approved ? "approved" : "denied");
+        signal?.throwIfAborted();
         return approved;
       } catch (error) {
         await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "expired");

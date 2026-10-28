@@ -125,6 +125,7 @@ async function runDelegate(
     const outcome = await spawnSubagent({
       goal,
       instruction,
+      signal: ctx.signal,
       kernelRoot: ctx.root,
       deps: {
         provider,
@@ -186,7 +187,7 @@ async function startBackgroundDelegate(data: DelegateArgs, ctx: ToolContext): Pr
   const id = randomUUID();
   try { await beginAsyncResult(join(ctx.root, ".vanta"), id); }
   catch { return { ok: false, output: "Could not save background worker custody. No worker was started.", effectDisposition: "unknown" }; }
-  void saveBackgroundResult(data, ctx, id).catch(() => {
+  void saveBackgroundResult(data, { ...ctx, signal: undefined }, id).catch(() => {
     ctx.onProgress?.("Background result could not be saved. Review the worker receipt; no automatic retry was attempted.");
   });
   return { ok: true, output: `delegated in background (id=${id.slice(0, 8)}) — completed results return when idle; uncertain work pauses for review` };

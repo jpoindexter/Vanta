@@ -72,6 +72,7 @@ export const swarmTool: Tool = {
           const outcome = await spawnSubagent({
             goal: t.goal,
             instruction: t.instruction,
+            signal: ctx.signal,
             deps: { provider, safety: ctx.safety, registry, root: ctx.root, requestApproval: ctx.requestApproval, maxIterations },
             maxIterations,
           });

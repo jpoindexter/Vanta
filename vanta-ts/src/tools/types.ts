@@ -41,6 +41,8 @@ export type EffectAuthority = {
 
 export type ToolContext = {
   root: string;
+  /** Current turn's cancellation; detached jobs retain their own lifecycle. */
+  signal?: AbortSignal;
   /** Current conversation/session id, when a host has one. Used for durable sidecar metadata. */
   sessionId?: string;
   /** Stable provider tool-call id for one model-requested operation. */

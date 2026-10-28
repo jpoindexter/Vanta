@@ -41,6 +41,7 @@ export async function dispatchTool(
   deps: AgentDeps,
   ctx: ToolContext,
 ): Promise<DispatchOutcome> {
+  ctx.signal?.throwIfAborted();
   deps.onToolCall?.(call.name, call.arguments);
   deps.onEvent?.({ type: "tool_start", name: call.name, args: call.arguments });
 
@@ -72,8 +73,10 @@ export async function dispatchTool(
   const preBlocked = await applyPreToolUseHooks(call, deps, ctx, hookDeps);
   if (preBlocked) return preBlocked;
 
+  ctx.signal?.throwIfAborted();
   const execCtx = dispatchExecutionContext(call, deps, ctx, { tool, gateResult });
   await ctx.onToolExecutionStart?.(call);
+  ctx.signal?.throwIfAborted();
   const res = await executeWithRetry(call, deps, execCtx, tool);
   return finishToolExecution({ call, deps, ctx, res, hookDeps });
 }

@@ -48,6 +48,12 @@ native launcher helper is shared. Existing work/data and rollback copies are
 preserved. These are bounded repairs, not whole-agent/security/parity completion.
 [Exact delivery and remaining limits](docs/agent4-installed-2026-10-27.md).
 
+**Agent Stop source checkpoint — October 28:** foreground workers now receive
+turn cancellation, later batch calls stop and late approvals cannot authorize a
+replacement after Cancel in the executed private paths. Pending ACP permission
+settlement still needs repair. These changes are not yet in installed agent4.
+[Source evidence and delivery limits](docs/foreground-stop-checkpoint-2026-10-28.md).
+
 **Website security checkpoint — October 28:** the compatible DOMPurify leaf update
 passes an isolated locked install, production build and real diagram/reload checks.
 It is not deployed; broader advisories and the expired image-size exception remain.

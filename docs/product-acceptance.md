@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 28 foreground Stop source checkpoint](foreground-stop-checkpoint-2026-10-28.md)
+propagates turn cancellation through foreground delegate/swarm, prevents later
+batch calls and rejects late replacement approvals. Actual source CLI/file/Rust
+replays, 99 focused checks, runtime types and seven-file strict size checks pass.
+Pending ACP permission settlement remains incomplete; no installed app/normal CLI
+update or whole-cancellation acceptance is claimed by this source checkpoint.
+
 The [October 28 website sanitizer checkpoint](website-sanitizer-checkpoint-2026-10-28.md)
 updates only the existing compatible DOMPurify lock leaf. Private locked install,
 unchanged production build and actual hydrated diagram plus reload pass, with eight

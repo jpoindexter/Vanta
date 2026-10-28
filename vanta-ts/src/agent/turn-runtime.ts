@@ -43,7 +43,7 @@ export function prepareTurnRuntime(opts: TurnOpts) {
   const state = makeInitialState();
   // OP-CHECKPOINT-ROLLBACK: mark a new turn so file snapshots group per turn.
   globalFileCheckpointStore.beginTurn(); const turnCtx = beginTurnContext(messages, deps);
-  return { opts, effectScopeId, ttft, effectiveSignal, maxIter, adaptiveSupport, toolBudget, toolClosureReserve, correcting, hardToolBudget, state, turnCtx, iteration: 0 };
+  return { opts: { ...opts, ctx: { ...ctx, signal: effectiveSignal } }, effectScopeId, ttft, effectiveSignal, maxIter, adaptiveSupport, toolBudget, toolClosureReserve, correcting, hardToolBudget, state, turnCtx, iteration: 0 };
 }
 
 export type TurnRuntime = ReturnType<typeof prepareTurnRuntime>;

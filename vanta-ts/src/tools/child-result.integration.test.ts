@@ -31,7 +31,7 @@ async function fixture(uncertain: boolean) {
   const root = await mkdtemp(join(tmpdir(), "vanta-child-result-")); roots.push(root);
   vi.stubEnv("VANTA_HOME", root); vi.stubEnv("VANTA_AUTOCONTINUE", "0");
   const childRegistry = new InMemoryToolRegistry();
-  const childEffect = vi.fn(async () => ({ ok: false, output: "Private partial child action", effectDisposition: "unknown" as const }));
+  const childEffect = vi.fn<Tool["execute"]>(async () => ({ ok: false, output: "Private partial child action", effectDisposition: "unknown" as const }));
   childRegistry.register({ schema: { name: "child_action", description: "fixture", parameters: {} }, execute: childEffect });
   const complete = vi.fn<LLMProvider["complete"]>().mockResolvedValue({ text: "Child answer", toolCalls: [], finishReason: "stop", usage: childUsage });
   if (uncertain) complete.mockResolvedValueOnce({ text: "Child partial text", toolCalls: [{ id: "child-effect", name: "child_action", arguments: {} }], finishReason: "tool_calls", usage: childUsage });
@@ -41,19 +41,20 @@ async function fixture(uncertain: boolean) {
   return { root, complete, childEffect, safety };
 }
 
-async function parent(f: Awaited<ReturnType<typeof fixture>>, tool: Tool, withLaterMutation: boolean) {
+async function parent(f: Awaited<ReturnType<typeof fixture>>, tool: Tool, withLaterMutation: boolean, opts?: { signal?: AbortSignal; background?: boolean }) {
   const registry = new InMemoryToolRegistry(); registry.register(tool);
   const later = vi.fn(async () => ({ ok: true, output: "Must not execute after uncertainty", effectDisposition: "confirmed" as const }));
   registry.register({ schema: { name: "write_file", description: "private fixture", parameters: {} }, execute: later });
-  const args = tool === delegateTool ? { goal: "Private child", instruction: "Handle action" } : { tasks: [{ goal: "Private child", instruction: "Handle action" }] };
+  const args = tool === delegateTool ? { goal: "Private child", instruction: "Handle action", background: opts?.background } : { tasks: [{ goal: "Private child", instruction: "Handle action" }] };
   const calls = [{ id: "delegate-one", name: tool.schema.name, arguments: args }, ...(withLaterMutation ? [{ id: "later-effect", name: "write_file", arguments: {} }] : [])];
   const complete = vi.fn<LLMProvider["complete"]>().mockResolvedValue({ text: "Parent answer", toolCalls: [], finishReason: "stop", usage: parentUsage });
   complete.mockResolvedValueOnce({ text: "Parent partial text", toolCalls: calls, finishReason: "tool_calls", usage: parentUsage });
   const provider: LLMProvider = { modelId: () => "parent-fixture", contextWindow: () => 100000, complete };
+  const requestApproval = vi.fn(async () => false);
   const outcome = await runTurn({ messages: [{ role: "system", content: "Private parent" }], userText: "Delegate this action",
-    ctx: { root: f.root, safety: f.safety, requestApproval: async () => false },
-    deps: { root: f.root, safety: f.safety, requestApproval: async () => false, provider, registry } });
-  return { outcome, complete, later };
+    ctx: { root: f.root, safety: f.safety, requestApproval },
+    deps: { root: f.root, safety: f.safety, requestApproval, provider, registry }, signal: opts?.signal });
+  return { outcome, complete, later, requestApproval };
 }
 
 async function childOutcomes(root: string): Promise<AgentOutcome[]> {
@@ -62,6 +63,22 @@ async function childOutcomes(root: string): Promise<AgentOutcome[]> {
 }
 
 describe.each([["delegate", delegateTool], ["swarm", swarmTool]] as const)("%s child result propagation", (_name, tool) => {
+  it("stops the running child before a tool returned after parent cancellation", async () => {
+    const f = await fixture(false);
+    const controller = new AbortController();
+    f.complete.mockImplementationOnce(async () => {
+      controller.abort();
+      return { text: "Late child action", toolCalls: [{ id: "late-child-effect", name: "child_action", arguments: {} }], finishReason: "tool_calls", usage: childUsage };
+    });
+    const p = await parent(f, tool, true, { signal: controller.signal });
+    expect(f.childEffect).not.toHaveBeenCalled();
+    expect(f.complete).toHaveBeenCalledOnce();
+    expect(p.complete).toHaveBeenCalledOnce();
+    expect(p.later).not.toHaveBeenCalled();
+    expect(await childOutcomes(f.root)).toMatchObject([{ stoppedReason: "interrupted", toolIterations: 0, usage: childUsage }]);
+    expect(p.outcome).toMatchObject({ needsEffectReview: true, stoppedReason: "blocked" });
+  });
+
   it("stops the real parent after one uncertain child without later tools/provider calls", async () => {
     const f = await fixture(true); const p = await parent(f, tool, true);
     expect(p.outcome).toMatchObject({ stoppedReason: "blocked", completionState: "needs human", needsEffectReview: true, usage: parentUsage });
@@ -96,6 +113,19 @@ it.each([["delegate", delegateTool], ["swarm", swarmTool]] as const)("keeps %s c
   expect(p.outcome).toMatchObject({ stoppedReason: "blocked", needsEffectReview: true, usage: parentUsage });
   expect(await readFile(marker, "utf8")).toBe("partial");
   expect(p.later).not.toHaveBeenCalled(); expect(p.complete).toHaveBeenCalledOnce();
+});
+
+it("keeps detached background approval independent of the originating turn's cancellation", async () => {
+  const f = await fixture(true); const controller = new AbortController();
+  f.childEffect.mockImplementationOnce(async (_args, ctx) => {
+    controller.abort();
+    const approved = await ctx.requestApproval("Private background action", "Private fixture", "child_action", { fresh: true });
+    return { ok: false, output: `Background decision ${approved}`, effectDisposition: "unknown" };
+  });
+  const p = await parent(f, delegateTool, false, { signal: controller.signal, background: true });
+  await vi.waitFor(async () => expect(await readFile(join(f.root, ".vanta", "async-delegate.jsonl"), "utf8")).toContain('"finishedAt"'));
+  expect(p.requestApproval).toHaveBeenCalledOnce();
+  expect(await childOutcomes(f.root)).toMatchObject([{ needsEffectReview: true, stoppedReason: "blocked" }]);
 });
 
 it.each([true, false])("preserves the actual background child's uncertainty=%s through queue and idle consumer", async uncertain => {

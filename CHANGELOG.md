@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Foreground Stop checkpoint — 2026-10-28 (source only)
+
+- Carry turn cancellation into foreground delegate/swarm workers, stop later
+  batch calls and reject late inner approvals after Cancel. Preserve observed
+  effects, conservative receipts and explicit background lifecycle/approval scope.
+- Actual private CLI/file/kernel replays and focused source checks pass; pending
+  ACP permission settlement and rebuilt installed delivery remain open.
+  [Evidence and next boundary](docs/foreground-stop-checkpoint-2026-10-28.md).
+
 ## Website sanitizer checkpoint — 2026-10-28 (not deployed)
 
 - Update only the existing website DOMPurify leaf to 3.4.17. Isolated locked
