@@ -80,15 +80,13 @@ function applyPublicApiCors(req: http.IncomingMessage, res: http.ServerResponse,
 }
 
 async function handleStreamingInput(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  state._streamTextDeltas = true;
   try {
     await handleChat(state, req, res);
-    pushTerminalEvent(state, true);
+    if (res.statusCode < 400) pushTerminalEvent(state, true);
   } catch (error) {
     pushTerminalEvent(state, false);
     throw error;
   }
-  finally { state._streamTextDeltas = false; }
 }
 
 function publicFrame(sessionId: string, event: { label: string; ok?: boolean; delta?: string }) {

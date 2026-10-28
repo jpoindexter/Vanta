@@ -38,6 +38,12 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Agent admission correction — October 28 (source only):** simultaneous inputs
+can no longer replace one client's running turn or disable its stream after
+rejection. Twenty actual production-router checks preserve Stop, independent
+chats, queued work and saved history; 68 focused tests pass. Not yet installed.
+[Evidence and delivery boundary](docs/chat-admission-ownership-2026-10-28.md).
+
 **MCP agent correction — October 28 (source only):** server questions no longer
 falsely complete tool calls that happen to use the same message ID. Three
 before/after regressions and actual stdio/effect-journal checks pass within an

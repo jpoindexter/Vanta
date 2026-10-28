@@ -12,6 +12,8 @@ import { pushSseEvent } from "./session-state.js";
 import { adoptSetupGeneration } from "./setup-generation.js";
 import { resetToolIds } from "./typed-emit.js";
 
+const chatAdmissions = new WeakSet<DesktopState>();
+
 export async function handleStopChat(state: DesktopState, res: http.ServerResponse): Promise<void> {
   const controller = state._chatAbort;
   if (!state._chatActive || !controller) return sendJson(res, 409, { error: "no turn is running" });
@@ -83,8 +85,7 @@ async function runChatExecution(context: ChatExecution, res: http.ServerResponse
   }
 }
 
-export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  if (state._chatActive) return sendJson(res, 409, { error: "a turn is already running" });
+async function handleChatInput(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const body = await readJson(req) as { message?: unknown; images?: unknown; files?: unknown; sessionId?: unknown; requestId?: unknown; resumeQueue?: unknown };
   if (body.sessionId !== undefined && body.sessionId !== state.sessionId) {
     return sendJson(res, 409, { error: "The active chat changed. Reopen the intended chat before sending." });
@@ -96,4 +97,12 @@ export async function handleChat(state: DesktopState, req: http.IncomingMessage,
   state._providerAuthRequired ??= await loadProviderAuthRequired(state.root);
   if (state._providerAuthRequired) return respondAuthRequired(state, input, res);
   await runChatExecution(startChatExecution(state, input), res);
+}
+
+export async function handleChat(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (state._chatActive || chatAdmissions.has(state)) return sendJson(res, 409, { error: "a turn is already running" });
+  // Reserve before body/auth/queue reads, not only after an execution starts.
+  chatAdmissions.add(state);
+  try { await handleChatInput(state, req, res); }
+  finally { chatAdmissions.delete(state); }
 }

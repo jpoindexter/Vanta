@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent chat ownership — 2026-10-28 (source checkpoint)
+
+- Reserve per-client admission across body/auth/queue reads; stale cleanup
+  cannot clear its successor. Keep streaming in the shared lifecycle and do
+  not emit public success after a refused request.
+- Five original failures, 68 focused checks and 20 actual production-router
+  checks cover queue preservation, independent clients, Stop and saved history.
+  No new/worse size findings or authority changes; app/CLI are unchanged.
+  [Evidence and limitations](docs/chat-admission-ownership-2026-10-28.md).
+
 ## MCP request correlation — 2026-10-28 (source checkpoint)
 
 - Route server requests before matching outbound IDs, preventing false empty

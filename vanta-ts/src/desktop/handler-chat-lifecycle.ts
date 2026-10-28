@@ -108,6 +108,7 @@ export async function respondChatFailure(context: ChatExecution, error: unknown,
 }
 
 export function clearChatExecution(state: DesktopState, controller: AbortController): void {
+  if (state._chatAbort !== controller) return;
   state.currentEvents = undefined;
   state.currentRunEvents = undefined;
   state.activeRunCapture = undefined;
@@ -116,5 +117,5 @@ export function clearChatExecution(state: DesktopState, controller: AbortControl
   state._instructionDisplayedText = undefined;
   state._streamTextDeltas = false;
   state._chatActive = false;
-  if (state._chatAbort === controller) state._chatAbort = undefined;
+  state._chatAbort = undefined;
 }

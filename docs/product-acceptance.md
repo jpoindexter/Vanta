@@ -389,6 +389,15 @@ refuse same-operation replay. Eighty-eight focused checks and scoped types/stric
 size pass. This is source-only, with a deterministic server/action-gate fixture;
 installed agent10/normal CLI70 are unchanged. No live external service, universal
 timeout/cancellation or whole trust/card completion is inferred.
+The [chat admission/cleanup checkpoint](chat-admission-ownership-2026-10-28.md)
+reserves each client before body/auth/queue awaits and guards all cleanup by its
+controller. Five pre-fix failures, 68 focused checks and 20 real production-router
+checks cover refused overlaps without lost queues or false completion, independent
+clients, original Stop and exact saved history. Public/companion streaming is
+owned by the shared lifecycle. Scoped types and no-new/worse size pass, retaining
+one unrelated readiness-probe complexity finding. Deterministic provider/private
+loopback only; not a real-model, tool-effect, installed or cross-process claim.
+Agent10 and normal CLI70 remain unchanged; new delivery/recovery proof is pending.
 The subsequent [uncertain-action settlement](agent-uncertain-effect-settlement-2026-10-27.md)
 halts the direct agent and preserves consistent controller/receipt/queue evidence.
 Parent actual stdio MCP partial-effect proof, 50 focused checks, one existing
