@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Normal CLI delivery — 2026-10-28 (local, not a release)
+
+- Switch the unchanged normal launcher to independent committed bdf5780a after
+  exact-pin startup, MCP16/HTTP38 and actual TTY same-burst saved-choice/restart
+  checks. Rehash 2,213 compiled files and 70 receipts, with independent review.
+- Preserve CLI70 rollback, original work/owner data and full installed agent11;
+  actual post-switch global-wrapper check passes. No credential/approval migration
+  or Desktop rebuild; full product/security/design/modularization gates stay open.
+  [Delivery and recovery boundary](docs/agent12-cli-cutover-2026-10-28.md).
+
 ## Terminal approval ordering — 2026-10-28 (source checkpoint)
 
 - Keep rapid arrow/Enter input on the selected approval, preventing an old

@@ -15,6 +15,14 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [normal CLI delivery](agent12-cli-cutover-2026-10-28.md) now selects committed
+bdf5780a through the unchanged global wrapper. Exact-pin cold/warm startup,
+compiled MCP16/HTTP38, actual TTY same-burst saved preference/restart/second edit,
+complete compiled/receipt/dependency identity and independent review pass.
+Guarded atomic selection and actual post-switch launcher proof preserve original
+work/data, old CLI70 rollback and full installed agent11. This is bounded private
+profile/scripted-model evidence, not owner/live-provider or whole-product proof.
+
 The [agent11 installed delivery](agent11-installed-2026-10-28.md) supersedes
 agent10 as the local Desktop build. Source94c622b9 plus declared preserved dirty
 inputs passes candidate AND installed compiled MCP16/HTTP23 checks and actual
@@ -23,7 +31,8 @@ CLI-reachable module graphs and five core identities agree, not arbitrary stale
 chunk text. Original Apple wait timed out; the same exact Accepted submission
 was recovered without re-upload, and all ticket/signature/archive-equality gates
 passed. Full installed app/agent10 rollback and original work/data agree. Normal
-CLI70 is still older. Deterministic provider/safety fixtures are not real-model,
+CLI70 was still older at that Desktop checkpoint; its successor is recorded
+above. Deterministic provider/safety fixtures are not real-model,
 external-client or new Rust-policy proof; full trust/security/modularization,
 owner/human/live-account and design/parity/accessibility gates remain open.
 

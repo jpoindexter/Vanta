@@ -1,5 +1,9 @@
 # Agent11 local Desktop delivery — 2026-10-28
 
+Later that day, the [normal CLI delivery](agent12-cli-cutover-2026-10-28.md)
+superseded CLI70 with bdf5780a. Selection statements below describe this Desktop
+checkpoint; that later CLI cutover does not change the installed agent11 bundle.
+
 `/Applications/Vanta.app` is signed, Apple Accepted and stapled
 **`0.1.0-local.20261028.agent11`**, built from source
 `94c622b90ffe3b7cd53a08a531150fbbf2d78bf9` plus explicitly declared preserved

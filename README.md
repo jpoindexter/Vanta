@@ -38,25 +38,34 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Current normal CLI — October 28:** `vanta` now selects committed `bdf5780a`,
+including rapid-key approval ordering, MCP response correlation and newer live
+recovery/admission repairs. Exact-pin terminal saved-choice/restart, MCP16 and
+HTTP38 checks pass; the old runtime, original work and owner data are retained.
+The installed Desktop stays agent11; full product/security/design gates remain.
+[CLI delivery, rollback and evidence limits](docs/agent12-cli-cutover-2026-10-28.md).
+
 **Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
 `0.1.0-local.20261028.agent11` is installed from source `94c622b9`. Candidate and
 installed copies pass compiled MCP response-truth/chat-ownership checks and real
 Electron approval/reload/branch/cold-restart journeys. The full installed app and
 final extracted archive match; agent10 rollback and original work/data are retained.
 The original Apple wait timed out; the same Accepted submission was recovered
-without re-uploading. Normal CLI70 and whole-product acceptance gates remain open.
+without re-uploading. The newer normal CLI is recorded above; whole-product
+acceptance gates remain open.
 [Exact delivery, retained failures and limits](docs/agent11-installed-2026-10-28.md).
 
 **Agent admission correction — October 28 (delivered in agent11 above):** simultaneous inputs
 can no longer replace one client's running turn or disable its stream after
 rejection. Twenty actual production-router checks preserve Stop, independent
-chats, queued work and saved history; 68 focused tests pass. The normal CLI remains older.
+chats, queued work and saved history; 68 focused tests pass. Normal CLI delivery
+is recorded above.
 [Evidence and delivery boundary](docs/chat-admission-ownership-2026-10-28.md).
 
 **MCP agent correction — October 28 (delivered in agent11 above):** server questions no longer
 falsely complete tool calls that happen to use the same message ID. Three
 before/after regressions and actual stdio/effect-journal checks pass within an
-88-test focused set. Normal CLI70 is unchanged; Desktop delivery is recorded above.
+88-test focused set. Current CLI and Desktop delivery are recorded above.
 [Evidence and delivery boundary](docs/mcp-request-correlation-2026-10-28.md).
 
 **Previous Desktop delivery — October 28:** signed, Apple Accepted/stapled
@@ -97,7 +106,7 @@ compatible3.1.9 after 20 real validator/caller checks. Matched lock-only audit
 install, website build/deployment or agent10/CLI change is implied.
 [Evidence and security boundaries](docs/website-fast-uri-checkpoint-2026-10-28.md).
 
-**Current normal CLI — October 28:** `vanta` now selects verified source
+**Previous normal CLI — October 28:** `vanta` selected verified source
 `70f05035`, including durable branching. Actual terminal saved-choice/restart,
 two live forks and three exact histories, ACP/MCP, fresh approvals and bounded
 worker checks pass with private profiles. The old pin and original work/data

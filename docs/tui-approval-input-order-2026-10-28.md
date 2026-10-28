@@ -1,5 +1,9 @@
 # Terminal approval input ordering — 2026-10-28
 
+Subsequently delivered to the normal CLI through the separately verified
+[exact-pin cutover](agent12-cli-cutover-2026-10-28.md). The source-checkpoint and
+not-yet-selected statements below retain their original evidence boundary.
+
 Source checkpoint, not an installed CLI update or public release. Normal CLI70
 and signed/notarized Desktop agent11 remain unchanged. The pending CLI cutover
 must include this newly discovered repair before switching the normal command.
