@@ -15,6 +15,15 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [website proxy trust leaf](website-proxy-addr-checkpoint-2026-10-28.md)
+updates one compatible lock record to proxy-addr2.0.8. Four actual Express
+trust-subnet regressions fail before/pass after; eight compatibility controls
+and independent 24-request replay pass. Warm website audit40→39 removes only
+proxy-addr; all other39 rows remain identical. Express defaults trustproxyfalse;
+no affected ordinary/deployed Vanta configuration is established. This source-only
+lock change is not website installation/build/deployment or overall/default-main
+security clearance, and changes neither installed Desktop nor normalCLI.
+
 The [durable branching source checkpoint](fork-lineage-checkpoint-2026-10-28.md)
 preserves immediate-parent metadata through saves/list/detail/export and both
 Desktop projections. Forty-eight runtime/API and 26 Desktop checks, both types,

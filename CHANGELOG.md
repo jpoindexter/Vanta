@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website proxy trust leaf — 2026-10-28 (source checkpoint)
+
+- Update only the existing proxy-addr lock record to compatible 2.0.8.
+  Actual Express HTTP reproduces four old/patched trust-subnet regressions;
+  eight controls and independent 24-request replay pass with closed servers.
+- Matched warm website audit 40→39 removes only proxy-addr; remaining 39 rows
+  are unchanged. No demonstrated ordinary/deployed exploit, website install/build/
+  deployment, app/CLI change or overall/default-main security clearance.
+  [Evidence and limits](docs/website-proxy-addr-checkpoint-2026-10-28.md).
+
 ## Durable chat branching — 2026-10-28 (source checkpoint)
 
 - Persist immediate-parent provenance through saves, backend metadata/export and
