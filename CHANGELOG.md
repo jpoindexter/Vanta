@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Startup repair CLI delivery — 2026-10-28 (local, not a public release)
+
+- Switch normal `vanta` to verified pin05271e95/runtime4036609c after exact source,
+  locked-dependency, kernel and actual launcher/agent/MCP/worker checks.
+- Real-terminal conversation → `/restart` → saved-context re-entry → quit passes
+  through the unchanged global wrapper using private model/kernel fixtures.
+- Preserve previous pin/location, original work and owner data. Desktop remains
+  agent6; no new app/site deployment, whole-card closure, public release/tag or CI.
+  [Delivery evidence and remaining gates](docs/startup-cli-delivered-2026-10-28.md).
+
 ## Startup and CSS-consumer repairs — 2026-10-28 (source only)
 
 - Pin each launch to a retained complete startup generation; reject source edits

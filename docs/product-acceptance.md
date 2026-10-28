@@ -15,12 +15,20 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [startup repair CLI delivery](startup-cli-delivered-2026-10-28.md) selects
+pin05271e95/runtime4036609c for normal `vanta` after independent source/dependency
+identity and actual launcher/agent/MCP/worker checks. Real-terminal conversation,
+`/restart`, saved-context re-entry and natural quit pass with a private model.
+The original CLI pin/location and all owner work/data are retained. Desktop
+remains agent6/d626; this supersedes only the source-only normal-CLI gap below.
+
 The [startup-cache generation checkpoint](startup-cache-generations-2026-10-28.md)
 repairs three reproduced cache defects with retained immutable outputs and an atomic
 pointer. Eleven focused checks, actual concurrent compiled launches and 26 actual
 ACP/MCP/file/denial/Cancel checks pass. The historical missing-module crash was not
-reproduced by timing alone. This is source evidence; installed agent6/normal CLI
-remain on their earlier delivered code, and no whole Trust/Operator gate closes.
+reproduced by timing alone. That checkpoint's source evidence is now complemented
+by the normal-CLI delivery above; installed Desktop remains agent6 and no whole
+Trust/Operator gate closes.
 
 The [website source-map checkpoint](website-source-map-checkpoint-2026-10-28.md)
 updates one compatible lock leaf. Actual CSS-consumer checks pass; the matched

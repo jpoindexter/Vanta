@@ -38,8 +38,15 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
-**Current agent6 delivery — October 28:** normal `vanta` and the signed,
-Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `d6260ace`,
+**Current CLI delivery — October 28:** normal `vanta` now selects verified
+pin `05271e95` with startup repair `4036609c`. Concurrent compiled launches,
+ordinary ACP/MCP/file work, five worker cases and real-terminal `/restart` with
+saved-context re-entry pass in private profiles. Prior pin/location retained;
+no owner credentials or approvals copied. Desktop remains agent6 below.
+[CLI delivery and remaining limits](docs/startup-cli-delivered-2026-10-28.md).
+
+**Installed Desktop agent6 — October 28:** the signed,
+Apple Accepted/stapled app at `/Applications/Vanta.app` contains code `d6260ace`,
 version `0.1.0-local.20261028.agent6`. Candidate and installed chat/restart,
 fresh file approvals and five swarm/cancellation cases pass with private fixtures.
 Real source-terminal approval dismissal and independent success also pass.
