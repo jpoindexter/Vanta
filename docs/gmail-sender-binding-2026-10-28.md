@@ -8,6 +8,10 @@ body preview and digest. This accepts the bounded **T03-1 source slice**, not
 the whole TRUST-03 card or installed Gmail operation. Pinned CLI and packaged
 Desktop delivery remain T03-4; live-account acceptance has not run.
 
+The later [delivery-candidate checkpoint](gmail-delivery-candidate-2026-10-28.md)
+records terminal and packaged chat evidence separately; this document retains
+the original source-acceptance scope below.
+
 ## Reproduced causes and repair
 
 Previously, both tools requested approval before resolving authentication, then
