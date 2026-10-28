@@ -26,6 +26,13 @@ This is not a new full visual redesign, owner/live-account or whole-card clearan
 Earlier versioned delivery paragraphs below remain historical; this supersedes
 only their bounded local CLI/app delivery gaps.
 
+The subsequent [website compression leaf](website-compression-checkpoint-2026-10-28.md)
+repairs three reproduced native-stream early-close regressions. Eleven actual
+HTTP compatibility cases and independent parent replay match; warm audit 41→40
+removes only compression. Forty website findings remain. This source-only leaf
+does not rebuild the website, deploy it, change agent7/CLI binaries or clear
+default-main/security/whole-card gates.
+
 The [website Colord leaf](website-colord-checkpoint-2026-10-28.md) is a separate
 source-only lock change. Actual consumer checks and matched 42→41 audit pass;
 41 findings remain. No new whole website build/deployment or default-main

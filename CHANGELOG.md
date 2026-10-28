@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website compression cleanup — 2026-10-28 (source only)
+
+- Patch the existing compression lock record to 1.8.2, reusing resolved destroy
+  1.2.0. Actual early-close stream regressions fail before and pass after for
+  gzip/deflate/Brotli; eleven ordinary HTTP cases match, including later responses.
+- Independent parent replay matches. Warm audit 41→40 removes only compression;
+  forty website findings remain. No full website build/deployment, guard waiver,
+  app/CLI rebuild, overall security clearance or whole-card closure.
+  [Evidence and limits](docs/website-compression-checkpoint-2026-10-28.md).
+
 ## Verified agent7 delivery and website leaf — 2026-10-28 (local, not a release)
 
 - Normal CLI and signed/Apple Accepted/stapled installed agent7 now deliver
