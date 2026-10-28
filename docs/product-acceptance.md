@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [website URI leaf](website-fast-uri-checkpoint-2026-10-28.md) selects
+compatible fast-uri3.1.9 through four existing manifest/lock values. Twenty
+actual validator/caller checks pass; matched lock-only audit36→35 removes only
+fast-uri, with all remaining rows identical. Seventeen critical tooling rows
+remain. There is no canonical dependency installation, website build/deployment,
+default-main alert reduction or app/CLI change; overall security stays open.
+
 The [agent10 installed delivery](agent10-installed-2026-10-28.md) now delivers
 sourceb67af10b and preserved declared dirty inputs as signed/Apple Accepted/
 stapled agent10. Both exact candidate and installed paths pass full-reload

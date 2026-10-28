@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website URI dependency — 2026-10-28 (source checkpoint)
+
+- Update only the existing fast-uri override and lock record to compatible3.1.9.
+  Actual Ajv/schema-utils/WDS-option-schema caller checks pass in both phases.
+- Matched lock-only audit36→35 removes onlyfast-uri; every remaining row is
+  identical, including17critical. No canonical dependency install, website
+  build/deployment or delivered app/CLI change; overall security remains open.
+  [Evidence and limits](docs/website-fast-uri-checkpoint-2026-10-28.md).
+
 ## Agent10 Desktop delivery — 2026-10-28 (local, not a release)
 
 - Install signed, Apple Accepted/stapled agent10 from sourceb67af10b, retaining

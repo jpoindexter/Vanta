@@ -70,6 +70,12 @@ independent verification. Matched website audit 39→38 removes only that packag
 overall security remains open. No website deployment or app/CLI change.
 [Evidence and limits](docs/website-launch-editor-checkpoint-2026-10-28.md).
 
+**Website URI checkpoint — October 28:** existing fast-uri selection moves to
+compatible3.1.9 after 20 real validator/caller checks. Matched lock-only audit
+36→35 removes onlyfast-uri; 17critical website-tooling rows remain. No canonical
+install, website build/deployment or agent10/CLI change is implied.
+[Evidence and security boundaries](docs/website-fast-uri-checkpoint-2026-10-28.md).
+
 **Current normal CLI — October 28:** `vanta` now selects verified source
 `70f05035`, including durable branching. Actual terminal saved-choice/restart,
 two live forks and three exact histories, ACP/MCP, fresh approvals and bounded
