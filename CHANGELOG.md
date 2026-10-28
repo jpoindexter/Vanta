@@ -3,6 +3,19 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent10 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Install signed, Apple Accepted/stapled agent10 from sourceb67af10b, retaining
+  agent9 rollback and unchanged original work/data and normal CLI70 selection.
+- Both candidate and installed real Electron journeys pass same-approval reload
+  recovery, actual Allow once/one effect, other-profile draft/focus preservation,
+  and New chat/Branch/switch/cold restart with three exact histories and no errors.
+- Preserve two default-temp archive extraction failures; unchanged maintained
+  validator passes all archive/ticket/signature/fingerprint gates in an owned temp
+  directory, without another Apple submission or weakened checks. Full product,
+  owner/parity/human/live-account, security and modularization gates remain.
+  [Exact delivery and limitations](docs/agent10-installed-2026-10-28.md).
+
 ## Live approval recovery — 2026-10-28 (source checkpoint)
 
 - Recover the exact original live client/approval after renderer reload, without

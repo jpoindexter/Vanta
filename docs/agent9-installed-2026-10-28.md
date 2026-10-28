@@ -1,5 +1,9 @@
 # Agent9 local Desktop delivery — 2026-10-28
 
+Subsequent local delivery: [agent10](agent10-installed-2026-10-28.md) is installed
+with executed live-approval reload recovery. Agent9 is retained for rollback;
+this file preserves the earlier delivery's exact evidence and limits.
+
 Subsequent update: the [separate normal CLI cutover](agent9-cli-cutover-2026-10-28.md)
 now selects `70f05035`. References to an unchanged `2d739e68` selection below
 describe the Desktop delivery checkpoint before that cutover. App identity and

@@ -1,5 +1,9 @@
 # Live approval recovery — 2026-10-28 source checkpoint
 
+Subsequent local delivery: [agent10](agent10-installed-2026-10-28.md) executes
+this repair in both the exact notarized candidate and installed app. The source
+checkpoint below retains its original evidence boundary.
+
 The previously failing full-renderer-reload journey now passes with the current
 source renderer, freshly compiled backend and known release kernel. This is not
 yet a new installed build or whole-card/product acceptance.

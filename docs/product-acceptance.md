@@ -15,6 +15,18 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent10 installed delivery](agent10-installed-2026-10-28.md) now delivers
+sourceb67af10b and preserved declared dirty inputs as signed/Apple Accepted/
+stapled agent10. Both exact candidate and installed paths pass full-reload
+same-approval recovery, actual Allow once/one effect, cross-profile unsent draft/
+caret/focus preservation, and New chat/Branch/continuation/switch/cold restart
+with three exact histories. All observed renderer errors are zero, including
+shutdown. Five core hashes and complete app/archive/rollback fingerprints agree;
+original work/data and normal CLI70 remain unchanged. Two default-temp archive
+extraction failures are retained; every existing archive/ticket/signature/full
+fingerprint gate passes with a private temp directory and no second submission.
+This does not establish a general EPERM fix or whole-product/owner acceptance.
+
 The [live approval recovery checkpoint](live-approval-recovery-checkpoint-2026-10-28.md)
 now passes the previously failing full-renderer-reload path in actual source
 Electron with current compiled backend and the known release kernel. The same

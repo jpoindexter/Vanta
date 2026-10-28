@@ -38,6 +38,16 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
+`0.1.0-local.20261028.agent10` is installed from source `b67af10b`. Both exact
+candidate and installed copies pass full-reload approval recovery, real one-click
+single effects, cross-profile draft/focus preservation and chat/branch/cold restart
+with three exact histories and zero observed renderer errors. Agent9 rollback and
+all original work/data are retained; normal CLI70 is unchanged. The archive passes
+all checks in a private temporary directory after two retained default-temp
+extraction failures. Whole-product and owner acceptance gates remain open.
+[Exact delivery, archive recovery and limits](docs/agent10-installed-2026-10-28.md).
+
 **Live approval recovery — October 28 (source only):** a full renderer reload now
 recovers the original waiting approval without resubmitting work. Actual Electron
 passes both profile/draft-isolation rounds, the same approval ID, real Allow once
@@ -68,8 +78,8 @@ remain recoverable; installed agent9 is unchanged. This supersedes the earlier
 CLI selection statements below, not the remaining product gates.
 [CLI delivery, retained failures and limits](docs/agent9-cli-cutover-2026-10-28.md).
 
-**Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
-`0.1.0-local.20261028.agent9` is installed from source `bcc84cdb`. Exact candidate
+**Previous Desktop delivery — October 28:** signed, Apple Accepted/stapled
+`0.1.0-local.20261028.agent9` was installed from source `bcc84cdb`. Exact candidate
 and installed chat/branch/continue/switch/cold-restart journeys preserve three
 histories and the parent link with zero observed renderer errors. Both fresh
 file-approval regressions, extracted archive and installed/agent8 rollback
