@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Gmail sender binding — 2026-10-28 (source checkpoint)
+
+- Bind send/draft previews and submissions to the verified mailbox; an account
+  switch, revocation, denial or canceled late approval prevents submission.
+- Eleven local HTTP cases, four separate-process replays, 58 focused/architecture
+  checks, types and strict size checks pass. Uncertain sends are never retried.
+  Installed CLI/Desktop and live Gmail remain unverified for this change.
+  [Evidence and limits](docs/gmail-sender-binding-2026-10-28.md).
+
 ## Codex design and feature review — 2026-10-28 (reference only)
 
 - Refresh local Codex26.1023.51421 through Hopper native-launcher inspection,

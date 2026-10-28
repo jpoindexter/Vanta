@@ -14,9 +14,11 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
-Now: T03-1 is the reproduced Gmail sender/account repair; final HTTP/delivery
-gates are pending. O03-1 reuses current agent evidence for false attention; pull
-O03-2 only after the Gmail outcome is available. Maximum one active slice per
+Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) is executed;
+the next Trust slice is T03-4, putting that repair into the pinned CLI and exact
+packaged app before expanding another adapter. T03-2's replay evidence is partial:
+host draft/review recovery is not proven. O03-1 reuses current agent evidence for
+false attention; O03-2 remains unexecuted. Maximum one active slice per
 Building parent. Next parents and later checklist rows are not concurrent work.
 Reuse existing implementation and receipts before changing code. A failed proof
 selects the next fix; it does not justify another framework or generic audit.
@@ -30,7 +32,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 
 ## TRUST-03 — building
 
-- [ ] T03-1: Gmail sender binding: preview the mailbox; account switch/revocation during approval makes zero draft/send POSTs; an unchanged approved draft/send submits once. CURRENT source candidate, not installed.
+- [x] T03-1: Gmail sender binding: preview the mailbox; account switch/revocation during approval makes zero draft/send POSTs; an unchanged approved draft/send submits once. SOURCE acceptance: 11 local HTTP cases; installed delivery remains T03-4.
 - [ ] T03-2: Gmail uncertain-result recovery: reset/missing acknowledgement stays unknown; replay the same operation after restart with zero duplicate submissions; retain the draft and exact review action.
 - [ ] T03-3: LinkedIn author binding: resolve and preview the personal author before approval; credential/author drift prevents POST; keep provider-confirmed distinct from readback verified.
 - [ ] T03-4: Deliver the proven Gmail slice through the pinned CLI and exact packaged app; repeat sender/denial/once controls with fixture accounts and retain rollback. No live send required.

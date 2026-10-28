@@ -11,14 +11,14 @@ export function headerValue(headers: Header[], name: string): string {
   return headers.find((h) => h.name.toLowerCase() === lower)?.value ?? "";
 }
 
-export function encodeMime(to: string, subject: string, body: string): string {
-  if (/[\r\n]/.test(to) || /[\r\n]/.test(subject)) {
+export function encodeMime(to: string, subject: string, body: string, from: string): string {
+  if (/[\r\n]/.test(to) || /[\r\n]/.test(subject) || /[\r\n]/.test(from)) {
     throw new Error("Gmail recipient and subject must not contain CR or LF characters");
   }
   const mime = [
     `To: ${to}`,
     `Subject: ${subject}`,
-    "From: me",
+    `From: ${from}`,
     'Content-Type: text/plain; charset="UTF-8"',
     "MIME-Version: 1.0",
     "",
@@ -77,17 +77,18 @@ export const OutboundArgs = z.object({
 export function buildGmailApproval(
   kind: "draft" | "send",
   message: z.infer<typeof OutboundArgs>,
+  from: string,
 ): { action: string; reason: string; detail: { diff: string; fresh: true } } {
   const bytes = Buffer.byteLength(message.body);
   const digest = createHash("sha256").update(message.body).digest("hex");
   const verb = kind === "send" ? "Send" : "Create Gmail draft for";
   return {
-    action: `${verb} ${message.to} — subject "${message.subject}" — body ${bytes} bytes, sha256 ${digest}`,
+    action: `${verb} ${message.to} from ${from} — subject "${message.subject}" — body ${bytes} bytes, sha256 ${digest}`,
     reason: kind === "send"
       ? "sends mail from your account and cannot be unsent"
       : "creates an externally stored draft in your Gmail account",
     detail: {
-      diff: `To: ${message.to}\nSubject: ${message.subject}\n\n${message.body}`,
+      diff: `From: ${from}\nTo: ${message.to}\nSubject: ${message.subject}\n\n${message.body}`,
       fresh: true,
     },
   };
@@ -103,6 +104,6 @@ export function quarantineGmailContent(content: string): string {
   ].join("\n");
 }
 
-export const IdResponse = z.object({ id: z.string() }).passthrough();
+export const IdResponse = z.object({ id: z.string().min(1) }).passthrough();
 
 export { googleFetch };

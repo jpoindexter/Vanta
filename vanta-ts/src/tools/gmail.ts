@@ -1,18 +1,16 @@
 import { z } from "zod";
 import { buildUrl } from "../google/client.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+import { executeGmailOutbound } from "./gmail-outbound.js";
 import {
   HeaderSchema,
   headerValue,
-  encodeMime,
   PayloadSchema,
   extractPlainText,
   httpError,
   authError,
   OutboundArgs,
-  IdResponse,
   googleFetch,
-  buildGmailApproval,
   quarantineGmailContent,
 } from "./gmail-helpers.js";
 
@@ -136,23 +134,7 @@ export const gmailDraftTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = OutboundArgs.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'gmail_draft needs "to", "subject", and "body"' };
-    const approval = buildGmailApproval("draft", parsed.data);
-    const approved = await ctx.requestApproval(approval.action, approval.reason, "gmail_draft", approval.detail);
-    if (!approved) return { ok: false, output: "denied by user" };
-    const { to, subject, body } = parsed.data;
-    try {
-      const raw64 = encodeMime(to, subject, body);
-      const res = await googleFetch(`${BASE}/drafts`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: { raw: raw64 } }),
-      });
-      if (!res.ok) return httpError(res);
-      const out = IdResponse.parse(await res.json());
-      return { ok: true, output: `draft created: ${out.id}` };
-    } catch (err) {
-      return authError(err);
-    }
+    return executeGmailOutbound("draft", parsed.data, ctx);
   },
 };
 
@@ -174,22 +156,6 @@ export const gmailSendTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = OutboundArgs.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'gmail_send needs "to", "subject", and "body"' };
-    const approval = buildGmailApproval("send", parsed.data);
-    const approved = await ctx.requestApproval(approval.action, approval.reason, "gmail_send", approval.detail);
-    if (!approved) return { ok: false, output: "denied by user" };
-    const { to, subject, body } = parsed.data;
-    try {
-      const raw64 = encodeMime(to, subject, body);
-      const res = await googleFetch(`${BASE}/messages/send`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ raw: raw64 }),
-      });
-      if (!res.ok) return httpError(res);
-      const out = IdResponse.parse(await res.json());
-      return { ok: true, output: `email sent: ${out.id}` };
-    } catch (err) {
-      return authError(err);
-    }
+    return executeGmailOutbound("send", parsed.data, ctx);
   },
 };

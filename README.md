@@ -48,6 +48,11 @@ bundle and all 383 packaged CSS files. The [design and feature gap audit](docs/c
 separates existing Vanta capabilities from unfinished chrome, voice transport and
 queue-control semantics. This is research, not a delivered redesign or live Codex UI proof.
 
+**Gmail source checkpoint — October 28:** verified sender binding prevents
+account-switch or canceled-late-approval submissions in 11 local HTTP cases.
+This is [source acceptance](docs/gmail-sender-binding-2026-10-28.md), not delivery
+to the normal CLI/installed app or live Gmail acceptance.
+
 **Current normal CLI — October 28:** `vanta` now selects committed `bdf5780a`,
 including rapid-key approval ordering, MCP response correlation and newer live
 recovery/admission repairs. Exact-pin terminal saved-choice/restart, MCP16 and

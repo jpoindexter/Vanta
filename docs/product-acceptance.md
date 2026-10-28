@@ -15,6 +15,14 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [Gmail sender-binding source slice](gmail-sender-binding-2026-10-28.md)
+passes 11 real loopback HTTP cases through the registered tools, normal Google
+refresh/store and effect gateway, plus four separate-process replay checks.
+Account drift/revocation/canceled late approval produce zero submissions; exact
+approved send/draft submits once. Fifty-eight focused/architecture checks, types
+and strict size checks pass. This is T03-1 source acceptance only: normal CLI,
+installed agent11, human approval UI and live Gmail are not recertified here.
+
 The [current business-agent focus](business-agent-execution-focus-2026-10-28.md)
 puts actual research/briefs, GTM preparation and explicitly approved outreach/
 follow-up ahead of optional voice and visual expansion. This is prioritization,
