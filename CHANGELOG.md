@@ -3,6 +3,13 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website shell-quote — 2026-10-28 (source checkpoint)
+
+- Update one compatible website lock entry to shell-quote1.11.0;18 targeted
+  caller/roundtrip/advisory checks pass. Paired audits remove only this finding
+  (35→34; critical17→16). No site deployment, app update or security-clean claim.
+  [Evidence and limits](docs/website-shell-quote-2026-10-28.md).
+
 ## Gmail sender binding — 2026-10-28 (source checkpoint)
 
 - Bind send/draft previews and submissions to the verified mailbox; an account
