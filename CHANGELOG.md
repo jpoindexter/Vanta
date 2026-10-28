@@ -8,8 +8,11 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Local delivery: fresh owner-approved normal CLI cutover to independent
   `e467a857`; exact source/preservation checks and the actual global launcher
   pass. Previous runtime and selection retained; no credential or approval
-  migration. Signed agent14 Desktop fixture journeys pass, but notarization
-  and installation remain pending. [Delivery and limits](docs/agent14-cli-delivery-2026-10-28.md).
+  migration. Agent14 Desktop is now Apple Accepted/stapled and installed with
+  exact archive/app/rollback fingerprints; candidate and installed copies each
+  pass six Gmail/uncertainty and six chat/branch/restart checkpoints.
+  Private fixtures, not live Gmail or full-product acceptance.
+  [Delivery and limits](docs/agent14-cli-delivery-2026-10-28.md).
 
 - Follow-up: retain typed turn uncertainty and explain its existing canonical
   blocker with a safe review action, original source and receipt link; do not

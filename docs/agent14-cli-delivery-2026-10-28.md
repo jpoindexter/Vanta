@@ -1,4 +1,4 @@
-# Agent14 CLI delivery — 2026-10-28
+# Agent14 CLI and Desktop delivery — 2026-10-28
 
 ## Current result
 
@@ -10,7 +10,8 @@ runtime answered and exited zero with empty stderr.
 
 The previous `bdf5780a` runtime and exact selection-file backup are retained.
 No credentials or approvals were migrated. Already-running sessions were not
-stopped or upgraded. This is a local CLI update, not a public release.
+stopped or upgraded by the CLI cutover. The separately guarded Desktop update
+below is also local, not a public release.
 
 ## Executed checks
 
@@ -32,7 +33,7 @@ Private delivery packet: `agent14-delivery-20261028-hJg8yk`. Receipts include
 `identity-cutover-ready.json`, `identity-after.json`, `cutover.json`,
 `post-cutover.json`, `run-Q2xY2O/result.json` and `compiled-gmail.log`.
 
-## Separate Desktop candidate
+## Separately verified installed Desktop
 
 Agent14 is built and Developer ID signed from the same source plus the eleven
 declared preserved Desktop/test/document overlays. The pending four-file voice
@@ -46,10 +47,28 @@ production transport were not weakened. Real UI approval buttons were driven by
 the test operator, not by the owner. The candidate stopped after one uncertain
 submission and its bundled CLI projected one actionable Needs You item.
 
-Apple notarization is still pending at this checkpoint. Agent14 is not installed;
-the installed Desktop remains agent11. T03-4 and both parent cards remain open.
-This supersedes the prior agent13 candidate's fixture limitation, while its
-failed attempts and original evidence remain retained.
+Apple submission `9e363cce-188a-4851-8dc4-a0be4d540a91` was Accepted. The original
+notarization command exited zero after stapling, ticket validation, Gatekeeper
+assessment and unchanged extracted-archive validation; no second upload.
+
+The maintained guarded installer replaced the stopped agent11 bundle with
+`0.1.0-local.20261028.agent14`. Candidate, archive and installed full-app
+fingerprints agree: 19,229 files, SHA-256
+`e7fda7dc136f1b825d30a5f525eabe6c649097b666e553d3b47ca004ef606ef1`.
+The exact agent11 rollback fingerprint also agrees. ZIP: 199,586,751 bytes,
+SHA-256 `d42f342bbaca17c2417ca7b6ed338f009a74e8615ccb16b23c8012cf2a24c85d`.
+
+Both journeys were then repeated against the actual installed bundle: six
+Gmail/uncertainty checkpoints and six chat/branch/switch/cold-restart checkpoints
+passed, with zero observed renderer errors. The same private fixture limits
+apply; installed evidence is not a live-account or owner-acceptance claim.
+Receipts: `installed.json`, `installed-gmail/result.json`,
+`installed-lineage/result.json`, and their candidate counterparts.
+
+T03-4 and both parent cards remain open for the wider acceptance contract.
+This supersedes the prior agent13 candidate's fixture limitation and this
+record's earlier pending-notarization state. Failed attempts, earlier status and
+original evidence remain retained. No historical dirty work was discarded.
 
 ## Remaining boundaries
 
