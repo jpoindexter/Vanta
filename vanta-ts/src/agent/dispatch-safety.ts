@@ -11,7 +11,7 @@ import type { DiffCapable,SafetyGateResult } from "./dispatch-safety-types.js";
 type Subject = { call: ToolCall; action: string; shellCwd: string; localShell: boolean };
 type Decision = Awaited<ReturnType<typeof resolveLayeredDecision>>;
 type Ask = Subject & { verdict: Verdict; decision: Decision; deps: AgentDeps; root: string; tool: DiffCapable;
-  permissionMode: ReturnType<typeof resolvePermissionMode>; fresh: boolean };
+  permissionMode: ReturnType<typeof resolvePermissionMode>; fresh: boolean; signal?: AbortSignal };
 
 /** Kernel assessment remains mandatory and precedes every local approval rule. */
 export async function applySafetyGate(call: ToolCall, deps: AgentDeps, ctx: ToolContext): Promise<SafetyGateResult> {
@@ -25,7 +25,7 @@ export async function applySafetyGate(call: ToolCall, deps: AgentDeps, ctx: Tool
   const fresh = deps.forceFreshApproval?.() === true;
   const effective = effectiveDecision(subject, ctx.root, { decision, verdict, fresh });
   const permissionMode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
-  const request = { ...subject, verdict, decision: effective, deps, root: ctx.root, tool, permissionMode, fresh };
+  const request = { ...subject, verdict, decision: effective, deps, root: ctx.root, tool, permissionMode, fresh, signal: ctx.signal };
   if (effective.decision === "block") return handleBlockDecision(request);
   if (effective.decision === "ask") return resolveAsk(request);
   await auditGate(deps, { tool: call.name, action: subject.action, risk: verdict.risk, resolution: "allow" });

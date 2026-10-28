@@ -5,23 +5,23 @@ import { loadRules, saveRules } from "./store.js";
 let queue: Promise<unknown> = Promise.resolve();
 
 /** `root` limits the saved rule to one project; omit for a rule that applies everywhere. */
-export async function grantAlways(toolName: string | undefined, env: NodeJS.ProcessEnv = process.env, root?: string): Promise<void> {
+export async function grantAlways(toolName: string | undefined, env: NodeJS.ProcessEnv = process.env, root?: string, isActive?: () => boolean): Promise<void> {
   if (!toolName) return;
-  await setToolPreference(toolName, "allow", env, root);
+  await setToolPreference(toolName, "allow", env, { root, isActive });
 }
 
-export async function grantNever(toolName: string | undefined, env: NodeJS.ProcessEnv = process.env, root?: string): Promise<void> {
+export async function grantNever(toolName: string | undefined, env: NodeJS.ProcessEnv = process.env, root?: string, isActive?: () => boolean): Promise<void> {
   if (!toolName) return;
-  await setToolPreference(toolName, "deny", env, root);
+  await setToolPreference(toolName, "deny", env, { root, isActive });
 }
 
 /** Replace only the selected tool-wide preference in this scope; narrower rules and other projects keep theirs. */
-function setToolPreference(tool: string, action: "allow" | "deny", env: NodeJS.ProcessEnv, root?: string): Promise<void> {
+function setToolPreference(tool: string, action: "allow" | "deny", env: NodeJS.ProcessEnv, { root, isActive }: { root?: string; isActive?: () => boolean }): Promise<void> {
   const run = async (): Promise<void> => {
     const scope = root ? canonicalRoot(root) : undefined;
     const rules = await loadRules(env);
     const retained = rules.filter((rule) => rule.tool !== tool || rule.pattern !== undefined || rule.root !== scope);
-    await saveRules([...retained, { action, tool, ...(scope ? { root: scope } : {}) }], env);
+    await saveRules([...retained, { action, tool, ...(scope ? { root: scope } : {}) }], env, isActive);
   };
   const result = queue.then(run, run);
   queue = result.catch(() => undefined);

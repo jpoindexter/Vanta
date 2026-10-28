@@ -6,8 +6,6 @@ import { requestWebApproval } from "./approval.js";
 import type { KernelClient } from "../kernel/client.js";
 import { bootstrapKernel } from "../session/bootstrap-kernel.js";
 import type { DesktopState } from "./handler-state.js";
-import { pushTypedEvent } from "./typed-emit.js";
-import { approvalResolvedEvent } from "./typed-events.js";
 
 // The launch gate for external worker CLIs in the desktop: the session's kernel
 // client plus the web approval flow (the same card and the same project-scoped
@@ -33,23 +31,11 @@ async function waitForApprovalSlot(state: DesktopState, signal?: AbortSignal): P
   return !state.pendingApproval && !signal?.aborted;
 }
 
-/** Withdraw our card when the worker is paused while it is still open, so no dead card stays on screen. */
-function withdrawOnAbort(state: DesktopState, signal: AbortSignal): Promise<false> {
-  const card = state.pendingApproval;
-  return new Promise((resolve) => signal.addEventListener("abort", () => {
-    if (card && state.pendingApproval === card) {
-      state.pendingApproval = undefined;
-      pushTypedEvent(state, approvalResolvedEvent(card.id));
-    }
-    resolve(false);
-  }, { once: true }));
-}
-
 async function ask(state: DesktopState, request: ApprovalAsk, signal?: AbortSignal): Promise<boolean> {
   return serialized(state, async () => {
     if (!(await waitForApprovalSlot(state, signal))) return false;
-    const answer = requestWebApproval(state, request.action, request.reason, { toolName: request.toolName, detail: request.detail });
-    return signal ? Promise.race([answer, withdrawOnAbort(state, signal)]) : answer;
+    const lifetime = signal && request.detail?.signal ? AbortSignal.any([signal, request.detail.signal]) : signal ?? request.detail?.signal;
+    return requestWebApproval(state, request.action, request.reason, { toolName: request.toolName, detail: { ...request.detail, signal: lifetime } });
   });
 }
 

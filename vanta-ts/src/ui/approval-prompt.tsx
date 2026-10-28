@@ -41,9 +41,10 @@ export async function decide(pending: Pending, outcome: Outcome): Promise<boolea
 async function saveDecision(pending: Pending, outcome: "always" | "never"): Promise<void> {
   if (!pending.toolName) throw new Error("Cannot save an approval rule without a tool name. Choose a one-time decision.");
   try {
-    if (outcome === "always") await grantAlways(pending.toolName, process.env, pending.root);
-    else await grantNever(pending.toolName, process.env, pending.root);
+    if (outcome === "always") await grantAlways(pending.toolName, process.env, pending.root, pending.isActive);
+    else await grantNever(pending.toolName, process.env, pending.root, pending.isActive);
   } catch {
+    if (pending.isActive?.() === false) return;
     throw new Error("Could not save the approval rule. Nothing was approved. Retry or choose a one-time decision.");
   }
 }

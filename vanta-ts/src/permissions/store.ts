@@ -1,5 +1,7 @@
 import { join } from "node:path";
-import { readFile, writeFile, mkdir, rename } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
+import { renameSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { resolveVantaHome, commitInHome } from "../store/home.js";
 import type { PermAction, PermRule } from "./rules.js";
 
@@ -59,12 +61,21 @@ export async function loadRules(env: NodeJS.ProcessEnv = process.env): Promise<P
 export async function saveRules(
   rules: PermRule[],
   env: NodeJS.ProcessEnv = process.env,
+  isActive?: () => boolean,
 ): Promise<void> {
+  if (isActive?.() === false) throw new DOMException("Approval canceled", "AbortError");
   await mkdir(resolveVantaHome(env), { recursive: true });
   // Write-then-rename so a crash mid-write cannot truncate the saved rules.
-  const temp = `${rulesPath(env)}.${process.pid}.tmp`;
-  await writeFile(temp, serializeRules(rules), "utf8");
-  await rename(temp, rulesPath(env));
+  const temp = `${rulesPath(env)}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temp, serializeRules(rules), { encoding: "utf8", mode: 0o600, flag: "wx" });
+    // No asynchronous gap between the lifetime check and the publication commit point.
+    if (isActive?.() === false) throw new DOMException("Approval canceled", "AbortError");
+    renameSync(temp, rulesPath(env));
+  } catch (error) {
+    await rm(temp, { force: true }).catch(() => undefined);
+    throw error;
+  }
   await commitInHome(PERMISSIONS_FILE, "permissions: update rules", env);
 }
 

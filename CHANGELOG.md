@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Saved approval cancellation — 2026-10-28 (source only)
+
+- Carry real turn/request cancellation through terminal, Desktop and worker
+  approvals to the shared rule publication point; prevent canceled pending saves.
+- Use unique prompt IDs to reject delayed decisions for replaced requests.
+  Preserve already-committed preferences instead of restoring stale snapshots.
+- 180 focused checks, types, startup compilation and actual compiled HTTP/turn/
+  filesystem replay pass with private fixtures. Normal CLI/installed agent6 are
+  unchanged; no whole trust/security/parity closure or public release/tag.
+  [Evidence and remaining delivery gates](docs/saved-rule-cancellation-2026-10-28.md).
+
 ## Startup repair CLI delivery — 2026-10-28 (local, not a public release)
 
 - Switch normal `vanta` to verified pin05271e95/runtime4036609c after exact source,

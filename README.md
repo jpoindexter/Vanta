@@ -38,6 +38,14 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Saved approval cancellation source checkpoint — October 28:** canceled
+pending Always/Never writes no longer publish in the verified terminal/Desktop
+paths, including actual turn and worker cancellation. Unique prompt IDs reject
+stale clicks; already-committed preferences remain intact. Focused checks and
+compiled HTTP/turn/filesystem replay pass with private fixtures. This repair is
+not yet in the installed app or normal CLI; broader trust/security gates remain.
+[Evidence and delivery limits](docs/saved-rule-cancellation-2026-10-28.md).
+
 **Current CLI delivery — October 28:** normal `vanta` now selects verified
 pin `05271e95` with startup repair `4036609c`. Concurrent compiled launches,
 ordinary ACP/MCP/file work, five worker cases and real-terminal `/restart` with

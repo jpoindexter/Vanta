@@ -66,7 +66,7 @@ describe("Ink remembered-choice eligibility", () => {
       expect(frame).toContain("Never allow this tool");
       ui.input("2");
       await waitUntil(() => pending.resolve.mock.calls.length > 0);
-      expect(grantAlways).toHaveBeenCalledExactlyOnceWith("browser_read", process.env, undefined);
+      expect(grantAlways).toHaveBeenCalledExactlyOnceWith("browser_read", process.env, undefined, undefined);
       expect(pending.resolve).toHaveBeenCalledExactlyOnceWith(true);
       expect(grantNever).not.toHaveBeenCalled();
     } finally { ui.unmount(); }

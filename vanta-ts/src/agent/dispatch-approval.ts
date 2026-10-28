@@ -37,6 +37,7 @@ export async function handleAskDecision(o: {
   root: string;
   tool?: DiffCapable;
   permissionMode: ReturnType<typeof resolvePermissionMode>;
+  signal?: AbortSignal;
 }): Promise<SafetyGateResult> {
   const { call, action, verdict, decision, deps, root, tool, permissionMode } = o;
   // DECISION-CLASSIFIER: a blanket auto-approve grant must NOT silently clear a
@@ -58,7 +59,7 @@ export async function handleAskDecision(o: {
     return delegated;
   }
   await firePermissionEvent(root, "PermissionRequest", call.name, { tool: call.name, action, reason: decision.reason });
-  return handleApprovalRequest({ call, action, verdict, decision, deps, root, tool });
+  return handleApprovalRequest({ call, action, verdict, decision, deps, root, tool, signal: o.signal });
 }
 
 /** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
@@ -101,6 +102,7 @@ export async function handleApprovalRequest(o: {
   root: string;
   tool?: DiffCapable;
   fresh?: boolean;
+  signal?: AbortSignal;
 }): Promise<SafetyGateResult> {
   const { call, action, verdict, deps, root } = o;
   const why = o.decision?.canRemember === false ? o.decision.reason : verdict.reason || "permission rule";
@@ -109,8 +111,8 @@ export async function handleApprovalRequest(o: {
   await persistApprovalTransition(root, deps.sessionId, call, action, "requested");
   let approved: boolean;
   try {
-    const detail = approvalDetail(o.fresh, diff, o.decision?.canRemember);
-    approved = await deps.requestApproval(action, why, call.name, detail);
+    const detail = approvalDetail(o.fresh, diff, o.decision?.canRemember, o.signal);
+    approved = await deps.requestApproval(action, why, call.name, detail) && !o.signal?.aborted;
   } catch (error) {
     await persistApprovalTransition(root, deps.sessionId, call, action, "expired");
     throw error;
@@ -142,8 +144,8 @@ async function recordApprovalSignal(toolName: string, action: string, reason: st
 }
 
 
-function approvalDetail(fresh?: boolean, diff?: string, canRemember?: boolean): ApprovalDetail | undefined {
+function approvalDetail(fresh?: boolean, diff?: string, canRemember?: boolean, signal?: AbortSignal): ApprovalDetail | undefined {
   const detail = { ...(fresh ? { fresh: true } : {}), ...(diff ? { diff } : {}),
-    ...(canRemember === false ? { canRemember: false } : {}) };
+    ...(canRemember === false ? { canRemember: false } : {}), ...(signal ? { signal } : {}) };
   return Object.keys(detail).length ? detail : undefined;
 }

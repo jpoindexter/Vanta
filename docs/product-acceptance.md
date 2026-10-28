@@ -15,6 +15,15 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [saved-rule cancellation source checkpoint](saved-rule-cancellation-2026-10-28.md)
+prevents cancellation observed before publication from leaving a reusable rule.
+Actual turn lifetimes reach outer Ask, terminal, Desktop and worker prompts;
+unique request IDs reject stale clicks. 180 focused checks, runtime types,
+startup compilation and actual compiled HTTP/turn/filesystem replay pass with
+private fixtures. Already-committed rules remain intact; cross-process store
+transactions are not established. Normal CLI and installed agent6 remain the
+versions below; new bundled/installed delivery and whole-card gates stay open.
+
 The [startup repair CLI delivery](startup-cli-delivered-2026-10-28.md) selects
 pin05271e95/runtime4036609c for normal `vanta` after independent source/dependency
 identity and actual launcher/agent/MCP/worker checks. Real-terminal conversation,
