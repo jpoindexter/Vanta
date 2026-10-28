@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent9 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Deliver sourcebcc84cdb as signed/Apple Accepted/stapled installed agent9.
+  Exact candidate AND installed chat/branch/continuation/switch/cold restart
+  preserve three histories and the parent edge with zero observed renderer errors.
+- Both six-turn file-approval regressions, final extracted archive, full installed/
+  agent8 rollback fingerprints and original work/data checks pass. Normal CLI
+  remains2d739e68. No resubmission, guard waiver or new visual acceptance.
+- Whole design/parity/owner/human/live-account, trust/security, normal-CLI cutover
+  and modularization gates remain. No main merge, public release/tag, CI or spend.
+  [Exact delivery and remaining work](docs/agent9-installed-2026-10-28.md).
+
 ## Website proxy trust leaf — 2026-10-28 (source checkpoint)
 
 - Update only the existing proxy-addr lock record to compatible 2.0.8.

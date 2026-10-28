@@ -15,6 +15,17 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent9 local Desktop delivery](agent9-installed-2026-10-28.md) delivers
+sourcebcc84cdb as signed/Apple Accepted/stapled installed agent9. Both exact
+candidate and installed six-checkpoint chat/branch/continuation/switch/cold
+restart paths retain three histories and their immediate-parent edge, with
+three structured saved/backend/renderer/visible-tree observations and zero
+observed renderer errors per copy. Fresh file-approval regressions, extracted
+archive, full installed/agent8 rollback fingerprints and original work/data
+preservation pass. NormalCLI remains2d739e68. Source grandchild and CLI-handler
+evidence remain separate; no new packaged grandchild/terminal/worker, visual,
+owner/human/live-account or whole-security/modularization clearance is inferred.
+
 The [website proxy trust leaf](website-proxy-addr-checkpoint-2026-10-28.md)
 updates one compatible lock record to proxy-addr2.0.8. Four actual Express
 trust-subnet regressions fail before/pass after; eight compatibility controls
@@ -32,11 +43,12 @@ Electron retains four exact histories and immediate-parent edges through real
 branching, continuation, switching and cold restart; both lifetimes close with
 zero observed renderer errors. This uses a private prestarted verified release
 kernel, not proof of source-launcher kernel selection or a new installed app.
-Agent8/normal CLI remain unchanged; full parity, owner/human/live-account,
+At that source checkpoint agent8/normal CLI were unchanged; agent9 above adds
+installed proof while normal CLI remains unchanged. Full parity, owner/human/live-account,
 remaining trust/security and modularization gates remain open.
 
-The [agent8 local Desktop delivery](agent8-installed-2026-10-28.md) now delivers
-source430530cd as signed/Apple Accepted/stapled installed agent8. Exact candidate
+The historical [agent8 local Desktop delivery](agent8-installed-2026-10-28.md) delivered
+source430530cd as signed/Apple Accepted/stapled agent8, now retained for rollback. Exact candidate
 AND installed create/branch/continue/switch/cold-restart journeys preserve three
 exact histories with zero renderer errors including post-close collection. Both
 packaged file-approval regressions, extracted archive, installed/agent7 rollback

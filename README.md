@@ -38,15 +38,25 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
-**Durable branching source checkpoint — October 28:** new branches preserve
+**Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
+`0.1.0-local.20261028.agent9` is installed from source `bcc84cdb`. Exact candidate
+and installed chat/branch/continue/switch/cold-restart journeys preserve three
+histories and the parent link with zero observed renderer errors. Both fresh
+file-approval regressions, extracted archive and installed/agent8 rollback
+fingerprints pass. Original work/data and normal CLI `2d739e68` remain unchanged.
+This is not finished visual/parity/security or owner acceptance.
+[Exact delivery and remaining gates](docs/agent9-installed-2026-10-28.md).
+
+**Durable branching source checkpoint — October 28 (delivered in agent9 above):** new branches preserve
 their immediate parent through saves, backend refresh and cold restart; same-second
 forks cannot overwrite one another. Forty-eight runtime/API and 26 Desktop checks,
 types and a rebuilt-source Electron journey pass with four exact histories and
-zero renderer errors. Installed agent8 and normal CLI remain unchanged; no whole
-card or parity closure. [Evidence and delivery gap](docs/fork-lineage-checkpoint-2026-10-28.md).
+zero renderer errors. At that source checkpoint, installed agent8 and normal CLI
+were unchanged. Agent9 adds separate installed proof; no whole-card or parity
+closure. [Source evidence and limits](docs/fork-lineage-checkpoint-2026-10-28.md).
 
-**Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
-`0.1.0-local.20261028.agent8` is installed from source `430530cd`. Exact candidate
+**Previous Desktop delivery — October 28:** signed, Apple Accepted/stapled
+`0.1.0-local.20261028.agent8` was installed from source `430530cd`. Exact candidate
 and installed create/branch/continue/switch/cold-restart checks pass with exact
 three-chat history and zero renderer errors; fresh file-approval regression,
 archive extraction, installed/rollback fingerprints and preservation also pass.

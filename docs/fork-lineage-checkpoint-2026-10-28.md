@@ -1,5 +1,9 @@
 # Durable chat branching — 2026-10-28 source checkpoint
 
+Subsequent delivery: [agent9](agent9-installed-2026-10-28.md) adds exact packaged
+and installed proof. This original source checkpoint and its limits remain
+historical evidence; normal CLI cutover is still separate.
+
 New Desktop branches now retain their immediate parent after backend refresh,
 later saves and cold restart. This is rebuilt-source evidence, not yet a new
 installed delivery. Installed agent8 and normal CLI `2d739e68` are unchanged.

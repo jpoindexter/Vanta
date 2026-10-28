@@ -1,5 +1,9 @@
 # Agent8 local Desktop delivery — 2026-10-28
 
+Historical delivery: [agent9](agent9-installed-2026-10-28.md) now supersedes the
+installed app described below; agent8 remains its verified rollback. The original
+evidence and the limits at this checkpoint are retained unchanged.
+
 The exact app at `/Applications/Vanta.app` is now signed, Apple Accepted and
 stapled `0.1.0-local.20261028.agent8`, built from
 `430530cd220d8178cb4495af64b312c471382f5e`. Agent7 is retained for rollback.
