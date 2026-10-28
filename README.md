@@ -38,35 +38,33 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
-**Current agent4 delivery — October 27:** normal `vanta` and the signed,
-Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `7d32e58f`,
-version `0.1.0-local.20261027.agent4`. Exact candidate and installed chat/restart
-and six-turn approval journeys pass: ordinary session edits remain remembered,
-file replacement requires a fresh exact decision, and denial preserves bytes.
-Two messaging transports use the existing patched WebSocket library and one
-native launcher helper is shared. Existing work/data and rollback copies are
-preserved. These are bounded repairs, not whole-agent/security/parity completion.
-[Exact delivery and remaining limits](docs/agent4-installed-2026-10-27.md).
+**Current agent5 delivery — October 28:** normal `vanta` and the signed,
+Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `166aff7f`,
+version `0.1.0-local.20261028.agent5`. Exact candidate and installed chat/restart,
+fresh file approval, team refusal/completion and cancellation journeys pass in
+private fixtures. Original work/data and previous app/CLI versions are preserved.
+These are bounded repairs, not whole-agent/security/parity completion.
+[Exact delivery, recovery installer and remaining limits](docs/agent5-installed-2026-10-28.md).
 
 **Agent Stop source checkpoint — October 28:** foreground workers now receive
 turn cancellation, later batch calls stop and late approvals cannot authorize a
 replacement after Cancel in the executed private paths. A subsequent
 [ACP cancellation repair](docs/acp-permission-cancellation-2026-10-28.md) settles
 unanswered foreground approvals without a reply and ignores stale allows.
-These changes are not yet in installed agent4 or the normal CLI.
+These bounded changes are now delivered in agent5 and the normal CLI.
 [Source evidence and delivery limits](docs/foreground-stop-checkpoint-2026-10-28.md).
 
 **Team-run source checkpoint — October 28:** refused, incomplete and canceled
 children no longer become Done. Actual CLI/kernel refusal, normal completion and
 Stop journeys pass; broader cancellation/attention gates and one intermittent
-adjacent background test remain open. Not yet in installed agent4 or normal CLI.
+adjacent background test remain open. Delivered in agent5 and the normal CLI.
 [Evidence and limits](docs/team-run-truth-2026-10-28.md).
 
 **Website security checkpoints — October 28:** compatible DOMPurify and image-size
 repairs retain their separately documented private install/build and real-consumer
 evidence. The image-parser audit removes only its two targeted advisories; 41
 package findings remain. Nothing is deployed; guards and the expired exception
-remain fail-closed. Installed agent4 and the normal CLI are unchanged.
+remain fail-closed. These website-only repairs do not change app/CLI behavior.
 [Sanitizer evidence](docs/website-sanitizer-checkpoint-2026-10-28.md) ·
 [Image-parser evidence and limits](docs/website-image-parser-checkpoint-2026-10-28.md).
 

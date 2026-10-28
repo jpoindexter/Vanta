@@ -3,7 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Team-run truth checkpoint — 2026-10-28 (source only)
+## Verified agent5 delivery — 2026-10-28 (local, not a public release)
+
+- Deliver code `166aff7f` to the normal CLI and signed, Apple Accepted/stapled
+  `/Applications/Vanta.app`. The final ZIP, extracted app and installed app match.
+- Candidate and installed chat/restart, six-turn fresh approval, team refusal,
+  completion, running-child Cancel and unanswered-approval Cancel pass using
+  private profiles and real bundled runtimes/kernels. Previous app/CLI retained.
+- Preserve original work and current owner data; update evidence without closing
+  unmet agent/security/parity gates. No main merge, public release/tag or deployment.
+  [Delivery identities and limits](docs/agent5-installed-2026-10-28.md).
+
+## Team-run truth checkpoint — 2026-10-28 (source evidence; subsequently delivered above)
 
 - Incomplete, refused or canceled team children no longer become done/success;
   forward Stop and preserve existing task transition/review/artifact gates.

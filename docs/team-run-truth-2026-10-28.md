@@ -1,7 +1,8 @@
 # Team-run truth and Stop — 2026-10-28
 
-**Source evidence, not yet a rebuilt installed delivery.** The installed agent4
-and normal CLI still contain `7d32e58f` at this checkpoint.
+**Source checkpoint evidence.** At this checkpoint the installed app/normal CLI
+still contained `7d32e58f`. The subsequent [agent5 delivery](agent5-installed-2026-10-28.md)
+executes these bounded journeys against candidate and installed code `166aff7f`.
 
 ## Cause and bounded repair
 

@@ -15,6 +15,18 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent5 installed delivery](agent5-installed-2026-10-28.md) delivers code
+`166aff7f` to normal `vanta` and signed/Apple Accepted/stapled local app version
+`0.1.0-local.20261028.agent5`. Exact candidate and installed paths separately
+pass chat/cold-draft restart, six-turn fresh approval and four team/cancellation
+journeys. Final archive extraction, complete installed fingerprint and rollback
+checks pass. Current 32 owner app-data files, 239 original integration files and
+13 dirty CLI files remain unchanged; earlier backups retain their own inventory.
+The first archive extraction failed in system temporary storage; the unchanged
+validator passed in owned temporary storage without another Apple submission.
+No owner accounts, GUI Stop, full parity/security or complete card acceptance is
+inferred. This supersedes the source-only delivery gaps below, not their limits.
+
 The [October 28 team-run truth checkpoint](team-run-truth-2026-10-28.md) preserves
 the shared child-outcome contract and forwards Stop without weakening the kernel.
 Actual source CLI/Rust refusal, completion and cancellation journeys pass, with
@@ -53,7 +65,7 @@ focused security checks. No website deployment or whole-security clearance; the
 image-size exception remains expired and rejected. App/normal CLI delivery below
 is unchanged by this website-only repair.
 
-The [agent4 installed delivery](agent4-installed-2026-10-27.md) identifies app and
+The previous [agent4 installed delivery](agent4-installed-2026-10-27.md) identifies app and
 normal CLI code `7d32e58f`, version `0.1.0-local.20261027.agent4`. Apple Accepted,
 stapling, extracted-archive fingerprint matching, guarded installation and actual
 installed signature/ticket/Gatekeeper checks pass. Candidate and installed paths
