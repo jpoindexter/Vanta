@@ -38,6 +38,13 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**New chat/fork source checkpoint — October 28:** extract the route hold without
+changing session ownership and prevent activity reads from dereferencing a removed
+message during empty chat switches. Twenty-four focused checks and the real source
+Electron create/branch/switch/cold-restart journey pass with zero renderer errors.
+This is not yet packaged/installed; agent7 below remains the local delivered build.
+[Evidence, rejected candidate and remaining gaps](docs/created-session-guard-2026-10-28.md).
+
 **Current local delivery — October 28:** normal `vanta` selects source
 `2d739e68`, also installed as signed, Apple Accepted/stapled Desktop
 `0.1.0-local.20261028.agent7`. Exact candidate and installed chat/restart,

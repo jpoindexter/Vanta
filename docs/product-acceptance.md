@@ -15,6 +15,17 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [New chat/fork source checkpoint](created-session-guard-2026-10-28.md)
+extracts the route guard and repairs an observed empty-thread activity read race.
+Pre-extraction and guard-only Electron runs both reproduce the console error;
+an ID-based attempt was rejected after a real workspace failure. The final
+selector guard passes the complete six-checkpoint source Electron journey with
+zero errors, exact copied/continued/switched/cold-restarted histories and private
+profiles. Twenty-four focused checks, types, source build and architecture pass.
+This source replay uses the maintained 2d739e68 backend/kernel, not a new packaged
+or installed app. Agent7/normal CLI below remain unchanged. Persistent fork-parent
+linkage, next exact package/install and whole-card/owner/parity gates remain open.
+
 The [agent7 local delivery](agent7-installed-2026-10-28.md) delivers source `2d739e68`
 to normal CLI and signed/Apple Accepted/stapled installed agent7. Exact candidate
 AND installed chat/restart, six-turn fresh file approval and five worker cases

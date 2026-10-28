@@ -367,12 +367,13 @@ const TurnActivityRow: FC<TurnActivityRowProps> = ({ active, elapsed, hint, loca
 // Subscribes to the activity signal ITSELF (rather than taking it as a prop)
 // so that per-token updates re-render only this leaf, not the whole
 // AssistantMessage subtree.
+// Old message subscribers can outlive the empty snapshot of a chat switch.
 export const TurnActivityIndicator: FC<{ thinking?: boolean }> = ({ thinking = false }) => {
   // Same rule the reasoning disclosure renders by (message-parts.tsx).
   const showReasoning = useStore($showReasoning)
   const guidedChat = useOnboardingChatActive()
   const reasoningShown = showReasoning && !guidedChat
-  const activity = useAuiState(s => activitySignature(s.message.content, reasoningShown))
+  const activity = useAuiState(s => s.thread.messages.length ? activitySignature(s.message.content, reasoningShown) : '')
 
   // Timestamp of the last visible progress, held from the moment the quiet
   // spell qualifies. Holding the timestamp (not a boolean) is what lets the
@@ -386,13 +387,13 @@ export const TurnActivityIndicator: FC<{ thinking?: boolean }> = ({ thinking = f
   // calls, its ticker names the current one, and it carries its own timer. A
   // second spinner under that adds a line and says nothing new. Silent tools
   // (`todo`, reactions) render nothing, so they narrate nothing.
-  const toolNarrating = useAuiState(s => toolNarratesWait(s.message.content))
+  const toolNarrating = useAuiState(s => s.thread.messages.length > 0 && toolNarratesWait(s.message.content))
 
   // Streaming can lead busy by one view flush on the first turn of a fresh
   // chat. Honor that lead only while this session still has an armed turn
   // clock: a pending bubble can outlive the backend's busy=false settle and
   // must not keep its tail timer running after the turn ends.
-  const messageRunning = useAuiState(s => s.message.status?.type === 'running')
+  const messageRunning = useAuiState(s => s.thread.messages.length > 0 && s.message.status?.type === 'running')
   const working = busy || (messageRunning && turnStartedAt !== undefined)
 
   // Renderer-synthesized load bar (see ResponseLoadingIndicator).

@@ -3,6 +3,19 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## New chat/fork route guard and activity reads — 2026-10-28 (source only)
+
+- Extract the complete pending-created-session route guard, retaining the external
+  owner ref, live finally reads, three-second timer and recovery behavior.
+- Reproduce an existing empty-thread activity subscription error in old and new
+  source renderers; guard the three reads before resolving a removed message.
+  Reject and fully restore an ID-based candidate that failed the real app.
+- Twenty-four focused checks, types and architecture pass. Rebuilt source Electron
+  passes create/branch/continuation/switch/cold restart with exact history and zero
+  renderer errors. Installed agent7/normal CLI remain unchanged; durable fork
+  parent linkage, packaged delivery and whole-card gates remain open.
+  [Proof and limits](docs/created-session-guard-2026-10-28.md).
+
 ## Website compression cleanup — 2026-10-28 (source only)
 
 - Patch the existing compression lock record to 1.8.2, reusing resolved destroy
