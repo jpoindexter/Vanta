@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 28 website image-parser checkpoint](website-image-parser-checkpoint-2026-10-28.md)
+pins compatible 2.0.4, removes only its two target advisories in a matched audit
+and retains every guard/expired-exception rejection. Current parser, actual MDX
+consumer, eight security checks and prebuild pass; the named earlier private
+candidate also passed its full production build. Forty-one package findings
+remain. This is not a deployed site, full security clearance or app/CLI update.
+
 The [October 28 ACP permission cancellation repair](acp-permission-cancellation-2026-10-28.md)
 settles an unanswered foreground approval on Cancel and discards stale replies
 without changing another session's pending approval or fresh authority. Actual

@@ -12,6 +12,17 @@ makes, the ones it does **not**, and how to run it safely.
 > when required policy or journal state is unavailable. A future executor or
 > another host must earn its own evidence before it inherits that claim.
 
+## Dependency checkpoint — 2026-10-28
+
+The unmerged integration source pins website `image-size` to compatible 2.0.4.
+The two formerly unpatched build-parser advisories now have an upstream fix;
+actual parser and Docusaurus consumer checks pass. A matched production-lock
+audit removes only that package's row: 42 → 41, including 18 critical and 11 high
+remaining rows. This is not whole-security clearance or a website deployment.
+The October 1 exception is still expired and rejected; no policy, input guard
+or disabled format is relaxed. Older audit totals below are dated snapshots.
+[Current evidence and limits](docs/website-image-parser-checkpoint-2026-10-28.md).
+
 ## 1. Architecture: the kernel is the boundary
 
 | Layer | Language | Role |

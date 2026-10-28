@@ -13,6 +13,17 @@ Vanta is a **local trusted-operator agent**: it runs on your machine, with your 
 > macOS effect inventory uses the shared gateway and kernel; a future path or
 > another host does not inherit that proof automatically.
 
+## Dependency checkpoint — October 28, 2026
+
+The unmerged integration source pins the documentation image parser to compatible
+`image-size` 2.0.4. Its two previously unpatched advisories now have an upstream
+fix, checked through the actual parser and Docusaurus image transformer. The
+matched production-lock audit has 41 remaining package rows, including 18 critical
+and 11 high; this is not an advisory-free site or a deployment. Input guards and
+disabled formats remain; the October 1 exception is still expired and rejected.
+The older audit paragraphs below describe their original dated snapshots.
+See the [source checkpoint and evidence](https://github.com/jpoindexter/Vanta/blob/claude/desktop-integration-20261013/docs/website-image-parser-checkpoint-2026-10-28.md).
+
 ## The boundary: a separate Rust kernel
 
 Every consequential path in the checked inventory enters the shared effect
@@ -91,8 +102,8 @@ monotonic through the exercised gate chain; the JSON parser was bounded; the
 reviewed paths found no prototype pollution or ReDoS; the kernel was
 zero-dependency; and the exercised MCP/plugin and headless-approval paths failed
 safe. The exact 2026-08-13 integrated runtime graph now reports zero npm
-advisories after the local AnyDoc parser and compatible transitive updates. The static
-documentation build still inherits two unpatched `image-size` denial-of-service
+advisories after the local AnyDoc parser and compatible transitive updates. At that
+historical snapshot, the static documentation build inherited two then-unpatched `image-size` denial-of-service
 advisories through Docusaurus; npm expands that dependency path into 19 high
 package entries. Vanta disables the affected ICNS, JPEG XL, and HEIF/AVIF
 parsers and rejects those signatures before Docusaurus reads build inputs. The

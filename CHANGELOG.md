@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website image-parser checkpoint — 2026-10-28 (not deployed)
+
+- Pin compatible image-size 2.0.4 without unrelated dependency changes. Actual
+  parser/Docusaurus checks and current prebuild pass; the private locked candidate
+  also passed its production build. Matched audit removes only the two target
+  advisories, with 41 other package findings remaining.
+- Keep input guards, disabled formats and expired-exception rejection unchanged.
+  No app/CLI update or whole-security clearance.
+  [Exact evidence boundaries](docs/website-image-parser-checkpoint-2026-10-28.md).
+
 ## ACP permission cancellation — 2026-10-28 (source only)
 
 - Cancel settles unanswered foreground permissions, removes the exact pending

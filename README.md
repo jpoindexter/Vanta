@@ -56,11 +56,13 @@ unanswered foreground approvals without a reply and ignores stale allows.
 These changes are not yet in installed agent4 or the normal CLI.
 [Source evidence and delivery limits](docs/foreground-stop-checkpoint-2026-10-28.md).
 
-**Website security checkpoint — October 28:** the compatible DOMPurify leaf update
-passes an isolated locked install, production build and real diagram/reload checks.
-It is not deployed; broader advisories and the expired image-size exception remain.
-Installed agent4 and the normal CLI are unchanged.
-[Evidence and limits](docs/website-sanitizer-checkpoint-2026-10-28.md).
+**Website security checkpoints — October 28:** compatible DOMPurify and image-size
+repairs retain their separately documented private install/build and real-consumer
+evidence. The image-parser audit removes only its two targeted advisories; 41
+package findings remain. Nothing is deployed; guards and the expired exception
+remain fail-closed. Installed agent4 and the normal CLI are unchanged.
+[Sanitizer evidence](docs/website-sanitizer-checkpoint-2026-10-28.md) ·
+[Image-parser evidence and limits](docs/website-image-parser-checkpoint-2026-10-28.md).
 
 **Previous agent3 delivery — October 27:** normal `vanta` selected verified pinned
 source `1d18f846`. The same agent checkpoint is signed, Apple Accepted/stapled
