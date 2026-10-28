@@ -15,6 +15,14 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 28 team-run truth checkpoint](team-run-truth-2026-10-28.md) preserves
+the shared child-outcome contract and forwards Stop without weakening the kernel.
+Actual source CLI/Rust refusal, completion and cancellation journeys pass, with
+76 focused checks on a serial rerun, types, size and a parent 37-check run. The
+earlier adjacent background timeout remains unexplained; no whole-adapter or
+installed app/CLI acceptance is inferred. [Recoverable build cleanup](old-build-cleanup-2026-10-28.md)
+is complete for its enumerated generated copies, not a new app delivery.
+
 The [October 28 website image-parser checkpoint](website-image-parser-checkpoint-2026-10-28.md)
 pins compatible 2.0.4, removes only its two target advisories in a matched audit
 and retains every guard/expired-exception rejection. Current parser, actual MDX

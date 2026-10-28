@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Team-run truth checkpoint — 2026-10-28 (source only)
+
+- Incomplete, refused or canceled team children no longer become done/success;
+  forward Stop and preserve existing task transition/review/artifact gates.
+- Actual CLI/Rust refusal, completion and Cancel journeys pass; retain the
+  unexplained adjacent background-custody timeout alongside the focused rerun.
+  [Evidence and limits](docs/team-run-truth-2026-10-28.md).
+- [Recoverable old-build cleanup](docs/old-build-cleanup-2026-10-28.md) removes
+  verified redundant generated copies while retaining source, installed app,
+  rollback apps and signed recovery installers. No new delivery is implied.
+
 ## Website image-parser checkpoint — 2026-10-28 (not deployed)
 
 - Pin compatible image-size 2.0.4 without unrelated dependency changes. Actual

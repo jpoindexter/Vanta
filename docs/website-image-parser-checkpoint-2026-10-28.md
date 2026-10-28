@@ -50,6 +50,12 @@ Neither packet is committed as application source.
 
 ## Unchanged gates and remaining work
 
+Later same-day build follow-up: all 125 current public build inputs were matched
+byte-for-byte to `a19a6e16` in the parent private snapshot. The unchanged prebuild
+and production build then passed (`current-build-source.json` and
+`logs/build-current-exact.log`). This supersedes the initially missing current
+full-build check, not the absent browser/deployment or whole-security evidence.
+
 No exception renewal, policy change, guard removal or restoration of guarded
 formats occurs. The exception remains expired on 2026-10-01 and fails closed;
 the old affected-version assertion is retained for separately reviewed retirement.
@@ -58,5 +64,5 @@ not remove those findings or the default-branch alerts, nor change card Done gat
 
 No browser rendering, deployed-site acceptance or installed app/CLI update is
 claimed. The production build above belongs to its named private candidate;
-the parent reruns bounded current prebuild/parser/consumer paths. A new full build
-waits for disk headroom. No paid service, CI, main merge or public release/tag.
+the parent reruns bounded current prebuild/parser/consumer paths and the later
+current-input production build above. No paid service, CI, main merge or public release/tag.

@@ -56,6 +56,12 @@ unanswered foreground approvals without a reply and ignores stale allows.
 These changes are not yet in installed agent4 or the normal CLI.
 [Source evidence and delivery limits](docs/foreground-stop-checkpoint-2026-10-28.md).
 
+**Team-run source checkpoint — October 28:** refused, incomplete and canceled
+children no longer become Done. Actual CLI/kernel refusal, normal completion and
+Stop journeys pass; broader cancellation/attention gates and one intermittent
+adjacent background test remain open. Not yet in installed agent4 or normal CLI.
+[Evidence and limits](docs/team-run-truth-2026-10-28.md).
+
 **Website security checkpoints — October 28:** compatible DOMPurify and image-size
 repairs retain their separately documented private install/build and real-consumer
 evidence. The image-parser audit removes only its two targeted advisories; 41

@@ -1,5 +1,7 @@
 import type { ToolResult, ToolContext } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
+import { workerToolResult } from "../subagent/tool-result.js";
+import type { AgentOutcome } from "../agent.js";
 import { resolveProvider } from "../providers/index.js";
 import { pausedReason } from "../team/paused.js";
 import { teammateEnv } from "../team/teammate-model.js";
@@ -19,7 +21,7 @@ import {
 const WORKER_MAX_ITER = 20;
 
 /**
- * Move a task to a new status from an assumed-current `from`, best-effort.
+ * Re-read the task before a legal transition; refuse changed or gated state.
  *
  * ENFORCED-OUTCOME-WIRE: on the done transition, advanceTask is handed the
  * work-products probe so a task that DECLARED a required outcome closes only
@@ -28,8 +30,29 @@ const WORKER_MAX_ITER = 20;
  */
 export async function settle(task: WorkerTask, from: TaskStatus, to: TaskStatus, detail?: string): Promise<void> {
   const probe = to === "done" ? await resolveTaskArtifactProbe(task.id) : undefined;
-  const r = advanceTask({ ...task, status: from }, to, detail, probe);
-  if (r.ok) await appendTask(r.value);
+  const current = latestTasks(await readTasks()).find(t => t.id === task.id);
+  if (!current || current.status !== from) throw new Error(`task ${task.id} changed before ${to}; ledger left unchanged`);
+  const r = advanceTask(current, to, detail, probe);
+  if (!r.ok) throw new Error(r.error);
+  await appendTask(r.value);
+}
+
+async function finishWorkerTask(task: WorkerTask, outcome: AgentOutcome): Promise<ToolResult> {
+  const summary = outcome.finalText.slice(0, 500) || `(worker ${outcome.stoppedReason})`;
+  const result = workerToolResult(outcome, summary);
+  const status = result.ok ? "done" : "blocked";
+  await settle(task, "running", status, summary);
+  return { ...result, output: `task ${task.id} ${status} by ${task.workerId}: ${summary}` };
+}
+
+async function failedTask(task: WorkerTask, error: unknown, started: boolean): Promise<ToolResult> {
+  let message = error instanceof Error ? error.message : String(error);
+  if (started) {
+    try { await settle(task, "running", "blocked", message); }
+    catch (failure) { message += `; task state not changed: ${String(failure)}`; }
+  }
+  return { ok: false, output: `task ${task.id} could not complete: ${message}`,
+    effectDisposition: "unknown", verification: { status: "unverified" } };
 }
 
 // Live executor: actually run a dispatched task by spawning a worker agent.
@@ -56,8 +79,10 @@ export async function doRun(taskId: string | undefined, detail: string | undefin
     return { ok: false, output: `cannot run: ${(err as Error).message}` };
   }
 
-  await settle(task, "assigned", "running");
+  let started = false;
   try {
+    await settle(task, task.status, "running");
+    started = true;
     const outcome = await spawnSubagent({
       goal: task.title,
       instruction: detail ?? `Complete this task: ${task.title}`,
@@ -70,13 +95,10 @@ export async function doRun(taskId: string | undefined, detail: string | undefin
         maxIterations: WORKER_MAX_ITER,
       },
       maxIterations: WORKER_MAX_ITER,
+      signal: ctx.signal,
     });
-    const result = (outcome.finalText ?? "").slice(0, 500) || `(worker ${outcome.stoppedReason})`;
-    await settle(task, "running", "done", result);
-    return { ok: true, output: `task ${taskId} done by ${task.workerId}: ${result}` };
+    return await finishWorkerTask(task, outcome);
   } catch (err) {
-    const msg = (err as Error).message;
-    await settle(task, "running", "blocked", msg);
-    return { ok: false, output: `task ${taskId} blocked: ${msg}` };
+    return failedTask(task, err, started);
   }
 }
