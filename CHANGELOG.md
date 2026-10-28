@@ -5,6 +5,13 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
+- Source recovery proof: three real Desktop host exit/restart journeys retain
+  uncertain Gmail actions, exact drafts/arguments and held followers; consumed
+  operations make no duplicate submission or new approval request. HTTP503,
+  reset and missing acknowledgment fixtures pass. No new production change,
+  installed recovery, live-account or review-clearing claim.
+  [Evidence and limits](docs/gmail-cold-recovery-2026-10-28.md).
+
 - Keep Desktop queued work held by typed unknown tool results from live,
   resuming or saved sessions, including CLI sessions without Desktop receipts.
   Reuse the agent's existing evidence check. Real source HTTP replay and 32

@@ -16,10 +16,12 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) and
 [T03-4 local delivery acceptance](agent14-cli-delivery-2026-10-28.md) are executed.
-The next Trust slice is T03-2: host draft/review recovery after restart remains
-unproven. [Cross-host typed review evidence](cross-host-review-continuity-2026-10-28.md)
-now prevents a saved CLI uncertainty record from unlocking Desktop queued work;
-fresh-server HTTP source proof is not full process/installed restart acceptance.
+T03-2 now has [actual process-restart SOURCE acceptance](gmail-cold-recovery-2026-10-28.md):
+three uncertain Gmail fixtures preserve draft/arguments/review controls and held
+work across distinct host PIDs, with zero duplicate submissions. This is not
+installed/live-account or review-clearing acceptance. The next Trust slice is
+T03-3 LinkedIn author binding. [Cross-host typed review evidence](cross-host-review-continuity-2026-10-28.md)
+separately prevents a saved CLI uncertainty record from unlocking Desktop work.
 O03-1 reuses current agent evidence for
 false attention: [O03-1 source proof](agent-attention-routing-2026-10-28.md)
 is now executed, including the repaired positive-control blocker projection.
@@ -45,7 +47,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 ## TRUST-03 — building
 
 - [x] T03-1: Gmail sender binding: preview the mailbox; account switch/revocation during approval makes zero draft/send POSTs; an unchanged approved draft/send submits once. SOURCE acceptance: 11 local HTTP cases; installed delivery remains T03-4.
-- [ ] T03-2: Gmail uncertain-result recovery: reset/missing acknowledgement stays unknown; replay the same operation after restart with zero duplicate submissions; retain the draft and exact review action.
+- [x] T03-2 SOURCE accepted: Gmail reset/missing acknowledgment/503 stay unknown; actual host exit → distinct process → reopen/replay makes zero duplicate submissions or new approval requests. Exact composer draft, saved arguments, held queue and edit-only review action retained; independent chat remains usable. Runtime bc4aa75b; not installed/live-account, review clearing or full parent acceptance. [Evidence](gmail-cold-recovery-2026-10-28.md).
 - [ ] T03-3: LinkedIn author binding: resolve and preview the personal author before approval; credential/author drift prevents POST; keep provider-confirmed distinct from readback verified.
 - [x] T03-4: Deliver the proven Gmail slice through the pinned CLI and exact packaged app; repeat sender/denial/once controls with fixture accounts and retain rollback. No live send required. ACCEPTED: normal CLI e467a857, signed/notarized installed agent14; actual candidate and installed approval controls plus retained app/CLI rollback. See agent14 delivery record. Not full TRUST-03 or live-account acceptance.
 - [ ] T03-5: Delegated outreach scope: one child cannot change its approved recipient/content/account or reuse the parent capability; denied/replayed fixture creates zero effect calls.
