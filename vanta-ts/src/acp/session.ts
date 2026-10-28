@@ -37,7 +37,7 @@ export type SessionSink = {
    * client's chosen optionId ("" = denied/closed). EXT-ACP-EDIT-DIFF reads the
    * id (not just allow-ness) so "allow_always" can arm the session grant.
    */
-  requestPermission: (sessionId: string, req: PermissionRequest) => Promise<string>;
+  requestPermission: (sessionId: string, req: PermissionRequest, signal?: AbortSignal) => Promise<string>;
 };
 
 /** The `session/update` payload union (the subset Vanta emits). */
@@ -65,6 +65,12 @@ export const PERMISSION_OPTIONS: PermissionOption[] = [
 ];
 
 type ApprovalAsk = { action: string; reason: string; toolName?: string; detail?: ApprovalDetail };
+
+function approvalPolicy(ask: ApprovalAsk) {
+  const oneTime = ask.detail?.fresh === true || ask.detail?.canRemember === false;
+  const repeatableEdit = ask.toolName !== undefined && FILE_TOOLS.has(ask.toolName) && !oneTime;
+  return { oneTime, repeatableEdit, options: repeatableEdit ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS };
+}
 
 function permissionRequest(ask: ApprovalAsk, options: PermissionOption[], oneTime: boolean): PermissionRequest {
   const content: ToolCallContent[] = ask.detail?.diff
@@ -188,15 +194,16 @@ export class SessionManager {
   private async approveWithEditPolicy(
     s: Session,
     ask: ApprovalAsk,
+    turnSignal: AbortSignal,
   ): Promise<boolean> {
-    const isFileTool = ask.toolName !== undefined && FILE_TOOLS.has(ask.toolName);
-    const oneTime = ask.detail?.fresh === true || ask.detail?.canRemember === false;
-    const repeatableEdit = isFileTool && !oneTime;
+    const signal = ask.detail?.signal === undefined ? turnSignal : ask.detail.signal;
+    if (signal?.aborted) return false;
+    const { oneTime, repeatableEdit, options } = approvalPolicy(ask);
     if (repeatableEdit && decideEditPrompt({ autoApproveEdits: s.autoApproveEdits === true, path: pathFromAction(ask.action) }) === "auto-allow") {
       return true;
     }
-    const options = repeatableEdit ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS;
-    const optionId = await this.sink.requestPermission(s.id, permissionRequest(ask, options, oneTime));
+    const optionId = await this.sink.requestPermission(s.id, permissionRequest(ask, options, oneTime), signal ?? undefined);
+    if (signal?.aborted) return false;
     const kind = options.find(option => option.optionId === optionId)?.kind;
     if (kind === "allow_always") s.autoApproveEdits = true;
     return kind === "allow_once" || kind === "allow_always";
@@ -231,7 +238,7 @@ export class SessionManager {
       if (update) this.sink.update(sessionId, update);
     };
     const approve: RunRequest["approve"] = (action, reason, toolName, detail) =>
-      this.approveWithEditPolicy(s, { action, reason, toolName, detail });
+      this.approveWithEditPolicy(s, { action, reason, toolName, detail }, abort.signal);
     try {
       const { stopReason } = await this.runner({
         sessionId,

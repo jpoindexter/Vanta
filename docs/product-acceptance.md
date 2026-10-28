@@ -15,12 +15,21 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 28 ACP permission cancellation repair](acp-permission-cancellation-2026-10-28.md)
+settles an unanswered foreground approval on Cancel and discards stale replies
+without changing another session's pending approval or fresh authority. Actual
+source CLI/file/Rust replay settles before any reply, retains original bytes
+and makes no retry; 104 focused checks, runtime types and strict size pass.
+This supersedes the pending-permission gap in the preceding checkpoint below,
+not whole-agent cancellation or installed app/normal CLI acceptance.
+
 The [October 28 foreground Stop source checkpoint](foreground-stop-checkpoint-2026-10-28.md)
 propagates turn cancellation through foreground delegate/swarm, prevents later
 batch calls and rejects late replacement approvals. Actual source CLI/file/Rust
 replays, 99 focused checks, runtime types and seven-file strict size checks pass.
-Pending ACP permission settlement remains incomplete; no installed app/normal CLI
-update or whole-cancellation acceptance is claimed by this source checkpoint.
+At that earlier checkpoint pending ACP permission settlement was incomplete;
+the follow-up above supersedes that bounded gap. Neither source checkpoint claims
+an installed app/normal CLI update or whole-cancellation acceptance.
 
 The [October 28 website sanitizer checkpoint](website-sanitizer-checkpoint-2026-10-28.md)
 updates only the existing compatible DOMPurify lock leaf. Private locked install,

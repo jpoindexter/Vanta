@@ -23,11 +23,13 @@ export function executionContext(call: ToolCall, deps: AgentDeps, ctx: ToolConte
   const mode = ctx.permissionMode?.() ?? resolvePermissionMode(process.env);
   const autoApprove = !forceFreshApproval && (mode === "fullAccess" || acceptsEditsWithoutKernel(mode, call.name));
   // Explicit background delegation owns a durable lifecycle beyond this turn.
-  const signal = call.name === "delegate" && call.arguments.background === true ? undefined : ctx.signal;
+  const detached = call.name === "delegate" && call.arguments.background === true;
+  const signal = detached ? undefined : ctx.signal;
   return {
     ...ctx,
     requestApproval: async (action, reason, requestedToolName, detail) => {
       signal?.throwIfAborted();
+      if (signal || detached) detail = { ...detail, signal: signal ?? null };
       if (forceFreshApproval) detail = { ...detail, fresh: true };
       if (!detail?.fresh) {
         const saved = await savedExactChoice(call, deps, { action, toolName: requestedToolName, root: ctx.root });

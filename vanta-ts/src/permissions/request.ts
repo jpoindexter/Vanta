@@ -2,6 +2,8 @@ export type PermissionKind =
   | "bash" | "file_edit" | "file_write" | "web_fetch" | "computer_use" | "sandbox" | "skill" | "generic";
 export type PermissionSection = { label: string; value: string; tone?: "code" | "muted" | "danger" };
 export type ApprovalDetail = {
+  /** In-process approval lifetime only; null denotes explicitly detached work. */
+  signal?: AbortSignal | null;
   diff?: string;
   fresh?: boolean;
   /** False means a policy requires a one-time decision; hosts cannot save it. */

@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## ACP permission cancellation — 2026-10-28 (source only)
+
+- Cancel settles unanswered foreground permissions, removes the exact pending
+  request/listener and prevents stale replies from arming a session edit grant.
+  Other sessions and explicitly detached approval retain their own lifetime.
+- Actual CLI/file/kernel replay settles before any client reply with original
+  bytes retained and no retry; 104 focused tests, types and strict size pass.
+  Installed app/normal CLI delivery remains separate.
+  [Evidence and limits](docs/acp-permission-cancellation-2026-10-28.md).
+
 ## Foreground Stop checkpoint — 2026-10-28 (source only)
 
 - Carry turn cancellation into foreground delegate/swarm workers, stop later
