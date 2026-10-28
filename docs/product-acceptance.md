@@ -15,28 +15,45 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent7 local delivery](agent7-installed-2026-10-28.md) delivers source `2d739e68`
+to normal CLI and signed/Apple Accepted/stapled installed agent7. Exact candidate
+AND installed chat/restart, six-turn fresh file approval and five worker cases
+pass. Actual terminal restart/context and a saved project choice surviving restart
+without another prompt pass. Final ZIP/extraction/installed/agent6 rollback and
+original work/data preservation pass. Initial temporary-directory archive failure
+is retained; the unchanged validator passes in owned TMPDIR without resubmission.
+This is not a new full visual redesign, owner/live-account or whole-card clearance.
+Earlier versioned delivery paragraphs below remain historical; this supersedes
+only their bounded local CLI/app delivery gaps.
+
+The [website Colord leaf](website-colord-checkpoint-2026-10-28.md) is a separate
+source-only lock change. Actual consumer checks and matched 42→41 audit pass;
+41 findings remain. No new whole website build/deployment or default-main
+security clearance is claimed.
+
 The [saved-rule cancellation source checkpoint](saved-rule-cancellation-2026-10-28.md)
 prevents cancellation observed before publication from leaving a reusable rule.
 Actual turn lifetimes reach outer Ask, terminal, Desktop and worker prompts;
 unique request IDs reject stale clicks. 180 focused checks, runtime types,
 startup compilation and actual compiled HTTP/turn/filesystem replay pass with
 private fixtures. Already-committed rules remain intact; cross-process store
-transactions are not established. Normal CLI and installed agent6 remain the
-versions below; new bundled/installed delivery and whole-card gates stay open.
+transactions are not established. At that source checkpoint, normal CLI and
+installed agent6 were unchanged; agent7 above adds bundled/installed delivery evidence,
+while whole-card gates stay open.
 
-The [startup repair CLI delivery](startup-cli-delivered-2026-10-28.md) selects
-pin05271e95/runtime4036609c for normal `vanta` after independent source/dependency
+The [startup repair CLI delivery](startup-cli-delivered-2026-10-28.md) selected
+pin `05271e95`/runtime `4036609c` for normal `vanta` after independent source/dependency
 identity and actual launcher/agent/MCP/worker checks. Real-terminal conversation,
 `/restart`, saved-context re-entry and natural quit pass with a private model.
 The original CLI pin/location and all owner work/data are retained. Desktop
-remains agent6/d626; this supersedes only the source-only normal-CLI gap below.
+was agent6/d626 at that checkpoint; agent7 above supersedes both local deliveries.
 
 The [startup-cache generation checkpoint](startup-cache-generations-2026-10-28.md)
 repairs three reproduced cache defects with retained immutable outputs and an atomic
 pointer. Eleven focused checks, actual concurrent compiled launches and 26 actual
 ACP/MCP/file/denial/Cancel checks pass. The historical missing-module crash was not
 reproduced by timing alone. That checkpoint's source evidence is now complemented
-by the normal-CLI delivery above; installed Desktop remains agent6 and no whole
+by the normal-CLI delivery above; installed Desktop was then agent6 and no whole
 Trust/Operator gate closes.
 
 The [website source-map checkpoint](website-source-map-checkpoint-2026-10-28.md)

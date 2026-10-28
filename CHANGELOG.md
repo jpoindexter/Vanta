@@ -3,7 +3,23 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Saved approval cancellation — 2026-10-28 (source only)
+## Verified agent7 delivery and website leaf — 2026-10-28 (local, not a release)
+
+- Normal CLI and signed/Apple Accepted/stapled installed agent7 now deliver
+  source 2d739e68, including startup generations and saved-rule cancellation.
+- Exact candidate and installed chat/restart, fresh file approvals and five
+  worker cases pass. Real-terminal restart and a remembered project choice
+  surviving restart pass; old app/pin, original work and owner data are retained.
+- Retain the initial temporary-directory archive failure; the same complete
+  validator passes with an owned temporary directory, without Apple resubmission.
+  [Delivery identities and remaining gates](docs/agent7-installed-2026-10-28.md).
+- Separately patch compatible website Colord 2.9.4 with actual consumer proof
+  and matched audit 42→41. No website installation/deployment or overall security
+  clearance. [Website evidence](docs/website-colord-checkpoint-2026-10-28.md).
+- No whole-card closure, completed redesign/modularization, main merge, public
+  release/tag, CI or paid services.
+
+## Saved approval cancellation — 2026-10-28 (source checkpoint; delivered above)
 
 - Carry real turn/request cancellation through terminal, Desktop and worker
   approvals to the shared rule publication point; prevent canceled pending saves.

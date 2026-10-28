@@ -38,23 +38,32 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Current local delivery — October 28:** normal `vanta` selects source
+`2d739e68`, also installed as signed, Apple Accepted/stapled Desktop
+`0.1.0-local.20261028.agent7`. Exact candidate and installed chat/restart,
+fresh file approvals and five worker cases pass with private fixtures. Real
+terminal restart and a remembered project choice surviving restart also pass.
+Previous app/pin and original work/data remain recoverable. This is not a finished
+redesign or whole security/parity acceptance.
+[Exact delivery and remaining gates](docs/agent7-installed-2026-10-28.md).
+
 **Saved approval cancellation source checkpoint — October 28:** canceled
 pending Always/Never writes no longer publish in the verified terminal/Desktop
 paths, including actual turn and worker cancellation. Unique prompt IDs reject
 stale clicks; already-committed preferences remain intact. Focused checks and
 compiled HTTP/turn/filesystem replay pass with private fixtures. This repair is
-not yet in the installed app or normal CLI; broader trust/security gates remain.
+now included in local agent7 above; broader trust/security gates remain.
 [Evidence and delivery limits](docs/saved-rule-cancellation-2026-10-28.md).
 
-**Current CLI delivery — October 28:** normal `vanta` now selects verified
+**Previous startup-repair CLI delivery — October 28:** normal `vanta` selected verified
 pin `05271e95` with startup repair `4036609c`. Concurrent compiled launches,
 ordinary ACP/MCP/file work, five worker cases and real-terminal `/restart` with
 saved-context re-entry pass in private profiles. Prior pin/location retained;
-no owner credentials or approvals copied. Desktop remains agent6 below.
+no owner credentials or approvals copied. Desktop was still agent6 at that checkpoint.
 [CLI delivery and remaining limits](docs/startup-cli-delivered-2026-10-28.md).
 
-**Installed Desktop agent6 — October 28:** the signed,
-Apple Accepted/stapled app at `/Applications/Vanta.app` contains code `d6260ace`,
+**Previous Desktop agent6 — October 28:** the signed,
+Apple Accepted/stapled app then at `/Applications/Vanta.app` contained code `d6260ace`,
 version `0.1.0-local.20261028.agent6`. Candidate and installed chat/restart,
 fresh file approvals and five swarm/cancellation cases pass with private fixtures.
 Real source-terminal approval dismissal and independent success also pass.
