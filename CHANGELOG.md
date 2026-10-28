@@ -5,6 +5,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
+- Local delivery: fresh owner-approved normal CLI cutover to independent
+  `e467a857`; exact source/preservation checks and the actual global launcher
+  pass. Previous runtime and selection retained; no credential or approval
+  migration. Signed agent14 Desktop fixture journeys pass, but notarization
+  and installation remain pending. [Delivery and limits](docs/agent14-cli-delivery-2026-10-28.md).
+
 - Follow-up: retain typed turn uncertainty and explain its existing canonical
   blocker with a safe review action, original source and receipt link; do not
   create a duplicate ticket. Actual Gmail503/kernel/conversation plus separate

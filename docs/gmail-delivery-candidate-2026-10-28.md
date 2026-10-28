@@ -1,5 +1,9 @@
 # Gmail delivery candidate — 2026-10-28
 
+Historical agent13 checkpoint. The [agent14 delivery record](agent14-cli-delivery-2026-10-28.md)
+supersedes the CLI-selection and packaged-fixture status below; retained failures
+and the live-account `invalid_grant` boundary remain relevant.
+
 ## Verdict
 
 **T03-4 remains incomplete.** The independent CLI candidate has executed terminal
