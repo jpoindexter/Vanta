@@ -124,8 +124,10 @@ export class McpClient {
       if (msg.method) void this.events.onNotification?.(msg.method, msg.params);
       return;
     }
+    // Peers choose request IDs independently; a server request is not our reply.
+    if (msg.method) return this.dispatchServerRequest(msg.id, msg.method, msg.params);
     const p = this.pending.get(msg.id);
-    if (!p) return this.dispatchServerRequest(msg.id, msg.method, msg.params);
+    if (!p) return;
     this.pending.delete(msg.id);
     if (msg.error) p.reject(new Error(msg.error.message ?? "mcp error"));
     else p.resolve(msg.result);

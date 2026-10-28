@@ -38,6 +38,12 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**MCP agent correction — October 28 (source only):** server questions no longer
+falsely complete tool calls that happen to use the same message ID. Three
+before/after regressions and actual stdio/effect-journal checks pass within an
+88-test focused set. Installed agent10 and normal CLI70 are unchanged.
+[Evidence and delivery boundary](docs/mcp-request-correlation-2026-10-28.md).
+
 **Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
 `0.1.0-local.20261028.agent10` is installed from source `b67af10b`. Both exact
 candidate and installed copies pass full-reload approval recovery, real one-click

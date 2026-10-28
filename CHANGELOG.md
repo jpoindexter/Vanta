@@ -3,6 +3,14 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## MCP request correlation — 2026-10-28 (source checkpoint)
+
+- Route server requests before matching outbound IDs, preventing false empty
+  tool success and swallowed real errors when peers choose the same ID.
+- Three red-to-green regressions, actual stdio/mapped-effect receipts and 88
+  focused checks pass. No retries or authority changes; installed app/CLI remain
+  unchanged. [Evidence and limits](docs/mcp-request-correlation-2026-10-28.md).
+
 ## Website URI dependency — 2026-10-28 (source checkpoint)
 
 - Update only the existing fast-uri override and lock record to compatible3.1.9.

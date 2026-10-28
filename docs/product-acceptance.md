@@ -381,6 +381,14 @@ timeout, remote cancellation, installed update or connected external client is
 inferred. A separate read-only launcher audit confirms normal `vanta` still uses
 an older dirty checkout and is not updated by installing Desktop. Preserve it;
 owner-approved CLI selection and profile/configuration continuity remain gates.
+The later [MCP request-correlation checkpoint](mcp-request-correlation-2026-10-28.md)
+repairs same-ID server questions falsely settling outbound tool calls. Three
+regressions fail before and pass after; actual child stdio plus mapped-effect
+receipts wait for the true result, preserve explicit failure uncertainty and
+refuse same-operation replay. Eighty-eight focused checks and scoped types/strict
+size pass. This is source-only, with a deterministic server/action-gate fixture;
+installed agent10/normal CLI70 are unchanged. No live external service, universal
+timeout/cancellation or whole trust/card completion is inferred.
 The subsequent [uncertain-action settlement](agent-uncertain-effect-settlement-2026-10-27.md)
 halts the direct agent and preserves consistent controller/receipt/queue evidence.
 Parent actual stdio MCP partial-effect proof, 50 focused checks, one existing
