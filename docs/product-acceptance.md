@@ -15,6 +15,17 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [normal CLI cutover](agent9-cli-cutover-2026-10-28.md) now selects source
+`70f05035`. Actual global-wrapper terminal saved-choice/restart and two live
+forks retain three exact histories and parent edges. ACP/MCP26, five fresh
+decisions/twelve completions, five bounded worker cases and four compiled HTTP
+checks pass. Independent source/dependency/readiness review precedes atomic
+selection; post-cutover actual-wrapper startup and original-work/data checks
+pass. Installed agent9 and old CLI pin remain unchanged. Earlier unchanged-CLI
+statements below describe their historical checkpoints, not current selection.
+Private scripted models do not establish owner/live-provider or whole-product
+acceptance; remaining design, trust/security and modularization gates stay open.
+
 The [agent9 local Desktop delivery](agent9-installed-2026-10-28.md) delivers
 sourcebcc84cdb as signed/Apple Accepted/stapled installed agent9. Both exact
 candidate and installed six-checkpoint chat/branch/continuation/switch/cold
@@ -22,7 +33,7 @@ restart paths retain three histories and their immediate-parent edge, with
 three structured saved/backend/renderer/visible-tree observations and zero
 observed renderer errors per copy. Fresh file-approval regressions, extracted
 archive, full installed/agent8 rollback fingerprints and original work/data
-preservation pass. NormalCLI remains2d739e68. Source grandchild and CLI-handler
+preservation pass. Normal CLI delivery is recorded separately above. Source grandchild and CLI-handler
 evidence remain separate; no new packaged grandchild/terminal/worker, visual,
 owner/human/live-account or whole-security/modularization clearance is inferred.
 
@@ -71,7 +82,7 @@ owner/parity gates remain open.
 
 The historical [agent7 local delivery](agent7-installed-2026-10-28.md) delivered source `2d739e68`
 to normal CLI and the then-installed signed/Apple Accepted/stapled agent7. Normal
-CLI remains on that source; Desktop is now agent8 above. Exact candidate
+CLI then remained on that source; current CLI and Desktop are recorded above. Exact candidate
 AND installed chat/restart, six-turn fresh file approval and five worker cases
 pass. Actual terminal restart/context and a saved project choice surviving restart
 without another prompt pass. Final ZIP/extraction/installed/agent6 rollback and

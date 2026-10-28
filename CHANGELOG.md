@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent9 normal CLI delivery — 2026-10-28 (local, not a release)
+
+- Switch the unchanged normal launcher to verified source70f05035 only after
+  exact source/dependency/readiness and independent review; retain the old pin.
+- Actual terminal saved-choice/restart, two live forks/three exact histories,
+  ACP/MCP26, fresh file approvals, five worker cases and compiled HTTP checks
+  pass. Post-cutover wrapper startup and original-work/data checks pass.
+- Installed agent9 is unchanged. Initial timed-out rehearsal and setup failure
+  remain recorded; no owner/live-model or whole-product acceptance is inferred.
+  [Delivery and remaining gates](docs/agent9-cli-cutover-2026-10-28.md).
+
 ## Agent9 Desktop delivery — 2026-10-28 (local, not a release)
 
 - Deliver sourcebcc84cdb as signed/Apple Accepted/stapled installed agent9.

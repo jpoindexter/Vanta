@@ -1,5 +1,10 @@
 # Agent9 local Desktop delivery — 2026-10-28
 
+Subsequent update: the [separate normal CLI cutover](agent9-cli-cutover-2026-10-28.md)
+now selects `70f05035`. References to an unchanged `2d739e68` selection below
+describe the Desktop delivery checkpoint before that cutover. App identity and
+remaining acceptance gates are unchanged.
+
 The exact app at `/Applications/Vanta.app` is now signed, Apple Accepted and
 stapled **`0.1.0-local.20261028.agent9`**, from source
 `bcc84cdb4799e7e0f0ab5a95ea6add404d0680b4`. It delivers

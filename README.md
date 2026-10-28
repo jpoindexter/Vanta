@@ -38,12 +38,21 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Current normal CLI — October 28:** `vanta` now selects verified source
+`70f05035`, including durable branching. Actual terminal saved-choice/restart,
+two live forks and three exact histories, ACP/MCP, fresh approvals and bounded
+worker checks pass with private profiles. The old pin and original work/data
+remain recoverable; installed agent9 is unchanged. This supersedes the earlier
+CLI selection statements below, not the remaining product gates.
+[CLI delivery, retained failures and limits](docs/agent9-cli-cutover-2026-10-28.md).
+
 **Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
 `0.1.0-local.20261028.agent9` is installed from source `bcc84cdb`. Exact candidate
 and installed chat/branch/continue/switch/cold-restart journeys preserve three
 histories and the parent link with zero observed renderer errors. Both fresh
 file-approval regressions, extracted archive and installed/agent8 rollback
-fingerprints pass. Original work/data and normal CLI `2d739e68` remain unchanged.
+fingerprints pass. Original work/data remain unchanged. Normal CLI delivery is
+recorded separately above.
 This is not finished visual/parity/security or owner acceptance.
 [Exact delivery and remaining gates](docs/agent9-installed-2026-10-28.md).
 
@@ -71,7 +80,7 @@ Electron create/branch/switch/cold-restart journey pass with zero renderer error
 The original source-only proof is supplemented by exact agent8 delivery above.
 [Evidence, rejected candidate and remaining gaps](docs/created-session-guard-2026-10-28.md).
 
-**Previous Desktop delivery / current CLI — October 28:** normal `vanta` selects source
+**Previous Desktop/CLI delivery — October 28:** normal `vanta` then selected source
 `2d739e68`, previously installed as signed, Apple Accepted/stapled Desktop
 `0.1.0-local.20261028.agent7` and now retained as rollback. Exact candidate and installed chat/restart,
 fresh file approvals and five worker cases pass with private fixtures. Real
