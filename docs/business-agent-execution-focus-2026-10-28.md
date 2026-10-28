@@ -50,6 +50,11 @@ copies are preserved. Documentation/board changes do not change these binaries.
 
 ## Review and next action
 
+The [execution-slice projection](business-agent-card-slices-2026-10-28.md)
+breaks the two Building and four Next acceptance goals into bounded checklists.
+Only one slice per Building lane is active; a checked slice is not parent
+completion. Canonical card notes retain the same breakdown and original gates.
+
 Use this order for the next safe engineering unit: inspect the current
 `TRUST-03` implementation and retained evidence, select the first unproven
 account/recipient/content/replay boundary relevant to outreach, reproduce it
