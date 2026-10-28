@@ -48,6 +48,12 @@ native launcher helper is shared. Existing work/data and rollback copies are
 preserved. These are bounded repairs, not whole-agent/security/parity completion.
 [Exact delivery and remaining limits](docs/agent4-installed-2026-10-27.md).
 
+**Website security checkpoint — October 28:** the compatible DOMPurify leaf update
+passes an isolated locked install, production build and real diagram/reload checks.
+It is not deployed; broader advisories and the expired image-size exception remain.
+Installed agent4 and the normal CLI are unchanged.
+[Evidence and limits](docs/website-sanitizer-checkpoint-2026-10-28.md).
+
 **Previous agent3 delivery — October 27:** normal `vanta` selected verified pinned
 source `1d18f846`. The same agent checkpoint is signed, Apple Accepted/stapled
 and was installed as `0.1.0-local.20261027.agent3`; it is now a rollback copy.

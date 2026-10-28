@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 28 website sanitizer checkpoint](website-sanitizer-checkpoint-2026-10-28.md)
+updates only the existing compatible DOMPurify lock leaf. Private locked install,
+unchanged production build and actual hydrated diagram plus reload pass, with eight
+focused security checks. No website deployment or whole-security clearance; the
+image-size exception remains expired and rejected. App/normal CLI delivery below
+is unchanged by this website-only repair.
+
 The [agent4 installed delivery](agent4-installed-2026-10-27.md) identifies app and
 normal CLI code `7d32e58f`, version `0.1.0-local.20261027.agent4`. Apple Accepted,
 stapling, extracted-archive fingerprint matching, guarded installation and actual

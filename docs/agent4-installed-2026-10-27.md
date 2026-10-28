@@ -120,5 +120,8 @@ bounded progress without closing unmet contracts. Counts remain 1,365 cards:
 1,289 shipped, 64 parked and 12 open (two Building, four Next, five Horizon,
 one Blocked). The source push still reported 177 older-default-branch alerts;
 dependency security is not green. A private compatible website DOMPurify leaf
-candidate is prepared but is not applied, built, installed or deployed. Its next
-gate is an isolated locked dependency setup and real website production build.
+candidate was prepared but not applied or built at delivery. The separate
+[October 28 website checkpoint](website-sanitizer-checkpoint-2026-10-28.md)
+subsequently passes isolated locked installation, production build and real
+diagram/reload checks; not deployed or whole-security acceptance. That website-only
+follow-on does not alter this installed app/CLI identity.

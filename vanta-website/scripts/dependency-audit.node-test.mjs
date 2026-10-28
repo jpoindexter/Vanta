@@ -34,11 +34,21 @@ test("accepts only the two bounded image-size build-time advisories", () => {
     },
   };
 
-  assert.deepEqual(assessAudit(audit), {
+  assert.deepEqual(assessAudit(audit, new Date("2026-09-30T23:59:59.999Z")), {
     advisoryIds: ["GHSA-5p2g-fcmc-qvqq", "GHSA-w3rx-r6r6-pgpr"],
     expandedPackages: 4,
     status: "bounded-exception",
   });
+});
+
+test("rejects the bounded image-size exception from its expiry boundary onward", () => {
+  const audit = { vulnerabilities: { "image-size": { via: EXPECTED_ADVISORIES } } };
+  for (const date of ["2026-10-01T00:00:00.000Z", "2026-10-28T00:00:00.000Z"]) {
+    assert.throws(
+      () => assessAudit(audit, new Date(date)),
+      /The image-size risk acceptance expired on 2026-10-01/,
+    );
+  }
 });
 
 test("fails closed when npm reports any additional advisory", () => {

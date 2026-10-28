@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website sanitizer checkpoint — 2026-10-28 (not deployed)
+
+- Update only the existing website DOMPurify leaf to 3.4.17. Isolated locked
+  installation, unchanged production build and actual hydrated diagram/reload
+  checks pass. Make the expired-exception test deterministic without extending
+  the production risk acceptance; eight focused security checks pass.
+- Broader dependency findings and the expired image-size exception remain open;
+  installed agent4/CLI and owner work are unchanged.
+  [Evidence and remaining limits](docs/website-sanitizer-checkpoint-2026-10-28.md).
+
 ## Verified agent4 delivery — 2026-10-27 (local, not a public release)
 
 - Deliver verified code `7d32e58f` to the normal CLI and Developer ID signed,
