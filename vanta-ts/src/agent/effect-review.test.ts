@@ -30,8 +30,33 @@ async function fixture(result?: ToolResult, sessionId?: string) {
   if (result) complete.mockResolvedValueOnce({ text: "Preparing the action.", toolCalls: [toolCall], finishReason: "tool_calls", usage });
   const deps: AgentDeps = { provider: { modelId: () => "fixture", contextWindow: () => 100_000, complete },
     registry, root, sessionId, safety: { assess: async () => ({ risk: "allow", reason: "private fixture" }), logEvent: async () => {} } as unknown as AgentDeps["safety"], requestApproval: async () => false };
-  return { root, convo: createConversation("test", deps), complete, execute };
+  return { root, deps, convo: createConversation("test", deps), complete, execute };
 }
+
+describe("unknown-effect operation identity", () => {
+  it("merges repeated uncertainty for the exact operation but keeps another chat separate", async () => {
+    const f = await fixture({ ok: false, output: "Uncertain", effectDisposition: "unknown" }, "chat-a");
+    await f.convo.send("Handle action");
+    const first = (await buildOperatorSpine(f.root)).views.needsYou[0]!;
+    f.complete.mockResolvedValueOnce({ ...answer, toolCalls: [toolCall] });
+    await f.convo.send("Inspect the same operation");
+    const repeated = await buildOperatorSpine(f.root);
+    expect(repeated.views.needsYou).toHaveLength(1);
+    expect(repeated.views.needsYou[0]?.item.id).toBe(first.item.id);
+    expect(repeated.views.needsYou[0]?.related.receiptIds).toHaveLength(2);
+    expect(f.execute).toHaveBeenCalledOnce();
+    f.complete.mockResolvedValueOnce({ ...answer, toolCalls: [toolCall] });
+    const other = createConversation("test", { ...f.deps, sessionId: "chat-b" });
+    await other.send("Handle another chat's action");
+    const distinct = await buildOperatorSpine(f.root);
+    expect(distinct.views.needsYou).toHaveLength(2);
+    expect(distinct.views.needsYou.map(row => row.item.id)).toContain(first.item.id);
+    expect(f.execute).toHaveBeenCalledTimes(2);
+    await f.convo.send("Explain a different concept");
+    expect((await buildOperatorSpine(f.root)).views.needsYou.map(row => row.item.id))
+      .toEqual(distinct.views.needsYou.map(row => row.item.id));
+  });
+});
 
 describe("unknown-effect turn settlement", () => {
   it("carries uncertainty into one actionable canonical attention item without copying the body", async () => {
@@ -54,7 +79,7 @@ describe("unknown-effect turn settlement", () => {
   it("stops as blocked/needs-human with usage and no next model call", async () => {
     const f = await fixture({ ok: false, output: "Partial action; do not retry", effectDisposition: "unknown" });
     const outcome = await f.convo.send("Handle the action");
-    expect(outcome).toMatchObject({ stoppedReason: "blocked", completionState: "needs human", needsEffectReview: true, usage });
+    expect(outcome).toMatchObject({ stoppedReason: "blocked", completionState: "needs human", needsEffectReview: true, effectReviewCallIds: [toolCall.id], usage });
     expect(f.complete).toHaveBeenCalledOnce();
     expect(f.convo.messages.some(message => message.content === "Preparing the action.")).toBe(true);
     expect(f.convo.messages.some(message => message.role === "tool" && message.effectDisposition === "unknown")).toBe(true);
@@ -96,7 +121,9 @@ it("keeps turn-owned uncertainty through actual persistent transcript compaction
   expect(compacted).toHaveBeenCalled();
   expect(messages.length).toBeLessThan(33);
   expect(state).toHaveProperty("needsEffectReview", true);
+  expect([...state.effectReviewCallIds]).toEqual([toolCall.id]);
   expect(makeInitialState()).toHaveProperty("needsEffectReview", false);
+  expect(makeInitialState().effectReviewCallIds.size).toBe(0);
 });
 
 it("retains uncertainty if post-effect persistence fails instead of producing a retry-safe error", async () => {
@@ -106,7 +133,7 @@ it("retains uncertainty if post-effect persistence fails instead of producing a 
   vi.spyOn(persistence, "persistEffectTransition").mockImplementation(async (_root, _session, _call, transition) => {
     if (transition === "settled") throw new Error("private checkpoint failure");
   });
-  expect(await f.convo.send("Handle the action")).toMatchObject({ stoppedReason: "blocked", needsEffectReview: true, completionState: "needs human", usage });
+  expect(await f.convo.send("Handle the action")).toMatchObject({ stoppedReason: "blocked", needsEffectReview: true, effectReviewCallIds: [toolCall.id], completionState: "needs human", usage });
   expect(f.execute).toHaveBeenCalledOnce();
   expect(toolPairingViolation(f.convo.messages)).toBeNull();
 });

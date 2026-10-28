@@ -2,6 +2,7 @@ import type { Message, ToolCall } from "../types.js";
 import type { ToolContext } from "../tools/types.js";
 import type { AgentDeps } from "./agent-types.js";
 import type { TurnState } from "./turn-state.js";
+import { recordEffectUncertainty } from "./turn-state.js";
 import { interruptedDisposition, interruptedToolResult } from "./effect-disposition.js";
 import { persistEffectTransition } from "./effect-persistence.js";
 import { unansweredCalls } from "./tool-pairing.js";
@@ -56,7 +57,7 @@ export async function settleUnansweredCalls(args: SettleArgs): Promise<void> {
   const { calls, messages, ctx, deps, state } = args;
   for (const call of unansweredCalls(calls, messages)) {
     const disposition = interruptedDisposition(call, call.effectState === "started");
-    if (disposition === "unknown") state.needsEffectReview = true;
+    if (disposition === "unknown") recordEffectUncertainty(state, call.id);
     messages.push(interruptedToolResult(call, disposition));
     await persistEffectTransition(ctx.root, deps.sessionId, call, "settled", disposition);
     state.workItemStates.push("stopped");

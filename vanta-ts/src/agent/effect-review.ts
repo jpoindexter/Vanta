@@ -23,9 +23,10 @@ export function conversationNeedsReview(conversation: Conversation): boolean {
 }
 
 /** Unknown effects are evidence, not a model completion claim or permission to retry. */
-export function effectReviewOutcome(outcome: AgentOutcome, needsReview = outcome.needsEffectReview): AgentOutcome {
+export function effectReviewOutcome(outcome: AgentOutcome, needsReview = outcome.needsEffectReview, callIds?: Set<string>): AgentOutcome {
   if (!needsReview) return outcome;
-  return { ...outcome, stoppedReason: "blocked", completionState: "needs human", needsEffectReview: true };
+  return { ...outcome, stoppedReason: "blocked", completionState: "needs human", needsEffectReview: true,
+    ...(callIds?.size ? { effectReviewCallIds: [...callIds].sort() } : {}) };
 }
 
 /** Keep the in-memory transcript usable even if the post-effect journal cannot be written. */

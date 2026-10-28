@@ -65,7 +65,11 @@ apply; installed evidence is not a live-account or owner-acceptance claim.
 Receipts: `installed.json`, `installed-gmail/result.json`,
 `installed-lineage/result.json`, and their candidate counterparts.
 
-T03-4 and both parent cards remain open for the wider acceptance contract.
+T03-4 is accepted against its written fixture-delivery criterion: pinned CLI,
+exact packaged sender/denial/once controls and retained rollback; it explicitly
+requires no live send. The earlier statement leaving T03-4 incomplete conflated
+this slice with the wider parent contract. TRUST-03 and OP-03 remain open;
+T03-2 restart/review recovery and live-account acceptance are not established.
 This supersedes the prior agent13 candidate's fixture limitation and this
 record's earlier pending-notarization state. Failed attempts, earlier status and
 original evidence remain retained. No historical dirty work was discarded.

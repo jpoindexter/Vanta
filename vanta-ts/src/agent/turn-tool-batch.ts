@@ -14,7 +14,7 @@ import { settleBudgetExhausted,settleUnansweredCalls } from "./settle-batch.js";
 import { isToolAllowedDuringClosure } from "./tool-budget.js";
 import { assertToolPairing } from "./tool-pairing.js";
 import type { TurnState } from "./turn-state.js";
-import { recordToolOutcome } from "./turn-state.js";
+import { recordEffectUncertainty, recordToolOutcome } from "./turn-state.js";
 
 /**
  * Log a tool result to the kernel event log as status + size ONLY — never the
@@ -106,7 +106,7 @@ async function dispatchTrackedCall(args: ProcessToolCallsArgs, call: ToolCall): 
 
 async function settleCall(args: ProcessToolCallsArgs, call: ToolCall, outcome: DispatchOutcome, batch: ToolBatch): Promise<string | null> {
   const { deps, ctx, state, messages } = args;
-  if (outcome.effectDisposition === "unknown") state.needsEffectReview = true;
+  if (outcome.effectDisposition === "unknown") recordEffectUncertainty(state, call.id);
   batch.push({ name: call.name, ok: outcome.ok, output: outcome.output });
   state.toolNames.push(call.name);
   state.toolIterations++;

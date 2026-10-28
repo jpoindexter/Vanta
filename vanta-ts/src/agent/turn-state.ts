@@ -21,6 +21,7 @@ function callSignature(name: string, args: Record<string, unknown>): string {
 
 export type TurnState = {
   needsEffectReview: boolean;
+  effectReviewCallIds: Set<string>;
   consecutiveFailures: number;
   consecutiveErrorResults: number;
   toolIterations: number;
@@ -47,7 +48,12 @@ export type TurnState = {
 };
 
 export function makeInitialState(): TurnState {
-  return { needsEffectReview: false, consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], workItemStates: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
+  return { needsEffectReview: false, effectReviewCallIds: new Set(), consecutiveFailures: 0, consecutiveErrorResults: 0, toolIterations: 0, turnUsage: { inputTokens: 0, outputTokens: 0 }, sawUsage: false, callCounts: new Map(), tokensSaved: 0, toolNames: [], workItemStates: [], autoContinues: 0, toolContractNudges: 0, adaptiveRedirects: 0, adaptiveRedirect: "", openTodoCount: null, toolBudgetClosure: false };
+}
+
+export function recordEffectUncertainty(state: TurnState, callId: string): void {
+  state.needsEffectReview = true;
+  state.effectReviewCallIds.add(callId);
 }
 
 export function turnCompletionState(state: TurnState, stoppedReason: StoppedReason): WorkItemState {
@@ -68,7 +74,7 @@ export function recordUsage(state: TurnState, result: CompletionResult): void {
 }
 
 export function recordToolOutcome(state: TurnState, call: ToolCall, outcome: DispatchOutcome, deps: AgentDeps): string | null {
-  if (outcome.effectDisposition === "unknown") state.needsEffectReview = true;
+  if (outcome.effectDisposition === "unknown") recordEffectUncertainty(state, call.id);
   state.workItemStates.push(outcome.workItemState);
   if (outcome.executed) recordExecutionErrors(state, outcome, deps);
   if (outcome.ok) recordTodoProgress(state, call);

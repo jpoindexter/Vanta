@@ -5,6 +5,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
+- Merge repeated uncertainty for the exact session-bound operation set into one
+  Needs You item, retaining both receipts without retrying the action. A separate
+  chat remains independent. Real registered Gmail/kernel replay and 46 focused
+  checks pass. Source only; resolution/clearing and installed delivery remain open.
+  [Evidence and limits](docs/uncertain-attention-deduplication-2026-10-28.md).
+
 - Local delivery: fresh owner-approved normal CLI cutover to independent
   `e467a857`; exact source/preservation checks and the actual global launcher
   pass. Previous runtime and selection retained; no credential or approval

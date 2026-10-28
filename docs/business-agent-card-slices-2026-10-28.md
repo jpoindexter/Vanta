@@ -14,16 +14,18 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
-Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) is executed;
-the next Trust slice is T03-4, putting that repair into the pinned CLI and exact
-packaged app before expanding another adapter. T03-2's replay evidence is partial:
-host draft/review recovery is not proven. O03-1 reuses current agent evidence for
+Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) and
+[T03-4 local delivery acceptance](agent14-cli-delivery-2026-10-28.md) are executed.
+The next Trust slice is T03-2: host draft/review recovery after restart remains
+unproven. O03-1 reuses current agent evidence for
 false attention: [O03-1 source proof](agent-attention-routing-2026-10-28.md)
 is now executed, including the repaired positive-control blocker projection.
 [O03-2 source acceptance](uncertain-action-attention-2026-10-28.md) now proves
 one understandable uncertain-Gmail blocker, safe review step, linked receipt,
-one submission/no retry and draft retention. O03-3 is next and remains
-unexecuted. Maximum one active slice per
+one submission/no retry and draft retention. O03-3 is active:
+[exact-operation deduplication](uncertain-attention-deduplication-2026-10-28.md)
+has source proof, but evidence-bound resolution/clearing remains unexecuted.
+Maximum one active slice per
 Building parent. Next parents and later checklist rows are not concurrent work.
 Reuse existing implementation and receipts before changing code. A failed proof
 selects the next fix; it does not justify another framework or generic audit.
@@ -40,7 +42,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 - [x] T03-1: Gmail sender binding: preview the mailbox; account switch/revocation during approval makes zero draft/send POSTs; an unchanged approved draft/send submits once. SOURCE acceptance: 11 local HTTP cases; installed delivery remains T03-4.
 - [ ] T03-2: Gmail uncertain-result recovery: reset/missing acknowledgement stays unknown; replay the same operation after restart with zero duplicate submissions; retain the draft and exact review action.
 - [ ] T03-3: LinkedIn author binding: resolve and preview the personal author before approval; credential/author drift prevents POST; keep provider-confirmed distinct from readback verified.
-- [ ] T03-4: Deliver the proven Gmail slice through the pinned CLI and exact packaged app; repeat sender/denial/once controls with fixture accounts and retain rollback. No live send required.
+- [x] T03-4: Deliver the proven Gmail slice through the pinned CLI and exact packaged app; repeat sender/denial/once controls with fixture accounts and retain rollback. No live send required. ACCEPTED: normal CLI e467a857, signed/notarized installed agent14; actual candidate and installed approval controls plus retained app/CLI rollback. See agent14 delivery record. Not full TRUST-03 or live-account acceptance.
 - [ ] T03-5: Delegated outreach scope: one child cannot change its approved recipient/content/account or reuse the parent capability; denied/replayed fixture creates zero effect calls.
 - [ ] T03-6: Recurring authority: one scheduled fixture obeys its exact account/target allowlist, quota/expiry and revoke; closing this goal still requires every original R3/R4/R5 Done invariant.
 
@@ -82,6 +84,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 
 Review after each accepted slice. Promote at most one dependency-ready slice
 into a free Building lane. Keep owner/account/hardware/human gates explicit.
-No bulk completion or new feature capture to inflate throughput. Installed
-agent11 and the normal bdf5780a CLI remain unchanged by this planning update.
+No bulk completion or new feature capture to inflate throughput. The original
+planning update did not change the then-installed agent11/bdf5780a. Later
+agent14/e467a857 delivery is recorded separately; that earlier state is historical.
 

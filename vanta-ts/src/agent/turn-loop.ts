@@ -168,14 +168,14 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
 
 export async function runTurn(opts: TurnOpts): Promise<AgentOutcome> {
   const runtime = prepareTurnRuntime(opts);
-  try { return effectReviewOutcome(await runTurnIterations(runtime), runtime.state.needsEffectReview); }
+  try { return effectReviewOutcome(await runTurnIterations(runtime), runtime.state.needsEffectReview, runtime.state.effectReviewCallIds); }
   catch (error) {
     if (!runtime.state.needsEffectReview) throw error;
     // A failed checkpoint/display must not erase already observed effect uncertainty.
     appendEffectReviewFailure(opts.messages);
     return effectReviewOutcome({ finalText: EFFECT_REVIEW_TEXT, iterations: runtime.iteration,
       stoppedReason: "blocked", toolIterations: runtime.state.toolIterations,
-      ...(runtime.state.sawUsage ? { usage: { ...runtime.state.turnUsage } } : {}) }, true);
+      ...(runtime.state.sawUsage ? { usage: { ...runtime.state.turnUsage } } : {}) }, true, runtime.state.effectReviewCallIds);
   }
 }
 

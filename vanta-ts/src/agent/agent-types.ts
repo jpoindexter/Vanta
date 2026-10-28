@@ -115,6 +115,8 @@ export type StreamEvent =
 export type AgentOutcome = {
   /** An attempted effect remains uncertain; inspect it before any retry or continuation. */
   needsEffectReview?: boolean;
+  /** Exact turn-owned operation IDs; never inferred from message text or past turns. */
+  effectReviewCallIds?: string[];
   finalText: string;
   iterations: number;
   stoppedReason: StoppedReason;

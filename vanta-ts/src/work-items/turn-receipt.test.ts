@@ -15,7 +15,57 @@ async function root(): Promise<string> {
   return value;
 }
 
+describe("uncertain turn identity", () => {
+  it("uses the complete operation set without retaining raw IDs or mutating caller input", async () => {
+    const projectRoot = await root();
+    const callIds = ["private-call-b", "private-call-a", "private-call-b"];
+    const input = { root: projectRoot, sessionId: "same-chat", host: "desktop",
+      completionState: "needs human" as const, disposition: "unknown" as const };
+    await recordTurnReceipt({ ...input, reviewCallIds: callIds });
+    await recordTurnReceipt({ ...input, reviewCallIds: ["private-call-a", "private-call-b"] });
+    expect(callIds).toEqual(["private-call-b", "private-call-a", "private-call-b"]);
+    const projection = await readWorkItemProjection(projectRoot);
+    expect(projection.items).toHaveLength(1);
+    expect(JSON.stringify(projection)).not.toContain("private-call");
+    const rows = (await readFile(join(projectRoot, ".vanta/work-items.jsonl"), "utf8")).trim().split("\n").map(row => JSON.parse(row));
+    expect(rows.map(row => row.state)).toEqual(["needs human", "needs human"]);
+    await recordTurnReceipt({ ...input, reviewCallIds: ["private-call-a"] });
+    expect((await readWorkItemProjection(projectRoot)).items).toHaveLength(2);
+  });
+});
+
+describe("unbound turn identity", () => {
+  it.each([
+    { sessionId: undefined },
+    { reviewCallIds: undefined },
+    { completionState: "unverified" as const, disposition: "none" as const },
+  ])("keeps repeated unbound or ordinary turns distinct: %j", async change => {
+    const projectRoot = await root();
+    const input = { root: projectRoot, sessionId: "chat", host: "desktop",
+      completionState: "needs human" as const, disposition: "unknown" as const, reviewCallIds: ["call"], ...change };
+    await recordTurnReceipt(input);
+    await recordTurnReceipt(input);
+    expect((await readWorkItemProjection(projectRoot)).items).toHaveLength(2);
+  });
+});
+
 describe("recordTurnReceipt", () => {
+  it.each([
+    ["different host", { host: "cli" }],
+    ["different chat", { sessionId: "another-chat" }],
+    ["different goal", { goalId: "another-goal" }],
+    ["no session", { sessionId: undefined }],
+    ["no call IDs", { reviewCallIds: undefined }],
+    ["ordinary turn", { completionState: "unverified" as const, disposition: "none" as const }],
+  ])("does not merge %s", async (_label, change) => {
+    const projectRoot = await root();
+    const input = { root: projectRoot, sessionId: "chat", host: "desktop", goalId: "goal",
+      completionState: "needs human" as const, disposition: "unknown" as const, reviewCallIds: ["call"] };
+    await recordTurnReceipt(input);
+    await recordTurnReceipt({ ...input, ...change });
+    expect((await readWorkItemProjection(projectRoot)).items).toHaveLength(2);
+  });
+
   it("persists one verified receipt and links the same WorkItem to goal progress", async () => {
     const projectRoot = await root();
     await recordTurnReceipt({
@@ -47,7 +97,9 @@ describe("recordTurnReceipt", () => {
       verification: "verified",
     });
   });
+});
 
+describe("recordTurnReceipt disposition", () => {
   it("keeps an explicit disposition separate from an unverified completion state", async () => {
     const projectRoot = await root();
     await recordTurnReceipt({
