@@ -20,9 +20,10 @@ packaged app before expanding another adapter. T03-2's replay evidence is partia
 host draft/review recovery is not proven. O03-1 reuses current agent evidence for
 false attention: [O03-1 source proof](agent-attention-routing-2026-10-28.md)
 is now executed, including the repaired positive-control blocker projection.
-O03-2 is next: its uncertain-Gmail replay now proves stopping, one submission
-and draft retention, but the canonical blocker explanation is still technical
-and not accepted. Maximum one active slice per
+[O03-2 source acceptance](uncertain-action-attention-2026-10-28.md) now proves
+one understandable uncertain-Gmail blocker, safe review step, linked receipt,
+one submission/no retry and draft retention. O03-3 is next and remains
+unexecuted. Maximum one active slice per
 Building parent. Next parents and later checklist rows are not concurrent work.
 Reuse existing implementation and receipts before changing code. A failed proof
 selects the next fix; it does not justify another framework or generic audit.
@@ -46,7 +47,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 ## OP-03 — building
 
 - [x] O03-1: Noise control: ordinary question, greeting, status and successful public read each create zero Needs You items in an actual isolated CLI/kernel journey; one real stopped-run blocker projects to Needs You. SOURCE acceptance only; not installed UI or research-quality proof.
-- [ ] O03-2: One blocked outreach action: a Gmail account-change or unknown-delivery fixture produces one understandable blocker with its source and smallest safe resolution; preserve the draft. Partial source replay: one uncertain submission, no retry, exact draft retained and one canonical Needs You item; actionability wording remains missing. See O03-1 evidence document's follow-up.
+- [x] O03-2: One blocked outreach action: actual conversation/registered Gmail503/real-kernel fixture produces one understandable canonical blocker with source, receipt and safe inspection step; one submission/no retry, exact draft and saved arguments retained. Separate actual CLI readback passes. SOURCE only; not installed/live-account, restart, deduplication or full parent acceptance.
 - [ ] O03-3: Deduplicate and resolve: repeat that exact blocker, merge its timeline, then resolve it; the item clears and another chat's attention state stays unchanged.
 - [ ] O03-4: Expiry and restart: retain the blocker through restart, expire it once and reject a late response without executing or dismissing a newer approval.
 - [ ] O03-5: Quiet/refusal control: replay one local notification across two supported channels; quiet hours, refusal and revoked delivery prevent duplicate resurfacing; no real messages.

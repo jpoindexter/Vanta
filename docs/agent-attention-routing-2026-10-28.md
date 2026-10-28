@@ -61,7 +61,10 @@ uncertain effect to make that fixture succeed. T03-4 exact packaged delivery
 remains open; the existing live Gmail credential returned `invalid_grant` in the
 separate owner-authorized read-only check.
 
-### O03-2 follow-up: partial, not accepted
+### O03-2 follow-up: historical partial proof
+
+Superseded at source by [the uncertain-action repair and executed replay](uncertain-action-attention-2026-10-28.md).
+The observations below retain the original diagnosis, not the current source status.
 
 The current source's actual conversation/registered `gmail_send`/real kernel
 path was subsequently replayed against a local OAuth/Gmail fixture returning

@@ -1,4 +1,5 @@
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { stripToLine } from "../term/bash-io.js";
 import { resolveVantaHome } from "../store/home.js";
 import { projectWorkItems } from "./projections.js";
 import { loadBoards, loadRunLibrary, loadSessions } from "./operator-spine-activity.js";
@@ -72,11 +73,28 @@ function linkRecord(record: OperatorWorkItem, related: RelatedRecords): Operator
     : ids.runIds.at(-1);
   return {
     ...record,
+    item: reviewUnknownTurn(record, related.receipts),
     related: {
       ...ids,
       ...(currentRunId ? { currentRunId } : {}),
       currentAttempt: currentRunId ? ids.runIds.indexOf(currentRunId) + 1 : 0,
     },
+  };
+}
+
+function reviewUnknownTurn(record: OperatorWorkItem, receipts: Receipt[]): WorkItem {
+  const item = record.item;
+  if (item.state !== "needs human") return item;
+  const receipt = receipts.filter(row => row.workItemId === item.id).sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).at(-1);
+  if (receipt?.disposition !== "unknown" || !receipt.action.endsWith(".turn")
+    || item.outcome !== `Execute ${receipt.action}`) return item;
+  return {
+    ...item,
+    outcome: "Check whether the action completed",
+    blocker: "The provider did not confirm whether the action completed.",
+    waitCondition: "Review the provider's result",
+    nextAction: "Open the saved conversation and inspect the provider's activity. Do not retry until the result is known.",
+    artifacts: [...item.artifacts ?? [], { kind: "file", ref: join(dirname(record.source.path), "action-receipts.jsonl") }],
   };
 }
 
@@ -150,9 +168,16 @@ export async function buildOperatorSpine(
 }
 
 export function formatOperatorSpine(snapshot: OperatorSpineSnapshot): string {
+  const line = (value: string) => stripToLine(value).replace(/[\u2028\u2029]/g, " ");
   const lines = [
     `Operator spine: ${snapshot.integrity === "ok" ? "OK" : "DEGRADED"} (read-only)`,
     `Views: Captured ${snapshot.views.captured.length} · Now ${snapshot.views.now.length} · Waiting ${snapshot.views.waiting.length} · Needs You ${snapshot.views.needsYou.length} · Done ${snapshot.views.done.length}`,
+    ...snapshot.views.needsYou.flatMap(({ item, source }) => [
+      `Needs you: ${line(item.outcome)}`,
+      `  Why: ${line(item.blocker ?? "Review required")}`,
+      `  Next: ${line(item.nextAction ?? "Review this work item")}`,
+      `  Source: ${line(source.id)}`,
+    ]),
     ...snapshot.sources.map((entry) => {
       const marker = entry.status === "ok" || entry.status === "missing" ? "-" : "!";
       const issue = entry.issues[0] ? ` — ${entry.issues[0]}` : "";

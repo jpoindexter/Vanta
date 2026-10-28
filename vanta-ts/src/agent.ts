@@ -43,6 +43,7 @@ async function recordAgentTurnReceipt(deps: AgentDeps, outcome: AgentOutcome): P
     host,
     goalId: deps.usageTaskId,
     completionState: outcome.completionState,
+    disposition: outcome.needsEffectReview ? "unknown" : undefined,
   });
 }
 

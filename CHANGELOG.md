@@ -5,6 +5,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
+- Follow-up: retain typed turn uncertainty and explain its existing canonical
+  blocker with a safe review action, original source and receipt link; do not
+  create a duplicate ticket. Actual Gmail503/kernel/conversation plus separate
+  CLI replay and 44 focused/architecture checks pass. Source only, not installed.
+  [Uncertain-action evidence and limits](docs/uncertain-action-attention-2026-10-28.md).
+
 - Keep routine conversation/status/public reads quiet; show genuine active
   needs-human tickets in the operator view with their reason and next action.
 - Actual isolated CLI/kernel replay and 27 focused/architecture checks pass.
