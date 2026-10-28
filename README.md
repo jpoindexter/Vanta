@@ -38,6 +38,14 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Swarm containment source checkpoint — October 28:** an uncertain foreground
+worker result now cancels pending siblings; nested approval lifetimes and stale
+TUI choices retain cancellation. Five sequential real CLI/kernel replays and
+focused agent/TUI checks pass. This newer checkpoint is not yet installed;
+agent5 below remains the current delivered version. Saved-rule cancellation and
+real-TTY multi-worker acceptance retain explicit limits.
+[Evidence and remaining gaps](docs/swarm-containment-2026-10-28.md).
+
 **Current agent5 delivery — October 28:** normal `vanta` and the signed,
 Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `166aff7f`,
 version `0.1.0-local.20261028.agent5`. Exact candidate and installed chat/restart,

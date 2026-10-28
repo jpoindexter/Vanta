@@ -25,14 +25,17 @@ const CHOICES: Choice[] = [
 export const approves = (outcome: Outcome): boolean => outcome === "task" || outcome === "allow" || outcome === "always";
 
 /** Resolve a pending approval for an outcome; "always" also persists the rule. */
-export async function decide(pending: Pending, outcome: Outcome): Promise<void> {
-  if (pending.fresh && ["task", "always", "never"].includes(outcome)) { pending.resolve(false); return; }
+export async function decide(pending: Pending, outcome: Outcome): Promise<boolean> {
+  if (pending.isActive?.() === false) return false;
+  if (pending.fresh && ["task", "always", "never"].includes(outcome)) { pending.resolve(false); return true; }
   if (pending.canRemember === false && ["task", "always", "never"].includes(outcome)) {
     throw new Error("This approval policy requires a one-time decision; a saved rule cannot replace it.");
   }
   if (outcome === "task") pending.grantTask?.();
   if (outcome === "always" || outcome === "never") await saveDecision(pending, outcome);
+  if (pending.isActive?.() === false) return false;
   pending.resolve(approves(outcome));
+  return true;
 }
 
 async function saveDecision(pending: Pending, outcome: "always" | "never"): Promise<void> {
@@ -51,7 +54,7 @@ function useApprovalDecision(pending: Pending, onDone: () => void) {
   const pick = async (outcome: Outcome) => {
     if (locked.current === pending) return;
     locked.current = pending; setError("");
-    try { await decide(pending, outcome); onDone(); }
+    try { if (await decide(pending, outcome)) (pending.dismiss ?? onDone)(); }
     catch (reason) {
       locked.current = null;
       setError(reason instanceof Error ? reason.message : "Approval could not be saved. Please try again.");

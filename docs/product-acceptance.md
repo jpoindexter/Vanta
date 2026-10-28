@@ -15,6 +15,15 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [October 28 swarm containment source checkpoint](swarm-containment-2026-10-28.md)
+adds invocation-local sibling cancellation, combined nested approval lifetimes
+and cancellation-aware TUI prompts. Five sequential actual compiled CLI/Rust
+cases pass, as do 49 focused agent and 49 TUI checks, runtime types and seven
+architecture checks. This newer source is not installed in agent5. Already-started
+saved-rule writes cannot be rolled back; an earlier parallel startup-cache failure
+is retained, and real-TTY multi-worker acceptance remains unexecuted. No whole-card
+or security completion follows from these bounded checks.
+
 The [agent5 installed delivery](agent5-installed-2026-10-28.md) delivers code
 `166aff7f` to normal `vanta` and signed/Apple Accepted/stapled local app version
 `0.1.0-local.20261028.agent5`. Exact candidate and installed paths separately

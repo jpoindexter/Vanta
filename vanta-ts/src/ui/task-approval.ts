@@ -1,5 +1,6 @@
 import { classifyBashSafety } from "../permissions/bash-classifier.js";
 import type { ApprovalDetail } from "../permissions/request.js";
+import type { Dispatch, SetStateAction } from "react";
 
 export type ApprovalScopeInput = {
   action: string;
@@ -15,6 +16,10 @@ export type Pending = ApprovalScopeInput & {
   root?: string;
   canContinueTask?: boolean;
   grantTask?: () => void;
+  /** Managed prompt lifetime; stale decisions cannot grant authority. */
+  isActive?: () => boolean;
+  /** Identity-bound dismissal cannot remove a newer prompt. */
+  dismiss?: () => void;
   resolve: (ok: boolean) => void;
 };
 
@@ -71,7 +76,7 @@ export class TaskApprovalScope {
 
 export function requestApprovalWithTaskScope(options: {
   taskApprovals: TaskApprovalScope;
-  setPending: (pending: Pending | null) => void;
+  setPending: Dispatch<SetStateAction<Pending | null>>;
   action: string;
   reason: string;
   toolName?: string;
@@ -80,12 +85,27 @@ export function requestApprovalWithTaskScope(options: {
 }): Promise<boolean> {
   const { taskApprovals, setPending, action, reason, toolName, detail, root } = options;
   const input = { action, reason, toolName, fresh: detail?.fresh, canRemember: detail?.canRemember };
+  if (detail?.signal?.aborted) return Promise.resolve(false);
   if (taskApprovals.allows(input)) return Promise.resolve(true);
-  return new Promise<boolean>((resolve) => setPending({
-    ...input,
-    root,
-    canContinueTask: canContinueTask(input),
-    grantTask: () => { taskApprovals.grant(input); },
-    resolve,
-  }));
+  return new Promise<boolean>((resolve) => {
+    const signal = detail?.signal;
+    let settled = false;
+    const dismiss = () => setPending(current => current === pending ? null : current);
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener("abort", abort);
+      resolve(ok && !signal?.aborted);
+    };
+    const abort = () => { finish(false); dismiss(); };
+    const pending: Pending = {
+      ...input, root, canContinueTask: canContinueTask(input), dismiss,
+      isActive: () => !settled && !signal?.aborted,
+      grantTask: () => { if (pending.isActive!()) taskApprovals.grant(input); },
+      resolve: finish,
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    setPending(pending);
+    if (signal?.aborted) abort();
+  });
 }

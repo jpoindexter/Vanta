@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { canContinueTask, TaskApprovalScope } from "./task-approval.js";
 import { requestApprovalWithTaskScope, type Pending } from "./use-agent.js";
+import type { Dispatch, SetStateAction } from "react";
 
 const edit = { toolName: "edit_file", action: "edit file src/app.ts", reason: "file change" };
+
+function capture(prompts: Pending[]): Dispatch<SetStateAction<Pending | null>> {
+  let current: Pending | null = null;
+  return next => {
+    current = typeof next === "function" ? next(current) : next;
+    if (current) prompts.push(current);
+  };
+}
 
 describe("TaskApprovalScope", () => {
   it("reuses one explicit task grant for another reversible action from the same tool", () => {
@@ -32,7 +41,7 @@ describe("TaskApprovalScope", () => {
     scope.grant(edit);
     const prompts: Pending[] = [];
     const decision = requestApprovalWithTaskScope({
-      taskApprovals: scope, setPending: (pending) => { if (pending) prompts.push(pending); },
+      taskApprovals: scope, setPending: capture(prompts),
       ...edit, detail: { canRemember: false },
     });
     expect(prompts).toHaveLength(1);
@@ -67,7 +76,7 @@ describe("TaskApprovalScope", () => {
     const scope = new TaskApprovalScope();
     const prompts: Pending[] = [];
     const first = requestApprovalWithTaskScope({
-      taskApprovals: scope, setPending: (pending) => { if (pending) prompts.push(pending); }, ...edit,
+      taskApprovals: scope, setPending: capture(prompts), ...edit,
     });
     expect(prompts).toHaveLength(1);
     prompts[0]!.grantTask?.();
@@ -76,7 +85,7 @@ describe("TaskApprovalScope", () => {
 
     await expect(requestApprovalWithTaskScope({
       taskApprovals: scope,
-      setPending: (pending) => { if (pending) prompts.push(pending); },
+      setPending: capture(prompts),
       action: "edit file src/second.ts",
       reason: "file change",
       toolName: "edit_file",
@@ -90,7 +99,7 @@ describe("TaskApprovalScope", () => {
     const prompts: Pending[] = [];
     void requestApprovalWithTaskScope({
       taskApprovals: scope,
-      setPending: (pending) => { if (pending) prompts.push(pending); },
+      setPending: capture(prompts),
       action: "overwrite existing file .env",
       reason: "credential file",
       toolName: "write_file",

@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Foreground swarm containment — 2026-10-28 (source only)
+
+- Cancel pending foreground siblings after an uncertain child result; retain
+  independent success/read-only completion and explicit background lifetimes.
+- Preserve child approval cancellation through nested wrappers; settle canceled
+  TUI prompts and ignore stale decisions without dismissing a newer prompt.
+- Five sequential actual CLI/Rust cases, focused agent/TUI checks, runtime types
+  and architecture pass. Installed agent5 is unchanged; real-TTY and transactional
+  saved-rule cancellation remain open. Original work and rollback are preserved.
+  [Evidence and limits](docs/swarm-containment-2026-10-28.md).
+
 ## Verified agent5 delivery — 2026-10-28 (local, not a public release)
 
 - Deliver code `166aff7f` to the normal CLI and signed, Apple Accepted/stapled

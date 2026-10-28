@@ -22,7 +22,7 @@ afterEach(async () => { vi.unstubAllEnvs(); await rm(base, { recursive: true, fo
 async function answer(root: string, outcome: "always" | "never"): Promise<boolean> {
   let pending: Pending | null = null;
   const result = requestApprovalWithTaskScope({
-    taskApprovals: new TaskApprovalScope(), setPending: (next) => { pending = next; },
+    taskApprovals: new TaskApprovalScope(), setPending: (next) => { pending = typeof next === "function" ? next(pending) : next; },
     action: "read public page", reason: "review", toolName: "browser_read", root,
   });
   await decide(pending!, outcome);

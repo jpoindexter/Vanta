@@ -1,4 +1,4 @@
-import { type Dispatch, type MutableRefObject } from "react";
+import { type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { join } from "node:path";
 import { createConversation, type AgentOutcome, type Conversation } from "../agent.js";
 import { buildSummarizer } from "../session.js";
@@ -64,7 +64,7 @@ type AgentDeps = {
   setup: RunSetup;
   repoRoot: string;
   dispatch: Dispatch<Action>;
-  setPending: (p: Pending | null) => void;
+  setPending: Dispatch<SetStateAction<Pending | null>>;
   setPendingQuestion: (p: PendingQuestion | null) => void;
   taskApprovals: TaskApprovalScope;
   interruptRef: MutableRefObject<AbortController | null>;

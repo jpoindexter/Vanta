@@ -9,6 +9,11 @@ import { sameEffectAction } from "../effects/action-identity.js";
 
 type ExactChoice = { action: string; toolName?: string; root: string };
 
+function approvalLifetime(parent?: AbortSignal, requested?: AbortSignal | null): AbortSignal | undefined {
+  const signals = [parent, requested].filter((value): value is AbortSignal => value != null);
+  return signals.length ? AbortSignal.any(signals) : undefined;
+}
+
 /** Saved rules are project-scoped, so the lookup must carry the project root or they never match. */
 async function savedExactChoice(call: ToolCall, deps: AgentDeps, request: ExactChoice): Promise<boolean | null> {
   const original = deps.registry.get(call.name)?.describeForSafety?.(call.arguments);
@@ -28,23 +33,25 @@ export function executionContext(call: ToolCall, deps: AgentDeps, ctx: ToolConte
   return {
     ...ctx,
     requestApproval: async (action, reason, requestedToolName, detail) => {
-      signal?.throwIfAborted();
-      if (signal || detached) detail = { ...detail, signal: signal ?? null };
+      // Child lifetimes may tighten a foreground approval, never detach it.
+      const approvalSignal = approvalLifetime(signal, detail?.signal);
+      approvalSignal?.throwIfAborted();
+      if (approvalSignal || detached) detail = { ...detail, signal: approvalSignal ?? null };
       if (forceFreshApproval) detail = { ...detail, fresh: true };
       if (!detail?.fresh) {
         const saved = await savedExactChoice(call, deps, { action, toolName: requestedToolName, root: ctx.root });
-        signal?.throwIfAborted();
+        approvalSignal?.throwIfAborted();
         if (saved !== null) return saved;
         const approved = autoApprove ? true : await ctx.requestApproval(action, reason, requestedToolName, detail);
-        signal?.throwIfAborted();
+        approvalSignal?.throwIfAborted();
         return approved;
       }
       await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "requested");
       try {
         const approved = await ctx.requestApproval(action, reason, requestedToolName, detail);
-        signal?.throwIfAborted();
+        approvalSignal?.throwIfAborted();
         await persistApprovalTransition(ctx.root, deps.sessionId, call, action, approved ? "approved" : "denied");
-        signal?.throwIfAborted();
+        approvalSignal?.throwIfAborted();
         return approved;
       } catch (error) {
         await persistApprovalTransition(ctx.root, deps.sessionId, call, action, "expired");
