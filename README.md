@@ -38,17 +38,26 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Current agent6 delivery — October 28:** normal `vanta` and the signed,
+Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `d6260ace`,
+version `0.1.0-local.20261028.agent6`. Candidate and installed chat/restart,
+fresh file approvals and five swarm/cancellation cases pass with private fixtures.
+Real source-terminal approval dismissal and independent success also pass.
+Original work/data and agent5 rollback are retained; broader security, trust,
+parity and owner gates remain open.
+[Exact delivery and remaining limits](docs/agent6-installed-2026-10-28.md).
+
 **Swarm containment source checkpoint — October 28:** an uncertain foreground
 worker result now cancels pending siblings; nested approval lifetimes and stale
 TUI choices retain cancellation. Five sequential real CLI/kernel replays and
-focused agent/TUI checks pass. This newer checkpoint is not yet installed;
-agent5 below remains the current delivered version. Saved-rule cancellation and
-real-TTY multi-worker acceptance retain explicit limits.
+focused agent/TUI checks pass. It is now delivered in agent6; real source-terminal
+proof supplements the bounded checks. Already-started saved-rule writes and
+broader multi-worker acceptance retain explicit limits.
 [Evidence and remaining gaps](docs/swarm-containment-2026-10-28.md).
 
-**Current agent5 delivery — October 28:** normal `vanta` and the signed,
-Apple Accepted/stapled app at `/Applications/Vanta.app` contain code `166aff7f`,
-version `0.1.0-local.20261028.agent5`. Exact candidate and installed chat/restart,
+**Previous agent5 delivery — October 28:** delivered code `166aff7f` in the
+signed, Apple Accepted/stapled version `0.1.0-local.20261028.agent5`; it is now a
+retained rollback, superseded by agent6 above. Its candidate and installed chat/restart,
 fresh file approval, team refusal/completion and cancellation journeys pass in
 private fixtures. Original work/data and previous app/CLI versions are preserved.
 These are bounded repairs, not whole-agent/security/parity completion.

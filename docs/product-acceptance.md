@@ -15,13 +15,22 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent6 installed delivery](agent6-installed-2026-10-28.md) delivers d6260ace
+to normal CLI and signed/Apple Accepted/stapled installed app. Exact candidate and
+installed chat/restart, six-turn fresh approval and five swarm cases pass. Real
+source-terminal approval dismissal, fresh rejection and independent success pass separately.
+Final archive, installed/rollback fingerprints and original work/data preservation
+pass. Earlier source-only delivery gaps below are superseded only for these bounded
+paths; in-flight saved-rule writes, startup-cache publication, broader trust,
+security, owner-account and parity/human gates remain open.
+
 The [October 28 swarm containment source checkpoint](swarm-containment-2026-10-28.md)
 adds invocation-local sibling cancellation, combined nested approval lifetimes
 and cancellation-aware TUI prompts. Five sequential actual compiled CLI/Rust
 cases pass, as do 49 focused agent and 49 TUI checks, runtime types and seven
-architecture checks. This newer source is not installed in agent5. Already-started
+architecture checks. It was not installed in agent5; agent6 above delivers it. Already-started
 saved-rule writes cannot be rolled back; an earlier parallel startup-cache failure
-is retained, and real-TTY multi-worker acceptance remains unexecuted. No whole-card
+is retained; the subsequent bounded real-terminal replay is recorded above. No whole-card
 or security completion follows from these bounded checks.
 
 The [agent5 installed delivery](agent5-installed-2026-10-28.md) delivers code

@@ -2,9 +2,10 @@
 
 ## Status and boundary
 
-This is a source checkpoint, not a new installed version. The installed agent5
-app and normal CLI still contain `166aff7f`; their separate acceptance record is
-[agent5 delivery](agent5-installed-2026-10-28.md). No main merge, tag, public
+This records the source checkpoint before delivery. It is now delivered to normal
+CLI and installed Desktop in [agent6](agent6-installed-2026-10-28.md), with separate
+real-terminal and exact candidate/installed evidence. Agent5's earlier record
+remains [historical](agent5-installed-2026-10-28.md). No main merge, tag, public
 release, deployment, credential migration or policy relaxation is included.
 
 The bounded Done criterion is: after a foreground child reports an uncertain
@@ -73,8 +74,9 @@ defect in the exact production diff.
   persistence and stop hooks. It is not an atomic global halt or compensation
   for effects already started. Independent parallel approval queuing is not
   accepted by this checkpoint.
-- Installed CLI/TUI and new packaged-app acceptance, full review-clear behavior,
-  owner-account workflows and broader security/parity gates remain open.
+- This source checkpoint preceded normal CLI and packaged-app delivery, recorded
+  separately in agent6 above. Installed real-TTY multi-worker acceptance, full
+  review-clear, owner-account and broader security/parity gates remain open.
 
 ## Preservation and next step
 
@@ -86,5 +88,5 @@ about 51 GiB, not a claim that this cleanup alone reclaimed that amount.
 
 The canonical roadmap IDs, statuses, Done criteria, dependencies and shipped
 history are unchanged. TRUST-03 and OP-03 remain Building; Desktop cutover retains
-its owner/parity gates. Next: execute the real private TTY approval flow, then
-deliver this exact checkpoint through a new verified CLI pin and packaged app.
+its owner/parity gates. The subsequent real private TTY flow and exact CLI/app
+delivery are recorded in agent6 above; broader card acceptance remains open.

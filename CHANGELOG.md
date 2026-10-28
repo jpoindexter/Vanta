@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Verified agent6 delivery — 2026-10-28 (local, not a public release)
+
+- Deliver source `d6260ace` to normal CLI and signed, Apple Accepted/stapled
+  installed agent6. Exact final archive, installed app and agent5 rollback verify.
+- Candidate and installed chat/restart, six-turn fresh approval and five swarm
+  cases pass; separate actual source-terminal approval dismissal/success passes.
+- Preserve original work/data, pins and recovery; update evidence without closing
+  unmet trust/security/parity gates. Startup-cache publication and in-flight
+  saved-rule cancellation limits remain. No main merge, public release/tag or CI.
+  [Delivery identities and limits](docs/agent6-installed-2026-10-28.md).
+
 ## Foreground swarm containment — 2026-10-28 (source only)
 
 - Cancel pending foreground siblings after an uncertain child result; retain
