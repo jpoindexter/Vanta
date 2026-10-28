@@ -65,6 +65,25 @@ describe("ticket tool", () => {
   });
 });
 
+describe("ticket decision ownership", () => {
+  it("uses the host session rather than a model-supplied identity", async () => {
+    const input = { action: "needs_human", title: "Choose a recipient", reason: "Two matches", next: "Choose one",
+      dedupeIdentity: "pretend-both-chats-are-the-same", source: "session:other" };
+    const a = { ...makeCtx(root), sessionId: "chat-a" }, b = { ...makeCtx(root), sessionId: "chat-b" };
+    await ticketTool.execute(input, a);
+    await ticketTool.execute(input, a);
+    await ticketTool.execute(input, b);
+    const tickets = await listTickets(join(root, ".vanta"));
+    expect(tickets).toHaveLength(2);
+    expect(tickets[0]?.comments).toHaveLength(2);
+    expect(tickets[0]?.comments[0]?.text).toContain("Source: session:chat-a");
+    const peer = tickets[1]!;
+    expect(peer.comments[0]?.text).toContain("Source: session:chat-b");
+    await ticketTool.execute({ action: "inbox", id: tickets[0]!.id, status: "done", inbox: "archived" }, a);
+    expect((await listTickets(join(root, ".vanta"))).find(row => row.id === peer.id)).toEqual(peer);
+  });
+});
+
 describe("ticket tool — views & validation", () => {
   it("inbox action can set status alongside inbox", async () => {
     const ctx = makeCtx(root);

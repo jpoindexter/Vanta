@@ -15,6 +15,8 @@ export type NeedsHumanInput = {
   reason: string;
   nextAction: string;
   source?: string;
+  /** Host-owned identity for one source/request; omitted for explicitly shared tickets. */
+  dedupeIdentity?: string;
 };
 export type NeedsHumanDeps = TicketDeps;
 
@@ -29,9 +31,11 @@ function normalize(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 180);
 }
 
-function blockerLabel(input: Pick<NeedsHumanInput, "kind" | "title">): string {
-  const hash = createHash("sha256").update(`${input.kind}:${normalize(input.title)}`).digest("hex").slice(0, 12);
-  return `needs-human:${hash}`;
+function blockerLabel(input: Pick<NeedsHumanInput, "kind" | "title" | "dedupeIdentity">): string {
+  const scoped = input.dedupeIdentity !== undefined;
+  const key = scoped ? JSON.stringify([input.kind, input.dedupeIdentity]) : `${input.kind}:${normalize(input.title)}`;
+  const hash = createHash("sha256").update(key).digest("hex");
+  return `needs-human:${scoped ? hash : hash.slice(0, 12)}`;
 }
 
 function commentText(input: NeedsHumanInput): string {
@@ -101,5 +105,8 @@ export async function recordNeedsHumanOutcome(
 ): Promise<{ ticket: Ticket; created: boolean } | null> {
   const classified = classifyNeedsHuman(input.instruction, input.outcome);
   if (!classified) return null;
-  return upsertNeedsHumanTicket(dataDir, { ...classified, source: input.source }, input.deps ?? defaultDeps());
+  return upsertNeedsHumanTicket(dataDir, {
+    ...classified, source: input.source,
+    dedupeIdentity: JSON.stringify([input.source?.trim() ? input.source : randomUUID(), input.instruction]),
+  }, input.deps ?? defaultDeps());
 }

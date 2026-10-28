@@ -5,6 +5,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent attention routing — 2026-10-28 (source checkpoint)
 
+- Bind automatic blocker identity to its host source and full request; keep
+  registered ticket decisions session-scoped. Resolving one chat's repeated
+  blocker no longer clears another chat's ticket. Two actual agent/kernel/CLI
+  journeys and 37 focused checks pass. Source only; canonical unknown-effect
+  review clearing remains open. [Evidence and limits](docs/attention-chat-ownership-2026-10-28.md).
+
 - Merge repeated uncertainty for the exact session-bound operation set into one
   Needs You item, retaining both receipts without retrying the action. A separate
   chat remains independent. Real registered Gmail/kernel replay and 46 focused

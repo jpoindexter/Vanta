@@ -24,7 +24,9 @@ is now executed, including the repaired positive-control blocker projection.
 one understandable uncertain-Gmail blocker, safe review step, linked receipt,
 one submission/no retry and draft retention. O03-3 is active:
 [exact-operation deduplication](uncertain-attention-deduplication-2026-10-28.md)
-has source proof, but evidence-bound resolution/clearing remains unexecuted.
+has source proof. [Legacy-ticket chat ownership and resolution](attention-chat-ownership-2026-10-28.md)
+also has actual source-agent/CLI proof; canonical unknown-effect resolution/clearing
+remains unexecuted. These are distinct paths, not a whole O03-3 acceptance.
 Maximum one active slice per
 Building parent. Next parents and later checklist rows are not concurrent work.
 Reuse existing implementation and receipts before changing code. A failed proof
