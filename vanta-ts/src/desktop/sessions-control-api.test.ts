@@ -89,6 +89,21 @@ describe("unread watermark", () => {
 });
 
 describe("session export and fork", () => {
+  it("retains fork lineage in saved JSON, list, detail and export", async () => {
+    await saveSession("parent", TRANSCRIPT, { env: process.env, cwd: h.root, projectId: "origin-project" });
+    const before = await readFile(join(h.home, "sessions/parent.json"), "utf8");
+    const result = await h.post("/api/sessions/fork", { id: "parent" });
+    expect(result.status).toBe(200);
+    const child = result.body.id;
+    expect(await loadSession(child, process.env)).toMatchObject({ parentSessionId: "parent", cwd: h.root, projectId: "origin-project" });
+    expect((await h.get("/api/sessions")).body.find((row: { id: string }) => row.id === child)).toHaveProperty("parentSessionId", "parent");
+    expect((await h.get(`/api/sessions/detail?id=${child}`)).body).toHaveProperty("parentSessionId", "parent");
+    const exported = (await h.get(`/api/sessions/export?id=${child}&format=json`)).body;
+    expect(JSON.parse(exported.content)).toHaveProperty("parentSessionId", "parent");
+    expect(exported.content).not.toContain("You are Vanta.");
+    expect(await readFile(join(h.home, "sessions/parent.json"), "utf8")).toBe(before);
+  });
+
   it("exports Markdown and JSON transcripts without the system prompt", async () => {
     await saveSession("inv", TRANSCRIPT, { env: process.env, title: "Invoices" });
     const md = (await h.get("/api/sessions/export?id=inv")).body;

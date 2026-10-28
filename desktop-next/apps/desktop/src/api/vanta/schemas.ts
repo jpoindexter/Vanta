@@ -11,6 +11,7 @@ export const sessionMetaSchema = z.looseObject({
   cwd: z.string().optional(),
   id: z.string().min(1),
   modelId: z.string().optional(),
+  parentSessionId: z.string().optional(),
   pinned: z.boolean().optional(),
   providerId: z.string().optional(),
   started: z.string().optional(),

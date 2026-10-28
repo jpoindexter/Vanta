@@ -165,10 +165,10 @@ describe("session store", () => {
     await saveSession("20260602-120000", TRANSCRIPT, { env: env(), now: "2026-06-02T12:00:00.000Z" });
     const fork = await forkSession("20260602-120000", { env: env(), now: new Date(2026, 5, 3, 12, 0, 0) });
     const original = await loadSession("20260602-120000", env());
-    expect(fork?.id).toBe("20260603-120000");
+    expect(fork?.id).toMatch(/^20260603-120000-[a-f0-9-]+$/);
     expect(fork?.messages).toEqual(TRANSCRIPT);
     expect(original?.updated).toBe("2026-06-02T12:00:00.000Z");
-    expect((await listSessions(env())).map((s) => s.id)).toEqual(["20260603-120000", "20260602-120000"]);
+    expect((await listSessions(env())).map((s) => s.id)).toEqual([fork?.id, "20260602-120000"]);
   });
 
   it("renames, archives, and restores a session without losing its transcript or routing metadata", async () => {

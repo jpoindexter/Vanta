@@ -49,6 +49,7 @@ export function sessionInfoFromMeta(meta: SessionMeta): SessionInfo {
     message_count: (meta.turns ?? 0) * 2,
     model: meta.modelId ?? null,
     pinned: meta.pinned === true,
+    ...(meta.parentSessionId ? { parent_session_id: meta.parentSessionId, _branched_from: meta.parentSessionId } : {}),
     started_at: started,
     ...(meta.unread === true ? { unread: true } : {}),
     title: meta.title ?? null

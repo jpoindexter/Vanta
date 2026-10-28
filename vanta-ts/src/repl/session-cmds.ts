@@ -1,4 +1,5 @@
-import { listSessions, loadSession, newSessionId, saveSession } from "../sessions/store.js";
+import { randomUUID } from "node:crypto";
+import { listSessions, loadSession, newSessionId, readSessionMetadata, saveSession } from "../sessions/store.js";
 import { lines } from "./format.js";
 import { sessionsSearch } from "./sessions-search-cmd.js";
 import type { SlashHandler } from "./types.js";
@@ -44,10 +45,13 @@ export const title: SlashHandler = async (arg, ctx) => {
 };
 
 export const fork: SlashHandler = async (_arg, ctx) => {
-  const newId = newSessionId(ctx.now());
-  const startedAt = ctx.now().toISOString();
+  const now = ctx.now(), parentSessionId = ctx.state.sessionId;
+  const newId = `${newSessionId(now)}-${randomUUID()}`;
+  const startedAt = now.toISOString();
   try {
-    await saveSession(newId, ctx.convo.messages, { env: ctx.env, started: startedAt, title: ctx.state.title, providerId: ctx.state.providerId, modelId: ctx.state.modelId });
+    const origin = await readSessionMetadata(parentSessionId, ctx.env);
+    await saveSession(newId, ctx.convo.messages, { env: ctx.env, started: startedAt, title: ctx.state.title, parentSessionId,
+      cwd: origin?.cwd, projectId: origin?.projectId, providerId: ctx.state.providerId, modelId: ctx.state.modelId, expectedVersion: null });
   } catch (error) { return { output: `  Could not save fork: ${error instanceof Error ? error.message : "storage error"}` }; }
   ctx.state.sessionId = newId;
   ctx.state.started = startedAt;

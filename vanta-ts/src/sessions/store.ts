@@ -92,6 +92,7 @@ function buildSession(id: string, messages: Message[], opts: SaveSessionOpts): S
 function sessionMetadata(opts: SaveSessionOpts): Partial<Session> {
   return {
     ...(opts.projectId ? { projectId: opts.projectId } : {}),
+    ...(opts.parentSessionId ? { parentSessionId: opts.parentSessionId } : {}),
     ...(opts.cwd ? { cwd: opts.cwd } : {}),
     ...(opts.providerId ? { providerId: opts.providerId } : {}), ...(opts.modelId ? { modelId: opts.modelId } : {}),
     ...(opts.archived ? { archived: true } : {}), ...(opts.trashed ? { trashed: true } : {}),
@@ -108,6 +109,7 @@ async function saveUnlocked(id: string, messages: Message[], opts: SaveSessionOp
   const options = existing ? { ...existingSaveOptions(existing), ...overrides } : overrides;
   // The folder a session started in is its identity for project lanes; a later save never moves it.
   if (existing?.cwd) options.cwd = existing.cwd;
+  if (existing?.parentSessionId) options.parentSessionId = existing.parentSessionId;
   if (existing && !opts.title && ["New chat", "(empty session)"].includes(existing.title)) options.title = deriveTitle(messages);
   await persistSession(sessionPath(id, env), buildSession(id, messages, options));
 }
@@ -207,6 +209,7 @@ function existingSaveOptions(session: Session, overrides: Pick<SaveSessionOpts, 
     updated: overrides.updated,
     title: overrides.title ?? session.title,
     projectId: session.projectId,
+    parentSessionId: session.parentSessionId,
     cwd: session.cwd,
     providerId: session.providerId,
     modelId: session.modelId,
@@ -278,8 +281,9 @@ export async function forkSession(
   const source = await store.load(sourceId);
   if (!source) return null;
   const now = opts.now ?? new Date();
-  const id = newSessionId(now);
+  const id = `${newSessionId(now)}-${randomUUID()}`;
   const started = now.toISOString();
-  await store.save(id, source.messages, { now: started, started, title: source.title, cwd: source.cwd, providerId: source.providerId, modelId: source.modelId });
+  await store.save(id, source.messages, { now: started, started, title: source.title, cwd: source.cwd, projectId: source.projectId,
+    parentSessionId: source.id, providerId: source.providerId, modelId: source.modelId, expectedVersion: null });
   return store.load(id);
 }

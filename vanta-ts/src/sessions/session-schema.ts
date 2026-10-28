@@ -71,6 +71,7 @@ export const SessionSchema = z.object({
   // Origin project (canonicalProjectId). Optional + additive: sessions saved
   // before this field still load. Enables cross-project resume (see cross-project.ts).
   projectId: z.string().optional(),
+  parentSessionId: z.string().optional(),
   // Working folder the session was started in (absolute path). Additive: older sessions have none.
   // Lets a client place the session in a project by folder.
   cwd: z.string().optional(),
@@ -87,7 +88,7 @@ export const SessionSchema = z.object({
 });
 
 export type Session = z.infer<typeof SessionSchema>;
-export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "cwd" | "providerId" | "modelId" | "archived" | "trashed" | "pinned" | "pinOrder"> & {
+export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" | "projectId" | "parentSessionId" | "cwd" | "providerId" | "modelId" | "archived" | "trashed" | "pinned" | "pinOrder"> & {
   turns: number;
   diagnostic?: { code: string; path: string; recovery: string };
 };
@@ -96,7 +97,7 @@ export type SessionMeta = Pick<Session, "id" | "title" | "started" | "updated" |
 export type SaveSessionOpts = {
   now?: string; started?: string; updated?: string; title?: string; projectId?: string; cwd?: string;
   providerId?: string; modelId?: string; archived?: boolean; trashed?: boolean;
-  pinned?: boolean; pinOrder?: number;
+  pinned?: boolean; pinOrder?: number; parentSessionId?: string;
   /** Optional compare-and-swap precondition for a previously loaded snapshot; null means create only. */
   expectedVersion?: string | null;
 };
@@ -109,6 +110,7 @@ export function sessionToMeta(session: Session): SessionMeta {
     started: session.started,
     updated: session.updated,
     projectId: session.projectId,
+    parentSessionId: session.parentSessionId,
     cwd: session.cwd,
     providerId: session.providerId,
     modelId: session.modelId,

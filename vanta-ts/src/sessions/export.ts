@@ -25,7 +25,7 @@ export function exportSession(session: Session, format: "markdown" | "json"): Se
   const visible = session.messages.filter((message) => message.role !== "system");
   if (format === "json") {
     const messages = visible.map((message) => (message.role === "user" ? { role: message.role, content: message.content } : message));
-    return { filename: `${base}.json`, mime: "application/json", content: `${JSON.stringify({ id: session.id, title: session.title, started: session.started, updated: session.updated, messages }, null, 2)}\n` };
+    return { filename: `${base}.json`, mime: "application/json", content: `${JSON.stringify({ id: session.id, title: session.title, started: session.started, updated: session.updated, parentSessionId: session.parentSessionId, messages }, null, 2)}\n` };
   }
   const head = `# ${session.title}\n\n_Session ${session.id} · started ${session.started}_\n\n`;
   return { filename: `${base}.md`, mime: "text/markdown", content: head + visible.map(markdownBlock).join("\n") };

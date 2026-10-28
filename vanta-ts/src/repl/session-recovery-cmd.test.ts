@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fork, resume, title } from "./session-cmds.js";
 import type { ReplCtx } from "./types.js";
+import { loadSession, saveSession } from "../sessions/store.js";
 
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))); });
@@ -20,6 +21,29 @@ async function fixture(): Promise<ReplCtx> {
 }
 
 describe("session command recovery", () => {
+  it("keeps truthful lineage when the live parent has never been saved", async () => {
+    const ctx = await fixture();
+    await fork("", ctx);
+    const child = await loadSession(ctx.state.sessionId, ctx.env);
+    expect(child).toMatchObject({ parentSessionId: "current", messages: ctx.convo.messages });
+    expect(child?.cwd).toBeUndefined();
+    expect(child?.projectId).toBeUndefined();
+    expect(await loadSession("current", ctx.env)).toBeNull();
+  });
+
+  it("keeps live fork lineage and unsaved messages without same-second overwrites", async () => {
+    const ctx = await fixture();
+    await saveSession("current", [{ role: "user", content: "Older disk snapshot" }], { env: ctx.env, cwd: "/work/origin", projectId: "origin-project" });
+    const before = await readFile(join(ctx.env.VANTA_HOME!, "sessions/current.json"), "utf8");
+    await fork("", ctx);
+    const child = await loadSession(ctx.state.sessionId, ctx.env);
+    expect(child).toMatchObject({ parentSessionId: "current", cwd: "/work/origin", projectId: "origin-project", messages: ctx.convo.messages });
+    await fork("", ctx);
+    expect(ctx.state.sessionId).not.toBe(child!.id);
+    expect((await loadSession(ctx.state.sessionId, ctx.env))?.parentSessionId).toBe(child!.id);
+    expect(await readFile(join(ctx.env.VANTA_HOME!, "sessions/current.json"), "utf8")).toBe(before);
+  });
+
   it("reports corrupt resume without switching or terminating the current conversation", async () => {
     const ctx = await fixture();
     await mkdir(join(ctx.env.VANTA_HOME!, "sessions"));

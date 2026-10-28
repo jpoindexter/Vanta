@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Durable chat branching — 2026-10-28 (source checkpoint)
+
+- Persist immediate-parent provenance through saves, backend metadata/export and
+  both Desktop projections; retain origin metadata and live unsaved CLI history.
+- Use collision-resistant, create-only fork IDs without switching the CLI after
+  a failed save. Never infer legacy or checkpoint-copy ancestry.
+- Forty-eight runtime/API and 26 Desktop checks, types, build and architecture
+  pass. Actual rebuilt-source Electron retains four exact histories and parent
+  edges through switching/cold restart with zero renderer errors. Installed
+  agent8/normal CLI unchanged; separate delivery and whole-card gates remain.
+  [Evidence and limits](docs/fork-lineage-checkpoint-2026-10-28.md).
+
 ## Agent8 Desktop delivery — 2026-10-28 (local, not a release)
 
 - Signed, Apple Accepted/stapled installed agent8 delivers source430530cd and

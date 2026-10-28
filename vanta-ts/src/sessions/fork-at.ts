@@ -29,7 +29,8 @@ export async function forkSessionAt(sourceId: string, opts: { count?: number; en
   const id = `${newSessionId(now)}-${randomUUID()}`;
   const stamp = now.toISOString();
   await saveSession(id, messagesUpTo(source.messages, opts.count), {
-    env: opts.env, now: stamp, started: stamp, title: `${source.title} (branch)`, cwd: source.cwd, providerId: source.providerId, modelId: source.modelId,
+    env: opts.env, now: stamp, started: stamp, title: `${source.title} (branch)`, cwd: source.cwd, projectId: source.projectId,
+    parentSessionId: source.id, providerId: source.providerId, modelId: source.modelId, expectedVersion: null,
   });
   return loadSession(id, opts.env);
 }

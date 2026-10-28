@@ -127,6 +127,7 @@ export const sessionList: Handler = async (hub, params) => {
     .slice(0, limit)
     .map(session => ({
       ...(session.cwd ? { cwd: session.cwd } : {}),
+      ...(session.parentSessionId ? { parent_session_id: session.parentSessionId, _branched_from: session.parentSessionId } : {}),
       id: session.id,
       message_count: (session.turns ?? 0) * 2,
       preview: '',

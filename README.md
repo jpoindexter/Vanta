@@ -38,6 +38,13 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Durable branching source checkpoint — October 28:** new branches preserve
+their immediate parent through saves, backend refresh and cold restart; same-second
+forks cannot overwrite one another. Forty-eight runtime/API and 26 Desktop checks,
+types and a rebuilt-source Electron journey pass with four exact histories and
+zero renderer errors. Installed agent8 and normal CLI remain unchanged; no whole
+card or parity closure. [Evidence and delivery gap](docs/fork-lineage-checkpoint-2026-10-28.md).
+
 **Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
 `0.1.0-local.20261028.agent8` is installed from source `430530cd`. Exact candidate
 and installed create/branch/continue/switch/cold-restart checks pass with exact

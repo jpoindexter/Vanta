@@ -15,6 +15,17 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [durable branching source checkpoint](fork-lineage-checkpoint-2026-10-28.md)
+preserves immediate-parent metadata through saves/list/detail/export and both
+Desktop projections. Forty-eight runtime/API and 26 Desktop checks, both types,
+fresh build and five architecture boundaries pass. Actual rebuilt-source
+Electron retains four exact histories and immediate-parent edges through real
+branching, continuation, switching and cold restart; both lifetimes close with
+zero observed renderer errors. This uses a private prestarted verified release
+kernel, not proof of source-launcher kernel selection or a new installed app.
+Agent8/normal CLI remain unchanged; full parity, owner/human/live-account,
+remaining trust/security and modularization gates remain open.
+
 The [agent8 local Desktop delivery](agent8-installed-2026-10-28.md) now delivers
 source430530cd as signed/Apple Accepted/stapled installed agent8. Exact candidate
 AND installed create/branch/continue/switch/cold-restart journeys preserve three
