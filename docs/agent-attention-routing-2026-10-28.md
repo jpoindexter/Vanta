@@ -60,3 +60,31 @@ resolution. Do not reconnect Gmail, send mail, weaken approval gates or retry an
 uncertain effect to make that fixture succeed. T03-4 exact packaged delivery
 remains open; the existing live Gmail credential returned `invalid_grant` in the
 separate owner-authorized read-only check.
+
+### O03-2 follow-up: partial, not accepted
+
+The current source's actual conversation/registered `gmail_send`/real kernel
+path was subsequently replayed against a local OAuth/Gmail fixture returning
+HTTP 503 after submission. One fresh fixture approval, one submission and one
+model call were observed; no automatic retry or model continuation occurred.
+The agent stopped `blocked` with typed `needsEffectReview` and `needs human`.
+The original draft file and exact arguments in the real saved session remained
+intact. Receipts contained neither the complete body nor fixture credentials.
+
+The operator projection already contains exactly one canonical turn WorkItem
+in Needs You, with its existing receipt links; it does not need another ticket.
+The initial missing-ticket hypothesis was therefore rejected. The real gap is
+actionability: the item says `Execute agent.turn`, `No blocker reported by the
+source` and `Review work_item <id>`, rather than explaining the uncertain Gmail
+result and smallest safe inspection. Do not add a duplicate ticket or change
+the unknown-effect stop/retry policy to fix display wording.
+
+Retained private packet: `outreach-attention-20261028-ZO8D1B`. Its first two
+fixture attempts returned `invalid_client` before reaching the Gmail stub;
+the diagnostic identified the OAuth library's separate transport. The accepted
+replay redirects that transport explicitly, reusing the prior source-proof
+seam. These are synthetic credentials, not owner-account acceptance. No
+production change, installed proof, restart recovery or O03-2 completion is
+claimed. Next: enrich the existing canonical blocker with content-free action
+identity, its uncertain disposition, linked evidence and safe next action,
+then replay the same case and ordinary-work controls.
