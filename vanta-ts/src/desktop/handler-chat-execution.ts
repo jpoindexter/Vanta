@@ -14,6 +14,7 @@ import { deleteQueuedImages,loadQueuedImages } from "./turn-queue-images.js";
 import { pushSseEvent } from "./session-state.js";
 import { pushTurnComplete, pushUsage } from "./typed-emit.js";
 import { estimateContextTokens } from "./usage-meter.js";
+import { retainChatResult } from "./live-session.js";
 
 type LiveExecution = ChatExecution & { live: Awaited<ReturnType<typeof ensureDesktopConversation>> };
 type Outcome = Awaited<ReturnType<LiveExecution["live"]["convo"]["send"]>>;
@@ -85,6 +86,8 @@ export async function claimQueuedChatInput(state: DesktopState, requestId?: stri
 
 export async function executeChat(context: ChatExecution, res: http.ServerResponse): Promise<void> {
   context.live = await ensureDesktopConversation(context.state);
+  const observedRun = context.state._chatRun;
+  if (observedRun && observedRun.requestId === context.requestId) observedRun.sessionId = context.live.sessionId!;
   const liveContext = context as LiveExecution;
   let instruction = context.instructionText;
   let attachments = { images: context.images.length ? context.images : undefined, files: context.files };
@@ -101,6 +104,8 @@ export async function executeChat(context: ChatExecution, res: http.ServerRespon
     attachments = { images: next.images.length ? next.images : undefined, files: [] };
   }
   await persistActiveSession(context.state);
+  const result = { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, stoppedReason: outcome.stoppedReason, receipt };
+  retainChatResult(context.state, context.requestId, result);
   pushTurnComplete(context.state, { finalText: outcome.finalText, usage: outcome.usage, stoppedReason: outcome.stoppedReason });
-  sendJson(res, 200, { finalText: outcome.finalText, events: context.events, usage: outcome.usage, sessionId: context.state.sessionId, stoppedReason: outcome.stoppedReason, receipt });
+  sendJson(res, 200, result);
 }

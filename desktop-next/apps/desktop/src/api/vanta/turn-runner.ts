@@ -139,7 +139,7 @@ const turnStatus = (chat: ChatResult): 'complete' | 'error' | 'interrupted' => {
 }
 
 /** End the turn from the server's chat response, naming the two failures the app can act on. */
-function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult): void {
+export function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult, transcriptAlreadySaved = false): void {
   const failureKind = chat.receipt?.failureKind
 
   if (failureKind === 'setup' && MISSING_KEY_TEXT.test(chat.finalText)) {
@@ -158,6 +158,7 @@ function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult): 
       finalText: chat.finalText,
       partial,
       status: 'error',
+      transcriptAlreadySaved,
       usage: chat.usage
     })
 
@@ -167,6 +168,7 @@ function finishFromChat(hub: GatewayHub, client: ChatClient, chat: ChatResult): 
   // A provider that refused the saved key ends the turn as a failure the card can recover; the request stays saved server-side.
   completeTurn(hub, client, {
     finalText: chat.finalText,
+    transcriptAlreadySaved,
     ...(failureKind === 'provider_auth' ? { stoppedReason: 'provider_auth' } : { status: turnStatus(chat) }),
     usage: chat.usage
   })

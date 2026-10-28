@@ -15,13 +15,24 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [live approval recovery checkpoint](live-approval-recovery-checkpoint-2026-10-28.md)
+now passes the previously failing full-renderer-reload path in actual source
+Electron with current compiled backend and the known release kernel. The same
+pending approval returns without task resubmission; real Allow once produces one
+append, while another profile's draft/caret/focus remain intact. Both rounds close
+with zero observed renderer errors. Ninety focused renderer checks, 25 backend
+cases, a real-router two-gateway regression and scoped types/size/builds pass.
+This supersedes the source reload failure below, not its historical receipt or
+the remaining packaged/installed, whole-card, owner/human/live-account gates.
+Installed agent9 and normal CLI70 remain unchanged at this checkpoint.
+
 The [draft-owner/ledger source checkpoint](draft-owner-ledger-checkpoint-2026-10-28.md)
 repairs delayed profile activation clearing a fresh draft and extracts the event
 ownership ledger without changing its authority ladder. Fifty-eight focused tests,
 six-file type checks, size checks, builds and the actual source-Electron draft/
-background-approval/one-click single-effect round pass. Full renderer reload still
-fails to recover the pending card: actual old/new client reads confirm a separate
-live-client adoption gap and false Done presentation. That failure is not waived.
+background-approval/one-click single-effect round pass. At that checkpoint full
+renderer reload failed to recover the pending card; the retained old/new client
+diagnosis informed the separately executed recovery checkpoint above.
 Installed agent9/CLI70 and whole-card statuses remain unchanged.
 
 The [website editor leaf](website-launch-editor-checkpoint-2026-10-28.md)

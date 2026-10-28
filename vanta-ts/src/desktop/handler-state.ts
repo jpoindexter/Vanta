@@ -10,6 +10,7 @@ import { type SessionMap,type SseClients } from "./session-state.js";
 import { type ToolIdTracker } from "./typed-emit.js";
 import { type TypedDesktopEvent } from "./typed-events.js";
 import { DesktopTurnQueue } from "./turn-queue.js";
+import type { DesktopChatRun } from "./live-session.js";
 
 /** One SSE frame. `typed` is the additive machine-readable event (see typed-events.ts); legacy fields are unchanged. */
 export type DesktopEvent = EventLabel & { delta?: string; turnStarted?: { sessionId: string; requestId: string }; typed?: TypedDesktopEvent };
@@ -25,6 +26,8 @@ export type DesktopState = {
   _resumeHistory?: Conversation["messages"];
   _chatActive?: boolean;
   _chatAbort?: AbortController;
+  /** Current request and its bounded terminal result for observation after a renderer reload. */
+  _chatRun?: DesktopChatRun;
   _chatDeltas?: string[];
   /** Post-display text for one external instruction; never raw transcript or streaming deltas. */
   _instructionDisplayedText?: string[];

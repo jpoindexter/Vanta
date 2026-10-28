@@ -11,6 +11,7 @@ import { ClientRegistry, type ChatClient } from './client-registry'
 import { attachStream, detachStream } from './client-stream'
 import { DISPATCH } from './dispatch'
 import type { GatewayHub } from './hub'
+import { pauseLiveObservation, resumeLiveObservation } from './live-resume'
 import { VantaCaller } from './rpc'
 import type { ApprovalPayload } from './schemas'
 import type { VantaTransport } from '@vanta/shared/vanta'
@@ -42,6 +43,7 @@ export class VantaGatewayCore implements GatewayHub {
   readonly stateHandlers = new Set<(state: ConnectionState) => void>()
   readonly requestHandlers: ServerRequestHandler[] = []
   state: ConnectionState = 'idle'
+  connectionGeneration = 0
   readonly notConnectedMessage: string
   private readonly epoch = `${READY_REPLAY_EPOCH_PREFIX}${Math.random().toString(36).slice(2)}`
   private readonly loggedUnsupported = new Set<string>()
@@ -60,6 +62,7 @@ export class VantaGatewayCore implements GatewayHub {
       return
     }
 
+    this.connectionGeneration += 1
     this.state = state
 
     for (const handler of this.stateHandlers) {
@@ -122,6 +125,7 @@ export class VantaGatewayCore implements GatewayHub {
 
     for (const client of this.registry.all()) {
       attachStream(this, client)
+      void resumeLiveObservation(this, client)
     }
 
     this.emit(undefined, 'gateway.ready', { change_events: false, replay_epoch: this.epoch, skin: {} })
@@ -130,6 +134,7 @@ export class VantaGatewayCore implements GatewayHub {
   dropStreams(): void {
     for (const client of this.registry.all()) {
       detachStream(client)
+      pauseLiveObservation(client)
     }
   }
 

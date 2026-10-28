@@ -1,4 +1,4 @@
-import type { GatewayEventName } from '@vanta/shared'
+import type { ConnectionState, GatewayEventName } from '@vanta/shared'
 
 import type { ChatClient, ClientRegistry } from './client-registry'
 import type { VantaCaller } from './rpc'
@@ -7,6 +7,8 @@ import type { VantaTransport } from '@vanta/shared/vanta'
 
 /** What the RPC handlers and the stream/turn machinery need from the gateway, and nothing else. */
 export interface GatewayHub {
+  readonly connectionGeneration: number
+  readonly state: ConnectionState
   readonly approvalPollMs: number
   readonly caller: VantaCaller
   readonly registry: ClientRegistry

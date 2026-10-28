@@ -1,4 +1,5 @@
 import type http from "node:http";
+import { randomUUID } from "node:crypto";
 import { claimQueuedChatInput, executeChat } from "./handler-chat-execution.js";
 import { authRequiredText,clearChatExecution,respondAuthRequired,respondChatFailure,type ChatExecution,type ChatInput } from "./handler-chat-lifecycle.js";
 import { readJson,sendJson } from "./handler-http.js";
@@ -44,6 +45,8 @@ function parseChatInput(body: { message?: unknown; images?: unknown; files?: unk
 
 function startChatExecution(state: DesktopState, input: ChatInput): ChatExecution {
   const controller = new AbortController();
+  input = { ...input, requestId: input.requestId ?? randomUUID() };
+  state._chatRun = { requestId: input.requestId!, sessionId: state.sessionId ?? "" };
   state._chatActive = true;
   state._chatAbort = controller;
   state._chatDeltas = [];

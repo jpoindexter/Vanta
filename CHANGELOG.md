@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Live approval recovery — 2026-10-28 (source checkpoint)
+
+- Recover the exact original live client/approval after renderer reload, without
+  replacing its conversation, submitting another task or reusing approval authority.
+- Preserve rich terminal failures and current history across open/completion races;
+  fence stale requests and connection lifetimes, and stop/restart observation safely.
+- Actual current-backend source Electron passes both profile/draft-isolation
+  rounds, same approval ID after reload and real Allow once with one effect.
+  Ninety renderer, 25 backend and one real-router checks pass, with scoped
+  types/size/builds. Installed agent9/CLI70 and whole-card gates stay unchanged.
+  [Evidence, retained failures and limits](docs/live-approval-recovery-checkpoint-2026-10-28.md).
+
 ## Draft ownership and runtime ledger — 2026-10-28 (source checkpoint)
 
 - Preserve fresh draft words through delayed profile activation by using the

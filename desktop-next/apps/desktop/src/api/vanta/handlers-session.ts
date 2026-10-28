@@ -7,6 +7,7 @@ import { expectOk, parseBody, sessionNotFound } from './rpc'
 import { idResponseSchema, openSessionSchema, sessionListSchema } from './schemas'
 import { refreshInfo, sessionInfo } from './session-info'
 import { toTranscript } from './transcript'
+import { adoptLiveSession, resumeSessionSchema } from './live-resume'
 
 export type Params = Record<string, unknown>
 export type Handler = (hub: GatewayHub, params: Params, signal?: AbortSignal) => Promise<unknown>
@@ -64,13 +65,31 @@ export const sessionCreate: Handler = async (hub, params) => {
   return { info, message_count: 0, messages: [], session_id: client.clientId, stored_session_id: client.storedId }
 }
 
-export const sessionResume: Handler = async (hub, params) => {
+const pendingResumes = new WeakMap<GatewayHub, Map<string, Promise<unknown>>>()
+
+export const sessionResume: Handler = (hub, params) => {
   const storedId = str(params.session_id)
 
   if (!storedId) {
-    throw new JsonRpcGatewayError('session.resume needs a session_id', { code: 400 })
+    return Promise.reject(new JsonRpcGatewayError('session.resume needs a session_id', { code: 400 }))
   }
 
+  let pending = pendingResumes.get(hub)
+  if (!pending) pendingResumes.set(hub, pending = new Map())
+  const key = `${hub.connectionGeneration}:${storedId}`
+  const existing = pending.get(key)
+  if (existing) return existing
+  // One authoritative open per chat: a late response must not resurrect a settled request.
+  const result = resumeStoredSession(hub, storedId).finally(() => pending.delete(key))
+  pending.set(key, result)
+  return result
+}
+
+async function resumeStoredSession(hub: GatewayHub, storedId: string): Promise<unknown> {
+  const generation = hub.connectionGeneration
+  const requireConnection = () => {
+    if (hub.state !== 'open' || hub.connectionGeneration !== generation) throw new Error('The connection changed while recovering this chat.')
+  }
   const existing = hub.registry.resolve(storedId)
 
   // Re-opening a running chat would swap its conversation out from under the turn, so serve what the renderer already holds.
@@ -81,24 +100,35 @@ export const sessionResume: Handler = async (hub, params) => {
   }
 
   const client = existing ?? hub.registry.create()
-  const result = await hub.caller.post(client, '/api/sessions/open', { id: storedId })
-
-  if (result.status === 404) {
-    hub.registry.remove(client.clientId)
-    throw sessionNotFound(storedId)
-  }
+  const before = { turn: client.turn, completedRequestId: client.completedRequestId }
 
   try {
-    const opened = parseBody(openSessionSchema, expectOk(result, 'session.resume'), 'session.resume')
+    const result = await hub.caller.post(client, '/api/sessions/open', { id: storedId, resumeLive: true })
+    requireConnection()
+    assertUnchangedChat(hub, client, before)
+    if (result.status === 404) throw sessionNotFound(storedId)
+    const opened = parseBody(resumeSessionSchema, expectOk(result, 'session.resume'), 'session.resume')
+    if (opened.id !== storedId) throw new Error('The resumed conversation does not match the requested chat.')
+    if (opened.live) {
+      const recovered = await adoptLiveSession(hub, client, opened)
+      requireConnection()
+      return resumeResult(recovered, sessionInfo(recovered, Boolean(recovered.turn)), Boolean(recovered.turn))
+    }
     client.storedId = opened.id
     client.title = opened.title ?? client.title
     client.transcript = toTranscript(opened.messages)
   } catch (error) {
-    hub.registry.remove(client.clientId)
+    if (!existing) hub.registry.remove(client.clientId)
     throw error
   }
 
   return resumeResult(client, await announce(hub, client), false)
+}
+
+function assertUnchangedChat(hub: GatewayHub, client: ChatClient, before: Pick<ChatClient, 'turn' | 'completedRequestId'>): void {
+  if (hub.registry.get(client.clientId) !== client || client.turn !== before.turn || client.completedRequestId !== before.completedRequestId) {
+    throw new Error('The chat changed while opening. Reopen it before continuing.')
+  }
 }
 
 function resumeResult(client: ChatClient, info: Record<string, unknown>, running: boolean): Record<string, unknown> {

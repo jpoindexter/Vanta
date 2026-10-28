@@ -16,6 +16,8 @@ export interface TurnResult {
   partial?: boolean
   status?: 'complete' | 'error' | 'interrupted'
   stoppedReason?: string
+  /** A recovered terminal envelope already includes this assistant message in its saved history. */
+  transcriptAlreadySaved?: boolean
   usage?: UsagePayload
 }
 
@@ -31,6 +33,7 @@ export function completeTurn(hub: GatewayHub, client: ChatClient, result: TurnRe
   }
 
   turn.completed = true
+  client.completedRequestId = turn.requestId
   client.turn = null
   client.stopApprovalPoll?.()
   client.stopApprovalPoll = null
@@ -43,7 +46,7 @@ export function completeTurn(hub: GatewayHub, client: ChatClient, result: TurnRe
   // The server's own "Provider authentication required ..." sentence would repeat the card that follows; real partial output stays.
   const finalText = outcome.failureKind === 'provider_auth' && SERVER_AUTH_TEXT.test(result.finalText) ? '' : result.finalText
 
-  if (finalText) {
+  if (finalText && !result.transcriptAlreadySaved) {
     client.transcript.push({ role: 'assistant', text: finalText })
   }
 

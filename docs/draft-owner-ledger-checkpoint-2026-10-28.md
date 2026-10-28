@@ -1,5 +1,9 @@
 # Draft ownership and runtime ledger — 2026-10-28 source checkpoint
 
+Subsequent source update: the [live approval recovery checkpoint](live-approval-recovery-checkpoint-2026-10-28.md)
+passes the full-renderer-reload criterion retained below. This file preserves the
+earlier diagnosis and its exact evidence; installed acceptance remains separate.
+
 The fresh-draft profile timing repair has executed source-Electron evidence.
 Full pending-approval recovery after a renderer reload **still fails** and is the
 next continuity repair. This checkpoint is not a new installed build, whole-card

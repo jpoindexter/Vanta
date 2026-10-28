@@ -33,6 +33,7 @@ export interface ChatClient {
   title: string
   transcript: TranscriptEntry[]
   turn: ActiveTurn | null
+  completedRequestId?: string
 }
 
 let counter = 0

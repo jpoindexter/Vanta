@@ -11,6 +11,7 @@ import { beginRunCapture,finishRunCapture } from "./handler-run-capture.js";
 import type { DesktopEvent,DesktopState } from "./handler-state.js";
 import { saveProviderAuthRequired } from "./provider-auth-store.js";
 import { pushTurnComplete } from "./typed-emit.js";
+import { retainChatResult } from "./live-session.js";
 
 export type ChatInput = { instructionText: string; images: ImageAttachment[]; files: string[]; requestId?: string };
 export type ChatExecution = ChatInput & {
@@ -100,8 +101,10 @@ export async function respondChatFailure(context: ChatExecution, error: unknown,
     await persistActiveSession(state);
   }
   const stoppedReason = review ? "blocked" : failureStoppedReason(wasInterrupted, failureKind);
+  const result = { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, stoppedReason, receipt, usage: context.outcome?.usage };
+  retainChatResult(state, context.requestId, result);
   pushTurnComplete(state, { finalText, stoppedReason, usage: context.outcome?.usage });
-  sendJson(res, 200, { finalText, events, interrupted: wasInterrupted, sessionId: state.sessionId, stoppedReason, receipt, usage: context.outcome?.usage });
+  sendJson(res, 200, result);
 }
 
 export function clearChatExecution(state: DesktopState, controller: AbortController): void {

@@ -38,10 +38,19 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Live approval recovery — October 28 (source only):** a full renderer reload now
+recovers the original waiting approval without resubmitting work. Actual Electron
+passes both profile/draft-isolation rounds, the same approval ID, real Allow once
+and one effect, with zero observed renderer errors. Current compiled backend and
+known release kernel were used. Installed agent9 and CLI70 are not updated by
+this checkpoint; whole-product gates remain open.
+[Evidence and remaining delivery work](docs/live-approval-recovery-checkpoint-2026-10-28.md).
+
 **Draft continuity checkpoint — October 28 (source only):** delayed profile
 activation no longer clears a newly typed draft in the executed source-Electron
 journey. The runtime event-owner ledger is extracted without widening authority.
-Full reload still loses the pending approval card; that recovery gap remains open.
+Its full-reload failure is retained historically; the recovery checkpoint above
+supersedes that specific source-level gap.
 Installed agent9 and normal CLI are unchanged.
 [Source proof and remaining work](docs/draft-owner-ledger-checkpoint-2026-10-28.md).
 

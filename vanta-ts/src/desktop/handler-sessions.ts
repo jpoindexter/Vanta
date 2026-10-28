@@ -8,6 +8,7 @@ import { deleteSession,listAllSessions,loadSession,newSessionId,renameSession,sa
 import { attachConversation } from "./handler-conversation.js";
 import { readJson,sendJson } from "./handler-http.js";
 import { type DesktopState } from "./handler-state.js";
+import { captureSessionOpen, discoverLiveSession, type SessionOpenCursor } from "./live-session.js";
 
 export async function handleSessions(res: http.ServerResponse): Promise<void> {
   const [sessions, readState] = await Promise.all([listAllSessions(process.env), loadReadState(process.env)]);
@@ -30,18 +31,36 @@ export async function handleNewSession(state: DesktopState, res: http.ServerResp
   sendJson(res, 200, { id: state.sessionId });
 }
 
-export async function handleOpenSession(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const body = await readJson(req) as { id?: unknown };
-  const id = typeof body.id === "string" ? body.id : "";
-  const session = id ? await loadSession(id, process.env) : null;
-  if (!session) return sendJson(res, 404, { error: "session not found" });
+type SavedSession = NonNullable<Awaited<ReturnType<typeof loadSession>>>;
+type OpenOptions = { resumeLive: unknown; cursor?: SessionOpenCursor };
+
+function answerLiveOpen(state: DesktopState, res: http.ServerResponse, session: SavedSession, options: OpenOptions): boolean {
+  if (options.resumeLive !== true) return false;
+  try {
+    const live = discoverLiveSession(state, session.id, session.cwd, options.cursor);
+    if (!live) return false;
+    if (session.trashed) throw new Error("The saved chat is in Trash; its live turn was not resumed.");
+    sendJson(res, 200, { ...live, title: session.title });
+  } catch (error) {
+    sendJson(res, 409, { error: error instanceof Error ? error.message : "The live chat is unavailable." });
+  }
+  return true;
+}
+
+function blocksActiveOpen(state: DesktopState, id: string, resumeLive: unknown): boolean {
+  return state._chatActive === true && (id !== state.sessionId || resumeLive !== true);
+}
+
+async function openSavedConversation(state: DesktopState, session: SavedSession, res: http.ServerResponse, options: OpenOptions): Promise<void> {
+  const setup = state.setup ?? await prepareRun(state.root, "desktop interface session");
+  if (answerLiveOpen(state, res, session, options)) return;
+  if (state._chatActive) return sendJson(res, 409, { error: "The active conversation cannot be replaced while a turn is running." });
   const openingPreparedRun = state.sessionId === session.id && state.pendingRunLineage !== undefined;
   if (!openingPreparedRun) {
     state.pendingRunLineage = undefined;
     state.pendingRunPreparedAt = undefined;
     state.forceFreshApprovals = false;
   }
-  const setup = state.setup ?? await prepareRun(state.root, "desktop interface session");
   const sessionProvider = resolveSessionModel(session, process.env);
   if (sessionProvider) setup.provider = sessionProvider;
   state.setup = setup; state.sessionId = session.id; state.sessionStarted = session.started;
@@ -49,6 +68,25 @@ export async function handleOpenSession(state: DesktopState, req: http.IncomingM
   state.modelId = session.modelId ?? setup.provider.modelId();
   attachConversation(state, setup, { history: session.messages });
   sendJson(res, 200, { id: session.id, title: session.title, messages: session.messages.filter((m) => m.role !== "system") });
+}
+
+async function openSessionRequest(state: DesktopState, res: http.ServerResponse, id: string, options: OpenOptions): Promise<void> {
+  const session = id ? await loadSession(id, process.env) : null;
+  if (!session) return sendJson(res, 404, { error: "session not found" });
+  if (answerLiveOpen(state, res, session, options)) return;
+  if (state._chatActive) return sendJson(res, 409, { error: "The active conversation cannot be replaced while a turn is running." });
+  await openSavedConversation(state, session, res, options);
+}
+
+export async function handleOpenSession(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req) as { id?: unknown; resumeLive?: unknown };
+  const id = typeof body.id === "string" ? body.id : "";
+  if (body.resumeLive !== undefined && typeof body.resumeLive !== "boolean") return sendJson(res, 400, { error: "resumeLive must be boolean" });
+  if (blocksActiveOpen(state, id, body.resumeLive)) return sendJson(res, 409, { error: "The active conversation cannot be replaced while a turn is running." });
+  let cursor: SessionOpenCursor | undefined;
+  try { cursor = body.resumeLive === true ? captureSessionOpen(state, id) : undefined; }
+  catch (error) { return sendJson(res, 409, { error: error instanceof Error ? error.message : "The live chat is unavailable." }); }
+  await openSessionRequest(state, res, id, { resumeLive: body.resumeLive, cursor });
 }
 
 export function sessionIdFromBody(body: { id?: unknown }): string {
