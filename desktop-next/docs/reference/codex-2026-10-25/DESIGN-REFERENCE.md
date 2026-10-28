@@ -1,5 +1,9 @@
 # Codex shipped design reference — bounded static extraction
 
+Historical October 25 reference. The [October 28 refresh](../../../../docs/codex-design-feature-audit-2026-10-28.md)
+inspects the newer bundle and current Vanta source. In particular, the old
+Home/chat composer mismatch below is superseded; it is not work still to rebuild.
+
 ## Verdict and scope
 
 The bundle at `/Applications/ChatGPT.app/Contents/Resources/app.asar` identifies itself as **Codex**, package `openai-codex-electron` version `26.1021.31345`. Its SHA256 is `130145706a912db74e4d260ad7538f10f1e05e88af955f9afba42cdf01e64606`. This is not separate evidence for the ChatGPT product.

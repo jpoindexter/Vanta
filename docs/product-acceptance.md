@@ -15,6 +15,14 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [Codex design/feature refresh](codex-design-feature-audit-2026-10-28.md)
+uses Hopper/REA static inspection of local Codex26.1023.51421, all383 CSS files
+and six selected inert JS sources, plus current Vanta source tracing. It corrects
+the stale Home/chat composer mismatch and identifies unproven voice transport
+and run-next versus immediate-Steer semantics. This is reference evidence only:
+no live Codex UI access, feature implementation, visual sign-off or app rebuild.
+The existing chrome candidate still requires its owner-review gate.
+
 The [normal CLI delivery](agent12-cli-cutover-2026-10-28.md) now selects committed
 bdf5780a through the unchanged global wrapper. Exact-pin cold/warm startup,
 compiled MCP16/HTTP38, actual TTY same-burst saved preference/restart/second edit,

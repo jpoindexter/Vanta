@@ -3,6 +3,15 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Codex design and feature review — 2026-10-28 (reference only)
+
+- Refresh local Codex26.1023.51421 through Hopper native-launcher inspection,
+  REA inventory/six inert JS files and all383 CSS files; no target code executed.
+- Trace current Vanta gaps rather than duplicate implemented features: retained
+  unapproved chrome candidate, run-next versus immediate-Steer wording and voice
+  transport mismatch. Preserve owner gates; no app source or installation change.
+  [Evidence, useful patterns and limits](docs/codex-design-feature-audit-2026-10-28.md).
+
 ## Normal CLI delivery — 2026-10-28 (local, not a release)
 
 - Switch the unchanged normal launcher to independent committed bdf5780a after

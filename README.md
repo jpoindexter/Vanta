@@ -38,6 +38,11 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Codex reference refresh — October 28:** Hopper/REA inspected the newer local
+bundle and all 383 packaged CSS files. The [design and feature gap audit](docs/codex-design-feature-audit-2026-10-28.md)
+separates existing Vanta capabilities from unfinished chrome, voice transport and
+queue-control semantics. This is research, not a delivered redesign or live Codex UI proof.
+
 **Current normal CLI — October 28:** `vanta` now selects committed `bdf5780a`,
 including rapid-key approval ordering, MCP response correlation and newer live
 recovery/admission repairs. Exact-pin terminal saved-choice/restart, MCP16 and

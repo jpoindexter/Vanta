@@ -1,0 +1,148 @@
+{
+  "$description": "Static Codex reference, not an importable Vanta theme or computed-cascade result. Raw rem units and source scope retained; no source implementation/assets transplanted.",
+  "$extensions": {
+    "artifactSha256": "1c8ef1bef66e5fc416ae66eff8e6529972aa3601e27a1c7b5f61d6a292b957d3",
+    "sourceScope": "theme-layer root declarations only; product overrides remain separate",
+    "runtimeComputed": "unverified",
+    "missing": [
+      "current colors/cascade",
+      "hover rendering",
+      "native window shadow",
+      "active font",
+      "responsive state",
+      "contrast"
+    ]
+  },
+  "primitive": {
+    "spacing": {
+      "$type": "dimension",
+      "$value": ".25rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 137105,
+          "property": "--spacing"
+        },
+        "scope": "theme root/host"
+      }
+    },
+    "radiusSm": {
+      "$type": "dimension",
+      "$value": ".375rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 142914,
+          "property": "--radius-sm-base"
+        },
+        "scope": "theme root/host"
+      }
+    },
+    "radiusMd": {
+      "$type": "dimension",
+      "$value": ".5rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 142939,
+          "property": "--radius-md-base"
+        },
+        "scope": "theme root/host"
+      }
+    },
+    "radiusLg": {
+      "$type": "dimension",
+      "$value": ".625rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 142962,
+          "property": "--radius-lg-base"
+        },
+        "scope": "theme root/host"
+      }
+    },
+    "radiusXl": {
+      "$type": "dimension",
+      "$value": ".75rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 142987,
+          "property": "--radius-xl-base"
+        },
+        "scope": "theme root/host"
+      }
+    },
+    "toolbar": {
+      "$type": "dimension",
+      "$value": "46px",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 143769,
+          "property": "--height-toolbar"
+        },
+        "scope": "theme root/host"
+      }
+    },
+    "textSm": {
+      "$type": "dimension",
+      "$value": ".875rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 184409,
+          "property": "--font-text-sm-size"
+        },
+        "scope": "theme root/theme scope"
+      }
+    },
+    "leadingSm": {
+      "$type": "dimension",
+      "$value": "1.25rem",
+      "$extensions": {
+        "confidence": "observed-static",
+        "source": {
+          "file": "webview/assets/app-shared-398c891a59df.css",
+          "sha256": "fbeecf83dfe33c2780d527e361fde5003bbcca7dda660922a371aa6a11ce3497",
+          "utf16Offset": 184437,
+          "property": "--font-text-sm-line-height"
+        },
+        "scope": "theme root/theme scope"
+      }
+    }
+  },
+  "semantic": {
+    "relatedGap": {
+      "$type": "dimension",
+      "$value": "{primitive.spacing}",
+      "$extensions": {
+        "confidence": "inferred",
+        "note": "Suggested reference role, not an observed active component value."
+      }
+    },
+    "smallLabelSize": {
+      "$type": "dimension",
+      "$value": "{primitive.textSm}",
+      "$extensions": {
+        "confidence": "inferred",
+        "note": "Do not flatten root, electron, browser and component overrides into one active font."
+      }
+    }
+  }
+}
