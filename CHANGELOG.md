@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website editor dependency — 2026-10-28 (source checkpoint)
+
+- Update one existing lock record to compatible launch-editor2.14.2; retain
+  already-resolved shell-quote1.10.0 and all other1,488 package records.
+- Real webpack-dev-server HTTP→headless Vim old-failure/new-success and five
+  controls per phase pass independently; eight owned editor children exit.
+- Matched warm audit39→38 removes onlylaunch-editor. Origin-only policy and
+  Windows behavior remain unverified; no website deployment, app/CLI change or
+  overall/default-main security clearance is claimed.
+  [Evidence and limits](docs/website-launch-editor-checkpoint-2026-10-28.md).
+
 ## Agent9 normal CLI delivery — 2026-10-28 (local, not a release)
 
 - Switch the unchanged normal launcher to verified source70f05035 only after

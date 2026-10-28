@@ -38,6 +38,12 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Website dependency checkpoint — October 28:** launch-editor 2.14.2 is selected
+in the source lock after actual HTTP/editor old-failure/new-success replay and
+independent verification. Matched website audit 39→38 removes only that package;
+overall security remains open. No website deployment or app/CLI change.
+[Evidence and limits](docs/website-launch-editor-checkpoint-2026-10-28.md).
+
 **Current normal CLI — October 28:** `vanta` now selects verified source
 `70f05035`, including durable branching. Actual terminal saved-choice/restart,
 two live forks and three exact histories, ACP/MCP, fresh approvals and bounded

@@ -15,6 +15,15 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [website editor leaf](website-launch-editor-checkpoint-2026-10-28.md)
+selects compatible launch-editor2.14.2 in one existing lock record. Actual
+webpack-dev-server HTTP→headless Vim reproduces old command interpretation and
+patched literal-path behavior; independent replay, ten controls and all eight
+owned editor exits pass. Matched warm website audit39→38 removes only that
+package; the other38 rows remain identical. This does not close Origin-only
+policy, Windows, deployed exposure or overall security. No canonical install,
+website build/deployment, selected CLI or installed Desktop change is claimed.
+
 The [normal CLI cutover](agent9-cli-cutover-2026-10-28.md) now selects source
 `70f05035`. Actual global-wrapper terminal saved-choice/restart and two live
 forks retain three exact histories and parent edges. ACP/MCP26, five fresh
