@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [current business-agent focus](business-agent-execution-focus-2026-10-28.md)
+puts actual research/briefs, GTM preparation and explicitly approved outreach/
+follow-up ahead of optional voice and visual expansion. This is prioritization,
+not business-work acceptance or permission to contact recipients. The prepared
+voice bridge has 89 focused checks but remains uncommitted/uninstalled without
+its real-path/type/size gates; existing Building cards and owner gates remain.
+
 The [Codex design/feature refresh](codex-design-feature-audit-2026-10-28.md)
 uses Hopper/REA static inspection of local Codex26.1023.51421, all383 CSS files
 and six selected inert JS sources, plus current Vanta source tracing. It corrects

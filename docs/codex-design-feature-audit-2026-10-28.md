@@ -1,5 +1,10 @@
 # Codex reference refresh: design details and useful Vanta capabilities
 
+Later same-day [owner prioritization](business-agent-execution-focus-2026-10-28.md)
+puts business-agent journeys and their trust/recovery blockers ahead of optional
+voice expansion and visual polish. The reference findings below remain useful;
+their proposed next-three order is historical, not the current execution queue.
+
 ## Verdict
 
 Vanta needs a coherent presentation of its existing agent, not another shell.

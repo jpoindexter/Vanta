@@ -38,6 +38,11 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Ambient Desktop redesign — local candidate, not a release
 
+**Current execution priority — October 28:** agent usefulness for business
+research, GTM preparation and explicitly approved outreach comes before broader
+voice expansion or cosmetic work. Existing trust/recovery gates stay required;
+no autonomous sending or paid growth is authorized. [Outcome order and proof](docs/business-agent-execution-focus-2026-10-28.md).
+
 **Codex reference refresh — October 28:** Hopper/REA inspected the newer local
 bundle and all 383 packaged CSS files. The [design and feature gap audit](docs/codex-design-feature-audit-2026-10-28.md)
 separates existing Vanta capabilities from unfinished chrome, voice transport and
