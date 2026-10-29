@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Website worker-pool security patch — 2026-10-29 (source)
+
+- Scope Docusaurus 3.10.2's Tinypool override to verified 2.1.2. Three benign
+  inherited-option controls fail on the old package and pass on the patch;
+  thirteen focused security checks, full prebuild/build with two SSG workers,
+  and five-page private HTTP proof pass.
+- Website audits fall from 16 critical entries to zero, but 32 affected entries
+  remain. No live deployment or blanket security clearance.
+  [Evidence and compatibility limits](docs/dependency-website-workers-2026-10-29.md).
+
 ## Desktop YAML dependency patch — 2026-10-29 (source/shared dependency)
 
 - Pin declared YAML 2.8.1 to 2.8.3 with exact registry integrity, preserving every

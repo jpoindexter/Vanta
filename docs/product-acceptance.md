@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [website worker-pool patch](dependency-website-workers-2026-10-29.md)
+passes corrected old/new injection controls, thirteen configured security tests,
+clean private installation, full prebuild/build with two SSG workers and five
+private HTTP routes/assets. Only two Tinypool advisories disappear; critical
+package entries fall 16 → 0, but 32 affected entries remain. No live deployment,
+shared website install, Desktop/CLI update or overall security clearance.
+
 The [Desktop YAML dependency patch](dependency-yaml-2026-10-29.md) pins 2.8.3,
 passes bounded old/new parser controls, clean private install, Desktop build and
 four regressions, and activates the verified shared parser with rollback. Only

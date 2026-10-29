@@ -68,6 +68,11 @@ with recoverable shared-dependency activation and isolated install/build proof.
 Other dependency findings remain; this is not an installed-app update or security
 clearance. [Evidence and limits](docs/dependency-yaml-2026-10-29.md).
 
+The website's scoped worker-pool patch removes its two Tinypool advisories;
+critical audit entries fall from 16 to zero, with 32 affected entries remaining.
+Private install, worker controls and static-site build/HTTP checks pass; no live
+deployment occurred. [Website evidence](docs/dependency-website-workers-2026-10-29.md).
+
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
 `0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared
 preserved overlays. Candidate and installed copies each pass fourteen approval/
