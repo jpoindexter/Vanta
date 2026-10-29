@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [delegated outreach boundary](delegated-outreach-boundary-2026-10-29.md)
+has bounded T03-5 SOURCE acceptance: seven actual parent/delegate/worker/Gmail/
+kernel fixtures require a separate fresh child decision, refuse denied drift,
+allow one fresh positive control and replay without extra submission/approval.
+No production code changed. This is R3 per-effect authority, not transferable
+R4/R5 grants, installed/live-account delegation or whole-parent acceptance.
+
 The [agent15 installed delivery](agent15-desktop-delivery-2026-10-28.md) is the
 current local Desktop build: source29c370a4 plus eleven declared preserved
 overlays, signed/Apple Accepted/stapled. Exact candidate and installed copies

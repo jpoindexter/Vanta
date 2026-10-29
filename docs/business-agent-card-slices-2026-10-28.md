@@ -25,7 +25,11 @@ SOURCE acceptance. The [agent15 installed delivery](agent15-desktop-delivery-202
 now packages the accumulated fixes; both exact candidate and installed copies
 pass nine provider/approval fixture checks and six chat/cold-restart checks.
 This packaged subset does not recertify every source recovery case. Normal CLI
-stays `e467a857`; T03-5 is the next Trust source slice.
+stays `e467a857`. [T03-5 delegated outreach](delegated-outreach-boundary-2026-10-29.md)
+now has bounded SOURCE acceptance: seven actual parent/delegate/worker/Gmail/kernel
+journeys require fresh child approval, refuse denied drift and do not repeat a
+consumed operation. No production change was needed. T03-6 recurring authority
+is the next Trust slice; this is not unattended-grant or installed delegation proof.
 [Cross-host typed review evidence](cross-host-review-continuity-2026-10-28.md)
 separately prevents a saved CLI uncertainty record from unlocking Desktop work.
 O03-1 reuses current agent evidence for
@@ -56,7 +60,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 - [x] T03-2 SOURCE accepted: Gmail reset/missing acknowledgment/503 stay unknown; actual host exit → distinct process → reopen/replay makes zero duplicate submissions or new approval requests. Exact composer draft, saved arguments, held queue and edit-only review action retained; independent chat remains usable. Runtime bc4aa75b; not installed/live-account, review clearing or full parent acceptance. [Evidence](gmail-cold-recovery-2026-10-28.md).
 - [x] T03-3 SOURCE accepted: resolve and preview the personal author before fresh publication approval; credential/client/author drift, revocation, expiry and cancellation prevent POST. Twelve actual registered-tool/kernel/local HTTP journeys and 28 focused checks pass. Agent15 candidate and installed UI additionally prove author preview/denial, author-drift refusal and one approved PUBLIC fixture submission; provider-confirmed stays readback-unverified. Not every source case, live-account or full parent acceptance. [Source](linkedin-author-binding-2026-10-28.md), [delivery](agent15-desktop-delivery-2026-10-28.md).
 - [x] T03-4: Deliver the proven Gmail slice through the pinned CLI and exact packaged app; repeat sender/denial/once controls with fixture accounts and retain rollback. No live send required. ACCEPTED: normal CLI e467a857, signed/notarized installed agent14; actual candidate and installed approval controls plus retained app/CLI rollback. See agent14 delivery record. Not full TRUST-03 or live-account acceptance.
-- [ ] T03-5: Delegated outreach scope: one child cannot change its approved recipient/content/account or reuse the parent capability; denied/replayed fixture creates zero effect calls.
+- [x] T03-5 SOURCE accepted: seven actual parent/delegate/worker/Gmail/kernel journeys require a separate fresh child decision; denied recipient/content/account changes and account drift during approval create zero child submissions. A fresh child positive control submits once; replay creates zero extra submissions or approval requests. No runtime change. Per-effect R3 only, not transferable unattended grants, installed/live-account or full-parent acceptance. [Evidence](delegated-outreach-boundary-2026-10-29.md).
 - [ ] T03-6: Recurring authority: one scheduled fixture obeys its exact account/target allowlist, quota/expiry and revoke; closing this goal still requires every original R3/R4/R5 Done invariant.
 
 ## OP-03 — building

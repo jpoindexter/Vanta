@@ -5,6 +5,13 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent15 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
 
+- Source acceptance for delegated outreach: seven actual parent/delegate/worker/
+  Gmail/kernel fixture journeys prove fresh child decisions, refusal after drift,
+  one freshly approved child submission and no extra submission on replay.
+  No runtime defect reproduced or permission code changed. Unattended grants,
+  installed/live delegation and full Trust acceptance remain unproven.
+  [Evidence and limits](docs/delegated-outreach-boundary-2026-10-29.md).
+
 - Installed the signed, Apple Accepted/stapled agent15 bundle from source
   `29c370a4`, with the previous exact app retained for rollback. Candidate,
   extracted archive and installed full fingerprints agree.
