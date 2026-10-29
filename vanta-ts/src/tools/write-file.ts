@@ -11,6 +11,7 @@ import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 import { projectControlPlaneConfirmation } from "./project-security-path.js";
 import { assertWriteParent, captureWriteTarget, commitFileWrite, type FileWriteTarget } from "./file-write-target.js";
 import { ordinaryOverwriteConfirmation, requestOrdinaryOverwrite } from "./write-file-overwrite.js";
+import { delegatedWriteDenial } from "./delegated-write-guard.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -74,13 +75,17 @@ function verifyWrite(
 }
 
 /** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE note. */
-async function writeAndReport(o: { abs: string; displayPath: string; content: string; target: FileWriteTarget }): Promise<ToolResult> {
+async function writeAndReport(o: { abs: string; displayPath: string; content: string; target: FileWriteTarget; ctx: ToolContext }): Promise<ToolResult> {
   try {
     const isExisting = o.target.previous !== null;
     const oldContent = o.target.previous?.toString("utf8") ?? "";
     const finishDiag = await beginDiagnosticDelta(o.abs, isExisting); // diagnostic baseline (opt-in)
+    const earlyDenial = delegatedWriteDenial(o.ctx);
+    if (earlyDenial) return earlyDenial;
     assertWriteParent(o.target);
     await mkdir(dirname(o.abs), { recursive: true });
+    const finalDenial = delegatedWriteDenial(o.ctx);
+    if (finalDenial) return finalDenial;
     const verified = commitFileWrite(o.target, o.content, () => globalFileCheckpointStore.save({
       path: o.displayPath,
       absPath: o.abs,
@@ -168,6 +173,6 @@ export const writeFileTool: Tool = {
     const denied = await requestOrdinaryOverwrite(overwrite, ctx, path);
     if (denied) return denied;
 
-    return writeAndReport({ abs, displayPath: path, content, target });
+    return writeAndReport({ abs, displayPath: path, content, target, ctx });
   },
 };

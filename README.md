@@ -73,6 +73,11 @@ critical audit entries fall from 16 to zero, with 32 affected entries remaining.
 Private install, worker controls and static-site build/HTTP checks pass; no live
 deployment occurred. [Website evidence](docs/dependency-website-workers-2026-10-29.md).
 
+**Agent trust — October 29 source:** delegated file writes recheck their exact
+grant before commit, rejecting reproduced post-decision revocation/replacement.
+Thirteen actual source journeys pass; full recurring authority and delivery of
+this patch remain open. [Evidence and limits](docs/delegated-write-revalidation-2026-10-29.md).
+
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
 `0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared
 preserved overlays. Candidate and installed copies each pass fourteen approval/

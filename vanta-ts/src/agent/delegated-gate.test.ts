@@ -73,7 +73,7 @@ describe("tryDelegatedAutoApprove", () => {
   it("auto-approves + audits a write inside an active grant's scope", async () => {
     const d = deps([grant("/proj")]);
     const r = await tryDelegatedAutoApprove(writeCall("/proj/sub/a.ts"), "write /proj/sub/a.ts", d);
-    expect(r).toEqual({ grantId: "owner-mgr", writePath: "/proj/sub/a.ts" });
+    expect(r).toEqual({ grantId: "owner-mgr", writePath: "/proj/sub/a.ts", grantFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(d.audit).toHaveLength(1);
     expect(d.audit[0]).toMatchObject({ delegator: "owner", delegate: "mgr", grantId: "owner-mgr" });
   });
@@ -128,13 +128,13 @@ describe("tryDelegatedAutoApprove", () => {
 
   it("retains a relative write whose real project target is inside the grant", async () => {
     const f = await targetFixture(), d = { ...deps([grant(f.inside)]), root: f.root };
-    expect(await tryDelegatedAutoApprove(writeCall("approved/a.txt"), "write relative", d)).toEqual({ grantId: "owner-mgr", writePath: join(await realpath(f.inside), "a.txt") });
+    expect(await tryDelegatedAutoApprove(writeCall("approved/a.txt"), "write relative", d)).toEqual({ grantId: "owner-mgr", writePath: join(await realpath(f.inside), "a.txt"), grantFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(d.audit).toHaveLength(1);
   });
 
   it("compares canonical paths when the granted directory is itself an alias", async () => {
     const f = await targetFixture(), d = { ...deps([grant(join(f.root, "alias"))]), root: f.root };
-    expect(await tryDelegatedAutoApprove(writeCall(join(f.inside, "a.txt")), "write real target", d)).toEqual({ grantId: "owner-mgr", writePath: join(await realpath(f.inside), "a.txt") });
+    expect(await tryDelegatedAutoApprove(writeCall(join(f.inside, "a.txt")), "write real target", d)).toEqual({ grantId: "owner-mgr", writePath: join(await realpath(f.inside), "a.txt"), grantFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect(d.audit).toHaveLength(1);
   });
 

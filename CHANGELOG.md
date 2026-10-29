@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Delegated file revalidation — 2026-10-29 (source)
+
+- Re-read a fingerprinted delegated grant after awaited preparation and before
+  synchronous write/edit commit. Revoked, replaced or unreadable authority now
+  produces denied receipts and preserves file bytes in the reproduced cases.
+- Thirteen actual source scheduler/kernel/file journeys, 162 focused checks,
+  typecheck and architecture gates pass. This is not atomic cross-process revoke
+  or full recurring authority; installed app/normal CLI remain unchanged.
+  [Evidence and limits](docs/delegated-write-revalidation-2026-10-29.md).
+
 ## Website worker-pool security patch — 2026-10-29 (source)
 
 - Scope Docusaurus 3.10.2's Tinypool override to verified 2.1.2. Three benign

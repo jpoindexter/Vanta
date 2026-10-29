@@ -14,6 +14,14 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
+Latest source checkpoint, October 29: [delegated file revalidation](delegated-write-revalidation-2026-10-29.md)
+rejects reproduced revoked/replaced/corrupt-grant writes after the decision.
+Thirteen actual scheduled source journeys and 162 focused checks pass; the final
+authority check precedes synchronous file commit without an intervening await.
+This is not atomic cross-process revocation, initial actor/account binding,
+quota/expiry, O03-3 review clearing or a new installed/normal-CLI delivery.
+T03-6 and both Building parents remain open. Earlier dated checkpoints follow.
+
 Current CLI delivery, October 29: [freshly approved cutover](cli-approved-cutover-2026-10-29.md)
 now selects verified12c05ed5 instead ofe467a857. Candidate identities/readiness
 receipts and actual post-switch global launcher pass; old runtime/selection and

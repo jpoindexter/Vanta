@@ -98,6 +98,7 @@ function dispatchExecutionContext(
     effectApprovalAction: gateResult.effectApprovalAction,
     effectApprovalReusable: gateResult.effectApprovalReusable,
     delegatedWritePath: gateResult.delegatedWritePath,
+    delegatedWriteCheck: gateResult.delegatedWriteCheck,
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
   };

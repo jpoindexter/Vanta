@@ -7,6 +7,8 @@ export type SafetyGateResult = {
   effectApprovalReusable?: boolean;
   /** Canonical target covered by this delegated decision; file tools must recheck it. */
   delegatedWritePath?: string;
+  /** Host-owned final synchronous check of the exact delegated decision. */
+  delegatedWriteCheck?: () => boolean;
 };
 
 

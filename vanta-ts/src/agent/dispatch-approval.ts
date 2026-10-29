@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { appendAuditRecord,readGrants } from "../cofounder/delegated-authority.js";
+import { appendAuditRecord,readGrants,readGrantsSync } from "../cofounder/delegated-authority.js";
 import { gateAuditEvent,type GateResolution } from "../governance/audit.js";
 import { buildPermDeniedPayload,shouldFirePermDenied } from "../hooks/perm-denied.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
@@ -8,7 +8,7 @@ import { appendPreferenceSignal,signalFromApprovalDecision } from "../preference
 import type { ToolCall,Verdict } from "../types.js";
 import type { AgentDeps } from "./agent-types.js";
 import { autoApproveOverridden,recordAutoDecision } from "./decision-log.js";
-import { tryDelegatedAutoApprove } from "./delegated-gate.js";
+import { delegatedDecisionIsCurrent,tryDelegatedAutoApprove } from "./delegated-gate.js";
 import type { DiffCapable,SafetyGateResult } from "./dispatch-safety-types.js";
 import { persistApprovalTransition } from "./effect-persistence.js";
 import type { ApprovalDetail } from "../permissions/request.js";
@@ -65,12 +65,15 @@ export async function handleAskDecision(o: {
 /** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
  *  shared gate with the real grant store, project root and audit log. */
 async function delegatedGateResult(call: ToolCall, action: string, root: string): Promise<SafetyGateResult | null> {
+  const env = { ...process.env };
   const delegated = await tryDelegatedAutoApprove(call, action, {
     root,
-    readGrants: () => readGrants(process.env),
-    appendAudit: (r) => appendAuditRecord(r, process.env),
+    readGrants: () => readGrants(env),
+    appendAudit: (r) => appendAuditRecord(r, env),
   });
-  return delegated ? { approved: true, reason: `delegated authority (grant ${delegated.grantId})`, delegatedWritePath: delegated.writePath } : null;
+  return delegated ? { approved: true, reason: `delegated authority (grant ${delegated.grantId})`,
+    delegatedWritePath: delegated.writePath,
+    delegatedWriteCheck: () => delegatedDecisionIsCurrent(delegated, readGrantsSync(env)) } : null;
 }
 
 /**

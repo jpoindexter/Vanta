@@ -15,6 +15,14 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [delegated file revalidation](delegated-write-revalidation-2026-10-29.md)
+source checkpoint passes thirteen actual scheduled agent/kernel/file journeys,
+162 focused checks, typecheck and architecture/size gates. It rejects observed
+post-decision revoked/replaced/unreadable grants immediately before file commit.
+Initial actor/account binding, durable quotas/expiry, atomic cross-process
+revocation and canonical unknown-effect clearing remain open. No current app or
+normal-CLI replacement; T03-6 and parent acceptance remain incomplete.
+
 The [website worker-pool patch](dependency-website-workers-2026-10-29.md)
 passes corrected old/new injection controls, thirteen configured security tests,
 clean private installation, full prebuild/build with two SSG workers and five

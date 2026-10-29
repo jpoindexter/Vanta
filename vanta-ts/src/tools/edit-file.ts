@@ -1,11 +1,12 @@
 import { z } from "zod";
-import type { Tool } from "./types.js";
+import type { Tool, ToolContext } from "./types.js";
 import { resolveWritablePathAsk } from "./writable-zones.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
 import { projectControlPlaneConfirmation } from "./project-security-path.js";
 import { captureWriteTarget, commitFileWrite, type FileWriteTarget } from "./file-write-target.js";
+import { delegatedWriteDenial } from "./delegated-write-guard.js";
 
 const Args = z.object({
   path: z.string().min(1),
@@ -36,7 +37,7 @@ async function applyEdit(
   target: FileWriteTarget,
   path: string,
   content: string,
-  { old_string, new_string, replace_all }: ValidatedArgs,
+  { old_string, new_string, replace_all, ctx }: ValidatedArgs & { ctx: ToolContext },
 ): Promise<import("./types.js").ToolResult> {
   const abs = target.abs;
   const updated = replace_all
@@ -45,6 +46,8 @@ async function applyEdit(
   const diff = computeDiff(content, updated);
   try {
     const finishDiag = await beginDiagnosticDelta(abs, true);
+    const denial = delegatedWriteDenial(ctx);
+    if (denial) return denial;
     const verified = commitFileWrite(target, updated, () => globalFileCheckpointStore.save({ path, absPath: abs, content }));
     const occurrences = replace_all ? content.split(old_string).length - 1 : 1;
     const diagNote = await finishDiag();
@@ -144,6 +147,6 @@ export const editFileTool: Tool = {
       : await ctx.requestApproval(`Edit file ${path}`, "modifying existing file content", "edit_file");
     if (!approved) return { ok: false, output: `edit to ${path} denied — file left unchanged`, effectDisposition: "denied" };
 
-    return applyEdit(target, path, content, { path, old_string, new_string, replace_all });
+    return applyEdit(target, path, content, { path, old_string, new_string, replace_all, ctx });
   },
 };

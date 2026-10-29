@@ -1,4 +1,5 @@
 import { isAbsolute, resolve } from "node:path";
+import { createHash } from "node:crypto";
 import type { ToolCall } from "../types.js";
 import { canonicalPath, expandHome } from "../tools/writable-zones.js";
 import {
@@ -43,6 +44,17 @@ export type DelegatedGateDeps = {
   now?: () => Date;
 };
 
+export type DelegatedDecision = { grantId: string; writePath?: string; grantFingerprint: string };
+
+/** Include every authority-bearing field; canonical scope binds aliases to their approved target. */
+function grantFingerprint(grant: AuthorityGrant): string {
+  const bound = grant.class.kind === "writeScope" ? grant.class.scope : grant.class.maxUsd;
+  return createHash("sha256").update(JSON.stringify([
+    grant.id, grant.delegator, grant.delegate, grant.class.kind, bound,
+    grant.active, grant.grantedAt, grant.revokedAt ?? null,
+  ])).digest("hex");
+}
+
 function resolvedGrants(grants: AuthorityGrant[]): AuthorityGrant[] {
   return grants.flatMap((grant) => {
     if (grant.class.kind !== "writeScope") return [grant];
@@ -52,6 +64,16 @@ function resolvedGrants(grants: AuthorityGrant[]): AuthorityGrant[] {
       ? [{ ...grant, class: { ...grant.class, scope: canonicalPath(scope) } }]
       : [];
   });
+}
+
+/** Removed, duplicate, revoked, changed or unresolvable grants cannot consume an earlier decision. */
+export function delegatedDecisionIsCurrent(decision: DelegatedDecision, grants: AuthorityGrant[]): boolean {
+  try {
+    const matching = grants.filter(grant => grant.id === decision.grantId);
+    if (matching.length !== 1 || !matching[0]!.active) return false;
+    const current = resolvedGrants(matching)[0];
+    return Boolean(current && grantFingerprint(current) === decision.grantFingerprint);
+  } catch { return false; }
 }
 
 /**
@@ -64,7 +86,7 @@ export async function tryDelegatedAutoApprove(
   call: ToolCall,
   action: string,
   deps: DelegatedGateDeps,
-): Promise<{ grantId: string; writePath?: string } | null> {
+): Promise<DelegatedDecision | null> {
   const grants = await deps.readGrants().catch(() => [] as AuthorityGrant[]);
   if (grants.length === 0 || typeof deps.root !== "string" || !isAbsolute(deps.root)) return null;
   const request = delegatedRequestForCall(call, action, deps.root);
@@ -76,5 +98,5 @@ export async function tryDelegatedAutoApprove(
   } catch {
     return null;
   }
-  return { grantId: result.byGrant.id, writePath: request.writePath };
+  return { grantId: result.byGrant.id, writePath: request.writePath, grantFingerprint: grantFingerprint(result.byGrant) };
 }

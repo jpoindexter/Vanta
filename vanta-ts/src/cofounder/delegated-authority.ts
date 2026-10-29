@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile, appendFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
@@ -55,6 +56,10 @@ export async function readGrants(
   } catch {
     return [];
   }
+  return parseGrants(raw);
+}
+
+function parseGrants(raw: string): AuthorityGrant[] {
   let parsed: z.infer<typeof StoreSchema>;
   try {
     parsed = StoreSchema.parse(JSON.parse(raw));
@@ -67,6 +72,12 @@ export async function readGrants(
     if (ok.success) out.push(ok.data);
   }
   return out;
+}
+
+/** Final synchronous authority read: no await may separate this check from a file mutation. */
+export function readGrantsSync(env: NodeJS.ProcessEnv = process.env): AuthorityGrant[] {
+  try { return parseGrants(readFileSync(grantsPath(env), "utf8")); }
+  catch { return []; }
 }
 
 /** Persist the full grant list, latest-wins. */

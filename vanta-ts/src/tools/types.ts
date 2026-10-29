@@ -60,6 +60,8 @@ export type ToolContext = {
   effectApprovalReusable?: boolean;
   /** Canonical target covered by delegated authority, not model-supplied arguments. */
   delegatedWritePath?: string;
+  /** Trusted host closure; a delegated file write must pass this immediately before mutation. */
+  delegatedWriteCheck?: () => boolean;
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */
