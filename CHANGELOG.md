@@ -3,7 +3,21 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Agent15 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
+## Agent16 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
+
+- Installed signed, Apple Accepted/stapled agent16 from `12c05ed5`, delivering
+  delegated audit-failure and resolved-target protections. Exact agent15
+  rollback retained; candidate/installed/extracted archive fingerprints match.
+- Candidate and installed each pass fourteen actual approval/runtime fixture
+  checks and six chat/branch/cold-restart checks, with zero observed renderer
+  errors. A retained proof-only result-ordering bug was repaired by correlating
+  exact session/tool-call identity; no runtime change or resubmission was needed.
+- Original work/data, pending voice and normal CLI `e467a857` preserved.
+  Recurring authority, canonical review clearing, owner/parity/live-account and
+  dependency security remain open. No main merge or public release/tag.
+  [Delivery and limits](docs/agent16-desktop-delivery-2026-10-29.md).
+
+## Agent15 and subsequent source checkpoints — 2026-10-29 (historical)
 
 - Source fix: delegated file grants now use the active project's resolved
   target; write/edit reject path redirection after approval. New CLI write

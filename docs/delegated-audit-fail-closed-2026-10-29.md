@@ -1,5 +1,11 @@
 # Delegated authority audit failure — 2026-10-29
 
+Subsequent delivery: [agent16](agent16-desktop-delivery-2026-10-29.md) is now
+installed and separately proves its audit-failure UI decision and other named
+fixture cases. The source-only delivery statements below describe this earlier
+checkpoint, not current Desktop identity. Normal CLI remains unchanged; the
+whole recurring-authority contract remains open.
+
 ## Result
 
 The shared delegated Ask gate now requires its authority audit append to succeed

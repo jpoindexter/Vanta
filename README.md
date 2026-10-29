@@ -60,14 +60,15 @@ and selection backup are retained. No credentials or approvals were migrated.
 [CLI delivery, rollback and evidence limits](docs/agent14-cli-delivery-2026-10-28.md).
 
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
-`0.1.0-local.20261028.agent15` is installed from source `29c370a4` plus declared
-preserved overlays. Candidate and installed copies each pass nine Gmail/LinkedIn
-approval fixture checks and six chat/branch/cold-restart checks, with zero
-observed renderer errors. Full app/archive fingerprints and retained agent14
+`0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared
+preserved overlays. Candidate and installed copies each pass fourteen approval/
+runtime fixture checks and six chat/branch/cold-restart checks, with zero
+observed renderer errors. The latest audit/target repairs are now delivered in
+Desktop, not the unchanged normal CLI. Full app/archive fingerprints and retained agent15
 rollback agree. Original work/data are preserved; pending voice remains excluded.
 Live accounts, canonical review clearing, whole-product/security/design/parity
 and owner acceptance remain open. This is local delivery, not a public release.
-[Exact delivery, retained failures and limits](docs/agent15-desktop-delivery-2026-10-28.md).
+[Exact delivery, retained failures and limits](docs/agent16-desktop-delivery-2026-10-29.md).
 
 **Agent admission correction — October 28 (first delivered in agent11):** simultaneous inputs
 can no longer replace one client's running turn or disable its stream after

@@ -1,5 +1,9 @@
 # Agent15 Desktop delivery — 2026-10-28
 
+Historical receipt: superseded by [agent16 local delivery](agent16-desktop-delivery-2026-10-29.md).
+The agent15 bundle is now the retained rollback; its versioned evidence below
+remains unchanged and is not current installed identity.
+
 ## Current result
 
 Installed `0.1.0-local.20261028.agent15` contains source

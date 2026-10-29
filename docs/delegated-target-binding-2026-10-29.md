@@ -1,5 +1,10 @@
 # Delegated file-target binding — 2026-10-29
 
+Subsequent delivery: [agent16](agent16-desktop-delivery-2026-10-29.md) is now
+installed and separately proves its named file/audit UI cases. Delivery limits
+below describe this earlier source checkpoint, not current Desktop identity.
+The normal CLI and the remaining recurring-authority gates are unchanged.
+
 ## Result and scope
 
 The existing delegated write-scope gate now compares the same canonical target

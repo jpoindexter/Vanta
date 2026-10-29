@@ -20,13 +20,15 @@ has SOURCE proof for resolved project/grant paths and post-decision symlink
 redirection: 12 new plus seven retained scheduled journeys, four source CLI
 commands and 155 focused checks pass. Legacy relative grants now require a
 separate decision; existing data remains preserved. Actor/account/quota/expiry,
-full recurring authority and installed delivery remain open.
+full recurring authority and normal CLI delivery remain open. Agent16 below
+adds only its explicitly tested Desktop subset.
 
 The [delegated audit failure repair](delegated-audit-fail-closed-2026-10-29.md)
 has bounded SOURCE proof: seven actual scheduler/agent/kernel/file journeys
 require a saved authority audit or a separate host decision, and 84 focused
 checks pass. This fixes a reproduced silent auto-approval; it does not complete
-T03-6 account/quota/expiry authority or update the installed app/normal CLI.
+T03-6 account/quota/expiry authority. Agent16 below delivers the tested Desktop
+subset; the normal CLI remains unchanged.
 
 The [delegated outreach boundary](delegated-outreach-boundary-2026-10-29.md)
 has bounded T03-5 SOURCE acceptance: seven actual parent/delegate/worker/Gmail/
@@ -35,12 +37,14 @@ allow one fresh positive control and replay without extra submission/approval.
 No production code changed. This is R3 per-effect authority, not transferable
 R4/R5 grants, installed/live-account delegation or whole-parent acceptance.
 
-The [agent15 installed delivery](agent15-desktop-delivery-2026-10-28.md) is the
-current local Desktop build: source29c370a4 plus eleven declared preserved
+The [agent16 installed delivery](agent16-desktop-delivery-2026-10-29.md) is the
+current local Desktop build: source12c05ed5 plus eleven declared preserved
 overlays, signed/Apple Accepted/stapled. Exact candidate and installed copies
-each pass nine provider/approval fixture checks and six chat/branch/cold-restart
+each pass fourteen approval/runtime fixture checks and six chat/branch/cold-restart
 checks, with zero observed renderer errors. Full candidate/archive/installed and
-agent14 rollback fingerprints agree; original work/data remain preserved. Normal
+agent15 rollback fingerprints agree; original work/data remain preserved. The
+retained proof-only ordering failure and corrected identity-correlated replays
+are recorded without a production change or new Apple submission. Normal
 CLI stays the previously approved e467a857, and its actual unchanged launcher
 answered from that compiled runtime in an isolated profile. Pending voice stays
 excluded. No owner/live-account, canonical review-clear, full parity/security or
