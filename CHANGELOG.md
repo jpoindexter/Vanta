@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Effect journal modularization — 2026-10-29 (source checkpoint)
+
+- Split the 539-line persistence module into a 78-line compatibility facade
+  and five focused journal/lock/atomic-write/projection modules. Preserve public
+  signatures, journal bytes, serialization, recovery and uncertain-effect holds.
+- Fixed-clock byte comparison, distinct-process SIGKILL recovery, 45 concurrent
+  transitions, actual source Gmail503/attention replay and 32 focused checks pass.
+  Existing size findings fall from 12 to three unchanged compatibility parameter
+  counts. O03-3 remains incomplete; installed app/normal CLI unchanged.
+  [Evidence and remaining boundary](docs/effect-journal-modularization-2026-10-29.md).
+
 ## CLI repair delivery readiness — 2026-10-29 (staged, not selected)
 
 - Independently staged committed `12c05ed5`, matching the installed agent16

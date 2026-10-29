@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [effect journal extraction](effect-journal-modularization-2026-10-29.md)
+preserves byte-identical fixed-clock output and existing compatibility APIs.
+Actual interrupted/distinct-process recovery, three concurrent writers, source
+Gmail503 attention replay, 32 focused checks, types and five architecture
+boundaries pass. This is SOURCE modularization only: O03-3 evidence-bound
+clearing, installed delivery and whole-product acceptance remain incomplete.
+
 The [new CLI candidate](cli-target-delivery-readiness-2026-10-29.md) independently
 pins source12c05ed5. Actual global-launcher ACP startup, real TTY greeting/
 streamed answer/clean exit, 19 compiled scheduled-target/audit journeys, 11 Gmail

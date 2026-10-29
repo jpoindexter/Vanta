@@ -14,6 +14,13 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
+Source prerequisite, October 29: [journal transaction/recovery extraction](effect-journal-modularization-2026-10-29.md)
+preserves byte output, unknown-effect holds and cross-chat identity through actual
+interrupted recovery, concurrent writers and Gmail503 replay. The persistence
+facade is 78 rather than539 lines. O03-3 clearing remains INCOMPLETE; no generic
+Done/acknowledge shortcut or automatic follower release was added. Installed
+agent16, normal CLIe467 and the pending12c05ed5 cutover remain unchanged.
+
 Delivery update, October 29: a separate [CLI candidate at12c05ed5](cli-target-delivery-readiness-2026-10-29.md)
 passes actual launcher/TTY checks and 42 compiled scheduled-file/Gmail/LinkedIn
 boundary cases. Normal CLI remains e467a857 pending fresh cutover approval;
