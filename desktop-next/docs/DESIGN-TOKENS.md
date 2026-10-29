@@ -19,7 +19,20 @@ Today's baseline (597 hex colours, 640 off-scale text sizes, 6 arbitrary colours
 
 ## Radius ramp
 
-2 / 4 / 6 / 8 / 10 / 12 px, and every larger rounded rectangle is 12. Roles: **control** 6 (buttons, fields, menu rows), **surface** 12 (composer, dialogs, popovers, cards, bubbles), **pill** (chips, badges, avatars, switches). `50%` stays for circles. A new radius is added to the ramp, never typed.
+2 / 4 / 6 / 8 / 10 / 12 px. Roles: **control** 6 (buttons, fields, menu rows), **surface** 12 (dialogs, popovers, cards, bubbles), **composer** 22 (the wireframe's typing surface), **pill** (chips, badges, avatars, switches). `50%` stays for circles. A new radius is added to the token layer, never typed in a component.
+
+## DN-29 surface review — 2026-10-23
+
+Owner authorized sidebar and composer only, with visual review before proceeding.
+The source candidate uses `--radius-composer`, `--shadow-composer` and
+`--shadow-sidebar`, preserves the existing neutral palette, and makes composer
+utility/model/permission controls borderless. Row actions reveal for keyboard
+focus and pointer hover without changing row width; the replaced timestamp is
+hidden from keyboard focus as well as paint. Existing Radix actions, chat
+creation, attachment handling and permission policy remain the implementation.
+No other token namespaces were migrated or removed. This is not a completed
+stage-2 unification or an installed release. Review evidence is in
+`DN-29-SIDEBAR-COMPOSER-2026-10-23.md`.
 
 ## Token namespaces (to collapse in Stage 2)
 
@@ -36,6 +49,13 @@ Twelve namespaces define colours and sizes today. The plan is aliases first, the
 `--vp-radius-*` and `--vs-radius-*` are already aliases of the radius ramp.
 
 ## Primitives
+
+DN-29 titlebar/transcript continuation (2026-10-23): `vanta-shell.css` owns
+quiet titlebar controls through the existing semantic foreground/surface tokens;
+no extra palette, radius or component family. Advanced controls use the existing
+Radix More menu. `vanta-chat.css` retains the 720px column and 14px body scale,
+with 24px turn spacing and 32px top inset. No guard baseline was regenerated.
+Source-app evidence is in `DN-29-TITLEBAR-TRANSCRIPT-2026-10-23.md`.
 
 Radix is the foundation (`components/ui`, 94 files, 343 importers). `vp-*` (2,294 lines) and `vc-*` (556 lines) are replaced by pieces built on it in Stage 2, then deleted. Company forms already use the Select from that set (`VcSelect`).
 

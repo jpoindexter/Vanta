@@ -9,8 +9,8 @@ it('no built-in theme loads a remote font stylesheet', () => {
   expect(remote).toEqual([])
 })
 
-it('no built-in theme label or description names Vanta or Vanta', () => {
+it('no built-in theme label or description names Hermes or Nous', () => {
   const text = BUILTIN_THEME_LIST.map(theme => `${theme.label} ${theme.description}`).join('\n')
 
-  expect(text).not.toMatch(/vanta|vanta/i)
+  expect(text).not.toMatch(/nous|hermes/i)
 })

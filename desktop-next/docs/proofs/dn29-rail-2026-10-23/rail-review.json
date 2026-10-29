@@ -1,0 +1,21 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-GDnV7i",
+  "checks": [
+    "Compact New chat icon has a hover label",
+    "Label extends outside the narrow rail",
+    "Destination icon has its own hover label",
+    "Keyboard reveals the Search label",
+    "Escape dismisses the focused label",
+    "Forced colors retains the composer boundary",
+    "Horizontal ellipsis opens the existing menu"
+  ],
+  "forced": {
+    "color": "rgb(0, 0, 0)",
+    "width": "1px",
+    "shadow": "none"
+  },
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

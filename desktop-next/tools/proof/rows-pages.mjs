@@ -1,5 +1,6 @@
 // F-225..F-245 and F-212..F-224: the pages and overlays, and what the first-run screens would show.
 import { attempt, closeMenus, goHome, menuItems, notRun, pick, record, startChat, usable, verdict, waitUntil } from "./kit.mjs";
+import { SHOW_WEBHOOKS } from "../../apps/desktop/src/app/settings/settings-extras.ts";
 
 const AREA = "page / overlay";
 const toasts = '[role="region"][aria-label="Notifications"]';
@@ -53,6 +54,31 @@ export async function capabilityRows(page) {
   });
 }
 
+export async function webhooksRow(page) {
+  await attempt(page, "F-232", AREA, "Webhooks", async () => {
+    await goHome(page);
+    const entry = page.getByText("Webhooks", { exact: true });
+    if (!SHOW_WEBHOOKS) {
+      verdict("F-232", AREA, "Unavailable Webhooks stays hidden", (await entry.count()) === 0, { pass: "SHOW_WEBHOOKS is off because no receiver is served; no Webhooks functionality is claimed", why: "unsupported Webhooks entry is exposed" });
+      return;
+    }
+    await entry.last().click();
+    await page.waitForTimeout(1200);
+    const text = await body(page);
+    verdict("F-232", AREA, "Webhooks page", /subscription|receiver|New subscription/i.test(text), { pass: "the status-bar chip opens the page", why: "Webhooks is enabled but the subscription page did not open" });
+  });
+}
+
+export async function memoryGraphRow(page) {
+  await attempt(page, "F-236", AREA, "Memory Graph (Starmap)", async () => {
+    const text = await visit(page, "#/starmap", /Nothing learned yet/);
+    const close = page.getByRole("button", { name: "Close memory graph", exact: true });
+    const panel = page.locator("[data-overlay-surface]").filter({ has: close });
+    const opened = await usable(close) && await usable(panel.getByText("Nothing learned yet", { exact: true }));
+    verdict("F-236", AREA, "Memory Graph empty state", opened, { pass: "#/starmap opens the real empty graph with a named close control; populated graph behavior is not exercised", why: text });
+  });
+}
+
 export async function pageRows(ctx) {
   const { page } = ctx;
   await attempt(page, "F-229", AREA, "Messaging page", async () => {
@@ -72,14 +98,7 @@ export async function pageRows(ctx) {
     const trigger = await usable(page.getByRole("button", { name: /Trigger now/ }));
     verdict("F-231", AREA, "Schedules: jobs, blueprints, Pause, Trigger now, history", listed && pause && trigger, { pass: "lists the job with frequency, Pause, Trigger now, prompt and run history, plus Blueprints (routes /api/schedules/*)", why: `listed=${listed} pause=${pause} trigger=${trigger}` });
   });
-  await attempt(page, "F-232", AREA, "Webhooks", async () => {
-    await goHome(page);
-        await page.getByText("Webhooks", { exact: true }).last().click();
-    await page.waitForTimeout(1200);
-        const text = await body(page);
-    const opened = /subscription|receiver|New subscription/i.test(text);
-    record("F-232", AREA, "Webhooks page", opened ? "PASS" : "INERT", opened ? "the status-bar chip opens the page" : "the status-bar chip is present but opens nothing: there are no webhook routes in the Vanta server, so there is no page to show");
-  });
+  await webhooksRow(page);
   await attempt(page, "F-233", AREA, "Profiles page and SOUL.md", async () => {
     const text = await visit(page, "#/profiles", /SOUL/);
     await page.locator(".cm-content").first().click();
@@ -102,10 +121,7 @@ export async function pageRows(ctx) {
     const text = await visit(page, "#/command-center", /Maintenance/);
     verdict("F-235", AREA, "Command Center: Sessions, System, Usage, Maintenance", ["Sessions", "System", "Usage", "Maintenance"].every((w) => text.includes(w)), { pass: "four tabs; Sessions lists every chat with its date", why: text.slice(0, 160) });
   });
-  await attempt(page, "F-236", AREA, "Memory Graph (Starmap)", async () => {
-    const text = await visit(page, "#/starmap", /Memory Graph/);
-    verdict("F-236", AREA, "Memory Graph (Starmap)", /Memory Graph/.test(text), { pass: "opens from the palette's Go to row and from #/starmap", why: text.slice(0, 160) });
-  });
+  await memoryGraphRow(page);
   await attempt(page, "F-237", AREA, "Import session", async () => {
     await goHome(page);
     await page.keyboard.press("Meta+k");

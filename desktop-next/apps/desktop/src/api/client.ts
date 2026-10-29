@@ -132,7 +132,7 @@ export function resolveOwnerNow(owner?: OwnerScope): ResolvedOwner {
  *  named profile is always explicit here, so it carries the foreground
  *  priority `profileScoped` gives explicit profiles (voice is user-driven). */
 export function vantaApiAs<T>(owner: ResolvedOwner, request: VantaApiRequest): Promise<T> {
-  return window.desktopBridge.api<T>({
+  return rawApi<T>({
     ...(owner.connectionId ? { connectionId: owner.connectionId } : {}),
     ...(owner.profile ? { priority: 'foreground' as const, profile: owner.profile } : {}),
     ...request

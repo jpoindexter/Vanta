@@ -1,0 +1,27 @@
+{
+  "id": "1792705117141",
+  "action": "Edit file brief.md",
+  "reason": "modifying existing file content",
+  "toolName": "edit_file",
+  "request": {
+    "kind": "file_edit",
+    "title": "File edit permission request",
+    "subject": "brief.md",
+    "reason": "modifying existing file content",
+    "toolName": "edit_file",
+    "fresh": false,
+    "canRemember": true,
+    "sections": [
+      {
+        "label": "Target file",
+        "value": "brief.md",
+        "tone": "code"
+      },
+      {
+        "label": "Change",
+        "value": "Modifies existing file content.",
+        "tone": "danger"
+      }
+    ]
+  }
+}

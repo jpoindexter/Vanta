@@ -1,0 +1,41 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-vGRJlz",
+  "checks": [
+    "Healthy baseline says Vanta ready",
+    "Three allowed automatic recoveries answer real UI chats",
+    "Status stops claiming ready within five seconds",
+    "Exhausted limit leaves no test runtime running",
+    "Offline composer remains available for drafts",
+    "Restart returns exactly one test runtime",
+    "Restart dismisses the stopped toast",
+    "Restart preserves the unsent draft",
+    "A fresh post-Restart chat receives a reply"
+  ],
+  "recoveries": [
+    {
+      "attempt": 1,
+      "killed": 22116,
+      "replacement": 22358,
+      "ms": 928
+    },
+    {
+      "attempt": 2,
+      "killed": 22358,
+      "replacement": 22623,
+      "ms": 908
+    },
+    {
+      "attempt": 3,
+      "killed": 22623,
+      "replacement": 22892,
+      "ms": 928
+    }
+  ],
+  "stoppedPid": 22892,
+  "offlineAfterMs": 185,
+  "restartAfterMs": 1180,
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

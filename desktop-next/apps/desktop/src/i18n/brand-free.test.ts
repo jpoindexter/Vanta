@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { TRANSLATIONS } from './catalog'
 import type { BundledLocale } from './types'
 
-// Vanta shows no Vanta or Vanta wording anywhere a user can read it. This walks the
+// Vanta shows no Hermes or Nous wording anywhere a user can read it. This walks the
 // merged catalog of every bundled locale (functions are called with probe arguments),
 // so a new string or a restored upstream one fails here instead of shipping.
-const BRAND = /vanta|vanta/i
-// French "vanta" is the pronoun "we"; only the capitalised brand, `vanta/` ids and CLI flags count.
-const BRAND_FR = /[Hh]ermes|NOUS|vanta|vanta\/|--vanta|Vanta(?!\s+(?:avons|les|allons|pouvons|vous|sommes|serons|ferons|utilisons|devons|voulons)\b)/
+const BRAND = /hermes|nous/i
+// French "nous" is the pronoun "we"; only the capitalised brand, `nous/` ids and CLI flags count.
+const BRAND_FR = /[Hh]ermes|NOUS|nousresearch|nous\/|--nous|Nous(?!\s+(?:avons|les|allons|pouvons|vous|sommes|serons|ferons|utilisons|devons|voulons)\b)/
 const PROBE = ['X', 'Y', 'Z']
 
 function visibleStrings(value: unknown, path = ''): { path: string; text: string }[] {
@@ -34,7 +34,7 @@ function visibleStrings(value: unknown, path = ''): { path: string; text: string
 }
 
 describe.each(Object.keys(TRANSLATIONS) as BundledLocale[])('%s catalog', locale => {
-  it('contains no Vanta or Vanta wording', () => {
+  it('contains no Hermes or Nous wording', () => {
     const pattern = locale === 'fr' ? BRAND_FR : BRAND
     const offenders = visibleStrings(TRANSLATIONS[locale])
       .filter(({ path }) => !path.startsWith('intro.'))

@@ -164,7 +164,7 @@
   "billingBlock.dismiss": ["ar"],
   "billingBlock.fallbackMessage": ["ar"],
   "billingBlock.openBilling": ["ar"],
-  "billingBlock.titleNous": ["ar","de","es","fr","ru"],
+  "billingBlock.titleVanta": ["ar","de","es","fr","ru"],
   "billingBlock.titleProvider": ["ar"],
   "boot.causes.diskFull": ["ar","ja","ru","zh","zh-hant"],
   "boot.causes.exitedEarly": ["ar","ja","ru","zh","zh-hant"],

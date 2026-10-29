@@ -3,6 +3,7 @@ import type { PaginatedSessions, SessionInfo } from '@/types/desktop'
 
 import { sessionListSchema } from './schemas'
 import { matchRoute, type Send, type ShimRoute } from './shim-core'
+import { audioRoutes } from './shim-audio'
 import { configRoutes } from './shim-config'
 import { cronRoutes } from './shim-cron'
 import { vantaOnlyRoutes } from './shim-desktop-only'
@@ -17,6 +18,7 @@ import { sessionRoutes } from './shim-sessions'
 import { skillRoutes } from './shim-skills'
 
 const ROUTES: readonly ShimRoute[] = [
+  ...audioRoutes,
   ...configRoutes,
   ...modelRoutes,
   ...providerRoutes,

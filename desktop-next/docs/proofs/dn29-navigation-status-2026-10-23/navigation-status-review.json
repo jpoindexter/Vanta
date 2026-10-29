@@ -1,0 +1,41 @@
+{
+  "checks": [
+    "Supporting destinations start collapsed in a chat",
+    "New chat, Home and Outputs stay directly visible",
+    "Navigation disclosure has a visible keyboard ring",
+    "messaging still opens its real route",
+    "capabilities still opens its real route",
+    "cron still opens its real route",
+    "company still opens its real route",
+    "New chat reaches an editable composer without a task form",
+    "Supporting navigation can collapse again",
+    "Status bar keeps health and project visible",
+    "Routine diagnostics no longer crowd the strip",
+    "Details uses visible labels instead of autofocus tooltips",
+    "agents remains accessible in Details",
+    "cron remains accessible in Details",
+    "context-usage remains accessible in Details",
+    "approval-mode remains accessible in Details",
+    "terminal remains accessible in Details",
+    "version-client remains accessible in Details",
+    "Details retains the actual context-usage menu",
+    "Escape restores focus to Details",
+    "Existing customization remains reachable",
+    "Details fits an 800px window",
+    "Compact rail retains Connections",
+    "Dark theme keeps Details usable"
+  ],
+  "shots": [
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-VkYqDG/01-chat-quiet-navigation.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-VkYqDG/02-status-details.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-VkYqDG/03-narrow.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-VkYqDG/04-dark.png"
+  ],
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-VkYqDG",
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

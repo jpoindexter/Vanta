@@ -6,10 +6,6 @@ const sidebar = (page) => page.locator('[data-tour="sessions-sidebar"]').first()
 export async function titlebar(page) {
   const tool = (id) => page.getByTestId(`titlebar-${id}`);
   await check("F-001", "titlebar", "Show/Hide sidebar", tool("sidebar"));
-  await check("F-002", "titlebar", "Open settings (gear)", tool("settings"));
-  await check("F-003", "titlebar", "Layout editor", tool("layout"));
-  await check("F-004", "titlebar", "HUD mode", tool("hud"), { inert: "hud.* is typed-unsupported until R2 wires the mini window" });
-  await check("F-005", "titlebar", "Swap sidebar sides", tool("flip-panes"));
   await check("F-006", "titlebar", "Show/Hide right sidebar", tool("right-sidebar"));
   notRun("F-007", "titlebar", "Unread badge on sidebar toggle", "needs a finished-unread chat; badge renders from $unreadSessionCount");
   notRun("F-008", "titlebar", "Titlebar plugin slots", "no page projects titlebar chrome in the default app");
@@ -17,6 +13,10 @@ export async function titlebar(page) {
   const lights = await page.locator("[data-vanta-titlebar]").first().evaluate((el) => el.style.getPropertyValue("--vs-lights-inset"));
   record("F-010", "titlebar", "Window controls inset", lights !== "" ? "PASS" : "FAIL", `--vs-lights-inset=${lights}`);
   await tool("more").click();
+  await check("F-002", "titlebar", "Open settings (More menu)", page.getByTestId("more-settings"));
+  await check("F-003", "titlebar", "Layout editor (More menu)", page.getByTestId("more-layout"));
+  await check("F-004", "titlebar", "HUD mode (More menu)", page.getByTestId("more-hud"), { inert: "hud.* is typed-unsupported until R2 wires the mini window" });
+  await check("F-005", "titlebar", "Swap sidebar sides (More menu)", page.getByTestId("more-flip-panes"));
   await check("F-011", "titlebar", "Interface mode (More menu)", page.getByTestId("more-simple-mode"));
   await closeMenus(page);
 }
@@ -26,6 +26,8 @@ export async function sidebarTop(page) {
   await page.locator('[data-tour="sidebar-nav-new-session"]').click({ button: "right" });
   await check("F-013", "sidebar top", "Open in split (New session menu)", page.getByRole("menuitem", { name: /split/i }), { note: "menu item present; split drop is pointer-driven" });
   await closeMenus(page);
+  const tools = page.getByTestId("nav-tools");
+  if (await usable(tools) && await tools.getAttribute("aria-expanded") === "false") await tools.click();
   const rows = [
     ["F-014", "capabilities", "Skills & tools", /capabilities/],
     ["F-015", "messaging", "Connections", /messaging/],
@@ -218,18 +220,20 @@ export async function bots(page) {
 
 export async function statusBar(page) {
   const bar = page.locator('[data-slot="statusbar"], footer').last();
-  record("F-077", "status bar", "Status bar visible by default", (await page.getByText("Backend", { exact: false }).count()) ? "PASS" : "FAIL", "");
+  record("F-077", "status bar", "Status bar visible by default", await bar.isVisible() ? "PASS" : "FAIL", "");
   await check("F-078", "status bar", "Command center glyph", page.getByTestId("statusbar-command-center"));
   await absent("F-079", "status bar", "Gateway switcher", page.getByRole("button", { name: /switch gateway|gateway switcher/i }));
   notRun("F-080", "status bar", "Compact profile switcher", "shown only when the profile rail is hidden");
-  await check("F-081", "status bar", "Backend health chip", page.getByText(/Backend/).first());
+  await check("F-081", "status bar", "Vanta health chip", page.getByTestId("statusbar-gateway-health"));
   await absent("F-082", "status bar", "Free-tier chip", page.getByText(/free tier|sign in/i));
   await check("F-083", "status bar", "Workspace chip", page.getByText("acme-site", { exact: true }).last());
+  await page.getByTestId("statusbar-details").click();
   await check("F-084", "status bar", "Agents chip", page.getByText("Agents", { exact: true }).last(), { inert: "subagent progress has no route; chip opens the overlay" });
-  await check("F-085", "status bar", "Cron and Webhooks chips", page.getByText("Webhooks", { exact: true }).last());
-  await check("F-086", "status bar", "Session timer", page.getByText(/Focused for/).first());
+  await check("F-085", "status bar", "Schedules shortcut in Details", page.getByTestId("statusbar-cron"));
+  await check("F-086", "status bar", "Session timer in Details", page.getByTestId("statusbar-session-timer"));
   // The meter follows the chat in front, so run a short turn and look at the bar.
   await startKitChat(page, "meter probe");
+  await page.getByTestId("statusbar-details").click();
   const statusText = async () => (await page.locator("body").innerText().catch(() => "")).split("\n").slice(-30).join(" ");
   await waitUntil(async () => /~?[\d.]+k?\/[\d.]+k/.test(await statusText()), 10000, 400);
   const barText = await statusText();
@@ -238,12 +242,13 @@ export async function statusBar(page) {
   record("F-087", "status bar", "Context meter", meter ? "PASS" : "FAIL", meter ? `the status bar shows the meter from the server's usage event: ${(barText.match(/~?[\d.]+k?\/[\d.]+k[^|]*/) ?? [""])[0].trim()}` : `no context meter after a finished turn; status text: ${barText.slice(-160)}`);
   record("F-088", "status bar", "Cache hit / tokens per second", "NOT-RUN", "hidden by default and the usage event carries no cache or speed figures");
   record("F-089", "status bar", "RAM / system resources", /RAM|\bMB\b|\bGB\b/.test(barText) ? "PASS" : "NOT-RUN", "shown only when /api/runtime reports memory; not in this sandbox");
-  await check("F-091", "status bar", "Terminal toggle", page.getByRole("button", { name: /terminal/i }).last(), { note: "opens the terminal pane (a line terminal where every command asks first)" });
+  await check("F-091", "status bar", "Terminal toggle in Details", page.getByTestId("statusbar-terminal"), { note: "original terminal action retained" });
   const version = /v\d+\.\d+\.\d+/.test(barText);
   const staleToast = /Backend out of date|Update Vanta/.test(await page.locator("body").innerText().catch(() => ""));
   record("F-092", "status bar", "Version / build chip", version && !staleToast ? "PASS" : "FAIL", version ? (staleToast ? "the chip is there, but a 'Backend out of date / Update Vanta' toast is on screen after launch and a chat" : `the chip reads ${(barText.match(/v\d+\.\d+\.\d+/) ?? [""])[0]}; no 'Backend out of date' toast after launch and a chat`) : "no version chip");
   notRun("F-093", "status bar", "Contributed status items", "no contribution registered by default");
-  await page.getByText("Backend", { exact: false }).first().click({ button: "right" });
+  await closeMenus(page);
+  await bar.click({ button: "right" });
   await page.waitForTimeout(300);
   record("F-077", "status bar", "Status bar context menu (Show in status bar)", (await page.getByRole("menuitem").count()) ? "PASS" : "FAIL", "");
   await closeMenus(page);

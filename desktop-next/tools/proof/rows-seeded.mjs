@@ -7,6 +7,7 @@ import { execFileSync } from "node:child_process";
 import { attempt, check, closeMenus, goHome, menuItems, notRun, pick, record, usable, verdict, waitUntil } from "./kit.mjs";
 import { allowApprovals } from "./rows-right.mjs";
 import { clearNativeLog, readNativeLog } from "./native-stubs.mjs";
+import { projectLaneRows, showProjectGrouping } from "./project-lanes.mjs";
 
 const AREA = "sidebar list";
 const side = (page) => page.locator('[data-tour="sessions-sidebar"]').first();
@@ -153,6 +154,7 @@ export async function projectRows(ctx) {
     await pick(page, "Reset to defaults");
     await closeMenus(page);
   });
+  await showProjectGrouping(page);
   await attempt(page, "F-050", AREA, "New project dialog creates a project", async () => {
     await side(page).getByRole("button", { name: /new project/i }).first().click();
     await page.waitForTimeout(500);
@@ -165,9 +167,8 @@ export async function projectRows(ctx) {
     const listed = await page.evaluate(async () => JSON.stringify(await window.desktopBridge.api({ method: "GET", path: "/api/projects" })));
     verdict("F-050", AREA, "New project dialog creates a project", /Beta notes/.test(listed), { pass: `the dialog took a name and a folder (${path.basename(second)}) and created Beta notes (route /api/projects lists it)`, why: "no Beta notes project after Create" });
   });
-  const tree = await page.evaluate(async () => JSON.stringify(await window.desktopBridge.api({ method: "GET", path: "/api/projects" })));
-  record("F-048", AREA, "Project lanes in Project grouping", "FAIL", `Project grouping is selectable and /api/projects lists the projects (${JSON.parse(tree).projects?.length ?? 0} listed), but the list shows no lanes: GET /api/sessions rows carry no cwd, so no chat can be placed in a project. Fix lives in the server session list (R3)`);
-  notRun("F-049", AREA, "Project menu", "needs a project lane, and none renders until sessions carry a cwd (see F-048)");
+  await attempt(page, "F-048", AREA, "Chats grouped by project", () => projectLaneRows(ctx));
+  notRun("F-049", AREA, "Project menu", "Project lanes are checked by F-048; this row does not exercise the project menu.");
   await filters(page);
   await pick(page, "Reset to defaults");
   await closeMenus(page);

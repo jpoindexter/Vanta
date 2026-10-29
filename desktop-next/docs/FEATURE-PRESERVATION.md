@@ -340,3 +340,23 @@ Rule from the owner: keep skills and every feature that does real work; drop onl
 - Skills, Tools, Connectors/MCP, Plugins (non-sample), Messaging, Artifacts/Outputs, Cron/Schedules, Webhooks, Profiles, Bots/Company, Agents overlay, Command Center, Import session, Keyboard shortcuts, Settings sections, voice, notifications, find, terminal, git review, files, tray, quick entry, layout editor, HUD (as mini window), swap sidebars, right sidebar toggle, tips/tour (re-anchored, light), all KEEP / RELOCATE / REDESIGN rows.
 
 **REMOVE-BRANDING-ONLY (automatic, already agreed):** F-082, 150, 169, 179, 210, 218, 221, 222, 224, 241.
+
+## 2026-10-23 source-preview location addendum (DN-29)
+
+The table above is a historical source inventory, not a fresh 245-control
+acceptance report. This bounded addendum records the current navigation/status
+relocation; no inventory row or capability is deleted.
+
+| Existing control | Current placement | Executed boundary |
+| --- | --- | --- |
+| F-014 / F-015 / F-017, Company | Tools & connections disclosure in full sidebar; original destinations remain direct in compact rail | All four full-sidebar routes opened in source Electron; compact Connections remains visible. Same row handlers, context menus and shortcuts retained. |
+| F-016 | Outputs remains directly visible | Real source-app visibility check. |
+| F-077 / F-078 / F-081 / F-083 | Quiet status strip: Command Center, Vanta health, project; same profile fallback | Health/project visible and original right-click customization reachable. No stopped-backend or normal-profile claim. |
+| F-084–F-092 routine readouts/actions | Details popover: original controls with visible labels | Agents, schedule, context, approval, terminal and version controls found; context menu opened, Escape returned focus. Cache/speed retain existing opt-in rules. |
+| Active/failed agents, available/applying update, Off approval warning | Stay on the primary strip rather than being buried in Details | Focused classifier/hook tests; no real worker/update or weaker authority exercised on the owner's profile. |
+
+Keyboard-opened Details originally left an autofocus tooltip competing with
+nested-menu dismissal. Visible row labels replace those tooltips; the proof
+checks the actual keyboard path. Exact commands, captures and limits live in
+`DN-29-NAVIGATION-STATUS-2026-10-23.md`. DN-20 remains open; this does not certify
+every KEEP/RELOCATE row or any previously unsupported backend.

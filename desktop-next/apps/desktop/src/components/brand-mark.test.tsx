@@ -11,7 +11,7 @@ it('draws the Vanta mark inline, with no image file and no theme dependency', ()
   expect(container.querySelector('img')).toBeNull()
   expect(container.querySelector('svg[data-slot="brand-mark"]')).not.toBeNull()
   expect(container.firstElementChild?.className).toContain('size-16')
-  expect(container.innerHTML).not.toMatch(/vanta|vanta/i)
+  expect(container.innerHTML).not.toMatch(/nous|hermes/i)
 })
 
 it('is decorative: the product name next to it carries the accessible name', () => {
