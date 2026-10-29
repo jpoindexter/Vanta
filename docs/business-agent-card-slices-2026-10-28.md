@@ -14,6 +14,15 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
+Latest installed delivery, October 29: [agent17](agent17-desktop-delivery-2026-10-29.md)
+contains source9bf6ad3d with preserved overlays, final delegated write/edit grant
+checks and journal modules. Candidate AND installed copies each pass sixteen
+approval/runtime checks and six chat/branch/cold-restart checks with no observed
+renderer errors. Signed/Apple Accepted/stapled/archive verified; exact agent16
+rollback retained. Normal CLI stays approved12c05ed5; unfinished voice is excluded.
+T03-6 recurring authority and O03-3 canonical clearing remain incomplete. No new
+WIP or parent/checklist completion. The checkpoints below retain earlier states.
+
 Latest source checkpoint, October 29: [delegated file revalidation](delegated-write-revalidation-2026-10-29.md)
 rejects reproduced revoked/replaced/corrupt-grant writes after the decision.
 Thirteen actual scheduled source journeys and 162 focused checks pass; the final

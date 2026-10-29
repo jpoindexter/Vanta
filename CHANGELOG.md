@@ -3,7 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Delegated file revalidation — 2026-10-29 (source)
+## Agent17 Desktop — 2026-10-29 (local delivery)
+
+- Install signed, Apple Accepted/stapled agent17 from source9bf6ad3d, retaining
+  exact agent16 rollback and verified archive. Both candidate and installed copies
+  pass sixteen runtime/approval checks, including revoked-grant write/edit
+  refusals, plus six chat/branch/cold-restart checks without observed renderer errors.
+- Normal CLI remains approved12c05ed5; pending voice is excluded. This is not
+  full recurring authority, canonical review clearing or security/parity approval.
+  [Delivery, retained fixture failures and limits](docs/agent17-desktop-delivery-2026-10-29.md).
+
+## Delegated file revalidation — 2026-10-29 (earlier source checkpoint)
 
 - Re-read a fingerprinted delegated grant after awaited preparation and before
   synchronous write/edit commit. Revoked, replaced or unreadable authority now

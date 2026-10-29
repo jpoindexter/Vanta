@@ -65,29 +65,32 @@ launcher checks and 42 compiled scheduled-write/Gmail/LinkedIn boundary cases.
 
 **Dependency maintenance — October 29:** Desktop's declared YAML parser is patched
 with recoverable shared-dependency activation and isolated install/build proof.
-Other dependency findings remain; this is not an installed-app update or security
-clearance. [Evidence and limits](docs/dependency-yaml-2026-10-29.md).
+Other dependency findings remain; that source/shared-dependency checkpoint did
+not certify an installed exploit route or security clearance. Agent17 below is
+the subsequent package. [Evidence and limits](docs/dependency-yaml-2026-10-29.md).
 
 The website's scoped worker-pool patch removes its two Tinypool advisories;
 critical audit entries fall from 16 to zero, with 32 affected entries remaining.
 Private install, worker controls and static-site build/HTTP checks pass; no live
 deployment occurred. [Website evidence](docs/dependency-website-workers-2026-10-29.md).
 
-**Agent trust — October 29 source:** delegated file writes recheck their exact
+**Agent trust — October 29:** delegated file writes recheck their exact
 grant before commit, rejecting reproduced post-decision revocation/replacement.
-Thirteen actual source journeys pass; full recurring authority and delivery of
-this patch remain open. [Evidence and limits](docs/delegated-write-revalidation-2026-10-29.md).
+Thirteen actual source journeys pass; agent17 below adds the tested Desktop
+subset. Full recurring authority remains open. [Evidence and limits](docs/delegated-write-revalidation-2026-10-29.md).
 
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
-`0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared
-preserved overlays. Candidate and installed copies each pass fourteen approval/
+`0.1.0-local.20261029.agent17` is installed from source `9bf6ad3d` plus declared
+preserved overlays. Candidate and installed copies each pass sixteen approval/
 runtime fixture checks and six chat/branch/cold-restart checks, with zero
-observed renderer errors. The latest audit/target repairs are now delivered in
-Desktop, not the unchanged normal CLI. Full app/archive fingerprints and retained agent15
+observed renderer errors. Both copies refuse write/edit after an in-flight grant
+revocation. The package also contains the extracted journal modules; this does
+not repeat every source recovery case. Normal CLI stays approved `12c05ed5`.
+Full app/archive fingerprints and retained agent16
 rollback agree. Original work/data are preserved; pending voice remains excluded.
 Live accounts, canonical review clearing, whole-product/security/design/parity
 and owner acceptance remain open. This is local delivery, not a public release.
-[Exact delivery, retained failures and limits](docs/agent16-desktop-delivery-2026-10-29.md).
+[Exact delivery, retained failures and limits](docs/agent17-desktop-delivery-2026-10-29.md).
 
 **Agent admission correction — October 28 (first delivered in agent11):** simultaneous inputs
 can no longer replace one client's running turn or disable its stream after

@@ -2,6 +2,12 @@
 
 ## Result and boundary
 
+Subsequent bounded delivery: [agent17](agent17-desktop-delivery-2026-10-29.md)
+now includes this source repair. Candidate and installed copies both execute the
+mid-flight revoked-grant write/edit denial, alongside retained approval controls
+and chat/restart checks. This does not recertify every source case or make the
+final store read atomic. Normal CLI remains12c05ed5; full T03-6 stays open.
+
 File writes now revalidate the exact delegated grant after hooks and awaited
 preparation, immediately before the synchronous file commit. This repairs the
 reproduced case where a scheduled write/edit consumed a decision after its grant

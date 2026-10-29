@@ -15,6 +15,18 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [agent17 installed delivery](agent17-desktop-delivery-2026-10-29.md) is now
+the current local Desktop build: source9bf6ad3d plus the same eleven declared
+preserved overlays, signed/Apple Accepted/stapled/archive verified. Exact candidate
+and installed copies each pass sixteen approval/runtime checks, including final
+write/edit grant-revocation refusal, and six chat/branch/cold-restart checks, with
+zero observed renderer errors. Full app/ZIP and exact retained agent16 rollback
+fingerprints agree. Normal CLI remains approved12c05ed5; pending voice is excluded.
+This delivers a tested subset plus journal modules, not every source case,
+canonical unknown-effect clearing, full recurring authority, security/parity,
+owner/human or live-account acceptance. Earlier source/delivery records below
+retain their original boundaries; they are not current app identity.
+
 The [delegated file revalidation](delegated-write-revalidation-2026-10-29.md)
 source checkpoint passes thirteen actual scheduled agent/kernel/file journeys,
 162 focused checks, typecheck and architecture/size gates. It rejects observed
@@ -76,8 +88,8 @@ allow one fresh positive control and replay without extra submission/approval.
 No production code changed. This is R3 per-effect authority, not transferable
 R4/R5 grants, installed/live-account delegation or whole-parent acceptance.
 
-The [agent16 installed delivery](agent16-desktop-delivery-2026-10-29.md) is the
-current local Desktop build: source12c05ed5 plus eleven declared preserved
+The [agent16 installed delivery](agent16-desktop-delivery-2026-10-29.md) was the
+preceding local Desktop build: source12c05ed5 plus eleven declared preserved
 overlays, signed/Apple Accepted/stapled. Exact candidate and installed copies
 each pass fourteen approval/runtime fixture checks and six chat/branch/cold-restart
 checks, with zero observed renderer errors. Full candidate/archive/installed and

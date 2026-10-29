@@ -2,6 +2,12 @@
 
 ## Result and boundary
 
+Subsequent bounded delivery: [agent17](agent17-desktop-delivery-2026-10-29.md)
+includes these source modules. Candidate and installed copies execute unknown
+Gmail attention projection and separate ordinary chat/branch/cold-restart
+journeys. This does not repeat every interrupted/concurrent source-journal case
+or close O03-3 canonical unknown-effect resolution. Normal CLI stays12c05ed5.
+
 The 539-line effect-persistence module is now a 78-line compatibility facade
 over five focused internal modules. Existing exports and call signatures,
 serialized journal/projection bytes, writer ownership and recovery behavior are

@@ -1,6 +1,10 @@
 # Agent16 Desktop delivery — 2026-10-29
 
-## Current local delivery
+Superseded as installed identity by [agent17](agent17-desktop-delivery-2026-10-29.md).
+This record retains its original delivery-time evidence and CLI state; it is the
+exact retained rollback, not the current installed build.
+
+## Historical local delivery
 
 Installed `0.1.0-local.20261029.agent16` contains source
 `12c05ed5ee759d999edfaf3f59353a5dac025d3c` plus the same eleven declared
