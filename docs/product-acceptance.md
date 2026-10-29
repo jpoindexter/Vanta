@@ -15,6 +15,16 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [transcript math dependency repair](dependency-katex-2026-10-29.md) pins
+KaTeX0.18.2 across direct/transitive callers and rejects test-only inherited
+renderer permission through the real transcript component. Thirteen focused
+checks, Desktop types/build, fresh install and two actual streamed source
+Electron replies with local fonts pass. Only one advisory disappears; Desktop
+production11→3/all17→9 remain nonzero. Shared activation retains exact old-package
+rollback; installed agent17 and normal CLI12c05ed5 are unchanged. This is not a
+proven attacker-controlled prototype-pollution entry point, installed repair or
+security clearance. Existing cards and owner gates remain open.
+
 The [agent17 installed delivery](agent17-desktop-delivery-2026-10-29.md) is now
 the current local Desktop build: source9bf6ad3d plus the same eleven declared
 preserved overlays, signed/Apple Accepted/stapled/archive verified. Exact candidate

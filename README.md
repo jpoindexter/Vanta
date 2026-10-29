@@ -69,6 +69,12 @@ Other dependency findings remain; that source/shared-dependency checkpoint did
 not certify an installed exploit route or security clearance. Agent17 below is
 the subsequent package. [Evidence and limits](docs/dependency-yaml-2026-10-29.md).
 
+The subsequent [KaTeX source/shared-dependency repair](docs/dependency-katex-2026-10-29.md)
+rejects inherited math-rendering permission in the real transcript. Focused
+checks and actual source Electron rendering pass; one advisory disappears and
+Desktop affected entries fall production11→3/all17→9. This newer patch is not yet
+in installed agent17; remaining security findings and acceptance gates stay open.
+
 The website's scoped worker-pool patch removes its two Tinypool advisories;
 critical audit entries fall from 16 to zero, with 32 affected entries remaining.
 Private install, worker controls and static-site build/HTTP checks pass; no live

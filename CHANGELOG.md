@@ -3,6 +3,16 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Transcript math security — 2026-10-29 (source/shared dependency)
+
+- Pin KaTeX0.18.2 across direct/transitive Desktop callers. Real transcript
+  regression rejects test-only inherited rendering permission while ordinary
+  math remains readable. Registry checks, thirteen focused checks, type/build,
+  fresh installation and actual streamed Electron math/font proof pass.
+- Only one advisory disappears; affected Desktop entries fall production11→3
+  and all17→9. Old shared parser retained; installed agent17/CLI12c05ed5 unchanged.
+  [Evidence, conditional threat and limits](docs/dependency-katex-2026-10-29.md).
+
 ## Agent17 Desktop — 2026-10-29 (local delivery)
 
 - Install signed, Apple Accepted/stapled agent17 from source9bf6ad3d, retaining
