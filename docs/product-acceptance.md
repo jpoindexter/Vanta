@@ -15,6 +15,12 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [delegated audit failure repair](delegated-audit-fail-closed-2026-10-29.md)
+has bounded SOURCE proof: seven actual scheduler/agent/kernel/file journeys
+require a saved authority audit or a separate host decision, and 84 focused
+checks pass. This fixes a reproduced silent auto-approval; it does not complete
+T03-6 account/quota/expiry authority or update the installed app/normal CLI.
+
 The [delegated outreach boundary](delegated-outreach-boundary-2026-10-29.md)
 has bounded T03-5 SOURCE acceptance: seven actual parent/delegate/worker/Gmail/
 kernel fixtures require a separate fresh child decision, refuse denied drift,

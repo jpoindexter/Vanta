@@ -5,6 +5,12 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent15 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
 
+- Source fix: failed delegated-authority audit persistence now falls through
+  to existing host approval instead of silently auto-approving. Seven real
+  scheduled agent/kernel/file journeys and 84 focused checks pass. T03-6
+  account/quota/expiry acceptance stays open; installed app/CLI unchanged.
+  [Evidence and limits](docs/delegated-audit-fail-closed-2026-10-29.md).
+
 - Source acceptance for delegated outreach: seven actual parent/delegate/worker/
   Gmail/kernel fixture journeys prove fresh child decisions, refusal after drift,
   one freshly approved child submission and no extra submission on replay.

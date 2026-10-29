@@ -81,4 +81,17 @@ describe("tryDelegatedAutoApprove", () => {
     };
     expect(await tryDelegatedAutoApprove(writeCall("/proj/a.ts"), "write /proj/a.ts", d)).toBeNull();
   });
+
+  it("falls through to human approval if the delegated audit cannot be saved", async () => {
+    let attempts = 0;
+    const d = {
+      ...deps([grant("/proj")]),
+      appendAudit: async () => {
+        attempts++;
+        throw new Error("audit unavailable");
+      },
+    };
+    expect(await tryDelegatedAutoApprove(writeCall("/proj/a.ts"), "write /proj/a.ts", d)).toBeNull();
+    expect(attempts).toBe(1);
+  });
 });

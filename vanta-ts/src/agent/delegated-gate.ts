@@ -56,6 +56,10 @@ export async function tryDelegatedAutoApprove(
   const result = checkDelegated(delegatedRequestForCall(call, action), grants);
   if (!result.autoApprove || !result.byGrant) return null;
   const record = auditDelegatedDecision(result.byGrant, action, deps.now?.() ?? new Date());
-  await deps.appendAudit(record).catch(() => {});
+  try {
+    await deps.appendAudit(record);
+  } catch {
+    return null;
+  }
   return { grantId: result.byGrant.id };
 }
