@@ -31,6 +31,17 @@ describe("write_file shell-startup confirm (SHELL-STARTUP-WRITE-PROMPT)", () => 
     await rm(root, { recursive: true, force: true });
   });
 
+  it("refuses a target different from the host-bound delegated path without prompting or writing", async () => {
+    let prompts = 0;
+    const ctx = { ...makeCtx(root, async () => { prompts++; return true; }), delegatedWritePath: join(root, "approved.txt") };
+    const result = await writeFileTool.execute({ path: "other.txt", content: "not authorized" }, ctx);
+    expect(result.ok).toBe(false);
+    expect(result.effectDisposition).toBe("denied");
+    expect(result.output).toContain("delegated write target changed");
+    expect(prompts).toBe(0);
+    expect(await fileExists(join(root, "other.txt"))).toBe(false);
+  });
+
   it("asks an EXTRA confirm before writing a shell startup file in-zone", async () => {
     const reasons: string[] = [];
     const ctx = makeCtx(root, async (_action, reason) => {

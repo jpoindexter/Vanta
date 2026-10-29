@@ -52,7 +52,7 @@ export async function handleAskDecision(o: {
   }
   // DELEGATED-AUTHORITY-WIRE: an Ask within an active grant's bound is
   // auto-approved (+ audited) without a prompt; no grant → falls through.
-  const delegated = overridesDirection ? null : await delegatedGateResult(call, action);
+  const delegated = overridesDirection ? null : await delegatedGateResult(call, action, root);
   if (delegated) {
     recordAutoDecision(action, deps.activeGoalText);
     await auditGate(deps, { tool: call.name, action, risk: verdict.risk, resolution: "delegated-auto" });
@@ -63,13 +63,14 @@ export async function handleAskDecision(o: {
 }
 
 /** Delegated-authority auto-approval for an Ask (or null to prompt). Wraps the
- *  pure gate with the real grant store + audit log. */
-async function delegatedGateResult(call: ToolCall, action: string): Promise<SafetyGateResult | null> {
+ *  shared gate with the real grant store, project root and audit log. */
+async function delegatedGateResult(call: ToolCall, action: string, root: string): Promise<SafetyGateResult | null> {
   const delegated = await tryDelegatedAutoApprove(call, action, {
+    root,
     readGrants: () => readGrants(process.env),
     appendAudit: (r) => appendAuditRecord(r, process.env),
   });
-  return delegated ? { approved: true, reason: `delegated authority (grant ${delegated.grantId})` } : null;
+  return delegated ? { approved: true, reason: `delegated authority (grant ${delegated.grantId})`, delegatedWritePath: delegated.writePath } : null;
 }
 
 /**

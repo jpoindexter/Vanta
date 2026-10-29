@@ -125,11 +125,11 @@ export const editFileTool: Tool = {
     let content: string;
     let target: FileWriteTarget;
     try {
-      target = captureWriteTarget(abs);
+      target = captureWriteTarget(abs, ctx.delegatedWritePath);
       if (target.previous === null) throw new Error("file does not exist");
       content = target.previous.toString("utf8");
     } catch (err) {
-      return { ok: false, output: `could not read ${path}: ${(err as Error).message}` };
+      return { ok: false, output: `could not read ${path}: ${(err as Error).message}`, effectDisposition: "denied" };
     }
 
     const check = checkUniqueness(content, old_string, replace_all, path);

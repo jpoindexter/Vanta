@@ -146,8 +146,8 @@ export const writeFileTool: Tool = {
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
     let target: FileWriteTarget;
-    try { target = captureWriteTarget(abs); }
-    catch (error) { return { ok: false, output: `could not prepare ${path}: ${(error as Error).message}` }; }
+    try { target = captureWriteTarget(abs, ctx.delegatedWritePath); }
+    catch (error) { return { ok: false, output: `could not prepare ${path}: ${(error as Error).message}`, effectDisposition: "denied" }; }
 
     const controlPlane = projectControlPlaneConfirmation({ abs, root: ctx.root, displayPath: path, content });
     if (controlPlane && !(await ctx.requestApproval(

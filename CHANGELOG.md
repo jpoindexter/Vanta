@@ -5,6 +5,13 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 
 ## Agent15 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
 
+- Source fix: delegated file grants now use the active project's resolved
+  target; write/edit reject path redirection after approval. New CLI write
+  grants require absolute scopes; old relative grants remain stored but fall
+  back to host approval. Nineteen scheduled journeys, four source CLI commands
+  and 155 focused checks pass. Not installed or full recurring authority.
+  [Evidence and limits](docs/delegated-target-binding-2026-10-29.md).
+
 - Source fix: failed delegated-authority audit persistence now falls through
   to existing host approval instead of silently auto-approving. Seven real
   scheduled agent/kernel/file journeys and 84 focused checks pass. T03-6

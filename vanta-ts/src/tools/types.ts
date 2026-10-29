@@ -58,6 +58,8 @@ export type ToolContext = {
   effectApprovalAction?: string;
   /** Whether an exact matching inner confirmation may consume that decision. */
   effectApprovalReusable?: boolean;
+  /** Canonical target covered by delegated authority, not model-supplied arguments. */
+  delegatedWritePath?: string;
   safety: KernelClient;
   /** Pause and ask the human y/n. Returns true if approved. toolName lets the
    *  host key session/always-allow and accept-edits auto-approve decisions. */

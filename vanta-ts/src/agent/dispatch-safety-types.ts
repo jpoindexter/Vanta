@@ -5,6 +5,8 @@ export type SafetyGateResult = {
   /** Exact Ask action already resolved by this gate. */
   effectApprovalAction?: string;
   effectApprovalReusable?: boolean;
+  /** Canonical target covered by this delegated decision; file tools must recheck it. */
+  delegatedWritePath?: string;
 };
 
 

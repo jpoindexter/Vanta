@@ -65,7 +65,10 @@ export function assertWriteParent(target: FileWriteTarget): void {
 }
 
 /** Capture before any content/edit confirmation, never after accepting it. */
-export function captureWriteTarget(abs: string): FileWriteTarget {
+export function captureWriteTarget(abs: string, delegatedPath?: string): FileWriteTarget {
+  if (delegatedPath && delegatedPath !== abs) {
+    throw new Error("delegated write target changed — request a fresh approval");
+  }
   const target: FileWriteTarget = { abs, parent: existingParent(abs), previous: null, stat: null };
   assertWriteParent(target);
   const stat = statOrMissing(abs);

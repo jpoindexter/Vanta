@@ -1,3 +1,4 @@
+import { isAbsolute } from "node:path";
 import {
   grantAuthority,
   revokeAuthority,
@@ -11,11 +12,11 @@ import {
 
 // `vanta authority grant <delegator> <delegate> --spend <usd> | --write-scope <path>`
 // / `list` / `revoke <id>`. An owner grants a manager bounded authority over an
-// Ask-class approval class; the live kernel approval loop is NOT wired here
-// (deferred follow-up — the kernel block floor is never delegated).
+// Ask-class approval class. The shared agent gate applies the grant after the
+// kernel; the kernel block floor is never delegated.
 //
 // Handlers are pure over injected deps so the whole surface is unit-tested
-// without real I/O. NOT wired into cli/ops.ts + cli.ts (see dispatch_wiring).
+// without real I/O. The top-level command table wires this entry point.
 
 export type AuthorityDeps = {
   readGrants: () => Promise<AuthorityGrant[]>;
@@ -27,7 +28,7 @@ export type AuthorityDeps = {
 
 const USAGE = [
   "usage:",
-  "  vanta authority grant <delegator> <delegate> (--spend <usd> | --write-scope <path>)",
+  "  vanta authority grant <delegator> <delegate> (--spend <usd> | --write-scope <absolute-path>)",
   "  vanta authority list",
   "  vanta authority revoke <grant-id>",
   "  vanta authority audit",
@@ -63,10 +64,10 @@ export function parseGrantArgs(rest: string[]): { ok: true; value: GrantArgs } |
     }
     return { ok: true, value: { delegator, delegate, class: { kind: "spend", maxUsd } } };
   }
-  if (scopeRaw !== undefined && scopeRaw.trim().length > 0) {
+  if (scopeRaw !== undefined && isAbsolute(scopeRaw)) {
     return { ok: true, value: { delegator, delegate, class: { kind: "writeScope", scope: scopeRaw } } };
   }
-  return { ok: false, error: "grant needs a bound: --spend <usd> or --write-scope <path>" };
+  return { ok: false, error: "grant needs a bound: --spend <usd> or --write-scope <absolute-path>" };
 }
 
 /** The Nth bare positional token (skips flags and flag values). Pure. */

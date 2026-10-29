@@ -97,6 +97,7 @@ function dispatchExecutionContext(
     effectJournalOwnerId: call.id,
     effectApprovalAction: gateResult.effectApprovalAction,
     effectApprovalReusable: gateResult.effectApprovalReusable,
+    delegatedWritePath: gateResult.delegatedWritePath,
     sandboxWritableDirs: gateResult.sandboxWritableDirs,
     onProgress: (text) => deps.onEvent?.({ type: "note", text }),
   };

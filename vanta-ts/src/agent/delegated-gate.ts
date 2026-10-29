@@ -1,4 +1,6 @@
+import { isAbsolute, resolve } from "node:path";
 import type { ToolCall } from "../types.js";
+import { canonicalPath, expandHome } from "../tools/writable-zones.js";
 import {
   checkDelegated,
   auditDelegatedDecision,
@@ -24,21 +26,33 @@ import {
 /** Tools whose args carry a write target, matched against a writeScope grant. */
 const WRITE_TOOLS: ReadonlySet<string> = new Set(["write_file", "edit_file"]);
 
-/** Build the delegated request for a tool call at the ASK site. Pure. */
-export function delegatedRequestForCall(call: ToolCall, action: string): DelegatedRequest {
+/** Match the same resolved file target the file tools use, anchored to this project. */
+export function delegatedRequestForCall(call: ToolCall, action: string, root: string): DelegatedRequest {
   const args = (call.arguments ?? {}) as Record<string, unknown>;
   const writePath =
     WRITE_TOOLS.has(call.name) && typeof args.path === "string" && args.path.length > 0
-      ? args.path
+      ? canonicalPath(resolve(root, expandHome(args.path)))
       : undefined;
   return { risk: "ask", action, writePath };
 }
 
 export type DelegatedGateDeps = {
+  root: string;
   readGrants: () => Promise<AuthorityGrant[]>;
   appendAudit: (record: DelegatedAuditRecord) => Promise<void>;
   now?: () => Date;
 };
+
+function resolvedGrants(grants: AuthorityGrant[]): AuthorityGrant[] {
+  return grants.flatMap((grant) => {
+    if (grant.class.kind !== "writeScope") return [grant];
+    const scope = expandHome(grant.class.scope);
+    // Relative legacy scopes have no durable project anchor; require a separate decision.
+    return isAbsolute(scope)
+      ? [{ ...grant, class: { ...grant.class, scope: canonicalPath(scope) } }]
+      : [];
+  });
+}
 
 /**
  * If an active grant covers this Ask action, log the delegated decision and
@@ -50,10 +64,11 @@ export async function tryDelegatedAutoApprove(
   call: ToolCall,
   action: string,
   deps: DelegatedGateDeps,
-): Promise<{ grantId: string } | null> {
+): Promise<{ grantId: string; writePath?: string } | null> {
   const grants = await deps.readGrants().catch(() => [] as AuthorityGrant[]);
-  if (grants.length === 0) return null;
-  const result = checkDelegated(delegatedRequestForCall(call, action), grants);
+  if (grants.length === 0 || typeof deps.root !== "string" || !isAbsolute(deps.root)) return null;
+  const request = delegatedRequestForCall(call, action, deps.root);
+  const result = checkDelegated(request, resolvedGrants(grants));
   if (!result.autoApprove || !result.byGrant) return null;
   const record = auditDelegatedDecision(result.byGrant, action, deps.now?.() ?? new Date());
   try {
@@ -61,5 +76,5 @@ export async function tryDelegatedAutoApprove(
   } catch {
     return null;
   }
-  return { grantId: result.byGrant.id };
+  return { grantId: result.byGrant.id, writePath: request.writePath };
 }

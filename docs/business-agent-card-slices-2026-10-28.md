@@ -34,6 +34,12 @@ is the active Trust slice. A reproduced
 closed at the shared delegated gate: seven actual scheduled source journeys
 and 84 focused checks pass. This is partial work, not exact account/quota/expiry,
 unattended business authority or installed delegation acceptance.
+[Target-binding source work](delegated-target-binding-2026-10-29.md) additionally
+repairs stable and post-decision path escapes through the real scheduled agent:
+12 new plus seven retained journeys, four actual source CLI commands and 155
+focused checks pass. Legacy relative scopes fall back to approval; new CLI
+write grants require absolute scopes. Actor/account/quota/expiry and delivery
+still prevent T03-6 completion.
 [Cross-host typed review evidence](cross-host-review-continuity-2026-10-28.md)
 separately prevents a saved CLI uncertainty record from unlocking Desktop work.
 O03-1 reuses current agent evidence for
@@ -65,7 +71,7 @@ bypass is authorized. Voice/chrome expansion stays deferred. Business priority:
 - [x] T03-3 SOURCE accepted: resolve and preview the personal author before fresh publication approval; credential/client/author drift, revocation, expiry and cancellation prevent POST. Twelve actual registered-tool/kernel/local HTTP journeys and 28 focused checks pass. Agent15 candidate and installed UI additionally prove author preview/denial, author-drift refusal and one approved PUBLIC fixture submission; provider-confirmed stays readback-unverified. Not every source case, live-account or full parent acceptance. [Source](linkedin-author-binding-2026-10-28.md), [delivery](agent15-desktop-delivery-2026-10-28.md).
 - [x] T03-4: Deliver the proven Gmail slice through the pinned CLI and exact packaged app; repeat sender/denial/once controls with fixture accounts and retain rollback. No live send required. ACCEPTED: normal CLI e467a857, signed/notarized installed agent14; actual candidate and installed approval controls plus retained app/CLI rollback. See agent14 delivery record. Not full TRUST-03 or live-account acceptance.
 - [x] T03-5 SOURCE accepted: seven actual parent/delegate/worker/Gmail/kernel journeys require a separate fresh child decision; denied recipient/content/account changes and account drift during approval create zero child submissions. A fresh child positive control submits once; replay creates zero extra submissions or approval requests. No runtime change. Per-effect R3 only, not transferable unattended grants, installed/live-account or full-parent acceptance. [Evidence](delegated-outreach-boundary-2026-10-29.md).
-- [ ] T03-6: Recurring authority: one scheduled fixture obeys its exact account/target allowlist, quota/expiry and revoke; closing this goal still requires every original R3/R4/R5 Done invariant. Partial SOURCE fix: audit-write failure falls through to host approval; seven actual scheduled file-write journeys and 84 focused checks pass. Exact account/quota/expiry model and installed delivery remain open. [Evidence](delegated-audit-fail-closed-2026-10-29.md).
+- [ ] T03-6: Recurring authority: one scheduled fixture obeys its exact account/target allowlist, quota/expiry and revoke; closing this goal still requires every original R3/R4/R5 Done invariant. Partial SOURCE fixes: audit-write failure falls through to host approval; project/canonical target binding and write/edit post-decision checks reject reproduced scope escapes. Nineteen scheduled journeys, four actual source CLI commands and 155 focused checks pass. Actor/account/quota/expiry, in-flight revocation and installed delivery remain open. [Audit evidence](delegated-audit-fail-closed-2026-10-29.md), [target evidence](delegated-target-binding-2026-10-29.md).
 
 ## OP-03 — building
 

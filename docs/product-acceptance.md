@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [delegated target-binding repair](delegated-target-binding-2026-10-29.md)
+has SOURCE proof for resolved project/grant paths and post-decision symlink
+redirection: 12 new plus seven retained scheduled journeys, four source CLI
+commands and 155 focused checks pass. Legacy relative grants now require a
+separate decision; existing data remains preserved. Actor/account/quota/expiry,
+full recurring authority and installed delivery remain open.
+
 The [delegated audit failure repair](delegated-audit-fail-closed-2026-10-29.md)
 has bounded SOURCE proof: seven actual scheduler/agent/kernel/file journeys
 require a saved authority audit or a separate host decision, and 84 focused
