@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## CLI repair delivery readiness — 2026-10-29 (staged, not selected)
+
+- Independently staged committed `12c05ed5`, matching the installed agent16
+  runtime source. Actual global-launcher initialization, real-terminal greeting/
+  streamed response/exit, 19 compiled scheduled-file boundary cases, 11 Gmail
+  cases and 12 LinkedIn cases pass using private fixtures.
+- Normal CLI remains approved `e467a857` pending fresh exact cutover approval.
+  No credentials/approvals copied, production changes, new installation or card
+  completion. Original work and app/CLI rollback retained.
+  [Evidence and limits](docs/cli-target-delivery-readiness-2026-10-29.md).
+
 ## Agent16 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
 
 - Installed signed, Apple Accepted/stapled agent16 from `12c05ed5`, delivering

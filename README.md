@@ -59,6 +59,12 @@ from that exact compiled runtime in an isolated profile; the previous runtime
 and selection backup are retained. No credentials or approvals were migrated.
 [CLI delivery, rollback and evidence limits](docs/agent14-cli-delivery-2026-10-28.md).
 
+**CLI update staged — October 29:** independent source `12c05ed5` now passes
+actual terminal/launcher startup and 42 compiled scheduled-write/Gmail/LinkedIn
+boundary cases. The normal command remains `e467a857` pending fresh owner
+cutover approval; no credentials or approvals were copied.
+[Verified readiness and remaining gates](docs/cli-target-delivery-readiness-2026-10-29.md).
+
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
 `0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared
 preserved overlays. Candidate and installed copies each pass fourteen approval/

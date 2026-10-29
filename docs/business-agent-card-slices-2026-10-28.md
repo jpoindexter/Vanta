@@ -14,6 +14,11 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
+Delivery update, October 29: a separate [CLI candidate at12c05ed5](cli-target-delivery-readiness-2026-10-29.md)
+passes actual launcher/TTY checks and 42 compiled scheduled-file/Gmail/LinkedIn
+boundary cases. Normal CLI remains e467a857 pending fresh cutover approval;
+installed agent16 and all existing parent/checklist gates remain unchanged.
+
 Now: [T03-1 source acceptance](gmail-sender-binding-2026-10-28.md) and
 [T03-4 local delivery acceptance](agent14-cli-delivery-2026-10-28.md) are executed.
 T03-2 now has [actual process-restart SOURCE acceptance](gmail-cold-recovery-2026-10-28.md):

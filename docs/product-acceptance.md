@@ -15,6 +15,14 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [new CLI candidate](cli-target-delivery-readiness-2026-10-29.md) independently
+pins source12c05ed5. Actual global-launcher ACP startup, real TTY greeting/
+streamed answer/clean exit, 19 compiled scheduled-target/audit journeys, 11 Gmail
+boundary cases and 12 LinkedIn cases pass in private fixtures. Normal CLI still
+selects e467a857; selecting the new pin requires fresh owner approval and an
+actual post-switch check. Installed agent16 signature/Gatekeeper reinspection
+passes. No live account, new authority, card completion or production change.
+
 The [delegated target-binding repair](delegated-target-binding-2026-10-29.md)
 has SOURCE proof for resolved project/grant paths and post-decision symlink
 redirection: 12 new plus seven retained scheduled journeys, four source CLI
