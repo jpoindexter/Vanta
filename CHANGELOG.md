@@ -3,7 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
-## Effect journal modularization — 2026-10-29 (source checkpoint)
+## Approved normal CLI cutover — 2026-10-29 (local delivery)
+
+- Fresh owner approval selects the independently verified `12c05ed5` candidate
+  through the unchanged normal launcher. Full candidate source/dependency/
+  compiled identities rechecked; actual post-switch launcher initialization
+  answers from the exact runtime and exits cleanly.
+- Old `e467a857` runtime and selection backup retained; no credentials/approvals
+  migrated. Installed agent16 unchanged. Later source journal modularization,
+  full recurring authority, canonical review clearing and security remain open.
+  [Delivery and limits](docs/cli-approved-cutover-2026-10-29.md).
+
+## Effect journal modularization — 2026-10-29 (earlier source checkpoint)
 
 - Split the 539-line persistence module into a 78-line compatibility facade
   and five focused journal/lock/atomic-write/projection modules. Preserve public

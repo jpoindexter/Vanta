@@ -1,5 +1,9 @@
 # CLI target/audit repair — verified staging, 2026-10-29
 
+Historical staging record: a later fresh approval and executed
+[normal CLI cutover](cli-approved-cutover-2026-10-29.md) now select this exact
+candidate. The unselected/pending wording below records its earlier state.
+
 ## Delivery state
 
 The independent CLI candidate is pinned to committed source

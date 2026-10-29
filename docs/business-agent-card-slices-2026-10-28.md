@@ -14,6 +14,13 @@ Historical Desktop build-next wording is relabeled reference backlog, not active
 
 ## Execution rule
 
+Current CLI delivery, October 29: [freshly approved cutover](cli-approved-cutover-2026-10-29.md)
+now selects verified12c05ed5 instead ofe467a857. Candidate identities/readiness
+receipts and actual post-switch global launcher pass; old runtime/selection and
+all owner work/data retained. No new grants, parent completion or installed-app
+replacement. Later source journal modularization is not in this selected pin.
+The following dated prerequisite/readiness paragraphs retain their earlier state.
+
 Source prerequisite, October 29: [journal transaction/recovery extraction](effect-journal-modularization-2026-10-29.md)
 preserves byte output, unknown-effect holds and cross-chat identity through actual
 interrupted recovery, concurrent writers and Gmail503 replay. The persistence

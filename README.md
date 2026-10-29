@@ -53,17 +53,15 @@ account-switch or canceled-late-approval submissions in 11 local HTTP cases.
 This is [source acceptance](docs/gmail-sender-binding-2026-10-28.md); subsequent
 bounded CLI/Desktop delivery is recorded below, not live Gmail acceptance.
 
-**Current normal CLI — October 29:** `vanta` selects committed `e467a857`, after
-the owner's previously verified cutover. The unchanged global launcher answered
-from that exact compiled runtime in an isolated profile; the previous runtime
-and selection backup are retained. No credentials or approvals were migrated.
-[CLI delivery, rollback and evidence limits](docs/agent14-cli-delivery-2026-10-28.md).
+**Current normal CLI — October 29:** after fresh owner approval, `vanta` selects
+independent committed `12c05ed5`. The actual unchanged global launcher answered
+from that exact compiled runtime in a private profile after the switch. The old
+`e467a857` runtime and selection backup remain; no credentials or approvals were
+migrated. [Approved cutover, rollback and limits](docs/cli-approved-cutover-2026-10-29.md).
 
-**CLI update staged — October 29:** independent source `12c05ed5` now passes
-actual terminal/launcher startup and 42 compiled scheduled-write/Gmail/LinkedIn
-boundary cases. The normal command remains `e467a857` pending fresh owner
-cutover approval; no credentials or approvals were copied.
-[Verified readiness and remaining gates](docs/cli-target-delivery-readiness-2026-10-29.md).
+**Retained CLI readiness evidence:** the same candidate passed real-terminal/
+launcher checks and 42 compiled scheduled-write/Gmail/LinkedIn boundary cases.
+[Earlier preparation record](docs/cli-target-delivery-readiness-2026-10-29.md).
 
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
 `0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared

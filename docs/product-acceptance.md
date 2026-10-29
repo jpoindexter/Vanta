@@ -22,13 +22,15 @@ Gmail503 attention replay, 32 focused checks, types and five architecture
 boundaries pass. This is SOURCE modularization only: O03-3 evidence-bound
 clearing, installed delivery and whole-product acceptance remain incomplete.
 
-The [new CLI candidate](cli-target-delivery-readiness-2026-10-29.md) independently
-pins source12c05ed5. Actual global-launcher ACP startup, real TTY greeting/
-streamed answer/clean exit, 19 compiled scheduled-target/audit journeys, 11 Gmail
-boundary cases and 12 LinkedIn cases pass in private fixtures. Normal CLI still
-selects e467a857; selecting the new pin requires fresh owner approval and an
-actual post-switch check. Installed agent16 signature/Gatekeeper reinspection
-passes. No live account, new authority, card completion or production change.
+The [approved CLI cutover](cli-approved-cutover-2026-10-29.md) now selects
+independent source12c05ed5 through the unchanged normal launcher. Full candidate
+identities and retained readiness receipts were rechecked before the backed-up
+atomic switch. Actual post-switch launcher ACP initialization answers from that
+exact compiled runtime and exits cleanly; no credentials/approvals migrated.
+The retained [readiness evidence](cli-target-delivery-readiness-2026-10-29.md)
+covers actual TTY and 42 compiled boundary cases, not a new rerun. Installed
+agent16 remains unchanged; later source journal extraction is not delivered here.
+No live-account acceptance, new standing authority or card completion is implied.
 
 The [delegated target-binding repair](delegated-target-binding-2026-10-29.md)
 has SOURCE proof for resolved project/grant paths and post-decision symlink
@@ -60,8 +62,7 @@ checks, with zero observed renderer errors. Full candidate/archive/installed and
 agent15 rollback fingerprints agree; original work/data remain preserved. The
 retained proof-only ordering failure and corrected identity-correlated replays
 are recorded without a production change or new Apple submission. Normal
-CLI stays the previously approved e467a857, and its actual unchanged launcher
-answered from that compiled runtime in an isolated profile. Pending voice stays
+CLI now selects separately approved12c05ed5 as recorded above. Pending voice stays
 excluded. No owner/live-account, canonical review-clear, full parity/security or
 whole-parent acceptance is implied. Older delivery paragraphs below are dated
 historical evidence, not current app/CLI identity.
