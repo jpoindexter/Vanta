@@ -1,6 +1,6 @@
 # Product acceptance
 
-Updated 2026-10-28 with source, delivery and continuity boundaries. Historical release
+Updated 2026-10-29 with source, delivery and continuity boundaries. Historical release
 receipts below retain their original version/date and are not current security attestations.
 This record separates executed behavior from static tests,
 repository integration, release state, and external setup gates. A receipt is
@@ -14,6 +14,18 @@ not a public release. Cross-platform packages, live external accounts, external
 participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
+
+The [agent15 installed delivery](agent15-desktop-delivery-2026-10-28.md) is the
+current local Desktop build: source29c370a4 plus eleven declared preserved
+overlays, signed/Apple Accepted/stapled. Exact candidate and installed copies
+each pass nine provider/approval fixture checks and six chat/branch/cold-restart
+checks, with zero observed renderer errors. Full candidate/archive/installed and
+agent14 rollback fingerprints agree; original work/data remain preserved. Normal
+CLI stays the previously approved e467a857, and its actual unchanged launcher
+answered from that compiled runtime in an isolated profile. Pending voice stays
+excluded. No owner/live-account, canonical review-clear, full parity/security or
+whole-parent acceptance is implied. Older delivery paragraphs below are dated
+historical evidence, not current app/CLI identity.
 
 The [Gmail sender-binding source slice](gmail-sender-binding-2026-10-28.md)
 passes 11 real loopback HTTP cases through the registered tools, normal Google
@@ -38,7 +50,7 @@ and run-next versus immediate-Steer semantics. This is reference evidence only:
 no live Codex UI access, feature implementation, visual sign-off or app rebuild.
 The existing chrome candidate still requires its owner-review gate.
 
-The [normal CLI delivery](agent12-cli-cutover-2026-10-28.md) now selects committed
+The earlier [agent12 CLI delivery](agent12-cli-cutover-2026-10-28.md) selected
 bdf5780a through the unchanged global wrapper. Exact-pin cold/warm startup,
 compiled MCP16/HTTP38, actual TTY same-burst saved preference/restart/second edit,
 complete compiled/receipt/dependency identity and independent review pass.
@@ -46,8 +58,8 @@ Guarded atomic selection and actual post-switch launcher proof preserve original
 work/data, old CLI70 rollback and full installed agent11. This is bounded private
 profile/scripted-model evidence, not owner/live-provider or whole-product proof.
 
-The [agent11 installed delivery](agent11-installed-2026-10-28.md) supersedes
-agent10 as the local Desktop build. Source94c622b9 plus declared preserved dirty
+The earlier [agent11 installed delivery](agent11-installed-2026-10-28.md) superseded
+agent10 at that checkpoint. Source94c622b9 plus declared preserved dirty
 inputs passes candidate AND installed compiled MCP16/HTTP23 checks and actual
 Electron approval/reload/branch/cold restart with zero observed renderer errors.
 CLI-reachable module graphs and five core identities agree, not arbitrary stale

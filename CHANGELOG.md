@@ -3,6 +3,18 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Agent15 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
+
+- Installed the signed, Apple Accepted/stapled agent15 bundle from source
+  `29c370a4`, with the previous exact app retained for rollback. Candidate,
+  extracted archive and installed full fingerprints agree.
+- Candidate and installed copies each pass nine Gmail/LinkedIn approval fixture
+  checks and six chat/branch/cold-restart checks, with zero observed renderer
+  errors. Original work/data and normal CLI `e467a857` remain preserved.
+- Updated delivery identities and current card evidence without closing either
+  Building parent. No live send/post, public release or whole-product claim.
+  [Evidence and limits](docs/agent15-desktop-delivery-2026-10-28.md).
+
 ## LinkedIn author binding — 2026-10-28 (source checkpoint)
 
 - Resolve and preview the personal author before fresh publication approval;

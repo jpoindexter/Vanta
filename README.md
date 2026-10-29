@@ -50,34 +50,33 @@ queue-control semantics. This is research, not a delivered redesign or live Code
 
 **Gmail source checkpoint — October 28:** verified sender binding prevents
 account-switch or canceled-late-approval submissions in 11 local HTTP cases.
-This is [source acceptance](docs/gmail-sender-binding-2026-10-28.md), not delivery
-to the normal CLI/installed app or live Gmail acceptance.
+This is [source acceptance](docs/gmail-sender-binding-2026-10-28.md); subsequent
+bounded CLI/Desktop delivery is recorded below, not live Gmail acceptance.
 
-**Current normal CLI — October 28:** `vanta` now selects committed `bdf5780a`,
-including rapid-key approval ordering, MCP response correlation and newer live
-recovery/admission repairs. Exact-pin terminal saved-choice/restart, MCP16 and
-HTTP38 checks pass; the old runtime, original work and owner data are retained.
-The installed Desktop stays agent11; full product/security/design gates remain.
-[CLI delivery, rollback and evidence limits](docs/agent12-cli-cutover-2026-10-28.md).
+**Current normal CLI — October 29:** `vanta` selects committed `e467a857`, after
+the owner's previously verified cutover. The unchanged global launcher answered
+from that exact compiled runtime in an isolated profile; the previous runtime
+and selection backup are retained. No credentials or approvals were migrated.
+[CLI delivery, rollback and evidence limits](docs/agent14-cli-delivery-2026-10-28.md).
 
-**Current Desktop delivery — October 28:** signed, Apple Accepted/stapled
-`0.1.0-local.20261028.agent11` is installed from source `94c622b9`. Candidate and
-installed copies pass compiled MCP response-truth/chat-ownership checks and real
-Electron approval/reload/branch/cold-restart journeys. The full installed app and
-final extracted archive match; agent10 rollback and original work/data are retained.
-The original Apple wait timed out; the same Accepted submission was recovered
-without re-uploading. The newer normal CLI is recorded above; whole-product
-acceptance gates remain open.
-[Exact delivery, retained failures and limits](docs/agent11-installed-2026-10-28.md).
+**Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
+`0.1.0-local.20261028.agent15` is installed from source `29c370a4` plus declared
+preserved overlays. Candidate and installed copies each pass nine Gmail/LinkedIn
+approval fixture checks and six chat/branch/cold-restart checks, with zero
+observed renderer errors. Full app/archive fingerprints and retained agent14
+rollback agree. Original work/data are preserved; pending voice remains excluded.
+Live accounts, canonical review clearing, whole-product/security/design/parity
+and owner acceptance remain open. This is local delivery, not a public release.
+[Exact delivery, retained failures and limits](docs/agent15-desktop-delivery-2026-10-28.md).
 
-**Agent admission correction — October 28 (delivered in agent11 above):** simultaneous inputs
+**Agent admission correction — October 28 (first delivered in agent11):** simultaneous inputs
 can no longer replace one client's running turn or disable its stream after
 rejection. Twenty actual production-router checks preserve Stop, independent
 chats, queued work and saved history; 68 focused tests pass. Normal CLI delivery
 is recorded above.
 [Evidence and delivery boundary](docs/chat-admission-ownership-2026-10-28.md).
 
-**MCP agent correction — October 28 (delivered in agent11 above):** server questions no longer
+**MCP agent correction — October 28 (first delivered in agent11):** server questions no longer
 falsely complete tool calls that happen to use the same message ID. Three
 before/after regressions and actual stdio/effect-journal checks pass within an
 88-test focused set. Current CLI and Desktop delivery are recorded above.
