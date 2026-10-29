@@ -63,6 +63,11 @@ migrated. [Approved cutover, rollback and limits](docs/cli-approved-cutover-2026
 launcher checks and 42 compiled scheduled-write/Gmail/LinkedIn boundary cases.
 [Earlier preparation record](docs/cli-target-delivery-readiness-2026-10-29.md).
 
+**Dependency maintenance — October 29:** Desktop's declared YAML parser is patched
+with recoverable shared-dependency activation and isolated install/build proof.
+Other dependency findings remain; this is not an installed-app update or security
+clearance. [Evidence and limits](docs/dependency-yaml-2026-10-29.md).
+
 **Current Desktop delivery — October 29:** signed, Apple Accepted/stapled
 `0.1.0-local.20261029.agent16` is installed from source `12c05ed5` plus declared
 preserved overlays. Candidate and installed copies each pass fourteen approval/

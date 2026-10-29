@@ -15,6 +15,13 @@ participants, future effect paths, and publication require separate evidence.
 
 ## Current evidence boundary
 
+The [Desktop YAML dependency patch](dependency-yaml-2026-10-29.md) pins 2.8.3,
+passes bounded old/new parser controls, clean private install, Desktop build and
+four regressions, and activates the verified shared parser with rollback. Only
+its advisory disappears (Desktop production12→11/all18→17); all remaining security
+findings persist. No first-party YAML import or installed exploit route is proven.
+Normal CLI12c05ed5 and installed agent16 are unchanged; no blanket security claim.
+
 The [effect journal extraction](effect-journal-modularization-2026-10-29.md)
 preserves byte-identical fixed-clock output and existing compatibility APIs.
 Actual interrupted/distinct-process recovery, three concurrent writers, source

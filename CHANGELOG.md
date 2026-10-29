@@ -3,6 +3,17 @@
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
+## Desktop YAML dependency patch — 2026-10-29 (source/shared dependency)
+
+- Pin declared YAML 2.8.1 to 2.8.3 with exact registry integrity, preserving every
+  unrelated manifest/lock field. Bounded old/new parser proof, clean private
+  install, Desktop build and four focused regressions pass. Shared parser updated
+  recoverably; installed app and normal CLI unchanged.
+- Desktop lock-audit findings fall production12→11/all18→17, removing only YAML;
+  unrelated KaTeX remediation-suggestion drift is retained separately. Remaining
+  Desktop/website/default-main findings prevent security-green status.
+  [Evidence and reachability limits](docs/dependency-yaml-2026-10-29.md).
+
 ## Approved normal CLI cutover — 2026-10-29 (local delivery)
 
 - Fresh owner approval selects the independently verified `12c05ed5` candidate
