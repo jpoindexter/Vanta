@@ -40,8 +40,8 @@ wrapper were compared before changing Vanta's staging guard.
 - Desktop renderer/Electron typecheck: exit zero.
 - Ten existing microphone-transport fixture tests passed; no recording made.
 
-Raw production audit snapshots: [before](../desktop-next/docs/proofs/iris-dependencies-2026-11-12/production-before.json)
-and [after](../desktop-next/docs/proofs/iris-dependencies-2026-11-12/production-after.json).
+Raw production audit snapshots: [before](https://github.com/jpoindexter/Vanta/blob/codex/iris-desktop-deps-20261112/desktop-next/docs/proofs/iris-dependencies-2026-11-12/production-before.json)
+and [after](https://github.com/jpoindexter/Vanta/blob/codex/iris-desktop-deps-20261112/desktop-next/docs/proofs/iris-dependencies-2026-11-12/production-after.json).
 
 These tests do not enumerate owner windows, grant OS permissions, or establish
 native Windows/Linux acceptance. Microphone transport is tested separately;
