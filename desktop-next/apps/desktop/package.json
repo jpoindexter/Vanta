@@ -127,7 +127,7 @@
     "zod": "4.6.7"
   },
   "optionalDependencies": {
-    "get-windows": "9.3.0"
+    "get-windows": "10.0.0"
   },
   "devDependencies": {
     "@babel/core": "8.0.1",

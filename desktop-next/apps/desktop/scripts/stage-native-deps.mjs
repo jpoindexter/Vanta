@@ -461,19 +461,19 @@ const getAddon = () => {
 };
 
 export async function activeWindow() {
-\treturn getAddon().getActiveWindow();
+\treturn getAddon().getActiveWindow() ?? undefined;
 }
 
 export function activeWindowSync() {
-\treturn getAddon().getActiveWindow();
+\treturn getAddon().getActiveWindow() ?? undefined;
 }
 
 export function openWindows() {
-\treturn getAddon().getOpenWindows();
+\treturn getAddon().getOpenWindows() ?? [];
 }
 
 export function openWindowsSync() {
-\treturn getAddon().getOpenWindows();
+\treturn getAddon().getOpenWindows() ?? [];
 }
 `
 
@@ -503,7 +503,7 @@ function resolveGetWindowsRoot(appRoot = projectRoot) {
  * a Windows host — cross-platform packs already can't happen, see
  * stageNodePtyInto), Linux nothing (it shells out to xprop at runtime).
  */
-const GET_WINDOWS_VERSION = '9.3.0'
+const GET_WINDOWS_VERSION = '10.0.0'
 
 export function stageGetWindowsInto(
   srcRoot,
