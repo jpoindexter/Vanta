@@ -1,6 +1,6 @@
 # Vanta Desktop — Iris test build, 11 November 2026
 
-> Superseded: [12 November dependency-repaired Iris build](https://github.com/jpoindexter/Vanta/releases/tag/desktop-test-20261112.1). The original build and evidence below remain unchanged for rollback.
+> Superseded: [12 November build-tool-repaired Iris build](https://github.com/jpoindexter/Vanta/releases/tag/desktop-test-20261112.2). The original build and evidence below remain unchanged for rollback.
 
 This is a testing checkpoint, not a production release or a claim that the
 Desktop redesign, all agent capabilities, or the roadmap are complete.

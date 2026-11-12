@@ -1,3 +1,7 @@
+> Superseded delivery: [download the build-tool-repaired Iris build](https://github.com/jpoindexter/Vanta/releases/tag/desktop-test-20261112.2).
+> The later repair also removes the 13 development/build audit entries recorded
+> below. This dated production-only result and its archive remain unchanged.
+
 # Iris Desktop dependency repair — 12 November 2026
 
 Scope: the nine affected-package entries in the 11 November Desktop **production**
