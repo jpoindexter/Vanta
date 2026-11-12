@@ -186,3 +186,16 @@ Actual candidate Cancel (17 checks) and Pause/Resume (19 checks) then passed.
 Logs/screenshots and dependency hash are retained in
 desktop-next/docs/DN-22-WORKFLOW-CANCEL-2026-10-23.md. Do not describe an outer
 VANTA_KERNEL_BIN as selecting the source Electron launcher's actual kernel.
+
+## 2026-11-12 — Desktop security lock maintenance crossed resolver/API boundaries
+
+npm 10.9.8 update failed in Arborist's loadPeerSet with null `edgesOut`;
+package-lock-only install made no progress. Use isolated npm 12.2.2 for this
+lock maintenance and tree inspection, retaining global npm/Node/authentication.
+Its first resolution exposed duplicate React peer types and a legacy filelist
+consumer receiving non-callable Minimatch 11. Keep the existing React/type pins
+and scope modern Glob/Minimatch overrides; explicitly retain legacy matcher
+APIs. Six focused archive/matcher/plist/schema/HTTP checks, both typechecks,
+fresh npm 10 ci and full/production zero-audit checks passed. npm 10's tree
+reporter still rejects the scoped overrides; npm 12's tree reports no problems.
+See docs/iris-build-tool-dependencies-2026-11-12.md for limits and delivery proof.
