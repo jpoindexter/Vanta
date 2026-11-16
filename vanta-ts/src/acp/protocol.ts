@@ -102,7 +102,7 @@ export const ContentBlock = z.union([TextContentBlock, z.object({ type: z.string
 
 export const InitializeParams = z.object({
   protocolVersion: z.number().default(PROTOCOL_VERSION),
-  clientCapabilities: z.record(z.unknown()).optional(),
+  clientCapabilities: z.record(z.string(), z.unknown()).optional(),
   clientInfo: z.object({ name: z.string(), version: z.string().optional() }).nullish(),
 });
 

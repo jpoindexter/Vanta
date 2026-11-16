@@ -20,7 +20,7 @@ const McpTokenSchema = z
   })
   .passthrough();
 
-const StoreSchema = z.record(McpTokenSchema);
+const StoreSchema = z.record(z.string(), McpTokenSchema);
 
 export type McpToken = z.infer<typeof McpTokenSchema>;
 export type McpTokenStore = z.infer<typeof StoreSchema>;
