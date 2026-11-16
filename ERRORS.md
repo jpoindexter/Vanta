@@ -199,3 +199,24 @@ APIs. Six focused archive/matcher/plist/schema/HTTP checks, both typechecks,
 fresh npm 10 ci and full/production zero-audit checks passed. npm 10's tree
 reporter still rejects the scoped overrides; npm 12's tree reports no problems.
 See docs/iris-build-tool-dependencies-2026-11-12.md for limits and delivery proof.
+
+
+## 2026-11-16 — Dependency fixes must preserve consumer and override contexts
+
+Inherited parent overrides for modern Minimatch 11 and legacy Minimatch 3 made
+npm 12's Arborist report valid once/wrappy edges as invalid: it compared unrelated
+inherited matcher rules after semver validation succeeded. Reinstalling or using
+an older tree reporter did not fix that modeling conflict. Version-specific root
+rules for only Minimatch 9/10 avoid the context conflict while retaining legacy
+3/5 APIs; fresh installs, full tree inspection and archive/matcher tests pass.
+Use isolated npm 12.2.2 for this maintenance; its URL-fetch default is none, so
+ci needs command-local --allow-remote=root for the existing integrity-pinned
+Winnow dependency. Do not enable arbitrary remote URLs or change global config.
+
+Docusaurus's open Mermaid range initially selected an unnecessary major update.
+Keep the theme's exact direct caret spec in a nested override selecting Mermaid
+11.16.1 and its KaTeX 0.18.2 child; test resolution through the actual theme entry,
+not an unexported package.json path. Typecheck/build and real browser diagram/math
+rendering pass. Do not suppress active advisories: the remaining sprintf match
+was instead confirmed upstream-withdrawn and triaged with that exact reference.
+See docs/dependency-security-2026-11-16.md for scope, results and merge gates.
