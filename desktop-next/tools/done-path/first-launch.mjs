@@ -62,7 +62,12 @@ async function recoverSetup(ctx, local, evidence) {
   await ctx.page.getByText(HEADER, { exact: true }).waitFor({ timeout: 30000 });
   await chooseLocal(ctx, local);
   assert.equal(local.requests.filter(url => url.endsWith('/chat/completions')).length, 0);
-  await ctx.page.getByRole('textbox', { name: 'Message Vanta' }).fill('Synthetic first useful chat');
+  // A rejected send remains in custody until the user explicitly restores it; setup never replays it.
+  const restore = ctx.page.getByRole('button', { name: 'Restore without sending', exact: true });
+  await restore.click();
+  await restore.waitFor({ state: 'hidden' });
+  assert.equal(await ctx.page.getByRole('textbox', { name: 'Message Vanta' }).textContent(), 'Unsent first-run draft');
+  assert.equal(local.requests.filter(url => url.endsWith('/chat/completions')).length, 0);
   await ctx.page.getByRole('textbox', { name: 'Message Vanta' }).press('Enter');
   await ctx.page.getByText(REPLY, { exact: true }).first().waitFor({ timeout: 45000 });
   await ctx.page.getByRole('button', { name: 'Send', exact: true }).waitFor();

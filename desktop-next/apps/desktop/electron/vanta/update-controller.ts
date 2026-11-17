@@ -26,7 +26,7 @@ export function createDesktopUpdater(deps: UpdateDeps) {
     try {
       const release = await deps.discover()
       return { ...base, updateAvailable: release.available, latestTag: `desktop-v${release.version}`, sourceVersion: release.version }
-    } catch (error) { return { ...base, error: messageOf(error) } }
+    } catch (error) { return { ...base, error: messageOf(error), message: messageOf(error) } }
   }
   const fail = async (error: unknown, releasePreparation?: () => Promise<void>) => {
     let message = messageOf(error)
@@ -34,7 +34,7 @@ export function createDesktopUpdater(deps: UpdateDeps) {
     try { if (!uncertain) await releasePreparation?.() }
     catch { uncertain = true; message += ' Update preparation could not be released; new work remains paused. Keep this app open and review its status.' }
     progress('error', message)
-    return { ok: false, error: message }
+    return { ok: false, error: message, message }
   }
   const apply = async () => {
     if (uncertain) return { ok: false, error: 'A native update may still be completing. Restart Vanta before checking installation again; no retry was started.' }

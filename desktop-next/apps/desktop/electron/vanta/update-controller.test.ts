@@ -32,7 +32,7 @@ describe('native Desktop update admission', () => {
   })
   it('unfreezes on failed backup/install and never retries the native result', async () => {
     const s = setup(); s.deps.install.mockRejectedValue(new Error('publisher rejected'))
-    expect(await s.updater.apply()).toMatchObject({ ok: false, error: 'publisher rejected' })
+    expect(await s.updater.apply()).toMatchObject({ ok: false, error: 'publisher rejected', message: 'publisher rejected' })
     expect(s.steps.at(-1)).toBe('release')
     expect(s.deps.install).toHaveBeenCalledTimes(1)
   })
@@ -72,7 +72,7 @@ describe('native Desktop update admission', () => {
   })
   it('refuses unsupported installations and maps check errors without a false current claim', async () => {
     const s = setup(); s.deps.discover.mockRejectedValue(new Error('offline'))
-    expect(await s.updater.check()).toMatchObject({ error: 'offline', updateAvailable: false })
+    expect(await s.updater.check()).toMatchObject({ error: 'offline', message: 'offline', updateAvailable: false })
     await expect(createDesktopUpdater({ ...s.deps, supported: false }).check()).resolves.toMatchObject({ supported: false })
   })
 })

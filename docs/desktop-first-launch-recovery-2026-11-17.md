@@ -35,6 +35,15 @@ provider architecture or setup persistence mechanism was added.
   was observed failing before the production patch. Tests also assert no setup
   focus steal into a different chat and no provider flow for an unrelated error.
 - Renderer TypeScript check passed. The new packaged proof parses successfully.
+- The isolated installed **0.1.1**, source
+  `819a67da9a6d0ba1e142ee0690bdf06b1d49ba30`, clean package-provenance candidate
+  passed all seven packaged first-launch checkpoints. Its deep strict signature
+  verification passed. Source digest:
+  `a3f01745e8aa31d4020d9e2a14ba762e13e0d99f446a07f306064ed3aa2a0b6e`.
+  Observed requests were `/api/tags` twice (stopped then explicit retry) and
+  exactly one `/v1/chat/completions`. No renderer errors occurred. Screenshots
+  of the first reply and cold-restarted retained chat/draft were inspected.
+  No processes referencing the run's private profile remained after close.
 - No full suite was run. ESLint could not run because its executable is absent
   from this dependency tree; no dependencies were installed to hide that gap.
 
@@ -55,11 +64,35 @@ stopped-model retry, no automatic model submission, exactly one explicit model
 request and configured cold-restart continuity. Screenshots and evidence stay
 in the private temporary evidence directory printed by the script.
 
+### Explicit custody recovery is part of the workflow
+
+After the first missing-key rejection, the saved message is intentionally
+retained behind **Restore without sending**. The successful replay opens that
+recovery action with an empty composer, asserts the exact original text is
+restored and no model request occurred, then explicitly presses Enter once.
+Setup must not bypass the custody fence or resubmit the rejected message.
+
+Two earlier 0.1.1 replays incorrectly typed a different draft while the prior
+rejected message was still unresolved. Enter and a Send click both produced no
+model request, consistent with the custody client's interrupted-phase fence.
+Their failure screenshots and private profiles were preserved, not replaced by
+the successful evidence. The proof was corrected to follow the actual recovery
+action; no production guard was weakened. The enabled Send appearance while
+that custody fence is unresolved is a separate usability limitation, not proof
+that the new provider setup failed.
+
+Successful private evidence run: `vanta-first-launch-ZDis0k`, isolated profile
+`vanta-donepath-ixUeWo`. Retained failed runs: `vanta-first-launch-Yhqeq8` and
+`vanta-first-launch-XLDZv5`. These are private temporary evidence, not release
+assets or owner data.
+
 ## Not established yet
 
-The corrected path has **not yet passed in a newly built signed package**.
-Existing signed-binary evidence is a control, not acceptance of changed source.
-This lane has not validated DMG installation, notarization, updater behavior,
+The corrected path passed in the exact new signed isolated installed copy.
+This lane has not independently validated DMG installation, Apple notarization,
+native updater relaunch or the normal owner-profile installation. Its isolated
+launch deliberately refuses native updating because LaunchServices cannot
+preserve the test's profile/environment overrides. It has not validated
 real paid-provider authentication, microphone/native permissions, external
 accounts, VoiceOver, or unfamiliar-person acceptance. Those remain separate
 gates. No source/runtime builds, commits, pushes, card changes or owner-profile

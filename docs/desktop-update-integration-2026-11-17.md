@@ -96,6 +96,29 @@ the local stream independently checks its approved bytes.
   and preserve CLI/kernel Latest. No merge/protection bypass, paid CI/service,
   credential migration, backup deletion or unapproved feedback send is included.
 
+## First actual native acceptance attempt
+
+After explicit owner approval, observed no Working/Needs input chats across
+profiles and no live subagents, restored the original view, quit normally and
+retained private app/data rollback copies. A signed, Apple Accepted test seed
+from source `819a67da` opened the existing owner profile with history intact.
+An unsent synthetic draft and local file were added without sending.
+
+The native flow discovered the public signed 0.1.1 target and downloaded its
+exact approved ZIP. Renderer/custody/runtime preparation passed. Publisher
+verification refused before rollback staging or replacement because `codesign
+-R` treats an unprefixed argument as a filename. The literal requirement needed
+its `=` expression prefix. The original draft/file remained intact and ordinary
+preparation was released. No automatic retry or completed replacement is claimed.
+
+The exact native command passed against that same signed installed app after
+the one-character source correction; a focused regression failed before and
+passed after it. Failure/check replies now also retain their generated message
+in the existing UI contract, preventing the result from overwriting actionable
+progress with a generic error. The 0.1.1 target was returned to draft status;
+its immutable tag and artifacts remain preserved. Corrected two-package
+acceptance must still run before the final DMG.
+
 ## Not claimed
 
 No native two-package acceptance, new installed version, fresh notarized DMG,

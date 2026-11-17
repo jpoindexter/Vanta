@@ -6,7 +6,7 @@ import { promisify } from 'node:util'
 import type { DesktopRelease } from './update-release'
 
 const run = promisify(execFile)
-const REQUIREMENT = 'identifier "studio.theft.vanta-next" and anchor apple generic and certificate leaf[subject.OU] = "5352PXMNV5"'
+const REQUIREMENT = '=identifier "studio.theft.vanta-next" and anchor apple generic and certificate leaf[subject.OU] = "5352PXMNV5"'
 const asarDigest = async (app: string) => createHash('sha256').update(await fs.readFile(path.join(app, 'Contents/Resources/app.asar'))).digest('hex')
 
 export async function verifyVantaPublisher(app: string): Promise<void> {

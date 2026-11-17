@@ -1,8 +1,9 @@
 # Corrupt image admission and chat recovery — 17 November 2026
 
 Supporting repair for `DESKTOP-CHAT-IMAGE-FAILURE-RECOVERY`, not closure of the
-original tester incident. The repair is source-verified; final signed package,
-DMG and installed-copy acceptance are separate delivery gates.
+original tester incident. The repair is executed in source and the signed
+v0.1.1 isolated installed copy. Normal-profile installation, native updater
+replacement and DMG delivery remain separate gates.
 
 ## Reproduced cause
 
@@ -67,15 +68,59 @@ This proves the named source replay, not a real-provider interpretation or final
 signed DMG. Initial source-fixture setup failures were corrected before these
 checks; they are not counted as product acceptance.
 
+The existing delayed-preview scope regression also needed an explicit successful
+browser `Image` fixture: JSDOM does not perform that decode. Its exact focused
+case first failed after the admission timeout, then passed with the original
+PNG source asserted while the preview bitmap remained deliberately delayed.
+Only the test fixture changed; corrupt-image refusal was not relaxed.
+
+## Executed signed installed-copy proof
+
+The signed v0.1.1 app built from
+`819a67da9a6d0ba1e142ee0690bdf06b1d49ba30` was replayed from an isolated
+installed copy after the release lane's notarization/stapling checks. Observed
+identity was `app.isPackaged: true`, version `0.1.1`, and `app.asar` SHA-256
+`06d54e0ecf03ca5cdd28054edc2c27db9ded19c136952ce9a03d6778645d26a7`.
+The actual bundled runtime and kernel were used; no CSS injection or source
+runtime substitution was used.
+
+The complete replay exited zero and observed:
+
+1. The corrupt PNG is refused readably while the exact typed text and existing
+   project file remain attached.
+2. A valid PNG is added; actual quit/relaunch retains its exact source bytes,
+   the file and unsent text, without resurrecting the refused corrupt image.
+3. That restored file/image request completes in the same chat, then ordinary
+   follow-up text completes; the fixture waits for idle Send, not partial output.
+4. Another chat completes. Returning restores the original transcript with an
+   empty draft and no cross-chat draft transfer.
+5. Attachment/Send, idle Send and running Stop expose their complete circles at
+   500px, 800px and 1440px; a real UI-created split retains distinct pane drafts.
+   Ten captures cover 11 controls and 176 inside-circle hit points, with zero
+   misses and zero renderer errors.
+
+Only the native picker result was supplied by the fixture. All files, profiles
+and model responses were synthetic/local. Actual signed screenshots were
+inspected, including composer-only Stop and attachment/Send crops. Private
+evidence includes `run2/result.json`, `run2/geometry.json`, `run2/identity.json`,
+`corrupt-refused-draft-retained.png`, `same-chat-recovery.png` and
+`real-split-send-1440.png`. The first split attempt's fixture focus failure is
+retained and explained in
+[the circle-clipping note](desktop-composer-control-edge-2026-11-17.md); only the
+subsequent full rerun is counted as complete.
+
 ## Remaining gates
 
-- Repeat the attachment/restart/other-chat replay against the final extracted
-  signed distribution and verify its exact installed identity.
+- Normal-profile installation/continuity, native updater replacement and DMG
+  delivery require their separate release evidence; the signed replay above
+  used an isolated installed copy, not the owner's app/profile.
 - Establish the original tester build/input/failure; do not infer that the
   counterfeit PNG reproduced the original delayed reset.
 - External-project and remote/container ingestion, corrupt TIFF validation,
-  larger/oversized failures, unknown-send reconciliation and attachment-triggered
-  composer geometry require their own bounded evidence.
+  larger/oversized failures, unknown-send reconciliation and live-provider
+  interpretation still require their own bounded evidence. The specifically
+  tested attachment-triggered circle geometry is covered above, not all layouts.
 
 Owner data, credentials, existing history and rollback copies were not changed
-by this source investigation. The original parent card remains open.
+by this investigation or the signed isolated replay. The original tester parent
+card remains open.
