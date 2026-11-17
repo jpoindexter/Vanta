@@ -105,11 +105,15 @@ A separate real packaged reproduction finally reached the missing startup condit
 
 The narrow repair uses existing known-session ownership as draft-custody evidence, rechecks it for each captured key, and does not create owner hints or change RPC routing. Independent review also reproduced a conflicting ambient-connection case; bare-profile fallback now requires the active local primary draft door, while exact scope/hint/tagged routes retain their existing behavior. Parent reran **20 cold-start cases**, and renderer/Electron typechecks passed. The agent's surrounding six-file run passed 87 cases; counts overlap. Exact rebuilt-package acceptance is recorded separately when executed. No whole-app cold-typing success is claimed from mounted-component tests alone.
 
+**Executed exact-build follow-through:** published `21144177` passed parent MCP/auth/registry/connect/mount 59 cases, worker/retention 18 cases, cold typing 20 cases, runtime/renderer/Electron typechecks, the production help-site build, staged secret scanning, all six changed production files' strict size limits and all five architecture boundaries. The 13-file precommit recovery archive was extracted to memory and matched byte-for-byte. GitHub/local SHA matched after push; protected main stayed unchanged.
+
+The clean-source signed Desktop 0.1.4 rebuilt from that commit then passed the same actual uncached native journey that failed on `19d68ed5`: exact typed draft, caret and focus; separate recipient attachment custody; original draft/file intact on return; no automatic send; zero renderer errors. Two explicit synthetic setup sends only, no paid output or owner account. The [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md) records the exact artifact hashes and distinguishes this six-step proof from the earlier package's seven core criteria. Notarization, normal-app cutover, visual acceptance and live-owner workflows remain unexecuted.
+
 ## Dependency-ordered work remaining
 
 1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
 2. Before child continuation or agent-facing inspection: validate expected parent/profile/branch authority, preserve real remaining budgets, reconcile effects and retain review holds. Never restore grants or replay unknown effects.
-3. Run actual packaged cold-launch typing/owner acceptance; the isolated floating-pointer fixture gap above is resolved separately, not a substitute for whole-app proof.
+3. Carry the executed packaged uncached-typing repair through notarized normal-app installation, then run installed/live-owner acceptance; neither the six-step native fixture nor the isolated floating-pointer proof certifies the whole desktop.
 4. Test an exact selected fallback route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
 5. Reproduce adopted-reply/late-tail reconnect behavior before changing production streaming. Existing session identity/no-second-POST protections stay intact.
 
