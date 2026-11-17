@@ -34,7 +34,17 @@ focused cases passed using the actual native filesystem guards. Native file
 metadata assertions first failed, then passed. The combined attachment/image/
 submit selection passed 51 cases with 125 unrelated cases skipped.
 
-The current package must be rebuilt and exercised before claiming delivery.
-The earlier Apple-accepted package lacks this repair and remains held. Exact
-owner-session causation, arbitrary external documents, remote uploads and
-whole-product acceptance remain unverified.
+## Executed package proof
+
+The [normal Desktop v0.1.0 release](releases/desktop-v0.1.0.md) includes committed
+source `b12f8af0`. The earlier package without this repair was held, not
+published. The replacement is signed, Apple Accepted, stapled and Gatekeeper
+accepted; final ZIP/app fingerprints agree.
+
+The final extracted ZIP exercised the Files/Images UI in an isolated profile.
+Only native picker results were supplied by the fixture. A project Markdown
+reference and exact PNG bytes reached the same single local model request;
+the reply appeared, relative file metadata persisted, and zero renderer errors
+were captured. This is not real-provider document interpretation or arbitrary
+external ingestion. Exact owner-session causation, remote uploads, larger or
+corrupt files and whole-product acceptance remain unverified.

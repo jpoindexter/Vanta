@@ -1,6 +1,6 @@
 # Vanta
 
-[![Release](https://img.shields.io/github/v/release/jpoindexter/Vanta?display_name=tag&label=desktop%20release)](https://github.com/jpoindexter/Vanta/releases/latest) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-111111.svg)](https://docs.vanta.theft.studio) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Desktop release](https://img.shields.io/badge/desktop-v0.1.0-555)](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-111111.svg)](https://docs.vanta.theft.studio) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **Broad capability. Trusted continuity. Verified follow-through.**
 
@@ -31,12 +31,19 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Start here
 
-- **[Download Vanta Desktop for macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg)** — signed, notarized, and stapled for Apple Silicon.
-- **[Read the latest release notes](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.8)** — reusable runs, safe replay, Buzz ACP, integrations, and reliability fixes. The v0.9.5 download above remains the latest notarized Desktop DMG.
+- **[Download Vanta Desktop v0.1.0 for macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip)** — the normal signed, notarized Apple silicon app, not a separate Iris build. Check the release checksum before installing.
+- **[Read the Desktop release notes](docs/releases/desktop-v0.1.0.md)** — private feedback, useful blocked-state guidance and guarded project-file references. External/remote file ingestion, automatic updating and whole-product acceptance remain open. CLI/kernel release history remains separate.
 - **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
 - **[Follow the roadmap](ROADMAP.md)** — canonical status lives in `roadmap.json`; generated views and local implementation evidence have separate publication boundaries. Paid growth and unfamiliar-person testing remain deferred. No paid participants, recruiting, research platforms, Actions, hosting, outreach, or new service spend are authorized.
 
-## Ambient Desktop redesign — local candidate, not a release
+## Desktop delivery and development history
+
+**Current public Desktop — November 17:** normal
+[Vanta Desktop v0.1.0](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0)
+replaces the separate Iris test downloads. The final signed/notarized ZIP passed
+the scoped interactive checks recorded in its [release notes](docs/releases/desktop-v0.1.0.md).
+The existing owner-installed copy was not replaced. The dated development and
+local-delivery records below are historical evidence, not the current download.
 
 **Current execution priority — October 28:** agent usefulness for business
 research, GTM preparation and explicitly approved outreach comes before broader

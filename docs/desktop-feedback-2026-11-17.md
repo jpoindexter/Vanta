@@ -75,7 +75,7 @@ The crop alone does not establish the owner's complete window/split geometry.
   that source UI check. The gutter assertion failed before the CSS correction.
 - Separate Worker build/deployment and public health response.
 
-## Remaining delivery gates
+## Historical release hold
 
 Release hold after owner clarification: the reported clipping and slow reset
 are attachment-triggered (files and photos), not just narrow shadow paint.
@@ -83,12 +83,26 @@ The signed local checkpoint package is retained privately as a reproduction
 baseline. Do not publish it as the attachment fix. Trace the actual attachment
 action and recovery before promoting a replacement candidate.
 
-Final source reconciliation, signed/notarized package, extracted-package UI
-proof, the one approved synthetic submission and private receipt readback,
-GitHub push/release readback and installed-copy selection are still pending at
-this source checkpoint. No new binary is claimed delivered by this document.
+The initial checkpoint did not establish package delivery. Subsequent release
+preparation reproduced and repaired a missing native file-reference adapter;
+see [the bounded repair](desktop-native-file-reference-2026-11-17.md).
+
+## Normal Desktop release — 17 November
+
+The replacement is [Vanta Desktop v0.1.0](releases/desktop-v0.1.0.md), not another
+Iris build. Source `b12f8af0` is pushed. Its final ZIP is Developer ID signed,
+Apple Accepted, stapled, Gatekeeper accepted and fingerprint-verified.
+
+Actual extracted-ZIP UI proof passed in a private synthetic profile: native
+Help and Settings → About open the same form, a local unsent draft survives
+quit/relaunch, and no renderer errors were captured. Exactly one separately
+approved synthetic report was stored by the private receiver. Database readback
+confirmed the email service acknowledged its notification; inbox arrival is
+not established. The extracted-ZIP replay sent nothing. Existing owner app/CLI,
+history, credentials and approvals were not changed.
 
 Desktop auto-update is a separate open card: the current update feed is null
 and native update methods remain unimplemented. A CLI updater or a new ZIP
-does not satisfy it. The tester's image-send/session regression is captured,
-not diagnosed or fixed. All pre-existing cards and work remain preserved.
+does not satisfy it. The original tester's attachment/reset incident is still
+open despite the supported project-file/PNG package proof. All pre-existing
+cards and work remain preserved.

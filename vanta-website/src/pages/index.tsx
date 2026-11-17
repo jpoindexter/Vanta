@@ -6,9 +6,9 @@ import Layout from "@theme/Layout";
 import styles from "./index.module.css";
 
 const desktopRelease =
-  "https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg";
+  "https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip";
 const desktopReleaseNotes =
-  "https://github.com/jpoindexter/Vanta/releases/tag/v0.9.8";
+  "https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0";
 
 const screens = [
   {
@@ -112,7 +112,7 @@ export default function Home(): ReactNode {
             <h1>Vanta</h1>
             <p>Local AI operator / 001</p>
           </div>
-          <a className={styles.heroAction} href={desktopRelease}>Download desktop v0.9.4</a>
+          <a className={styles.heroAction} href={desktopRelease}>Download desktop v0.1.0</a>
         </header>
 
         <section className={styles.intro} aria-labelledby="intro-title">
@@ -265,7 +265,7 @@ export default function Home(): ReactNode {
             <p className={styles.kicker}>Start here</p>
             <h2 id="install-title">Give it one real task.</h2>
             <div className={styles.installMethods}>
-              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.9.4 DMG</a></div>
+              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.1.0 ZIP</a></div>
               <div><h3>Terminal</h3><p>Install the operator and kernel from the command line.</p><code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code></div>
               <div><h3>Source</h3><p>Inspect the code, release evidence, and open roadmap.</p><a href={desktopReleaseNotes}>Open the release</a></div>
             </div>

@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased — Desktop feedback checkpoint (2026-11-17)
+## Desktop v0.1.0 — 2026-11-17
+
+- Publish one normal Apple silicon Desktop release, superseding the separate
+  Iris prereleases. Preserve their verified archives and source tags for rollback.
+- Preserve explicit uncertain-effect guidance live and after restart, keep
+  recovery edit-only, and update the same terminal reply after settlement failure
+  instead of adding a duplicate failed card. No automatic uncertain-effect retry.
+- Connect project-local file references through the existing native filesystem
+  guards and deliver their relative metadata alongside inline images. External
+  files and remote byte uploads remain unsupported; the original tester incident
+  is not claimed fully resolved.
 
 - Add Help and About entries for private bug/idea reports, exact previews,
   local drafts and explicit same-ID retry against a separate receipt-backed
@@ -9,10 +19,12 @@
   changing the existing surface radius or 720px width cap.
 - Track the tester's failed-image chat recovery regression and real signed
   Desktop auto-update as separate unfinished cards. A new ZIP is not an updater.
-- Source checks and pending package gates: `docs/desktop-feedback-2026-11-17.md`.
+- Exact package, checksums, notarization and acceptance limits:
+  `docs/releases/desktop-v0.1.0.md`.
 
-Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
-attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
+Notable changes per release. CLI/kernel releases ship their own platform assets;
+Desktop releases state their supported architecture separately. Release assets
+live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 
 ## Transcript math security — 2026-10-29 (source/shared dependency)
 

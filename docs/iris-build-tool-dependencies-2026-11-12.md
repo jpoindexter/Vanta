@@ -1,5 +1,10 @@
 # Iris Desktop build-tool repair — 12 November 2026
 
+> Historical test build. Superseded by the normal
+> [Vanta Desktop v0.1.0 release](releases/desktop-v0.1.0.md).
+> Iris public downloads are retired; source tags and verified rollback archives
+> remain. The dated evidence below is preserved, not a current download offer.
+
 Scope: the 13 remaining affected-package entries in the Desktop development and
 build dependency graph. This extends the earlier production-only repair; it is
 not a claim about the old default branch or every Vanta dependency graph.

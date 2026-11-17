@@ -1,6 +1,8 @@
-> Superseded delivery: [download the build-tool-repaired Iris build](https://github.com/jpoindexter/Vanta/releases/tag/desktop-test-20261112.2).
-> The later repair also removes the 13 development/build audit entries recorded
-> below. This dated production-only result and its archive remain unchanged.
+> Historical test build. Superseded by the normal
+> [Vanta Desktop v0.1.0 release](releases/desktop-v0.1.0.md).
+> Iris public downloads are retired; source tags and verified rollback archives
+> remain. The later build-tool repair removed the 13 development/build entries
+> recorded below. This dated production-only evidence remains unchanged.
 
 # Iris Desktop dependency repair — 12 November 2026
 

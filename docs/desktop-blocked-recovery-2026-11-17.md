@@ -48,10 +48,17 @@ rows, then 25 focused controller/effect/ownership checks passed with one row,
 persisted receipt, independent-history preservation and queued-successor
 protection. Desktop renderer/Electron and runtime typechecks passed.
 
-These are component/controller proofs, not a packaged native replay or proof of
-the owner's original incident. The local signed baseline predates these edits.
+## Executed package proof
 
-Focused source tests are not installed-app acceptance. No owner history is reset,
+The [normal Desktop v0.1.0 release](releases/desktop-v0.1.0.md) includes this
+repair. In its final extracted ZIP, one seeded uncertain-effect card displayed
+the specific guidance. Edit request opened the exact original instruction with
+zero model requests and no retry/checkpoint controls. The guidance remained
+after actual quit/relaunch; zero renderer errors were captured. The fixture
+executed no external action. This does not identify the owner's screenshot
+cause or establish recovery for every provider outcome.
+
+Focused source tests alone are not installed-app acceptance. No owner history is reset,
 no safety policy is relaxed, and no automatic retry or extra outbound action is
 authorized. The attachment-triggered failure remains separately open; see
 [attachment regression](desktop-chat-image-regression-2026-11-17.md).

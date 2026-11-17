@@ -61,6 +61,14 @@ candidate is held from release pending a supported incident diagnosis.
 
 ## Planning boundary
 
+The normal [Desktop v0.1.0 release](releases/desktop-v0.1.0.md) now contains the
+bounded native file-reference repair. Its final extracted ZIP passed project
+Markdown plus PNG admission/submission in one chat, with exact PNG bytes and
+the reference reaching one local model request, relative file metadata retained
+and zero captured renderer errors. It is signed/notarized. This does not
+reproduce the tester's exact failure, external files, corrupt/oversized inputs,
+failure recovery or every attachment-triggered geometry; this card stays open.
+
 Later release preparation reproduced a missing native file-staging method in
 the actual signed package. Its bounded local-reference repair and refusal limits
 are recorded in [native file references](desktop-native-file-reference-2026-11-17.md).
