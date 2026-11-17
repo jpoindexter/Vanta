@@ -18,6 +18,13 @@ export const CH = {
   backendRecycle: 'vanta:backend-recycle',
   resetPlan: 'vanta:reset-plan',
   resetRun: 'vanta:reset-run',
+  updateCheck: 'vanta:update:check',
+  updateApply: 'vanta:update:apply',
+  updateProgress: 'vanta:update:progress',
+  updatePrepare: 'vanta:update:prepare',
+  updatePrepared: 'vanta:update:prepared',
+  updateRelease: 'vanta:update:release',
+  updateRequested: 'desktop:updates-requested',
   // Window
   windowControl: 'vanta:window-control',
   windowState: 'vanta:window-state-changed',

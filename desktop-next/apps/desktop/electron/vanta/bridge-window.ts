@@ -17,6 +17,7 @@ export function windowFeatureApi(ipc: IpcRendererLike) {
     onOpenFindBarRequested: listen<void>(CH.openFindBar),
     onOpenFolderRequested: listen<void>(CH.openFolderRequested),
     onFeedbackRequested: listen<void>(CH.feedbackRequested),
+    onOpenUpdatesRequested: listen<void>(CH.updateRequested),
     setActiveWork: (payload: unknown) => ipc.send(CH.activeWork, payload),
     setKeepAwake: (mode: unknown) => ipc.send(CH.keepAwake, mode),
     signalDeepLinkReady: () => ipc.invoke(CH.deepLinkReady),

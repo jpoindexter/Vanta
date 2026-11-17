@@ -1,7 +1,4 @@
-/**
- * Desktop self-update store. Tracks distance from the configured branch,
- * surfaces it as an ambient pill, and orchestrates the apply flow.
- */
+/** Desktop update status, quiet offers and explicit apply orchestration. Native owns package installation. */
 
 import { updateDebt } from '@vanta/shared'
 import { atom } from 'nanostores'
@@ -20,6 +17,7 @@ import { checkVantaUpdate, getActionStatus, updateVanta } from '@/desktop-api'
 import { translateNow } from '@/i18n'
 import { persistString, storedString } from '@/lib/storage'
 import { isUpdateFeedConfigured } from '@/lib/vanta-endpoints'
+import { startUpdateReadinessListener } from './update-renderer-readiness'
 import { $connectionsRegistry, refreshConnectionsRegistry } from '@/store/connections'
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { dismissNotification, notify } from '@/store/notifications'
@@ -60,11 +58,10 @@ export const $updateChecking = atom<boolean>(false)
 export const $updateOverlayOpen = atom<boolean>(false)
 export const $updateStatus = atom<DesktopUpdateStatus | null>(null)
 
-// Client and backend are independently updatable; each keeps its own state.
+// Client and backend update independently.
 export const $backendUpdateStatus = atom<DesktopUpdateStatus | null>(null)
 export const $backendUpdateApply = atom<UpdateApplyState>(IDLE)
 export const $backendUpdateChecking = atom<boolean>(false)
-
 export type UpdateTarget = 'client' | 'backend'
 export const $updateOverlayTarget = atom<UpdateTarget>('client')
 
@@ -1323,6 +1320,7 @@ function ingestProgress(payload: DesktopUpdateProgress): void {
 }
 
 let pollerStarted = false
+let stopUpdateReadiness: (() => void) | null = null
 let backgroundTimer: ReturnType<typeof setInterval> | null = null
 let connectionUnsub: (() => void) | null = null
 let lastConnectionKey: string | undefined
@@ -1361,9 +1359,9 @@ export function startUpdatePoller(): void {
   if (pollerStarted || typeof window === 'undefined') {
     return
   }
+  stopUpdateReadiness = startUpdateReadinessListener()
 
-  // No feed, nothing to poll: read the installed version locally and show the
-  // "not configured" status. The bridge's update calls are never made.
+  // Unconfigured builds only read their installed version; never invoke updates.
   if (!isUpdateFeedConfigured()) {
     pollerStarted = true
     $updateStatus.set(notConfiguredStatus())
@@ -1406,6 +1404,8 @@ export function startUpdatePoller(): void {
 }
 
 export function stopUpdatePoller(): void {
+  stopUpdateReadiness?.()
+  stopUpdateReadiness = null
   if (backgroundTimer !== null) {
     clearInterval(backgroundTimer)
     backgroundTimer = null

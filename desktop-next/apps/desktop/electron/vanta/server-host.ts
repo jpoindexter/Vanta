@@ -10,6 +10,7 @@ import type { BootProgress } from './shell-state'
 import { maintainedFetch } from '../../../../../vanta-ts/desktop-native/maintained-fetch.mjs'
 import type { LaunchInput, VantaServer } from './launcher'
 import { assertLocalRuntime, assertRuntimeProfile, readRuntimeOwner, runtimeRoute } from './runtime-owner'
+import { ServerUpdateLease } from './server-update-lease'
 
 export interface ServerHostDeps {
   boot: { fail: (error: string) => void; ready: () => void; verifying: () => void }
@@ -45,6 +46,7 @@ export class ServerHost {
   private needsRespawn = false
   private respawnTimes: number[] = []
   private respawning: null | Promise<void> = null
+  private readonly update = new ServerUpdateLease()
 
   constructor(private readonly deps: ServerHostDeps) {}
 
@@ -54,6 +56,7 @@ export class ServerHost {
 
   /** Start (or replace) the server for a project root. Rejects with the reason the runtime did not come up. */
   start(input: LaunchInput): Promise<void> {
+    if (this.update.blocked) return Promise.reject(new Error('Cancel the prepared desktop update before restarting a runtime.'))
     const previous = this.current
     const previousLaunch = this.launching
 
@@ -130,7 +133,7 @@ export class ServerHost {
       return this.respawning
     }
 
-    if (!this.needsRespawn || this.intentionalStop || this.current || !this.lastInput) {
+    if (!this.needsRespawn || this.respawnBlocked() || !this.lastInput) {
       return
     }
 
@@ -156,6 +159,8 @@ export class ServerHost {
 
     return this.respawning
   }
+
+  private respawnBlocked(): boolean { return this.intentionalStop || this.current !== null || this.update.blocked }
 
   stop(): void {
     this.intentionalStop = true
@@ -205,6 +210,7 @@ export class ServerHost {
   /** Native actions revalidate their captured live owner after every readiness/identity await. */
   async requestBound(call: VantaCall, validate?: () => void): Promise<VantaResult> {
       try {
+        if (this.update.blocked) return unavailable('A desktop update is prepared; new work is blocked.')
         const route = runtimeRoute(call)
         assertLocalRuntime(route)
         const transport = await this.whenReady()
@@ -217,6 +223,17 @@ export class ServerHost {
         return { data: { error: error instanceof Error ? error.message : String(error) }, ok: false, status: 409 }
       }
   }
+
+  prepareUpdate(): Promise<string> {
+    return this.update.prepare(() => {
+      const current = this.current, generation = this.generation
+      if (!current || this.intentionalStop || this.needsRespawn || this.respawning) throw new Error('A started runtime is unavailable; update readiness is unknown.')
+      const validate = () => { if (current !== this.current || generation !== this.generation) throw new Error('The runtime changed during update preparation.') }
+      return { transport: createHttpTransport({ baseUrl: current.baseUrl, fetchImpl: maintainedFetch, token: current.token }), validate }
+    })
+  }
+
+  cancelUpdate(lease: string): Promise<void> { return this.update.cancel(lease) }
 
   private async whenReady(): Promise<null | VantaTransport> {
     try {

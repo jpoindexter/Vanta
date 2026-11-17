@@ -7,7 +7,10 @@ import { $updateOverlayOpen, $updateOverlayTarget, $updateStatus, checkUpdates, 
 
 import { UpdatesOverlay } from './updates-overlay'
 
-// No Vanta update feed is configured in this build (VANTA_UPDATE_FEED_URL is null).
+// A deliberately unconfigured build still must not contact the native updater.
+vi.mock('@/lib/vanta-endpoints', async original => ({
+  ...await original<typeof import('@/lib/vanta-endpoints')>(), isUpdateFeedConfigured: () => false
+}))
 const check = vi.fn()
 
 afterEach((): void => {

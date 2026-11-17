@@ -7,6 +7,7 @@ import { CH } from './channels'
 import { SURFACE_MANIFEST } from './surface-manifest'
 import { connectionApi } from './bridge-connection'
 import { singleEntryRegistries } from './bridge-profiles'
+import { updateApi } from './bridge-updates'
 
 export interface BridgeEnv {
   customWindowControls: boolean
@@ -138,6 +139,7 @@ function nativeAndProject({ ipc, pathForFile }: BridgeEnv) {
 
 export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
   return {
+    updates: updateApi(env.ipc),
     ...connectionAndBoot(env),
     ...gitApi(env.ipc),
     ...contextMenuApi(env.ipc),

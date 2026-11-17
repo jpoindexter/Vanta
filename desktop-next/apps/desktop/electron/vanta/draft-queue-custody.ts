@@ -10,7 +10,8 @@ export interface DraftQueueCustodyDeps {
   readDraft(address: DraftAddress, lease: DraftLease): Promise<DraftSnapshot>
   consumeDraft(request: { address: DraftAddress; lease: DraftLease; hashes: string[] }): Promise<void>
 }
-const key = (address: DraftQueueAddress) => custodyDigest([address.owner, address.session, address.entryId]) + '.queue.json'
+export const draftQueueStorageKey = (address: DraftQueueAddress) => custodyDigest([address.owner, address.session, address.entryId]) + '.queue.json'
+const key = draftQueueStorageKey
 const same = (left: unknown, right: unknown) => JSON.stringify(left) === JSON.stringify(right)
 const conflict = (): never => { throw new Error('custody_conflict: The queued attachment changed; saved bytes were retained.') }
 const occurrence = (item: { id: string; occurrenceId?: string }) => item.occurrenceId || item.id

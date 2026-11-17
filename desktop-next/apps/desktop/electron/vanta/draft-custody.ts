@@ -5,6 +5,7 @@ import { createCustodyFiles, custodyDigest } from './draft-custody-files'
 import { createDraftQueueCustody } from './draft-queue-custody'
 import type { DraftQueueApi } from '../../../shared/src/vanta/draft-queue-custody'
 import { requireSendAssignment, savedDraftSend, type SavedDraftSend } from './draft-send-record'
+import { CustodyUpdateLease } from './custody-update-lease'
 
 export interface DraftCustodyDeps { root: string; profileIsActive: (profile: string) => Promise<boolean> }
 const ownerKey = (owner: DraftOwner) => custodyDigest(owner) + '.owner.json'
@@ -19,6 +20,7 @@ export class DraftCustody {
   private readonly archiveRequestsInFlight = new Set<string>()
   private readonly sendsInFlight = new Set<string>()
   private readonly queued
+  private readonly update = new CustodyUpdateLease()
   readonly queue: DraftQueueApi
   constructor(private readonly deps: DraftCustodyDeps) {
     this.files = createCustodyFiles(deps.root)
@@ -34,8 +36,13 @@ export class DraftCustody {
       remove: request => this.serial(() => queued.remove(request)) }
   }
   private serial<T>(action: () => Promise<T>): Promise<T> {
+    if (this.update.blocked) return Promise.reject(new Error('A desktop update is prepared; new draft operations are blocked.'))
     const next = this.tail.then(action); this.tail = next.catch(() => undefined); return next
   }
+  prepareUpdate(): Promise<string> {
+    return this.update.prepare({ drain: this.tail, files: this.files, busy: () => this.archiveRequestsInFlight.size > 0 || this.sendsInFlight.size > 0 })
+  }
+  cancelUpdate(lease: string): Promise<void> { return this.update.cancel(lease) }
   private async owner(owner: DraftOwner): Promise<DraftOwnerState | null> {
     requireLocal(owner)
     const raw = await this.files.read(ownerKey(owner))

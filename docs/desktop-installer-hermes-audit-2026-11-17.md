@@ -78,9 +78,11 @@ No Hermes code/assets were copied or executed for this audit.
 - Existing packaging helpers already provide provenance, staged replacement,
   signature checks, retained rollback and final ZIP/app fingerprint agreement.
   Extend these seams rather than inventing a second installer/update framework.
-- First-run infrastructure exists, but the renderer gate requires native
-  `guestOnboardingEnabled === true`. That alone does not establish a working
-  Vanta packaged first-run journey; it needs exact fresh-profile proof.
+- The normal provider picker works without `guestOnboardingEnabled`; that flag
+  gates the inherited guide-chat, not model setup. Signed 0.1.0 fresh-profile
+  proof reached setup and a local fixture response. Choosing a provider later,
+  restarting and sending exposed a separate missing-key recovery defect; its
+  source repair still requires replay in the rebuilt signed candidate.
 - The installed release has updates unconfigured. Source discovery/download and
   runtime-quiescence work is separate and not yet a delivered native updater.
 - `docs/installation.md` still advertised the old `v0.9.5` DMG and source rebuild
@@ -99,8 +101,10 @@ establish the package observations above.
 | [`DESKTOP-SIGNED-AUTO-UPDATE`](https://trello.com/c/CuF31GKo) (existing) | Native update integration, work-safe restart and rollback | Two signed packages prove discovery through exact-version relaunch, preserved drafts/attachments/queues and failed-update recovery; never infer this from a DMG or working button |
 | `DESKTOP-COLD-OPERATOR-RELEASE-PROOF` / `UX-04` (existing) | Independent usefulness and accessibility acceptance | Keep the existing unfamiliar-person and cross-host gates; do not duplicate or silently close them |
 
-Order: preserve current attachment/edge repairs → DMG delivery → first-launch
-readiness; finish updater safety/integration in its existing work. These are
+Owner's subsequent delivery order: attachment/edge repairs → first-launch
+recovery and native updater acceptance → final DMG delivery. The original
+DMG-first suggestion is superseded; first-launch proof can use a signed ZIP.
+These are
 proof-sized backlog slices, **not additional Building lanes or a promise that
 all are already implemented**. Existing 12-open/2-Building limits remain.
 

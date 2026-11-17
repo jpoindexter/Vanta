@@ -17,7 +17,6 @@ import {
   type ComposerAttachment,
   type ComposerDraftSyncMode,
   freshDraftScope,
-  isFreshDraftScope,
   onComposerDraftSyncRequest,
   noteDraftTextEdit,
   reloadPersistedDrafts,
@@ -64,6 +63,7 @@ import { useDraftTextCustody } from './use-draft-text-custody'
 import { useSessionDraftScope } from './use-session-draft-scope'
 import type { DraftOwner } from '../../../../../../shared/src/vanta/draft-custody'
 import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
+import { useDraftExitFlush } from './use-draft-exit-flush'
 
 interface UseComposerDraftArgs {
   activeQueueSessionKey: string | null
@@ -576,31 +576,8 @@ export function useComposerDraft({
     [target]
   )
 
-  // pagehide is load-bearing: React skips effect cleanups on reload, so Cmd+R
-  // inside the debounce/rAF window would drop trailing keystrokes without this.
-  // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
-  useEffect(() => {
-    const flushPendingDraftPersist = () => {
-      const scope = draftScopeRef.current
-      const editing = queueEditStateRef.current
-
-      if ((editing && (editing.sessionKey === scope || (!editing.sessionKey && isFreshDraftScope(scope)))) || isBrowsingHistory(sessionIdRef.current)) {
-        return
-      }
-
-      const latestText = syncDraftFromEditor()
-      pendingDraftPersistRef.current = null
-      const owner = draftTextOwnerRef.current
-      if (owner) stashSessionDraft(scope, latestText, attachmentScope.$attachments.get(), owner)
-    }
-
-    window.addEventListener('pagehide', flushPendingDraftPersist)
-
-    return () => {
-      window.removeEventListener('pagehide', flushPendingDraftPersist)
-      flushPendingDraftPersist()
-    }
-  }, [syncDraftFromEditor])
+  useDraftExitFlush({ scope: draftScopeRef, editing: queueEditStateRef, session: sessionIdRef,
+    owner: draftTextOwnerRef, pending: pendingDraftPersistRef, attachments: attachmentScope, text: syncDraftFromEditor })
 
   const { custodyRef, custodyClient } = useDraftCustody(activeQueueSessionKey, composerScope, queueEditRef)
   const { retryCustody, captureCustodyText } = useDraftTextCustody({ custodyRef, custodyClient, draftScopeRef,

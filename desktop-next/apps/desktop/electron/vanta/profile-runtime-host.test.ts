@@ -5,6 +5,10 @@ import path from 'node:path'
 import type { LaunchInput, VantaServer } from './launcher'
 import { ProfileRuntimeHost } from './profile-runtime-host'
 
+vi.mock('../../../../../vanta-ts/desktop-native/maintained-fetch.mjs', () => ({
+  maintainedFetch: (...args: Parameters<typeof fetch>) => fetch(...args)
+}))
+
 const base = realpathSync(mkdtempSync(path.join(tmpdir(), 'vanta-pool-unit-')))
 mkdirSync(path.join(base, 'profiles', 'writer'), { recursive: true })
 const input: LaunchInput = { runtimeRoot: '/fixture/runtime', execPath: 'node', packaged: false,

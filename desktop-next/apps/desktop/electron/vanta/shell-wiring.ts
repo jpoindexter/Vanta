@@ -11,7 +11,7 @@ import { registerGitMutations } from './git-mutation-handlers'
 import { createGitRunner } from './git-runner'
 import type { IpcLike } from './native-handlers'
 import { createProjectGuard, type ProjectGuard } from './project-guard'
-import type { FrameSink, RequestBridge } from './request-bridge'
+import type { FrameSink } from './request-bridge'
 import type { ServerHost } from './server-host'
 import type { NativeActionTarget } from './native-action-target'
 import type { ProfileRuntimeHost } from './profile-runtime-host'
@@ -19,6 +19,8 @@ import { registerShellExtras, type ShellExtras } from './shell-extras'
 import { registerGatedTerminals } from './terminal-gated'
 import { registerWindowFeatures, type WindowFeatures } from './window-features'
 import { rendererLocation } from './window-host'
+import { registerDesktopUpdates } from './update-wiring'
+import type { CustodyRequestBridge } from './draft-custody-wiring'
 
 /** How a native feature asks the Vanta server to run a command, and which chat shows the approval card. */
 interface ApprovalLinks {
@@ -144,7 +146,8 @@ export function createShellWiring(ctx: WiringContext) {
     routeDeepLink: (url: string): void => {
       features ? features.deepLinks.handleUrl(url) : earlyLinks.push(url)
     },
-    registerAll: (ipc: IpcLike, log: (line: string) => void, serverHost: Pick<ProfileRuntimeHost, 'transport' | 'captureNativeTarget' | 'requestNative'>, requests: RequestBridge): void => {
+    registerAll: (ipc: IpcLike, log: (line: string) => void, serverHost: Pick<ProfileRuntimeHost, 'transport' | 'captureNativeTarget' | 'requestNative' | 'prepareUpdate' | 'cancelUpdate' | 'stopAndWait'>, requests: CustodyRequestBridge): void => {
+      registerDesktopUpdates({ ipc, host: serverHost, requests, isRenderer: rendererLocation(ctx.devServer, app.getAppPath()).isRenderer })
       const links: ApprovalLinks = {
         clientFor: sender => {
           const client = requests.latestClientFor(sender as FrameSink)

@@ -5,8 +5,8 @@
  * out. Set a value here (or wire it to settings) to turn the feature on.
  */
 
-/** Base URL of a Vanta desktop update feed. Null: updates are not configured. */
-export const VANTA_UPDATE_FEED_URL: null | string = null
+/** Native stable Desktop metadata only. Renderer never fetches or stages an update itself. */
+export const VANTA_UPDATE_FEED_URL: null | string = 'https://api.github.com/repos/jpoindexter/Vanta/releases?per_page=20'
 
 /** Endpoint that receives a user-approved diagnostics bundle. Null: upload is not configured. */
 export const VANTA_DIAGNOSTICS_UPLOAD_URL: null | string = null

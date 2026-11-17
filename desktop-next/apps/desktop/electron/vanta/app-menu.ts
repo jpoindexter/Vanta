@@ -22,6 +22,7 @@ const appMenu = (deps: MenuDeps): MenuItemConstructorOptions => ({
   label: deps.appName,
   submenu: [
     { label: `About ${deps.appName}`, role: "about" },
+    { label: 'Check for Updates…', click: () => deps.sendToRenderer(CH.updateRequested) },
     { type: "separator" },
     { role: "services" },
     { type: "separator" },

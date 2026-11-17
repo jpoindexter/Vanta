@@ -3,6 +3,15 @@ import { DraftCustodyClient } from './draft-custody-client'
 import type { ComposerAttachment, ComposerAttachmentPatch } from './composer'
 
 const clients = new Map<string, DraftCustodyClient>()
+/** A successful flush is not enough: the client can retain a caught persistence failure. */
+export async function flushUpdateAttachments(): Promise<void> {
+  for (const client of clients.values()) {
+    await client.flush()
+    if (!client.canConsume() || (client.$attachments.get().length && client.$view.get().phase !== 'ready')) {
+      throw new Error('Attachments are still saving or need review. Keep this window open before updating.')
+    }
+  }
+}
 export const custodyAddressKey = (address: DraftAddress): string => JSON.stringify([address.owner.connectionId, address.owner.profile, address.session])
 export function draftCustodyClient(address: DraftAddress): DraftCustodyClient {
   const key = custodyAddressKey(address)

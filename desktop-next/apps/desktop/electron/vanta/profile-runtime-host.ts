@@ -6,6 +6,7 @@ import { assertLocalRuntime, readRuntimeOwner, runtimeRoute } from './runtime-ow
 import { freeKernelPort, profileLaunchInput, runtimeProfile } from './profile-runtime-input'
 import { RuntimeClientOwners } from './runtime-client-owners'
 import type { NativeActionTarget } from './native-action-target'
+import { ProfileUpdateLeases } from './profile-update-leases'
 
 const MAX_PROFILE_RUNTIMES = 8
 
@@ -25,20 +26,26 @@ export class ProfileRuntimeHost {
   private stopped = true
   private launchTail: Promise<unknown> = Promise.resolve()
   private stopping: Promise<void> = Promise.resolve()
+  private readonly updates = new ProfileUpdateLeases()
 
   constructor(private readonly deps: ServerHostDeps) { this.primary = new ServerHost(deps) }
 
   async start(input: LaunchInput): Promise<void> {
-    const stopping = this.stopAndWait(), generation = this.generation
-    await stopping
-    if (generation !== this.generation) throw new Error('The requested runtime start was superseded.')
-    this.input = input
-    this.stopped = false
-    await this.primary.start(input)
+    const release = this.updates.admit()
+    try {
+      const stopping = this.stopAndWait(), generation = this.generation
+      await stopping
+      if (generation !== this.generation) throw new Error('The requested runtime start was superseded.')
+      this.input = input
+      this.stopped = false
+      await this.primary.start(input)
+    } finally { release() }
   }
 
   async baseUrlWhenReady(owner?: unknown): Promise<string> {
-    return (await this.hostFor(runtimeRoute(owner))).baseUrlWhenReady()
+    const release = this.updates.admit()
+    try { return await (await this.hostFor(runtimeRoute(owner))).baseUrlWhenReady() }
+    finally { release() }
   }
 
   private checkGeneration(generation: number): void {
@@ -114,7 +121,9 @@ export class ProfileRuntimeHost {
   readonly requestNative = (call: VantaCall, target: NativeActionTarget) => this.dispatch(call, target)
 
   private async dispatch(call: VantaCall, target?: NativeActionTarget): Promise<VantaResult> {
+      let release = () => {}
       try {
+        release = this.updates.admit()
         const generation = this.generation
         const route = target ? { connectionId: target.connectionId, profile: target.profile } : this.routeFor(call)
         assertLocalRuntime(route)
@@ -127,13 +136,16 @@ export class ProfileRuntimeHost {
           target ? () => this.assertNativeTarget(target) : undefined)
       } catch (error) {
         return { data: { error: error instanceof Error ? error.message : String(error) }, ok: false, status: 409 }
-      }
+      } finally { release() }
   }
 
   readonly transport: VantaTransport = {
     request: call => this.dispatch(call),
     openEvents: (clientId, handlers, owner) => {
       let cancelled = false, stop = () => {}, release = () => {}
+      let releaseAdmission: () => void
+      try { releaseAdmission = this.updates.admit() }
+      catch (error) { queueMicrotask(() => handlers.onClose(error instanceof Error ? error.message : String(error))); return () => {} }
       const generation = this.generation
       void this.hostFor(runtimeRoute(owner)).then(async host => {
         const profile = await readRuntimeOwner(host.transport.request)
@@ -143,10 +155,17 @@ export class ProfileRuntimeHost {
         release = this.owners.bind(clientId, profile)
         stop = host.transport.openEvents(clientId, { ...handlers, onClose: reason => { release(); handlers.onClose(reason) } },
           { connectionId: 'local', profile })
-      }).catch(error => { if (!cancelled) handlers.onClose(error instanceof Error ? error.message : String(error)) })
+      }).catch(error => { if (!cancelled) handlers.onClose(error instanceof Error ? error.message : String(error)) }).finally(releaseAdmission)
       return () => { cancelled = true; stop(); release() }
     }
   }
+
+  prepareUpdate(): Promise<string> {
+    const generation = this.generation
+    return this.updates.prepare([this.primary, ...this.children.values()], () => this.checkGeneration(generation))
+  }
+
+  cancelUpdate(lease: string): Promise<void> { return this.updates.cancel(lease) }
 
   stop(): void {
     void this.stopAndWait()

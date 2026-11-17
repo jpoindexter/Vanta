@@ -667,6 +667,9 @@ declare global {
       relaunchApp?: () => Promise<void>
       getRemoteDisplayReason?: () => Promise<string | null>
       updates: {
+        /** Native asks every app window to flush existing text/attachment custody before restart. */
+        onPrepare?: (callback: () => Promise<void>) => () => void
+        onRelease?: (callback: () => void) => () => void
         check: (opts?: { force?: boolean }) => Promise<DesktopUpdateStatus>
         apply: (opts?: DesktopUpdateApplyOptions) => Promise<DesktopUpdateApplyResult>
         /** Persist this source install's update channel and return the fresh check. */

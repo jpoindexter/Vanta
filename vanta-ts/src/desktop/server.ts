@@ -13,6 +13,7 @@ import { resolveVantaHome } from "../store/home.js";
 import { applyTimezone, loadDesktopPrefs } from "./desktop-prefs.js";
 import { ensureDesktopPermissionMode } from "./permission-mode.js";
 import { loadDesktopRoutes, handleCompanionRouteLazy, handlePublicApiRouteLazy, handlePublicApiProbeRouteLazy } from "./server-lazy.js";
+import { DesktopUpdateReadiness } from "./update-readiness.js";
 export type { PendingApproval, DesktopEvent, DesktopState } from "./handlers.js";
 
 type RouteCtx = { req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState; sid: string; sseClients: SseClients; pathname: string };
@@ -128,11 +129,25 @@ type DesktopServerOptions = Partial<CompanionRouteOptions> & {
 export function createDesktopServer(repoRoot: string, options: DesktopServerOptions = {}): http.Server {
   ensureDesktopPermissionMode();
   const opts = desktopServerOptions(repoRoot, options);
+  const updates = new DesktopUpdateReadiness({ sessions: opts.sessions, root: repoRoot, home: opts.companion.home, env: opts.env });
   void loadDesktopPrefs(opts.env).then((prefs) => applyTimezone(prefs, opts.env)).catch(() => undefined);
   return http.createServer((req, res) => {
-    void routeRequest(req, res, opts)
+    void routeWithUpdateFence(req, res, opts, updates)
       .catch((err: unknown) => sendJson(res, 500, { error: errorMessage(err) }));
   });
+}
+
+async function routeWithUpdateFence(req: http.IncomingMessage, res: http.ServerResponse, opts: ServerOpts, updates: DesktopUpdateReadiness): Promise<void> {
+  const url = new URL(req.url ?? "/", "http://127.0.0.1");
+  if (updates.isEndpoint(url.pathname)) {
+    if (!opts.boundaryToken) return sendJson(res, 403, { error: "native desktop boundary must be configured" });
+    if (denyDesktopRequest(req, res, url, { local: opts.isLoopback(req), boundaryToken: opts.boundaryToken })) return;
+    return updates.handle(req, res, url.pathname);
+  }
+  const release = updates.admit(req.method);
+  if (!release) return sendJson(res, 409, { error: "A desktop update is prepared. Cancel that update before starting new work." });
+  try { await routeRequest(req, res, opts); }
+  finally { release(); }
 }
 
 function desktopServerOptions(repoRoot: string, options: DesktopServerOptions): ServerOpts {
