@@ -1,0 +1,36 @@
+{
+  "before": [
+    {
+      "pid": 65366,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/Frame"
+    },
+    {
+      "pid": 65367,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/Frame"
+    },
+    {
+      "pid": 65368,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/Frame"
+    },
+    {
+      "pid": 65369,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/MacOS"
+    },
+    {
+      "pid": 65829,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/Frame"
+    },
+    {
+      "pid": 65497,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/MacOS"
+    },
+    {
+      "pid": 65498,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop/release/mac-arm64/Vanta.app/Contents/Resou"
+    }
+  ],
+  "survivors": [],
+  "appSurvivors": [],
+  "kernelStayed": false,
+  "leftovers": []
+}

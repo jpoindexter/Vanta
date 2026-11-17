@@ -1,0 +1,235 @@
+import { useStore } from '@nanostores/react'
+import { type MutableRefObject, useCallback, useEffect, useRef, useState } from 'react'
+
+import { useI18n } from '@/i18n'
+import { resetBrowseState } from '@/store/composer-input-history'
+import {
+  $parkedQueueSessions,
+  $queuedPromptsBySession,
+  MAX_AUTO_DRAIN_ATTEMPTS,
+  noteQueuedPromptDrainFailure,
+  type QueuedPromptEntry,
+  removeQueuedPrompt,
+  resolveQueuedPromptTransport,
+  shouldAutoDrain,
+  withQueueDrainClaim
+} from '@/store/composer-queue'
+import { notify } from '@/store/notifications'
+import {
+  $sessions,
+  $sessionsLoading,
+  idsShareLineage
+} from '@/store/session'
+import { $workingSessionIds } from '@/store/session-states'
+import { canDispatchQueuedEntry, dispatchCustodiedQueueEntry } from '@/store/draft-queue-binding'
+
+import type { SubmitTextOptions } from './use-prompt-actions/utils'
+
+type SubmitQueuedPrompt = (text: string, options?: SubmitTextOptions) => Promise<boolean> | boolean
+
+interface BackgroundQueueDrainOptions {
+  enabled: boolean
+  runtimeIdByStoredSessionIdRef: MutableRefObject<Map<string, string>>
+  selectedStoredSessionId: string | null
+  submitText: SubmitQueuedPrompt
+}
+
+const BACKGROUND_DRAIN_RETRY_MS = 750
+
+/**
+ * Drain queued prompts for sessions that are not currently rendered by ChatBar.
+ *
+ * The visible ChatBar owns the interactive queue panel for the selected session.
+ * Without this background drain, a prompt queued in Session A can sit forever
+ * after the user switches to Session B: the only auto-drain effect lives inside
+ * the mounted ChatBar, so Session A's queue is not observed when A is offscreen.
+ */
+export function useBackgroundQueueDrain({
+  enabled,
+  runtimeIdByStoredSessionIdRef,
+  selectedStoredSessionId,
+  submitText
+}: BackgroundQueueDrainOptions) {
+  const { t } = useI18n()
+  const queuedPromptsBySession = useStore($queuedPromptsBySession)
+  const parkedQueueSessions = useStore($parkedQueueSessions)
+  const sessionsLoading = useStore($sessionsLoading)
+  const workingSessionIds = useStore($workingSessionIds)
+  const submitTextRef = useRef(submitText)
+  const drainingSessionIdsRef = useRef(new Set<string>())
+  const drainFailuresRef = useRef(new Map<string, number>())
+  const retryTimersRef = useRef<number[]>([])
+  const [retryTick, setRetryTick] = useState(0)
+
+  // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
+  useEffect(() => {
+    submitTextRef.current = submitText
+  }, [submitText])
+
+  const scheduleRetry = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      retryTimersRef.current = retryTimersRef.current.filter(id => id !== timer)
+      setRetryTick(tick => tick + 1)
+    }, BACKGROUND_DRAIN_RETRY_MS)
+
+    retryTimersRef.current.push(timer)
+  }, [])
+
+  useEffect(
+    () => () => {
+      for (const timer of retryTimersRef.current) {
+        window.clearTimeout(timer)
+      }
+
+      retryTimersRef.current = []
+    },
+    []
+  )
+
+  const drainSessionQueue = useCallback(
+    (sessionKey: string, entry: QueuedPromptEntry) => {
+      if (drainingSessionIdsRef.current.has(sessionKey)) {
+        return
+      }
+
+      drainingSessionIdsRef.current.add(sessionKey)
+
+      const onFail = () => {
+        const failures = (drainFailuresRef.current.get(entry.id) ?? entry.drainFailures ?? 0) + 1
+        drainFailuresRef.current.set(entry.id, failures)
+        // Persist the budget with the queue: a restart must not replay four
+        // more rejections (and the exhaustion notice) against a session that
+        // is exactly as dead as it was when the process exited (#98015).
+        noteQueuedPromptDrainFailure(sessionKey, entry.id)
+
+        if (failures >= MAX_AUTO_DRAIN_ATTEMPTS) {
+          // Exhausted handoffs never authorize discarding unsent work, even if its chat is gone.
+          notify({
+            id: `composer-background-queue-stuck-${sessionKey}`,
+            kind: 'info',
+            title: t.composer.queueStuckTitle,
+            message: t.composer.queueStuckBody
+          })
+
+          return
+        }
+
+        scheduleRetry()
+      }
+
+      void withQueueDrainClaim(sessionKey, async queue => {
+        const liveEntry = queue.find(candidate => candidate.id === entry.id)
+
+        if (!liveEntry) {
+          return true
+        }
+        if (!canDispatchQueuedEntry(sessionKey, liveEntry)) return true
+
+        const resolved = resolveQueuedPromptTransport(liveEntry)
+
+        if (!resolved.ok) {
+          notify({
+            kind: 'warning',
+            title: t.composer.terminalSelectionMissingTitle,
+            message: t.composer.queuedTerminalSelectionExpiredBody
+          })
+          drainFailuresRef.current.set(liveEntry.id, MAX_AUTO_DRAIN_ATTEMPTS)
+
+          return true
+        }
+
+        const runtimeSessionId = runtimeIdByStoredSessionIdRef.current.get(sessionKey) ?? null
+
+        const submit = (callbacks = {}, payload = liveEntry) => {
+          const actual = resolveQueuedPromptTransport(payload)
+          if (!actual.ok) return Promise.resolve(false)
+          return Promise.resolve(submitTextRef.current(actual.transportText, {
+            attachments: payload.attachments,
+            ...(actual.displayText ? { displayText: actual.displayText } : {}),
+            fromQueue: true,
+            sessionId: runtimeSessionId,
+            storedSessionId: sessionKey,
+            ...callbacks
+          }))
+        }
+        const accepted = liveEntry.custody ? await dispatchCustodiedQueueEntry(liveEntry, submit).then(status => status === 'accepted') : await submit()
+
+        if (accepted === false) {
+          return false
+        }
+
+        drainFailuresRef.current.delete(liveEntry.id)
+        // Submit owns blob: previews after a successful drain handoff.
+        if (!liveEntry.custody) removeQueuedPrompt(sessionKey, liveEntry.id, { retainPreviewUrls: true })
+        resetBrowseState(runtimeSessionId)
+
+        return true
+      })
+        .then(accepted => {
+          if (!accepted) {
+            onFail()
+          }
+        })
+        .catch(onFail)
+        .finally(() => {
+          drainingSessionIdsRef.current.delete(sessionKey)
+        })
+    },
+    [runtimeIdByStoredSessionIdRef, scheduleRetry, t]
+  )
+
+  useEffect(() => {
+    // Preserve the retry budget while session discovery runs at boot, on a
+    // gateway/profile switch, or during a refresh over an empty list.
+    // Once discovery settles, submitText can resume by stored id.
+    if (!enabled || sessionsLoading) {
+      return
+    }
+
+    // Queue keys prefer the lineage root (resolveComposerSessionKey) while
+    // $workingSessionIds / selection may hold the compression tip. Strict
+    // equality then mis-classifies a busy or selected chat as idle/offscreen.
+    const sessions = $sessions.get()
+    const working = [...workingSessionIds]
+
+    for (const [sessionKey, entries] of Object.entries(queuedPromptsBySession)) {
+      const isSelected =
+        Boolean(selectedStoredSessionId) && idsShareLineage(sessionKey, selectedStoredSessionId!, sessions)
+
+      const isBusy = working.some(workingId => idsShareLineage(sessionKey, workingId, sessions))
+
+      if (
+        isSelected ||
+        drainingSessionIdsRef.current.has(sessionKey) ||
+        !shouldAutoDrain({
+          isBusy,
+          parked: Boolean(parkedQueueSessions[sessionKey]),
+          queueLength: entries.length
+        })
+      ) {
+        continue
+      }
+
+      const entry = entries[0]
+
+      if (!entry || (drainFailuresRef.current.get(entry.id) ?? entry.drainFailures ?? 0) >= MAX_AUTO_DRAIN_ATTEMPTS) {
+        continue
+      }
+
+      drainSessionQueue(sessionKey, entry)
+    }
+  }, [
+    drainSessionQueue,
+    enabled,
+    parkedQueueSessions,
+    queuedPromptsBySession,
+    retryTick,
+    selectedStoredSessionId,
+    sessionsLoading,
+    workingSessionIds
+  ])
+}

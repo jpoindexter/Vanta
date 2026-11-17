@@ -12,7 +12,10 @@ import {
 import { openGoalIdsFor, remainingBudgetFor, nextAssignedTask } from "../cofounder/cadence-deps.js";
 import { readDepartments, type Department } from "../cofounder/department.js";
 import { getBudget } from "../budget/store.js";
-import { readTasks, latestTasks, advanceTask, appendTask } from "../team/tasks.js";
+import { tasksOfActiveWorkers } from "../team/paused.js";
+import { latestWorkers, readTeam } from "../team/store.js";
+import { readTasks, latestTasks, advanceTask, appendTask, type WorkerTask } from "../team/tasks.js";
+import { runtimeIdFromAdapter } from "../worker-runtimes/adapter-id.js";
 import type { Goal } from "../types.js";
 
 // `vanta company tick` — advance the whole company by one operating-cadence beat:
@@ -113,13 +116,29 @@ export function buildCompanyTickDeps(sources: CompanyTickSources, log: (line: st
  * ledger. The kernel still gates any tool a later worker run invokes — this
  * transition only mutates the (non-tool) task ledger. Errors-as-values.
  */
-async function dispatchAssignedTask(taskId: string): Promise<DispatchOutcome> {
+async function dispatchAssignedTask(taskId: string, root: string): Promise<DispatchOutcome> {
   const task = latestTasks(await readTasks()).find((t) => t.id === taskId);
   if (!task) return { ok: false, error: `unknown task "${taskId}"` };
+  const external = await dispatchToExternalWorker(task, root);
+  if (external) return external;
   const advanced = advanceTask(task, "running");
   if (!advanced.ok) return { ok: false, error: advanced.error };
   await appendTask(advanced.value);
   return { ok: true };
+}
+
+/**
+ * A task owned by a worker hired onto an external CLI is really run through the
+ * worker-runtime registry (the same engine as the desktop). null = not an
+ * external worker, so the caller keeps the ledger-only transition.
+ */
+async function dispatchToExternalWorker(task: WorkerTask, root: string): Promise<DispatchOutcome | null> {
+  const worker = latestWorkers(await readTeam()).find((w) => w.id === task.workerId);
+  if (!runtimeIdFromAdapter(worker?.adapter)) return null;
+  const { dispatchExternalTasks } = await import("../worker-runtimes/headless-dispatch.js");
+  const report = await dispatchExternalTasks({ root, env: process.env }, task.id);
+  const skipped = report.skipped.find((s) => s.taskId === task.id);
+  return skipped ? { ok: false, error: skipped.reason } : { ok: true };
 }
 
 /** Build live sources rooted at the project + the kernel goal ledger. */
@@ -134,8 +153,8 @@ async function liveCompanySources(root: string): Promise<CompanyTickSources> {
     listDepartments: () => readDepartments(),
     getGoals: () => kernel.getGoals(),
     getBudget: (scope) => getBudget(dataDir, scope),
-    readTasks: () => readTasks(),
-    dispatch: dispatchAssignedTask,
+    readTasks: async () => tasksOfActiveWorkers(await readTasks()),
+    dispatch: (taskId) => dispatchAssignedTask(taskId, root),
     now: () => new Date(),
   };
 }

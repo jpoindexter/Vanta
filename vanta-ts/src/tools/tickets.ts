@@ -62,14 +62,15 @@ async function doComment(dir: string, a: Parsed): Promise<ToolResult> {
   return t ? { ok: true, output: `commented on ${t.id} (${t.comments.length} total)` } : missing(a.id);
 }
 
-async function doNeedsHuman(dir: string, a: Parsed): Promise<ToolResult> {
+async function doNeedsHuman(dir: string, a: Parsed, sessionId?: string): Promise<ToolResult> {
   if (!a.title || !a.reason || !a.next) return { ok: false, output: "needs_human needs title, reason, and next" };
   const result = await upsertNeedsHumanTicket(dir, {
     kind: "decision",
     title: a.title,
     reason: a.reason,
     nextAction: a.next,
-    source: "ticket tool",
+    source: sessionId ? `session:${sessionId}` : "ticket tool",
+    dedupeIdentity: sessionId ? JSON.stringify([sessionId, a.title]) : undefined,
   }, deps());
   return { ok: true, output: `${result.created ? "queued" : "updated"} ${summarize(result.ticket)}` };
 }
@@ -110,7 +111,7 @@ async function doList(dir: string): Promise<ToolResult> {
   return { ok: true, output: all.map(summarize).join("\n") };
 }
 
-const HANDLERS: Record<Parsed["action"], (dir: string, a: Parsed) => Promise<ToolResult>> = {
+const HANDLERS: Record<Parsed["action"], (dir: string, a: Parsed, sessionId?: string) => Promise<ToolResult>> = {
   create: doCreate,
   needs_human: doNeedsHuman,
   comment: doComment,
@@ -159,6 +160,6 @@ export const ticketTool: Tool = {
       return { ok: false, output: 'ticket needs an "action" (create|needs_human|comment|attach|link|inbox|list|board)' };
     }
     const dir = join(ctx.root, ".vanta");
-    return HANDLERS[parsed.data.action](dir, parsed.data);
+    return HANDLERS[parsed.data.action](dir, parsed.data, ctx.sessionId);
   },
 };

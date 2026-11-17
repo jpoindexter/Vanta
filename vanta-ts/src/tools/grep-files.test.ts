@@ -35,6 +35,31 @@ describe("grepFilesTool", () => {
     expect(result.output).toBe("(no matches)");
   });
 
+  it("reports a missing search path instead of blaming rg and grep", async () => {
+    const dir = await tempDir();
+    const missing = join(dir, "missing-folder");
+    const result = await grepFilesTool.execute(
+      { pattern: "timezone", path: missing },
+      makeCtx(dir),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain(`path not found: ${missing}`);
+    expect(result.output).not.toContain("rg and grep both unavailable");
+  });
+
+  it("accepts patterns beginning with a dash", async () => {
+    const dir = await tempDir();
+    await writeFile(join(dir, "flags.txt"), "--model gpt-5.6-sol\n");
+    const result = await grepFilesTool.execute(
+      { pattern: "--model", path: dir },
+      makeCtx(dir),
+    );
+
+    expect(result.ok).toBe(true);
+    expect(result.output).toContain("--model");
+  });
+
   it("limits to a specific file path", async () => {
     const dir = await tempDir();
     const result = await grepFilesTool.execute(

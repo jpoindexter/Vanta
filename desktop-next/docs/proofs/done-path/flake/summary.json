@@ -1,0 +1,3701 @@
+{
+  "summary": {
+    "runs": 20,
+    "fullPasses": 20,
+    "crashes": 0,
+    "rows": [
+      {
+        "id": "a1",
+        "title": "chat in project A: live tool steps, then a card naming the exact action",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "b",
+        "title": "Always allow runs the tool and saves a rule scoped to project A",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "c",
+        "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "d",
+        "title": "new chat in project A, same tool call: no card, tool runs",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "g",
+        "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "f",
+        "title": "one-way command asks with no Always and a reason, even after Always for shell",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "e",
+        "title": "project B (switched in the app) still asks; nothing saved for B",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "h1",
+        "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "h2",
+        "title": "paste an image: no freeze, draft kept",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "i1",
+        "title": "1440x900: full sidebar, no horizontal overflow",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "i2",
+        "title": "1100x800: 56px rail, no horizontal overflow",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      },
+      {
+        "id": "i3",
+        "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+        "passed": 20,
+        "of": 20,
+        "failures": []
+      }
+    ],
+    "probes": [
+      {
+        "id": "a2",
+        "title": "card wording matches the tool (not 'Run a command' for an edit)",
+        "passed": 0,
+        "of": 20
+      },
+      {
+        "id": "c2",
+        "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+        "passed": 0,
+        "of": 20
+      },
+      {
+        "id": "f2",
+        "title": "git push (irreversible) still asks after Always for shell commands",
+        "passed": 19,
+        "of": 20
+      },
+      {
+        "id": "h3",
+        "title": "pasted image becomes an attachment on the message",
+        "passed": 0,
+        "of": 20
+      }
+    ]
+  },
+  "results": [
+    {
+      "index": 1,
+      "seconds": 41,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4812,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1372,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Frgb6p/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6717,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Frgb6p/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 1270,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 907,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3673,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Frgb6p/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Frgb6p/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10305,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3351,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 130,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 2014,
+          "detail": {
+            "afterPasteMaxMs": 20,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1308,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1249,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 3099,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "FAIL",
+          "detail": {
+            "outcome": "finished",
+            "card": null
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 2,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4812,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1104,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-mYN52V/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6796,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-mYN52V/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 951,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 843,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3613,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-mYN52V/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-mYN52V/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10252,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3166,
+          "detail": {
+            "baselineMaxMs": 18,
+            "afterPasteMaxMs": 133,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1828,
+          "detail": {
+            "afterPasteMaxMs": 22,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1106,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2884,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 3,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4467,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1352,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-xdFJB1/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6734,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-xdFJB1/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 933,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 859,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3634,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-xdFJB1/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-xdFJB1/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10235,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3166,
+          "detail": {
+            "baselineMaxMs": 18,
+            "afterPasteMaxMs": 135,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1827,
+          "detail": {
+            "afterPasteMaxMs": 17,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1105,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1110,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2893,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 4,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4436,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1368,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-N9Ymff/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6716,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-N9Ymff/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 1012,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 888,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3625,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-N9Ymff/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-N9Ymff/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10215,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3172,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 135,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1784,
+          "detail": {
+            "afterPasteMaxMs": 19,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2873,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 5,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4674,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1344,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-2PdT1m/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6706,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-2PdT1m/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 1026,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 863,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3718,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-2PdT1m/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-2PdT1m/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10276,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3148,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 128,
+            "afterPasteMedianMs": 126,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1781,
+          "detail": {
+            "afterPasteMaxMs": 21,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1106,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1108,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2866,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 6,
+      "seconds": 40,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4528,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1459,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-0zqDie/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6776,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-0zqDie/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 954,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 864,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3824,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-0zqDie/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-0zqDie/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10355,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3182,
+          "detail": {
+            "baselineMaxMs": 18,
+            "afterPasteMaxMs": 131,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1815,
+          "detail": {
+            "afterPasteMaxMs": 21,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1108,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1114,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2865,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 7,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4526,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1243,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-thH7e0/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6708,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-thH7e0/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 938,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 835,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3617,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-thH7e0/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-thH7e0/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10216,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3133,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 126,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1789,
+          "detail": {
+            "afterPasteMaxMs": 22,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2870,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 8,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4456,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1331,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-9w7UVg/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6709,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-9w7UVg/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 953,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 870,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3592,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-9w7UVg/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-9w7UVg/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10286,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3154,
+          "detail": {
+            "baselineMaxMs": 20,
+            "afterPasteMaxMs": 135,
+            "afterPasteMedianMs": 132,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1766,
+          "detail": {
+            "afterPasteMaxMs": 20,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1109,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1116,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2883,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 9,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4448,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1367,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Gv7krB/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6705,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Gv7krB/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 950,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 860,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3633,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Gv7krB/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Gv7krB/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10433,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3046,
+          "detail": {
+            "baselineMaxMs": 20,
+            "afterPasteMaxMs": 125,
+            "afterPasteMedianMs": 119,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1783,
+          "detail": {
+            "afterPasteMaxMs": 18,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1118,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1108,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2869,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 10,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4614,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1305,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-WZL5aI/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6714,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-WZL5aI/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 969,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 827,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3647,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-WZL5aI/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-WZL5aI/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10243,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3129,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 130,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1839,
+          "detail": {
+            "afterPasteMaxMs": 25,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1111,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1111,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2869,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 11,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4408,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1351,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-KdButD/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6673,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-KdButD/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 914,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 846,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3631,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-KdButD/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-KdButD/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10219,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3149,
+          "detail": {
+            "baselineMaxMs": 20,
+            "afterPasteMaxMs": 126,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1771,
+          "detail": {
+            "afterPasteMaxMs": 21,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1110,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1110,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2873,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 12,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4455,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1231,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-4dmQrZ/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6703,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-4dmQrZ/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 688,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 1199,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3646,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-4dmQrZ/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-4dmQrZ/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10259,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3117,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 125,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1838,
+          "detail": {
+            "afterPasteMaxMs": 20,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1106,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1109,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2871,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 13,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4503,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1318,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-ZmCnz0/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6724,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-ZmCnz0/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 725,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 1160,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3647,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-ZmCnz0/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-ZmCnz0/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10427,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3125,
+          "detail": {
+            "baselineMaxMs": 20,
+            "afterPasteMaxMs": 123,
+            "afterPasteMedianMs": 119,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1828,
+          "detail": {
+            "afterPasteMaxMs": 17,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1109,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2872,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 14,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4477,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1389,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-t80v8X/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6716,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-t80v8X/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 946,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 840,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3621,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-t80v8X/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-t80v8X/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10316,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3139,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 133,
+            "afterPasteMedianMs": 125,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1818,
+          "detail": {
+            "afterPasteMaxMs": 22,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1113,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2879,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 15,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4419,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1137,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-8bEinq/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6717,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-8bEinq/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 897,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 845,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3932,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-8bEinq/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-8bEinq/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10320,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 3115,
+          "detail": {
+            "baselineMaxMs": 20,
+            "afterPasteMaxMs": 140,
+            "afterPasteMedianMs": 121,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1823,
+          "detail": {
+            "afterPasteMaxMs": 23,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1105,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1106,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2862,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 16,
+      "seconds": 38,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4564,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 1320,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-MJrZuH/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6859,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-MJrZuH/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 700,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 1057,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3719,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-MJrZuH/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-MJrZuH/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 9977,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 2684,
+          "detail": {
+            "baselineMaxMs": 18,
+            "afterPasteMaxMs": 107,
+            "afterPasteMedianMs": 90,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1764,
+          "detail": {
+            "afterPasteMaxMs": 28,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1108,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1110,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2871,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 17,
+      "seconds": 40,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4454,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 972,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-VSJ65a/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6476,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-VSJ65a/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 851,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 785,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 5922,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-VSJ65a/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-VSJ65a/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10195,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 2678,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 89,
+            "afterPasteMedianMs": 86,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1773,
+          "detail": {
+            "afterPasteMaxMs": 17,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1108,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1109,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2875,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 18,
+      "seconds": 39,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4215,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 959,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-UEpgvj/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6679,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-UEpgvj/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 590,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 2865,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3610,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-UEpgvj/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-UEpgvj/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 9952,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 2680,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 105,
+            "afterPasteMedianMs": 83,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1776,
+          "detail": {
+            "afterPasteMaxMs": 22,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1105,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1106,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2858,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 19,
+      "seconds": 38,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4212,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 847,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-XBE9ym/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 7451,
+          "detail": {
+            "processesBefore": 7,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-XBE9ym/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 748,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 636,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3577,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-XBE9ym/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-XBE9ym/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 10396,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 2713,
+          "detail": {
+            "baselineMaxMs": 21,
+            "afterPasteMaxMs": 95,
+            "afterPasteMedianMs": 83,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1700,
+          "detail": {
+            "afterPasteMaxMs": 20,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1109,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1107,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2858,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    },
+    {
+      "index": 20,
+      "seconds": 36,
+      "sandbox": "(removed)",
+      "steps": [
+        {
+          "id": "a1",
+          "title": "chat in project A: live tool steps, then a card naming the exact action",
+          "status": "PASS",
+          "ms": 4175,
+          "detail": {
+            "stepRows": 4,
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. ",
+            "payloadKind": "file_edit"
+          }
+        },
+        {
+          "id": "b",
+          "title": "Always allow runs the tool and saves a rule scoped to project A",
+          "status": "PASS",
+          "ms": 852,
+          "detail": {
+            "before": "(file absent)",
+            "after": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-sYpE1n/project/alpha"
+          }
+        },
+        {
+          "id": "c",
+          "title": "quit every process, relaunch with the same userData and VANTA_HOME",
+          "status": "PASS",
+          "ms": 6506,
+          "detail": {
+            "processesBefore": 6,
+            "kernelOutlivedQuit": true,
+            "rulesAfterRestart": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-sYpE1n/project/alpha"
+          }
+        },
+        {
+          "id": "d",
+          "title": "new chat in project A, same tool call: no card, tool runs",
+          "status": "PASS",
+          "ms": 840,
+          "detail": {
+            "outcome": "finished",
+            "firstRequestMessages": 2
+          }
+        },
+        {
+          "id": "g",
+          "title": "edit_file on deploy-notes.md and production-plan.md does not ask",
+          "status": "PASS",
+          "ms": 703,
+          "detail": {
+            "outcome": "finished"
+          }
+        },
+        {
+          "id": "f",
+          "title": "one-way command asks with no Always and a reason, even after Always for shell",
+          "status": "PASS",
+          "ms": 3541,
+          "detail": {
+            "seeded": "allow\tedit_file\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-sYpE1n/project/alpha\nallow\tshell_cmd\t\t/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-sYpE1n/project/alpha",
+            "reason": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Allow once | Reject"
+          }
+        },
+        {
+          "id": "e",
+          "title": "project B (switched in the app) still asks; nothing saved for B",
+          "status": "PASS",
+          "ms": 9990,
+          "detail": {
+            "card": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs i"
+          }
+        },
+        {
+          "id": "h1",
+          "title": "paste 200 KB: keystrokes stay under 250 ms, draft kept, message sent",
+          "status": "PASS",
+          "ms": 2649,
+          "detail": {
+            "baselineMaxMs": 19,
+            "afterPasteMaxMs": 84,
+            "afterPasteMedianMs": 83,
+            "pasteMs": 1
+          }
+        },
+        {
+          "id": "h2",
+          "title": "paste an image: no freeze, draft kept",
+          "status": "PASS",
+          "ms": 1679,
+          "detail": {
+            "afterPasteMaxMs": 17,
+            "attached": false,
+            "toast": "Image attach failed\n"
+          }
+        },
+        {
+          "id": "i1",
+          "title": "1440x900: full sidebar, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1105,
+          "detail": {
+            "railW": 0,
+            "fullW": 275,
+            "overflow": [],
+            "viewport": 1440
+          }
+        },
+        {
+          "id": "i2",
+          "title": "1100x800: 56px rail, no horizontal overflow",
+          "status": "PASS",
+          "ms": 1105,
+          "detail": {
+            "railW": 56,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 1100
+          }
+        },
+        {
+          "id": "i3",
+          "title": "800x700: sidebar is a drawer that opens and closes, no overflow",
+          "status": "PASS",
+          "ms": 2847,
+          "detail": {
+            "railW": 0,
+            "fullW": 0,
+            "overflow": [],
+            "viewport": 800
+          }
+        }
+      ],
+      "probes": [
+        {
+          "id": "a2",
+          "title": "card wording matches the tool (not 'Run a command' for an edit)",
+          "status": "FAIL",
+          "detail": {
+            "cardText": "Run a command | Modifying existing file content. | brief.md | Allow once | Always allow shell commands | Reject | Always covers every shell command Vanta runs in the alpha project, not just this one. Irreversible command"
+          }
+        },
+        {
+          "id": "c2",
+          "title": "no process at all outlives quit (the kernel daemon is detached by design)",
+          "status": "FAIL",
+          "detail": {
+            "kernelStayed": true
+          }
+        },
+        {
+          "id": "f2",
+          "title": "git push (irreversible) still asks after Always for shell commands",
+          "status": "PASS",
+          "detail": {
+            "outcome": "card",
+            "card": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | git push origin main | Allow once | Reject"
+          }
+        },
+        {
+          "id": "h3",
+          "title": "pasted image becomes an attachment on the message",
+          "status": "FAIL",
+          "detail": {
+            "toast": "Image attach failed\n"
+          }
+        }
+      ],
+      "consoleErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+        "Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216."
+      ],
+      "pass": true
+    }
+  ]
+}

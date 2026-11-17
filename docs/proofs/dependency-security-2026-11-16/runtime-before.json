@@ -1,0 +1,235 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@electron/universal": {
+      "name": "@electron/universal",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "minimatch"
+      ],
+      "effects": [
+        "app-builder-lib"
+      ],
+      "range": "1.5.0 || 2.0.0 - 3.0.3",
+      "nodes": [
+        "node_modules/@electron/universal"
+      ],
+      "fixAvailable": {
+        "name": "electron-builder",
+        "version": "24.13.3",
+        "isSemVerMajor": true
+      }
+    },
+    "app-builder-lib": {
+      "name": "app-builder-lib",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@electron/universal",
+        "dmg-builder",
+        "electron-builder-squirrel-windows",
+        "minimatch"
+      ],
+      "effects": [
+        "dmg-builder",
+        "electron-builder",
+        "electron-builder-squirrel-windows"
+      ],
+      "range": ">=24.13.4-alpha.0",
+      "nodes": [
+        "node_modules/app-builder-lib"
+      ],
+      "fixAvailable": {
+        "name": "electron-builder",
+        "version": "24.13.3",
+        "isSemVerMajor": true
+      }
+    },
+    "dmg-builder": {
+      "name": "dmg-builder",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "app-builder-lib"
+      ],
+      "effects": [
+        "electron-builder"
+      ],
+      "range": ">=24.13.4-alpha.0",
+      "nodes": [
+        "node_modules/dmg-builder"
+      ],
+      "fixAvailable": {
+        "name": "electron-builder",
+        "version": "24.13.3",
+        "isSemVerMajor": true
+      }
+    },
+    "electron-builder": {
+      "name": "electron-builder",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "app-builder-lib",
+        "dmg-builder"
+      ],
+      "effects": [],
+      "range": "19.25.0 || >=24.13.4-alpha.0",
+      "nodes": [
+        "node_modules/electron-builder"
+      ],
+      "fixAvailable": {
+        "name": "electron-builder",
+        "version": "24.13.3",
+        "isSemVerMajor": true
+      }
+    },
+    "electron-builder-squirrel-windows": {
+      "name": "electron-builder-squirrel-windows",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "app-builder-lib"
+      ],
+      "effects": [],
+      "range": ">=24.13.4-alpha.0",
+      "nodes": [
+        "node_modules/electron-builder-squirrel-windows"
+      ],
+      "fixAvailable": true
+    },
+    "glob": {
+      "name": "glob",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1244013,
+          "name": "glob",
+          "dependency": "glob",
+          "title": "Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal",
+          "url": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=9.0.0 <=14.0.1"
+        },
+        "minimatch"
+      ],
+      "effects": [
+        "rimraf"
+      ],
+      "range": "9.0.0 - 14.0.1",
+      "nodes": [
+        "node_modules/rimraf/node_modules/glob"
+      ],
+      "fixAvailable": true
+    },
+    "minimatch": {
+      "name": "minimatch",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1244623,
+          "name": "minimatch",
+          "dependency": "minimatch",
+          "title": "minimatch has potential denial of service via globparts amplification",
+          "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-405"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <11.0.1"
+        }
+      ],
+      "effects": [
+        "@electron/universal",
+        "app-builder-lib",
+        "glob"
+      ],
+      "range": "7.0.0 - 11.0.0",
+      "nodes": [
+        "node_modules/@electron/universal/node_modules/minimatch",
+        "node_modules/minimatch"
+      ],
+      "fixAvailable": {
+        "name": "electron-builder",
+        "version": "24.13.3",
+        "isSemVerMajor": true
+      }
+    },
+    "rimraf": {
+      "name": "rimraf",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "glob"
+      ],
+      "effects": [],
+      "range": "4.2.0 - 6.1.3",
+      "nodes": [
+        "node_modules/rimraf"
+      ],
+      "fixAvailable": true
+    },
+    "vite": {
+      "name": "vite",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1243858,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "Vite: `server.fs.deny` bypassed with queries",
+          "url": "https://github.com/advisories/GHSA-8g5g-mxqh-grgj",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-180",
+            "CWE-284"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "=6.4.4"
+        }
+      ],
+      "effects": [],
+      "range": "6.4.4",
+      "nodes": [
+        "node_modules/vite"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 9,
+      "high": 0,
+      "critical": 0,
+      "total": 9
+    },
+    "dependencies": {
+      "prod": 275,
+      "dev": 350,
+      "optional": 165,
+      "peer": 11,
+      "peerOptional": 0,
+      "total": 759
+    }
+  }
+}

@@ -1,0 +1,14 @@
+[notarize] zipping /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/delivery-candidate-20261025-pNXJV7/desktop-next/apps/desktop/release/mac-arm64/Vanta.app
+[notarize] submitting to Apple and waiting for the verdict (usually 2 to 15 minutes)
+{
+  "id": "d42998e2-242b-420c-b00c-bad8669b342e",
+  "message": "Processing complete",
+  "status": "Accepted"
+}
+Processing: /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/delivery-candidate-20261025-pNXJV7/desktop-next/apps/desktop/release/mac-arm64/Vanta.app
+Processing: /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/delivery-candidate-20261025-pNXJV7/desktop-next/apps/desktop/release/mac-arm64/Vanta.app
+The staple and validate action worked!
+Processing: /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/delivery-candidate-20261025-pNXJV7/desktop-next/apps/desktop/release/mac-arm64/Vanta.app
+The validate action worked!
+/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/delivery-candidate-20261025-pNXJV7/desktop-next/apps/desktop/release/mac-arm64/Vanta.app: accepted
+source=Notarized Developer ID

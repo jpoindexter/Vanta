@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <title>Vanta · Unified desktop proposal</title>
+  <link rel="stylesheet" href="unified-desktop.css">
+  <script src="unified-desktop.js" defer></script>
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="new" viewBox="0 0 24 24"><path d="M12 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-7M16 3l5 5M10 14l1-5 7-7 5 5-7 7-6 1Z"/></symbol>
+    <symbol id="chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-2 2V11a9 9 0 0 1 19 0Z"/></symbol>
+    <symbol id="search-icon" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></symbol>
+    <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7V4h6l3 3h9v13H3V7Zm0 3h18"/></symbol>
+    <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></symbol>
+    <symbol id="inbox-icon" viewBox="0 0 24 24"><path d="m3 4-1 14h20L21 4H3ZM2 13h6l2 3h4l2-3h6"/></symbol>
+    <symbol id="panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></symbol>
+    <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="m6 11 6-6 6 6M12 5v14"/></symbol>
+    <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Z"/></symbol>
+    <symbol id="mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8l-5-5ZM14 3v5h5M8 12h8M8 16h8"/></symbol>
+    <symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r=".7"/><circle cx="12" cy="12" r=".7"/><circle cx="19" cy="12" r=".7"/></symbol>
+  </svg>
+  <header class="review-bar">
+    <span><strong>Unified Vanta</strong> <span class="muted">· interactive design proposal</span></span>
+    <div class="cluster"><button id="appearance" class="quiet" type="button" aria-pressed="false">Dark preview</button><button id="design" class="quiet" type="button">Design rules</button></div>
+  </header>
+  <div class="window">
+    <header class="titlebar">
+      <div class="traffic" aria-hidden="true"><i></i><i></i><i></i></div>
+      <button id="sidebar-toggle" class="icon quiet" type="button" aria-label="Toggle sidebar" aria-expanded="true"><svg><use href="#panel"/></svg></button>
+      <span id="window-title">Research a decision</span>
+      <span class="grow"></span>
+      <button class="quiet" type="button" data-open="activity">Activity</button>
+      <button id="workbench" class="icon quiet" type="button" aria-label="Toggle work panel" aria-expanded="false"><svg><use href="#panel"/></svg></button>
+    </header>
+    <nav class="rail" aria-label="Quick navigation">
+      <button class="icon quiet selected" type="button" data-view="conversation" aria-label="Chats" title="Chats"><svg><use href="#chat"/></svg></button>
+      <button class="icon quiet" type="button" data-view="today" aria-label="Today" title="Today"><svg><use href="#clock"/></svg></button>
+      <button class="icon quiet" type="button" data-view="inbox" aria-label="Inbox" title="Inbox"><svg><use href="#inbox-icon"/></svg></button>
+      <span class="grow"></span>
+      <button class="avatar" type="button" data-open="settings" aria-label="Open settings" title="Settings">J</button>
+    </nav>
+    <aside class="sidebar" aria-label="Conversations and projects">
+      <div class="sidebar-heading"><strong>Vanta</strong><button id="search" class="icon quiet" type="button" aria-label="Search preview conversations"><svg><use href="#search-icon"/></svg></button></div>
+      <button class="nav-row quiet" type="button" data-view="home"><svg><use href="#new"/></svg>New chat</button>
+      <button class="nav-row quiet" type="button" data-view="today"><svg><use href="#clock"/></svg>Today</button>
+      <button class="nav-row quiet" type="button" data-view="inbox"><svg><use href="#inbox-icon"/></svg>Inbox</button>
+      <input id="chat-search" aria-label="Filter preview conversations" placeholder="Search chats…" hidden>
+      <p class="section-label">Pinned</p>
+      <button class="nav-row quiet" type="button" data-view="conversation"><svg><use href="#chat"/></svg><span>Plan the next launch</span></button>
+      <p class="section-label">Projects</p>
+      <button class="nav-row quiet" type="button" data-view="project"><svg><use href="#folder"/></svg>My business</button>
+      <button class="nav-row quiet current" type="button" data-view="conversation"><span class="indent"></span><span>Research a decision</span><span class="row-more" aria-hidden="true">···</span></button>
+      <p class="section-label">Recent</p>
+      <button class="nav-row quiet" type="button" data-view="conversation"><svg><use href="#chat"/></svg><span>Make sense of a document</span></button>
+      <button class="nav-row quiet" type="button" data-view="conversation"><svg><use href="#chat"/></svg><span>Organize this week</span></button>
+      <span class="grow"></span>
+      <button class="nav-row quiet profile" type="button" data-open="settings"><span class="avatar" aria-hidden="true">J</span><span>Personal<small>Settings and connections</small></span></button>
+    </aside>
+    <main class="canvas" id="canvas">
+      <section class="scroll-area" id="content" aria-label="Conversation preview" tabindex="-1"></section>
+      <div class="compose-area">
+        <div class="composer">
+          <label class="sr-only" for="draft">Message — local preview only</label>
+          <textarea id="draft" rows="2" placeholder="Ask Vanta to do something…" aria-describedby="preview-status"></textarea>
+          <div class="composer-toolbar">
+            <button class="icon quiet" type="button" data-open="attachment" aria-label="Preview attachment options"><svg><use href="#plus"/></svg></button>
+            <button class="quiet" type="button" data-open="access" aria-label="Ask first — preview permissions"><svg><use href="#shield"/></svg><span>Ask first</span></button>
+            <span class="grow"></span>
+            <button class="quiet" type="button" data-open="model">Selected model <span aria-hidden="true">⌄</span></button>
+            <button class="icon quiet" type="button" data-open="voice" aria-label="Preview voice controls — no microphone access"><svg><use href="#mic"/></svg></button>
+            <button class="icon send" id="send" type="button" aria-label="Preview send — nothing is sent" disabled><svg><use href="#arrow"/></svg></button>
+          </div>
+        </div>
+        <p class="status-line" id="preview-status" role="status">Local preview · sample content · nothing is sent or saved</p>
+      </div>
+    </main>
+    <aside class="work-panel" id="work-panel" aria-label="Work panel preview" hidden>
+      <header><strong>Work</strong><button id="panel-close" class="icon quiet" type="button" aria-label="Close work panel"><svg><use href="#close"/></svg></button></header>
+      <p class="section-label">Outputs</p><button class="nav-row quiet" type="button" data-open="document"><svg><use href="#file"/></svg>Decision brief.md</button>
+      <p class="section-label">Sources</p><p class="muted panel-copy">Sources and evidence stay alongside the conversation, not in a separate workflow.</p>
+      <button class="nav-row quiet" type="button" data-open="activity"><svg><use href="#clock"/></svg>View activity</button>
+      <p class="panel-copy muted">Sample work panel. No files or websites are accessed.</p>
+    </aside>
+  </div>
+  <footer class="review-footer">One palette · one type and spacing scale · shared controls and depth. <span class="muted">Not the installed app.</span></footer>
+  <dialog id="dialog" aria-labelledby="dialog-title">
+    <header><h2 id="dialog-title"></h2><button id="dialog-close" class="icon quiet" type="button" aria-label="Close dialog"><svg><use href="#close"/></svg></button></header>
+    <div id="dialog-content"></div>
+  </dialog>
+  <template id="conversation">
+    <div class="transcript">
+      <div class="user-message">Help me compare the options and make a clear recommendation. Keep the sources with the brief.</div>
+      <details class="activity"><summary>Reviewed the research <span class="muted">· sample activity</span></summary><p>Production activity must show observed status and evidence. This example runs no tools.</p></details>
+      <article><p>Here’s the decision in a form you can act on.</p><h2>Start with the simplest option</h2><p>Prioritize the workflow you use every day. Keep the recommendation, supporting evidence, and next step together so you don’t have to reconstruct the research later.</p><p>The brief can stay open beside this conversation while we refine it.</p><button class="output quiet" type="button" data-open="document"><svg><use href="#file"/></svg><span>Decision brief.md<small>Sample document · preview</small></span><span class="grow"></span><span aria-hidden="true">↗</span></button></article>
+      <div class="response-actions"><button class="quiet" type="button" data-open="activity">View evidence</button><button class="quiet" type="button" data-open="document">Open brief</button></div>
+    </div>
+  </template>
+  <template id="home"><div class="empty"><h1>What’s on your mind?</h1><p>Research, write, plan, or take care of everyday work.</p></div></template>
+  <template id="today"><div class="utility"><h1>Today</h1><p class="muted">Pick up where you left off.</p><button class="list-row quiet" type="button" data-view="conversation"><span><strong>Research a decision</strong><small>Continue your conversation</small></span><span aria-hidden="true">↗</span></button><p class="muted">Illustrative list, not a record of background work.</p></div></template>
+  <template id="inbox"><div class="utility"><h1>Inbox</h1><p class="muted">Decisions that need you, in one place.</p><div class="notice"><strong>Nothing needs your approval in this preview</strong><p>Real approvals keep the exact action, target, and consequences visible. Simplifying the design does not change permission rules.</p></div></div></template>
+  <template id="project"><div class="utility"><span class="muted">Project</span><h1>My business</h1><p class="muted">Conversations and outputs together. No setup form before you can talk.</p><button class="list-row quiet" type="button" data-view="conversation"><span><strong>Research a decision</strong><small>Conversation · sample</small></span><span aria-hidden="true">↗</span></button></div></template>
+</body>
+</html>

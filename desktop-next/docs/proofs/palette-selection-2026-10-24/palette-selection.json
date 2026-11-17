@@ -1,0 +1,56 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-gxedmG",
+  "checks": [
+    "Alpha local reply arrives",
+    "Bravo local reply arrives",
+    "Alpha filtered result is selected without an arrow",
+    "Alpha Enter opens the intended chat with its own draft",
+    "Bravo filtered result is selected without an arrow",
+    "Bravo Enter opens the intended chat with its own draft",
+    "An empty result cannot activate a stale chat",
+    "Empty-search Escape restores the last draft",
+    "Switching never submits or retries",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "selected-Alpha",
+      "focus": "combobox",
+      "text": "",
+      "selected": "Navigation Alpha",
+      "drafts": [
+        "Unsent Bravo draft"
+      ]
+    },
+    {
+      "name": "opened-Alpha",
+      "focus": "Message Vanta",
+      "text": "Unsent Alpha draft",
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "selected-Bravo",
+      "focus": "combobox",
+      "text": "",
+      "selected": "Navigation Bravo",
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "opened-Bravo",
+      "focus": "Message Vanta",
+      "text": "Unsent Bravo draft",
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    }
+  ],
+  "modelRequests": 2,
+  "rendererErrors": []
+}

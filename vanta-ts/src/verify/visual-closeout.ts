@@ -1,7 +1,5 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { gitExecFile } from "../git/process.js";
 
-const execFileAsync = promisify(execFile);
 
 export type CloseoutKind = "rules" | "visual" | "behavior" | "docs";
 
@@ -24,7 +22,7 @@ function uniqSorted(lines: string[]): string[] {
 
 async function gitLines(root: string, args: string[]): Promise<string[]> {
   try {
-    const { stdout } = await execFileAsync("git", args, { cwd: root });
+    const { stdout } = await gitExecFile("git", args, { cwd: root });
     return stdout.split("\n");
   } catch {
     return [];

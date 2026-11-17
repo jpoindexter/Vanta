@@ -4,6 +4,12 @@ import { verifyGithubSignature, type Deliver } from "../gateway/webhook.js";
 import {
   appendWorkflowReceipt, listWorkflows, readWorkflowSecret, receipt, type WebhookWorkflow,
 } from "./store.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+  type EffectGateContext,
+} from "../effects/execute-effect.js";
 
 export type WorkflowWebhookServer = { port: number; close: () => Promise<void> };
 
@@ -12,6 +18,7 @@ export type WorkflowRuntimeOpts = {
   dataDir: string;
   handle: (prompt: string) => Promise<string>;
   resolveDeliver: (target: string) => Deliver;
+  effectGate?: EffectGateContext;
   log?: (message: string) => void;
 };
 
@@ -53,7 +60,26 @@ async function executeWorkflow(workflow: WebhookWorkflow, body: string, opts: Wo
   try {
     const prompt = workflow.prompt.replace("{body}", body.slice(0, 4000));
     const output = await opts.handle(prompt);
-    await opts.resolveDeliver(workflow.deliver)(output);
+    if (!opts.effectGate) throw new Error("blocked: workflow webhook delivery effect gate unavailable");
+    const seed = {
+      host: "gateway:workflow-webhook",
+      kind: "gateway.webhook",
+      targetClass: "configured-workflow-delivery",
+      payloadSha256: payloadSha256(output),
+      idempotencyKey: `workflow:${workflow.id}:${payloadSha256(body)}`,
+    };
+    const result = await executeEffect({
+      id: stableEffectId(seed),
+      actor: "workflow-webhook",
+      action: `deliver webhook workflow ${workflow.id} to its configured target`,
+      ...seed,
+    }, opts.effectGate, async () => {
+      await opts.resolveDeliver(workflow.deliver)(output);
+      return {};
+    });
+    if (result.outcome !== "confirmed" && result.outcome !== "verified") {
+      throw new Error(`workflow webhook delivery ${result.outcome}`);
+    }
     await appendWorkflowReceipt(opts.dataDir, receipt({ workflowId: workflow.id, phase: "delivery", status: "delivered", detail: `${workflow.deliver} accepted output`, at: new Date().toISOString() }));
   } catch (error) {
     const failed = receipt({ workflowId: workflow.id, phase: "delivery", status: "failed", detail: (error as Error).message, at: new Date().toISOString() });

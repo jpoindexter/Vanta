@@ -85,10 +85,15 @@ export async function resolveMcpTrust(
   server: string,
   tools: { name: string; description?: string }[],
   confirm?: TrustConfirmer,
+  opts: {
+    decisionKey?: string;
+    launch?: { command?: string; args?: string[]; url?: string };
+  } = {},
 ): Promise<boolean> {
-  if (await hasMcpDecision(root, server)) return isMcpTrusted(root, server);
+  const decisionKey = opts.decisionKey ?? server;
+  if (await hasMcpDecision(root, decisionKey)) return isMcpTrusted(root, decisionKey);
   if (!confirm) return false;
-  const trusted = await confirm({ kind: "mcp", server, tools });
-  await trustMcp(root, server, trusted);
+  const trusted = await confirm({ kind: "mcp", server, tools, ...(opts.launch ? { launch: opts.launch } : {}) });
+  await trustMcp(root, decisionKey, trusted);
   return trusted;
 }

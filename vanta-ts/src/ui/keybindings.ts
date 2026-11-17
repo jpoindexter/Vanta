@@ -9,11 +9,8 @@ import {
   type KeyBinding,
 } from "./keybinding-warnings.js";
 
-// KEYBINDING-CUSTOMIZATION — user-defined, context-scoped, chord-capable
-// keybindings, layered over sensible defaults, hot-reloaded + schema-validated
-// from ~/.vanta/keybindings.json. Rebuilt on the current Ink TUI (the old
-// DEFAULT_BINDINGS/KeyContext registry was deleted in the 06-13 rebuild). Pure
-// model + a tolerant loader; app-keys consults the resolved map to dispatch.
+// User keybindings layer over defaults and hot-reload from ~/.vanta/keybindings.json.
+// app-keys consults the schema-validated resolved map to dispatch.
 
 /** The actions the global key layer dispatches (stable ids). */
 export const GLOBAL_ACTIONS = {
@@ -26,6 +23,7 @@ export const GLOBAL_ACTIONS = {
   cycleAgentNext: "global.cycleAgentNext",
   cycleAgentPrev: "global.cycleAgentPrev",
   toggleTrace: "global.toggleTrace",
+  dictation: "global.dictation",
 } as const;
 
 /** Sensible defaults (global context) matching the pre-config hardcoded keys. */
@@ -39,6 +37,7 @@ export const DEFAULT_BINDINGS: KeyBinding[] = [
   { action: GLOBAL_ACTIONS.cycleAgentNext, chord: "shift+right", context: "global" },
   { action: GLOBAL_ACTIONS.cycleAgentPrev, chord: "shift+left", context: "global" },
   { action: GLOBAL_ACTIONS.toggleTrace, chord: "ctrl+t", context: "global" },
+  { action: GLOBAL_ACTIONS.dictation, chord: "ctrl+r", context: "global" },
 ];
 
 const MOD_ORDER = ["ctrl", "alt", "shift", "meta"];

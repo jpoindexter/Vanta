@@ -102,20 +102,30 @@ export const ContentBlock = z.union([TextContentBlock, z.object({ type: z.string
 
 export const InitializeParams = z.object({
   protocolVersion: z.number().default(PROTOCOL_VERSION),
-  clientCapabilities: z.record(z.unknown()).optional(),
+  clientCapabilities: z.record(z.string(), z.unknown()).optional(),
   clientInfo: z.object({ name: z.string(), version: z.string().optional() }).nullish(),
 });
 
+export const AcpMcpServerSchema = z.object({
+  name: z.string().min(1),
+  command: z.string().min(1),
+  args: z.array(z.string()).default([]),
+  env: z.array(z.object({ name: z.string().min(1), value: z.string() })).default([]),
+});
+export type AcpMcpServer = z.infer<typeof AcpMcpServerSchema>;
+
 export const NewSessionParams = z.object({
   cwd: z.string().optional(),
-  mcpServers: z.array(z.unknown()).optional(),
+  mcpServers: z.array(AcpMcpServerSchema).default([]),
   additionalDirectories: z.array(z.string()).optional(),
+  systemPrompt: z.string().max(100_000).optional(),
 });
 
 export const LoadSessionParams = z.object({
   sessionId: z.string(),
   cwd: z.string().optional(),
-  mcpServers: z.array(z.unknown()).optional(),
+  mcpServers: z.array(AcpMcpServerSchema).default([]),
+  systemPrompt: z.string().max(100_000).optional(),
 });
 
 export const PromptParams = z.object({

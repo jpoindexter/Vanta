@@ -54,4 +54,24 @@ describe("cookie_import", () => {
     expect(d).toBe("store a login cookie for reddit");
     expect(d).not.toContain("secret123");
   });
+
+  it("does not claim LinkedIn authentication without the li_at cookie", async () => {
+    const r = await cookieImportTool.execute({
+      channel: "linkedin",
+      cookie: "JSESSIONID=ajax:1; bcookie=browser-id; lang=v=2&lang=en-us",
+    }, ctx);
+    expect(r.ok).toBe(false);
+    expect(r.output).toContain("li_at");
+    expect(loadCookie("linkedin")).toBeNull();
+  });
+
+  it("stores a complete LinkedIn session without echoing its auth value", async () => {
+    const r = await cookieImportTool.execute({
+      channel: "linkedin",
+      cookie: "li_at=unit-test-auth; JSESSIONID=ajax:1",
+    }, ctx);
+    expect(r.ok).toBe(true);
+    expect(r.output).not.toContain("unit-test-auth");
+    expect(loadCookie("linkedin")).toContain("li_at=unit-test-auth");
+  });
 });

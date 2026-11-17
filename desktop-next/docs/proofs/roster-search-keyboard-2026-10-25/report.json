@@ -1,0 +1,33 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-FxIwhO",
+  "checks": [
+    "Cmd+B hides history search",
+    "Cmd+Shift+F reveals the hidden sidebar",
+    "Revealing the sidebar hands keyboard focus to search",
+    "Typing remains in history search",
+    "The unsent chat draft is unchanged",
+    "Arrow Down reaches a matching chat after reveal",
+    "Search survives a second collapse with its query selected",
+    "Cmd+L returns to the original draft",
+    "The agent roster replaces chat history (collapsed=false)",
+    "Chat search returns from the agent roster to history (collapsed=false)",
+    "History search receives focus after leaving the roster (collapsed=false)",
+    "The agent roster replaces chat history (collapsed=true)",
+    "Chat search returns from the agent roster to history (collapsed=true)",
+    "History search receives focus after leaving the roster (collapsed=true)",
+    "Navigation does not submit the draft",
+    "No renderer errors"
+  ],
+  "state": {
+    "focus": "<input aria-label=\"Search chats\" class=\"h-7 min-w-0 max-w-full flex-1 bg-transparent text-xs text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none\" placeholder=\"Search chats…\" type=\"text\" value=\"Collapsed history\">",
+    "body": "Collapsed history chat\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nCollapsed history chat\nnow\nCollapsed history chat\nCopy\nEdit\n12:00\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-FxIwhO/project/alpha\nUnsent collapsed-sidebar draft continued\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0",
+    "drafts": [
+      {
+        "visible": true,
+        "text": "Unsent collapsed-sidebar draft continued"
+      }
+    ]
+  },
+  "modelRequests": 1,
+  "rendererErrors": []
+}

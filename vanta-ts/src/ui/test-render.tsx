@@ -18,7 +18,13 @@ class FakeStdin extends EventEmitter {
   writeInput(input: string): void { this.chunks.push(input); this.emit("readable"); }
 }
 
-export type UiTestInstance = { input: (s: string) => void; lastFrame: () => string; unmount: () => void };
+export type UiTestInstance = {
+  input: (s: string) => void;
+  lastFrame: () => string;
+  /** Output WITH escape codes intact — for asserting styling (dim, inverse). */
+  rawFrame: () => string;
+  unmount: () => void;
+};
 
 /** Let real Ink flush its first paint (it writes on the next tick, not sync). */
 export const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 10));
@@ -65,12 +71,16 @@ export function renderUi(tree: ReactElement, opts: { cols?: number } = {}): UiTe
     stdin: stdin as unknown as NodeJS.ReadStream,
     patchConsole: false,
     exitOnCtrlC: false,
+    // The harness models an interactive TTY even when GitHub Actions sets CI.
+    // Ink otherwise switches to non-interactive mode and writes only on unmount.
+    interactive: true,
   });
   // Real Ink splits a frame across several writes (cursor moves + content), so
   // join all writes and strip ANSI — fine for contains-assertions on output.
   return {
     input: (s: string) => stdin.writeInput(s),
     lastFrame: () => frames.join("").replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, ""),
+    rawFrame: () => frames.join(""),
     unmount: () => instance.unmount(),
   };
 }

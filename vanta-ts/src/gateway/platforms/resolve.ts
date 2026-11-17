@@ -3,6 +3,7 @@ import { TelegramAdapter, parseAllowlist } from "./telegram.js";
 import { NtfyAdapter, parseTopicAllowlist } from "./ntfy.js";
 import { MattermostAdapter, parseChannelAllowlist } from "./mattermost.js";
 import { IrcAdapter, parseNickAllowlist } from "./irc.js";
+import { createTelegramFetch, parseTelegramFallbackIps } from "../../net/ipv4-fetch.js";
 
 // Pick the live messaging adapter for `vanta gateway` from env. Telegram first
 // (a configured bot token wins), then Mattermost (URL + token + channel all
@@ -16,6 +17,7 @@ export function resolvePlatform(env: NodeJS.ProcessEnv): PlatformAdapter | undef
     allow: parseAllowlist(env.VANTA_TELEGRAM_ALLOW),
     apiBase: env.VANTA_TELEGRAM_API_BASE?.trim(),
     webhookSecret: env.VANTA_TELEGRAM_WEBHOOK_SECRET,
+    fetch: createTelegramFetch({ fallbackIps: parseTelegramFallbackIps(env.VANTA_TELEGRAM_FALLBACK_IPS) }),
   });
 
   const mmUrl = env.VANTA_MATTERMOST_URL?.trim();

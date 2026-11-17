@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import type { VcsAdapter } from "./types.js";
 
 // PORT-FACTORY-DEPS: the factory's git lifecycle behind one adapter. Lifted
@@ -7,9 +8,7 @@ import type { VcsAdapter } from "./types.js";
 // merge.ts:assessMergeRisk — this adapter only encapsulates the commands.
 
 async function git(args: string[], cwd: string): Promise<string> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const { stdout } = await promisify(execFile)("git", args, { cwd });
+  const { stdout } = await gitExecFile("git", args, { cwd });
   return stdout;
 }
 

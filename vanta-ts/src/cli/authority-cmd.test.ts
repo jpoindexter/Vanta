@@ -60,6 +60,13 @@ describe("parseGrantArgs", () => {
 });
 
 describe("handleAuthority grant", () => {
+  it("rejects an unanchored write scope without persisting a grant", async () => {
+    const { deps, lines, grants } = harness();
+    expect(await handleAuthority(["grant", "owner", "manager", "--write-scope", "docs"], deps)).toBe(1);
+    expect(grants()).toHaveLength(0);
+    expect(lines.join("\n")).toContain("absolute-path");
+  });
+
   it("persists a parsed grant and reports it", async () => {
     const { deps, lines, grants } = harness();
     const code = await handleAuthority(["grant", "owner", "manager", "--spend", "500"], deps);

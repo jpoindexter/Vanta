@@ -40,12 +40,9 @@ export function runAcpServer(transport: AcpTransport, deps: AcpServerDeps): Prom
     update(sessionId: string, update: SessionUpdate): void {
       transport.send(serializeNotification("session/update", { sessionId, update }));
     },
-    requestPermission(sessionId: string, req: PermissionRequest): Promise<string> {
+    requestPermission(sessionId: string, req: PermissionRequest, signal?: AbortSignal): Promise<string> {
       const id = `perm-${nextOutId++}`;
-      return new Promise<string>((resolve) => {
-        pendingPermissions.set(id, resolve);
-        transport.send(serializeRequest(id, "session/request_permission", { sessionId, ...req }));
-      });
+      return waitForPermission(transport, pendingPermissions, { id, sessionId, req, signal });
     },
   };
   const manager = new SessionManager(deps.runner, sink, deps.cwd);
@@ -67,6 +64,28 @@ export function runAcpServer(transport: AcpTransport, deps: AcpServerDeps): Prom
       pendingPermissions.clear();
       resolve();
     });
+  });
+}
+
+function waitForPermission(
+  transport: AcpTransport,
+  pending: Map<JsonRpcId, (optionId: string) => void>,
+  ask: { id: string; sessionId: string; req: PermissionRequest; signal?: AbortSignal },
+): Promise<string> {
+  const { id, sessionId, req, signal } = ask;
+  if (signal?.aborted) return Promise.resolve("");
+  return new Promise<string>((resolve, reject) => {
+    const cleanup = () => {
+      pending.delete(id);
+      signal?.removeEventListener("abort", cancel);
+    };
+    const finish = (optionId: string) => { cleanup(); resolve(optionId); };
+    const cancel = () => finish("");
+    pending.set(id, finish);
+    signal?.addEventListener("abort", cancel, { once: true });
+    try {
+      transport.send(serializeRequest(id, "session/request_permission", { sessionId, ...req }));
+    } catch (error) { cleanup(); reject(error); }
   });
 }
 

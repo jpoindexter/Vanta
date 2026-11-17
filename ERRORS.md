@@ -131,3 +131,92 @@ Why it failed: the live-region-size invariant isn't only about streaming length 
 **Root cause:** `approveWithEditPolicy` did `await import("./edit-policy.js")` on the approval path. That dynamic import adds an extra async microtask hop; the test advances the loop with a single `await tick()`, which no longer covered "ask emitted." Timing-dependent, so it looked like test pollution (passed once while the module was already warm).
 **What worked:** static `import { … } from "./edit-policy.js"` at the top of `session.ts`. edit-policy only imports a TYPE from session (`import type PermissionOption`), erased at runtime → no runtime cycle. No behavior change; the async hop is gone.
 **Lesson:** don't `await import()` on a latency- or ordering-sensitive path (approval, gate, hot loop) just for code-splitting a tiny pure module — a static import is both faster and deterministic. Reserve dynamic import for genuinely heavy/optional deps (playwright, lora, etc.).
+
+## 2026-08-05 — Bricked session, second vector: tool results present but MISORDERED (Anthropic 400)
+**Symptom:** every turn failed with `400 … "tool_use ids were found without tool_result blocks immediately after: toolu_01LXAm…"`. The session was unusable and stayed unusable — the malformed history replays on every later request. Same class as the 2026-06-11 Codex brick, different mechanism.
+**Root cause:** the 2026-06-11 fix (`sanitizeMessages` → `reconcileDanglingToolResults`) only asked *"does a result for this call exist anywhere in the set?"*. In the observed failure the result DID exist — it just sat after the next assistant turn: `assistant[A,B] → result A → assistant[C,D] → result B → result C → result D`. A set-membership check cannot see that; the providers require **adjacency**, not presence. The checked-in regression fixture is a synthetic, content-free reproduction; no operator transcript was retained.
+Three code paths were abandoning calls mid-batch: (1) the `structured.handled` early return pushed ONLY the StructuredOutput result — and its `?? "structured-output"` id fallback could invent a result with no matching call; (2)/(3) a `stuck` tool `break`s out of the `processToolCalls` loop, leaving every later call in that batch unanswered.
+**What worked:** two layers. `orderToolResults()` in `context/sanitize.ts` re-seats each result immediately after its own call before stubbing/scrubbing — this self-heals sessions already bricked on disk. Then `agent/tool-pairing.ts` (`toolPairingViolation`, `assertToolPairing`) makes the invariant *throw* in dev/test, and `agent/settle-batch.ts` answers every call at each early exit. Verified by reverting both fixes and watching the two new integration tests fail with exactly `call s1 (search) answered out of order` and `call c4 (search) has no result immediately after`.
+**Lesson:** "one result per call" was the wrong invariant. The real one is **"results are adjacent to their call, in call order"** — and it must be asserted in code, not assumed. A silent invariant is how both of these shipped. Also: a green test proves nothing about a fix until you have watched it go red without it.
+
+## 2026-08-17 — Recovered direct Claude OAuth flow was locally coherent but not publishable
+**Symptom:** the unpublished batch could create and refresh Claude subscription tokens in tests, but its client identity and grant were copied from a first-party flow rather than a documented Vanta integration.
+**What failed:** implementation evidence was mistaken for provider authorization. PKCE, keychain storage, refresh rotation, and green tests proved local plumbing only; they did not establish that Anthropic permits an open-source third-party client to mint tokens under Claude Code's identity.
+**What worked:** remove the direct OAuth endpoints, token store, `/login` command, and Desktop code-paste panel. Keep the existing read-only discovery of the official Claude Code login, and direct reauthentication to `claude auth login --claudeai`.
+**Lesson:** authentication code has two contracts: the technical protocol and the provider's authority model. Both must be documented before shipping.
+
+## 2026-08-18 — Approved multi-directory setup still hit macOS sandbox EPERM
+**Symptom:** an operator approved `mkdir -p` for two setup directories, but `shell_cmd` still returned `Operation not permitted` for both paths. Repeating the command or exporting a colon-separated `VANTA_WRITABLE_DIRS` value did not help.
+**Root cause:** the approval-to-sandbox handoff recognized exactly one simple `mkdir` target and rejected `$HOME`. A two-target command therefore produced no one-run writable bindings. The external-directory escalation also asked only about one parsed target, so a stored allow/full-access decision could reach execution without any bindings. Separately, Vanta's configured-directory syntax is comma-separated; the colon-separated recovery was model-generated and invalid.
+**What worked:** move strict direct-`mkdir` parsing into `shell-mkdir-scope.ts`; accept multiple literal or `$HOME` targets; reject command substitution, malformed quotes, and protected paths; pass every existing parent into the approved one-run sandbox; and retain every successfully created external target in session scope. The complete dispatcher replay prompted once, created both sandboxed directories, and removed its synthetic proof directories afterward.
+**Lesson:** an approval is not filesystem authority until its exact resolved targets survive every handoff into the OS sandbox. Test the full dispatcher and real sandbox, not only the parser or gate in isolation.
+
+## 2026-10-14 — 164 orphaned `vanta-kernel` processes (kernel outlived every shell and test)
+**Symptom:** 164 `vanta-kernel serve <port>` processes were found running with parent 1. Desktop starts, real-runtime tests and proof runs each added kernels and nothing removed them.
+**What failed:** the runtime spawned the kernel `detached: true` unless `VANTA_KERNEL_EPHEMERAL=1`, and in ephemeral mode the only cleanup was a Node `exit` hook, which does not run when the process is SIGKILLed, when the parent of the runtime is killed, or when SIGHUP arrives. Measured on the unfixed tree (`kernel-lifecycle-repro.mjs`, real runtimes, 15af9c06): 1 survivor on SIGTERM, SIGINT, SIGHUP and SIGKILL and 2 when the runtime's parent was SIGKILLed, with the default env; with `=1` SIGHUP, SIGKILL and parent death still leaked. Tests and proofs that started kernels never stopped them (the real-runtime tests were fixed first, `f9287299`, but the product path stayed leaky).
+**What worked:** the kernel's owner must be something that dies with its parent without needing the parent to run code. The runtime starts the kernel under a small guard process (inline Node, `kernel-guard/guard-source.ts`) that polls its supervisor and kills the kernel when the supervisor is gone, and writes `run/kernel-<port>.json` (Zod-validated). A reaper retires kernels whose supervisor and guard both died, only when the live command line is exactly `vanta-kernel serve <port>`. The runtime also watches its own parent (`VANTA_DESKTOP_PARENT_WATCH`), both shells tree-kill on quit and await exit, readiness retries with backoff, and one process shares one spawn per port. Result with real processes: 0 survivors on every exit path in the runtime matrix and in the packaged app (`desktop-next/docs/proofs/kernel-lifecycle/`).
+**Follow-up found later:** two runtimes starting together on one profile and port both spawned a guard and the loser's guard erased the winner's pid file (3 of 3 runs), leaving a kernel nothing could reap. Fixed with an O_EXCL start lock (`kernel-guard/spawn-lock.ts`) and an owner check before any spawn.
+**Lesson:** a process that can be SIGKILLed cannot clean up after itself, so put the cleanup in a separate watcher process. Prove lifecycle with real signals and a process-table count, and run the two-instance case, not just one.
+
+## 2026-10-23 — Keyboard-opened status Details retained an autofocus tooltip
+
+**Observed:** the nested context menu closed, but Escape did not dismiss the parent Details popover. Two attempts to wait for menu/focus settling did not fix the interaction. A minimal pointer-open replay closed normally; the keyboard-open replay retained an “Open agents” tooltip after entering a different menu.
+
+**Cause and correction:** opening Details by keyboard focused its first icon control and created a competing tooltip layer. The panel now gives controls visible labels and omits their display-only tooltip metadata, retaining original action/menu handlers and shortcut registration. `tools/proof/dn29-navigation-status.mjs` covers the real keyboard-open / nested-menu / Escape / focus-return path. Completion is recorded in the slice evidence, not inferred from the change.
+## 2026-10-23 — Home displayed one project but started the chat elsewhere
+
+The real two-project source replay selected Beta but ran in Acme. Home reads
+the flat project list; its task adapter resolved folders only from the sidebar
+tree, which had not loaded, then silently started in place. A second failing
+test showed late projects displayed a default choice while submission kept
+null. Resolve the selected ID from the existing flat list when necessary and
+derive one effective selection for display and submission. Both regression
+tests and the real switch/reply path pass; see
+desktop-next/docs/DN-34-PROJECT-CHAT-2026-10-23.md. No permission-policy change.
+
+## 2026-10-23 — Isolated index proof lacked its kernel dependency
+
+The exported Git index built and passed focused tests, but source Electron
+opened onboarding with a missing target/debug kernel before any model call.
+Passing VANTA_KERNEL_BIN through proof extraEnv did not fix it: Electron's
+buildServerCommand overwrites that value with paths.kernel. The ineffective
+proof edit was reverted. The isolated candidate now links the same existing
+kernel binary as the worktree; no Rust, startup or safety policy was changed.
+Actual candidate Cancel (17 checks) and Pause/Resume (19 checks) then passed.
+Logs/screenshots and dependency hash are retained in
+desktop-next/docs/DN-22-WORKFLOW-CANCEL-2026-10-23.md. Do not describe an outer
+VANTA_KERNEL_BIN as selecting the source Electron launcher's actual kernel.
+
+## 2026-11-12 — Desktop security lock maintenance crossed resolver/API boundaries
+
+npm 10.9.8 update failed in Arborist's loadPeerSet with null `edgesOut`;
+package-lock-only install made no progress. Use isolated npm 12.2.2 for this
+lock maintenance and tree inspection, retaining global npm/Node/authentication.
+Its first resolution exposed duplicate React peer types and a legacy filelist
+consumer receiving non-callable Minimatch 11. Keep the existing React/type pins
+and scope modern Glob/Minimatch overrides; explicitly retain legacy matcher
+APIs. Six focused archive/matcher/plist/schema/HTTP checks, both typechecks,
+fresh npm 10 ci and full/production zero-audit checks passed. npm 10's tree
+reporter still rejects the scoped overrides; npm 12's tree reports no problems.
+See docs/iris-build-tool-dependencies-2026-11-12.md for limits and delivery proof.
+
+
+## 2026-11-16 — Dependency fixes must preserve consumer and override contexts
+
+Inherited parent overrides for modern Minimatch 11 and legacy Minimatch 3 made
+npm 12's Arborist report valid once/wrappy edges as invalid: it compared unrelated
+inherited matcher rules after semver validation succeeded. Reinstalling or using
+an older tree reporter did not fix that modeling conflict. Version-specific root
+rules for only Minimatch 9/10 avoid the context conflict while retaining legacy
+3/5 APIs; fresh installs, full tree inspection and archive/matcher tests pass.
+Use isolated npm 12.2.2 for this maintenance; its URL-fetch default is none, so
+ci needs command-local --allow-remote=root for the existing integrity-pinned
+Winnow dependency. Do not enable arbitrary remote URLs or change global config.
+
+Docusaurus's open Mermaid range initially selected an unnecessary major update.
+Keep the theme's exact direct caret spec in a nested override selecting Mermaid
+11.16.1 and its KaTeX 0.18.2 child; test resolution through the actual theme entry,
+not an unexported package.json path. Typecheck/build and real browser diagram/math
+rendering pass. Do not suppress active advisories: the remaining sprintf match
+was instead confirmed upstream-withdrawn and triaged with that exact reference.
+See docs/dependency-security-2026-11-16.md for scope, results and merge gates.

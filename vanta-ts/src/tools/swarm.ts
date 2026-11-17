@@ -3,6 +3,7 @@ import type { Tool } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
 import { resolveProvider } from "../providers/index.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
+import { aggregateWorkerResults, workerToolResult } from "../subagent/tool-result.js";
 
 // Inlined (not imported from delegate.js) to avoid a load-time import cycle
 // swarm → delegate → tools/index → swarm.
@@ -63,23 +64,32 @@ export const swarmTool: Tool = {
     const { tasks, max_iterations: maxIterations } = parsed.data;
     const { buildRegistry } = await import("./index.js"); // lazy → no import cycle
     const registry = buildRegistry({ exclude: ["delegate", "swarm"] });
+    const siblings = new AbortController();
+    const signal = ctx.signal ? AbortSignal.any([ctx.signal, siblings.signal]) : siblings.signal;
 
     const results = await Promise.all(
       tasks.map(async (t, i) => {
+        let started = false;
         try {
+          signal.throwIfAborted();
           const provider = resolveProvider(workerEnv(process.env, t.provider, t.model));
+          started = true;
           const outcome = await spawnSubagent({
             goal: t.goal,
             instruction: t.instruction,
-            deps: { provider, safety: ctx.safety, registry, root: ctx.root, requestApproval: ctx.requestApproval, maxIterations },
+            signal,
+            deps: { provider, safety: ctx.safety, registry, root: ctx.root, maxIterations,
+              requestApproval: (action, reason, tool, detail) => ctx.requestApproval(action, reason, tool, { ...detail, signal }) },
             maxIterations,
           });
-          return `[worker ${i + 1}:${outcome.stoppedReason}] ${outcome.finalText}`;
+          if (outcome.needsEffectReview) siblings.abort();
+          return workerToolResult(outcome, `[worker ${i + 1}:${outcome.stoppedReason}] ${outcome.finalText}`);
         } catch (err) {
-          return `[worker ${i + 1}:error] ${(err as Error).message}`;
+          if (started) siblings.abort();
+          return { ok: false, output: `[worker ${i + 1}:error] ${(err as Error).message}`, effectDisposition: "unknown" as const, verification: { status: "unverified" as const } };
         }
       }),
     );
-    return { ok: true, output: results.join("\n\n") };
+    return aggregateWorkerResults(results);
   },
 };

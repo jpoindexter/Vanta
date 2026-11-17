@@ -63,9 +63,9 @@ describe("maybeSandbox — seatbelt (darwin)", () => {
     const profile = await readFile(profilePath, "utf8");
     expect(profile).toContain("(deny default)");
     // tmpdir() MUST be writable so run_code's mkdtemp temp dir works under sandbox.
-    expect(profile).toContain(`(allow file-write* (subpath "${realpathSync(tmpdir())}"))`);
+    expect(profile).toContain(`(allow file-write* (require-all (subpath "${realpathSync(tmpdir())}")`);
     // root is writable
-    expect(profile).toContain(`(allow file-write* (subpath "${resolve(ROOT)}"))`);
+    expect(profile).toContain(`(allow file-write* (require-all (subpath "${resolve(ROOT)}")`);
 
     await r.cleanup?.();
     await expect(stat(profilePath)).rejects.toThrow();
@@ -93,8 +93,8 @@ describe("maybeSandbox — seatbelt (darwin)", () => {
     const profilePath = r.args[1];
     if (profilePath === undefined) throw new Error("missing profile path");
     const profile = await readFile(profilePath, "utf8");
-    expect(profile).toContain(`(allow file-write* (subpath "${approved}"))`);
-    expect(profile).not.toContain(`(allow file-write* (subpath "${homedir()}"))`);
+    expect(profile).toContain(`(allow file-write* (require-all (subpath "${approved}")`);
+    expect(profile).not.toContain(`(allow file-write* (require-all (subpath "${homedir()}")`);
     await r.cleanup?.();
   });
 });
@@ -148,5 +148,21 @@ describe("sandbox permits the system /tmp (darwin)", () => {
     expect(() => execFileSync(sb.cmd, sb.args, { encoding: "utf8" })).not.toThrow();
     await sb.cleanup?.();
     rmSync("/tmp/vanta-sb-regress.txt", { force: true });
+  });
+});
+
+describe("sandbox permits child cleanup signals (darwin)", () => {
+  const canRun = process.platform === "darwin" && existsSync("/usr/bin/sandbox-exec");
+  it.skipIf(!canRun)("a sandboxed runner can terminate its own child worker", async () => {
+    const sb = await maybeSandbox({
+      env: { ...process.env, VANTA_SANDBOX: "1" },
+      root: process.cwd(),
+      baseCmd: "sh",
+      baseArgs: ["-c", 'sleep 1 & child=$!; if kill "$child"; then echo terminated; else echo denied; fi; wait "$child" 2>/dev/null || true'],
+    });
+    if (isSandboxError(sb)) return;
+    const output = execFileSync(sb.cmd, sb.args, { encoding: "utf8" });
+    expect(output.trim()).toBe("terminated");
+    await sb.cleanup?.();
   });
 });

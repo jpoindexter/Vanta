@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
 import { spawnSubagent } from "../subagent/spawn.js";
-import { enqueueAsyncResult } from "../subagent/async-delegate.js";
+import { beginAsyncResult, enqueueAsyncResult } from "../subagent/async-delegate.js";
 import { resolveProvider } from "../providers/index.js";
 import { providerOverrideEnv } from "../providers/override-env.js";
 import { recordDelegationNode } from "../subagent/delegation-receipt.js";
@@ -12,6 +12,8 @@ import { agentToolFilter } from "../subagent/builtin-agents.js";
 import { isCustomAgentDef, loadAgentDefs, resolveAgentType, type CustomAgentDef, type ResolvedAgentType } from "../subagent/agent-defs.js";
 import { validatePromptPreset, type PromptPreset } from "../prompt/presets.js";
 import type { Settings } from "../settings/store.js";
+import { workerResultComplete, workerToolResult } from "../subagent/tool-result.js";
+import type { ToolRegistry } from "./registry.js";
 
 const Args = z.object({
   goal: z.string().min(1),
@@ -88,26 +90,27 @@ async function resolveWorktree(
   }
 }
 
+async function loadDelegateAgentConfig(data: DelegateArgs, root: string): Promise<DelegateAgentConfig> {
+  const { buildRegistry } = await import("./index.js");
+  const baseNames = buildRegistry({ exclude: ["delegate"] }).schemas().map((schema) => schema.name);
+  return resolveDelegateAgentConfig(data.agent_type, loadAgentDefs(root, process.env), baseNames);
+}
+
 async function runDelegate(
   data: DelegateArgs,
   ctx: import("./types.js").ToolContext,
+  childId: string = randomUUID(),
+  custodyId?: string,
 ): Promise<import("./types.js").ToolResult> {
   const { goal, instruction, max_iterations: maxIterations, provider: prov, model, isolation } = data;
 
-  const { buildRegistry } = await import("./index.js");
-  const baseRegistry = buildRegistry({ exclude: ["delegate"] });
-  const baseNames = baseRegistry.schemas().map((schema) => schema.name);
-  const agent = resolveDelegateAgentConfig(data.agent_type, loadAgentDefs(ctx.root, process.env), baseNames);
+  const agent = await loadDelegateAgentConfig(data, ctx.root);
   const promptError = validatePromptPreset(agent.promptPreset);
   if (promptError) return { ok: false, output: promptError };
   const workerModel = model ?? agent.model;
 
-  let provider;
-  try {
-    provider = resolveProvider(delegateEnv(process.env, prov, workerModel));
-  } catch (err) {
-    return { ok: false, output: `cannot use ${prov ?? "default"}/${workerModel ?? "default"}: ${(err as Error).message}` };
-  }
+  const provider = resolveWorkerProvider(prov, workerModel);
+  if ("ok" in provider) return provider;
 
   // Child cannot spawn further delegates — prevents runaway recursion.
   const registry = await buildDelegateRegistry(agent);
@@ -115,19 +118,14 @@ async function runDelegate(
   const wt = await resolveWorktree(ctx.root, isolation);
   if ("ok" in wt && !wt.ok) return wt;
   const { handle: worktreeHandle, workerRoot } = wt as { handle: import("../worktree/manager.js").WorktreeHandle | undefined; workerRoot: string };
-  const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
-    import("../mcp/mount.js"),
-    import("../settings/store.js"),
-    import("../settings/mcp-access.js"),
-  ]);
-  const workerSettings: Settings = await loadSettings(workerRoot, process.env).catch(() => ({}));
-  if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
-    await mountMcpServers(registry, process.env, () => {}, { cwd: workerRoot });
-
-  try {
+  return retainDelegateWorktree({ handle: worktreeHandle, ctx, childId }, async () => {
+    await mountWorkerMcp(registry, ctx, workerRoot);
     const outcome = await spawnSubagent({
       goal,
       instruction,
+      signal: ctx.signal,
+      kernelRoot: ctx.root,
+      inspection: { id: childId, root: ctx.root, workerRoot, parentSessionId: ctx.sessionId, custodyId },
       deps: {
         provider,
         safety: ctx.safety,
@@ -139,24 +137,59 @@ async function runDelegate(
       maxIterations,
       promptPreset: agent.promptPreset,
     });
-    await persistDelegateReceipt(data, ctx, outcome);
-    const prefix = worktreeHandle ? `[worktree:${worktreeHandle.branch}] ` : "";
-    return { ok: true, output: `${prefix}[worker:${outcome.stoppedReason}] ${outcome.finalText}` };
-  } finally {
-    if (worktreeHandle) await worktreeHandle.cleanup().catch(() => {});
+    await persistDelegateReceipt(data, ctx, outcome, { id: childId, workerRoot });
+    return workerToolResult(outcome, `[worker:${outcome.stoppedReason}] ${outcome.finalText}`);
+  });
+}
+
+async function retainDelegateWorktree(
+  o: { handle?: import("../worktree/manager.js").WorktreeHandle; ctx: ToolContext; childId: string },
+  run: () => Promise<ToolResult>,
+): Promise<ToolResult> {
+  const retained = o.handle ? `Retained isolated worktree for review; no automatic merge or cleanup.\nPath: ${o.handle.path}\nBranch: ${o.handle.branch}\nWorker cursor: ${o.childId}\nInspect partial work: vanta agents delegation inspect ${o.childId}` : "";
+  try {
+    if (retained) o.ctx.onProgress?.(retained);
+    const result = await run();
+    return retained ? { ...result, output: `${result.output}\n\n${retained}` } : result;
+  } catch (error) {
+    if (!o.handle) throw error;
+    return { ok: false, effectDisposition: "unknown", output: `Delegated work stopped: ${error instanceof Error ? error.message : String(error)}\n\n${retained}` };
   }
 }
 
-async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outcome: import("../agent.js").AgentOutcome): Promise<void> {
+function resolveWorkerProvider(provider: string | undefined, model: string | undefined) {
+  try { return resolveProvider(delegateEnv(process.env, provider, model)); }
+  catch (err) { return { ok: false, output: `cannot use ${provider ?? "default"}/${model ?? "default"}: ${(err as Error).message}` }; }
+}
+
+async function mountWorkerMcp(registry: ToolRegistry, ctx: ToolContext, workerRoot: string): Promise<void> {
+  const [{ mountMcpServers }, { loadSettings }, { mcpAutoMountEnabled }] = await Promise.all([
+    import("../mcp/mount.js"), import("../settings/store.js"), import("../settings/mcp-access.js"),
+  ]);
+  const workerSettings: Settings = await loadSettings(workerRoot, process.env);
+  if (mcpAutoMountEnabled(workerSettings.mcp ?? {}, process.env))
+    await mountMcpServers(registry, process.env, () => {}, {
+      cwd: workerRoot,
+      effectGate: {
+        kernel: ctx.safety,
+        approval: { request: request => ctx.requestApproval(request.action, request.reason, "mcp_mount", { fresh: true }) },
+        projectRoot: workerRoot,
+        sessionId: ctx.sessionId,
+        permissionMode: ctx.permissionMode?.() ?? "default",
+      },
+    });
+}
+
+async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outcome: import("../agent.js").AgentOutcome, worker: { id: string; workerRoot: string }): Promise<void> {
   const evidence = outcome.workerEvidence;
   if (!evidence) return;
-  const id = randomUUID();
+  const { id, workerRoot } = worker;
   const treeId = ctx.sessionId ?? `delegate-${id}`;
   const usage = outcome.usage;
   await recordDelegationNode(ctx.root, {
     id, treeId, parentId: ctx.sessionId ?? "interactive", parentTask: data.goal, childPrompt: data.instruction,
-    model: evidence.model, tools: evidence.tools, summary: outcome.finalText, rawSidechain: evidence.rawSidechain,
-    verification: outcome.stoppedReason === "done" ? "pass" : outcome.stoppedReason === "interrupted" ? "blocked" : "fail",
+    model: evidence.model, tools: evidence.tools, summary: outcome.finalText, rawSidechain: resolve(workerRoot, evidence.rawSidechain),
+    verification: workerResultComplete(outcome) ? "pass" : outcome.stoppedReason === "interrupted" ? "blocked" : "fail",
     stoppedReason: outcome.stoppedReason, durationMs: evidence.durationMs, ...(usage ? { usage } : {}),
     estimatedCostUsd: usage ? estimateCostUsd(evidence.model, usage.inputTokens, usage.outputTokens) : null,
     createdAt: new Date().toISOString(),
@@ -165,15 +198,27 @@ async function persistDelegateReceipt(data: DelegateArgs, ctx: ToolContext, outc
 
 /** VANTA-ASYNC-DELEGATE: kick off the worker detached — return an ack in ~ms; on
  * completion enqueue the result so the REPL re-enters it as a new turn when idle.
- * runDelegate's own worktree cleanup runs in its finally when the promise settles. */
-function startBackgroundDelegate(data: DelegateArgs, ctx: ToolContext): ToolResult {
+ * Isolated worktrees remain available for explicit review and cleanup. */
+async function startBackgroundDelegate(data: DelegateArgs, ctx: ToolContext): Promise<ToolResult> {
   const id = randomUUID();
+  try { await beginAsyncResult(join(ctx.root, ".vanta"), id); }
+  catch { return { ok: false, output: "Could not save background worker custody. No worker was started.", effectDisposition: "unknown" }; }
+  void saveBackgroundResult(data, { ...ctx, signal: undefined }, id).catch(() => {
+    ctx.onProgress?.("Background result could not be saved. Review the worker receipt; no automatic retry was attempted.");
+  });
+  return { ok: true, output: `delegated in background (id=${id}) — completed results return when idle; uncertain work pauses for review. Inspect without replay: vanta agents delegation inspect ${id}` };
+}
+
+async function saveBackgroundResult(data: DelegateArgs, ctx: ToolContext, id: string): Promise<void> {
   const dataDir = join(ctx.root, ".vanta");
-  const finishedAt = () => new Date().toISOString();
-  void runDelegate(data, ctx)
-    .then((r) => enqueueAsyncResult(dataDir, { id, goal: data.goal, output: r.output, finishedAt: finishedAt() }))
-    .catch((e) => enqueueAsyncResult(dataDir, { id, goal: data.goal, output: `error: ${(e as Error).message}`, finishedAt: finishedAt() }));
-  return { ok: true, output: `delegated in background (id=${id.slice(0, 8)}) — result will re-enter as a new turn when idle` };
+  let result: ToolResult;
+  try { result = await runDelegate(data, ctx, id, id); }
+  catch (error) { result = { ok: false, effectDisposition: "unknown", output: `error: ${error instanceof Error ? error.message : String(error)}` }; }
+  await enqueueAsyncResult(dataDir, {
+    id, goal: data.goal, output: result.output, finishedAt: new Date().toISOString(), ok: result.ok,
+    ...(result.effectDisposition ? { effectDisposition: result.effectDisposition } : {}),
+    ...(result.verification ? { verification: { status: result.verification.status } } : {}),
+  });
 }
 
 export const delegateTool: Tool = {

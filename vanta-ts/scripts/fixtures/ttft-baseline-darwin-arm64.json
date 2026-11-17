@@ -1,0 +1,1613 @@
+{
+  "version": 1,
+  "createdAt": "2026-07-29T13:16:06.829Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4 Pro",
+    "logicalCpus": 12,
+    "memoryBytes": 51539607552
+  },
+  "build": {
+    "sha": "0886be0758ff309c4cbc37356bcc53243b9ea96f",
+    "dirty": true,
+    "packageVersion": "0.9.8"
+  },
+  "provenance": {
+    "providerMode": "live",
+    "containsMockedProvider": false
+  },
+  "eligibleBaseline": true,
+  "eligibilityErrors": [],
+  "groups": {
+    "cli:fresh": {
+      "surface": "cli",
+      "profileMode": "fresh",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 2463,
+          "p95": 2998,
+          "worst": 2998,
+          "samples": [
+            2463,
+            2386,
+            2452,
+            2895,
+            2998
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 10,
+          "p95": 11,
+          "worst": 11,
+          "samples": [
+            10,
+            11,
+            10,
+            10,
+            9
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 13004,
+          "p95": 14805,
+          "worst": 14805,
+          "samples": [
+            13004,
+            12616,
+            12757,
+            13714,
+            14805
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 1723,
+          "p95": 2297,
+          "worst": 2297,
+          "samples": [
+            1371,
+            1723,
+            1656,
+            2145,
+            2297
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 14423,
+          "p95": 17111,
+          "worst": 17111,
+          "samples": [
+            14385,
+            14350,
+            14423,
+            15869,
+            17111
+          ]
+        }
+      }
+    },
+    "cli:warm": {
+      "surface": "cli",
+      "profileMode": "warm",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 3286,
+          "p95": 4471,
+          "worst": 4471,
+          "samples": [
+            4471,
+            2605,
+            2965,
+            4030,
+            3286
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 16,
+          "p95": 79,
+          "worst": 79,
+          "samples": [
+            79,
+            16,
+            16,
+            24,
+            15
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 15935,
+          "p95": 17382,
+          "worst": 17382,
+          "samples": [
+            16030,
+            15056,
+            15935,
+            17382,
+            13248
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 2127,
+          "p95": 2496,
+          "worst": 2496,
+          "samples": [
+            2034,
+            2266,
+            2127,
+            2496,
+            1692
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 18078,
+          "p95": 19902,
+          "worst": 19902,
+          "samples": [
+            18143,
+            17338,
+            18078,
+            19902,
+            14955
+          ]
+        }
+      }
+    },
+    "tui:fresh": {
+      "surface": "tui",
+      "profileMode": "fresh",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 2337,
+          "p95": 2502,
+          "worst": 2502,
+          "samples": [
+            2460,
+            2337,
+            2202,
+            2231,
+            2502
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 15,
+          "p95": 20,
+          "worst": 20,
+          "samples": [
+            20,
+            15,
+            14,
+            14,
+            18
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 13692,
+          "p95": 14928,
+          "worst": 14928,
+          "samples": [
+            13992,
+            14928,
+            12906,
+            13692,
+            13418
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 23,
+          "p95": 26,
+          "worst": 26,
+          "samples": [
+            20,
+            13,
+            23,
+            24,
+            26
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 13730,
+          "p95": 14956,
+          "worst": 14956,
+          "samples": [
+            14032,
+            14956,
+            12943,
+            13730,
+            13462
+          ]
+        }
+      }
+    },
+    "tui:warm": {
+      "surface": "tui",
+      "profileMode": "warm",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 1948,
+          "p95": 2188,
+          "worst": 2188,
+          "samples": [
+            2188,
+            1617,
+            2019,
+            1945,
+            1948
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 15,
+          "p95": 16,
+          "worst": 16,
+          "samples": [
+            13,
+            15,
+            14,
+            15,
+            16
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 13513,
+          "p95": 13964,
+          "worst": 13964,
+          "samples": [
+            13171,
+            13964,
+            13618,
+            13342,
+            13513
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 21,
+          "p95": 27,
+          "worst": 27,
+          "samples": [
+            24,
+            21,
+            27,
+            14,
+            17
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 13546,
+          "p95": 14000,
+          "worst": 14000,
+          "samples": [
+            13208,
+            14000,
+            13659,
+            13371,
+            13546
+          ]
+        }
+      }
+    },
+    "gateway:fresh": {
+      "surface": "gateway",
+      "profileMode": "fresh",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 2115,
+          "p95": 2370,
+          "worst": 2370,
+          "samples": [
+            1911,
+            1958,
+            2370,
+            2115,
+            2265
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 298,
+          "p95": 398,
+          "worst": 398,
+          "samples": [
+            278,
+            296,
+            321,
+            298,
+            398
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 13606,
+          "p95": 13884,
+          "worst": 13884,
+          "samples": [
+            13506,
+            13606,
+            13411,
+            13884,
+            13815
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 2,
+          "p95": 5,
+          "worst": 5,
+          "samples": [
+            5,
+            2,
+            2,
+            2,
+            1
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 13904,
+          "p95": 14214,
+          "worst": 14214,
+          "samples": [
+            13789,
+            13904,
+            13734,
+            14184,
+            14214
+          ]
+        }
+      }
+    },
+    "gateway:warm": {
+      "surface": "gateway",
+      "profileMode": "warm",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 1881,
+          "p95": 2190,
+          "worst": 2190,
+          "samples": [
+            1444,
+            1342,
+            2190,
+            1881,
+            2139
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 127,
+          "p95": 301,
+          "worst": 301,
+          "samples": [
+            301,
+            112,
+            127,
+            125,
+            247
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 14391,
+          "p95": 16427,
+          "worst": 16427,
+          "samples": [
+            13494,
+            14391,
+            14240,
+            14579,
+            16427
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 2,
+          "p95": 4,
+          "worst": 4,
+          "samples": [
+            1,
+            2,
+            2,
+            4,
+            3
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 14505,
+          "p95": 16677,
+          "worst": 16677,
+          "samples": [
+            13796,
+            14505,
+            14369,
+            14708,
+            16677
+          ]
+        }
+      }
+    },
+    "desktop:fresh": {
+      "surface": "desktop",
+      "profileMode": "fresh",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 4228,
+          "p95": 11337,
+          "worst": 11337,
+          "samples": [
+            11337,
+            4228,
+            8649,
+            3325,
+            2849
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 272,
+          "p95": 940,
+          "worst": 940,
+          "samples": [
+            940,
+            135,
+            586,
+            272,
+            224
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 18959,
+          "p95": 20465,
+          "worst": 20465,
+          "samples": [
+            20465,
+            18757,
+            18677,
+            19671,
+            18959
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 11,
+          "p95": 22,
+          "worst": 22,
+          "samples": [
+            22,
+            13,
+            4,
+            10,
+            11
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 19267,
+          "p95": 21427,
+          "worst": 21427,
+          "samples": [
+            21427,
+            18905,
+            19267,
+            19953,
+            19194
+          ]
+        }
+      }
+    },
+    "desktop:warm": {
+      "surface": "desktop",
+      "profileMode": "warm",
+      "sampleCount": 5,
+      "summary": {
+        "processToInteractiveMs": {
+          "median": 3585,
+          "p95": 6867,
+          "worst": 6867,
+          "samples": [
+            3585,
+            2763,
+            6317,
+            6867,
+            2866
+          ]
+        },
+        "submitToDispatchMs": {
+          "median": 235,
+          "p95": 632,
+          "worst": 632,
+          "samples": [
+            235,
+            216,
+            632,
+            356,
+            209
+          ]
+        },
+        "providerToFirstDeltaMs": {
+          "median": 17314,
+          "p95": 17622,
+          "worst": 17622,
+          "samples": [
+            17616,
+            16348,
+            16993,
+            17622,
+            17314
+          ]
+        },
+        "deltaToFirstPaintMs": {
+          "median": 9,
+          "p95": 13,
+          "worst": 13,
+          "samples": [
+            7,
+            9,
+            13,
+            10,
+            9
+          ]
+        },
+        "submitToFirstPaintMs": {
+          "median": 17638,
+          "p95": 17988,
+          "worst": 17988,
+          "samples": [
+            17858,
+            16573,
+            17638,
+            17988,
+            17532
+          ]
+        }
+      }
+    }
+  },
+  "samples": [
+    {
+      "surface": "cli",
+      "profileMode": "fresh",
+      "sampleIndex": 1,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330179919,
+        "interactiveAtMs": 1785330182382,
+        "submittedAtMs": 1785330182445,
+        "firstPaintedAtMs": 1785330196830,
+        "turnStartedAtMs": 1785330182453,
+        "providerDispatchAtMs": 1785330182455,
+        "providerFirstDeltaAtMs": 1785330195459
+      },
+      "metrics": {
+        "processToInteractiveMs": 2463,
+        "submitToDispatchMs": 10,
+        "providerToFirstDeltaMs": 13004,
+        "deltaToFirstPaintMs": 1371,
+        "submitToFirstPaintMs": 14385
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "fresh",
+      "sampleIndex": 2,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330196838,
+        "interactiveAtMs": 1785330199224,
+        "submittedAtMs": 1785330199285,
+        "firstPaintedAtMs": 1785330213635,
+        "turnStartedAtMs": 1785330199294,
+        "providerDispatchAtMs": 1785330199296,
+        "providerFirstDeltaAtMs": 1785330211912
+      },
+      "metrics": {
+        "processToInteractiveMs": 2386,
+        "submitToDispatchMs": 11,
+        "providerToFirstDeltaMs": 12616,
+        "deltaToFirstPaintMs": 1723,
+        "submitToFirstPaintMs": 14350
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "fresh",
+      "sampleIndex": 3,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330213643,
+        "interactiveAtMs": 1785330216095,
+        "submittedAtMs": 1785330216155,
+        "firstPaintedAtMs": 1785330230578,
+        "turnStartedAtMs": 1785330216163,
+        "providerDispatchAtMs": 1785330216165,
+        "providerFirstDeltaAtMs": 1785330228922
+      },
+      "metrics": {
+        "processToInteractiveMs": 2452,
+        "submitToDispatchMs": 10,
+        "providerToFirstDeltaMs": 12757,
+        "deltaToFirstPaintMs": 1656,
+        "submitToFirstPaintMs": 14423
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "fresh",
+      "sampleIndex": 4,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330230585,
+        "interactiveAtMs": 1785330233480,
+        "submittedAtMs": 1785330233542,
+        "firstPaintedAtMs": 1785330249411,
+        "turnStartedAtMs": 1785330233550,
+        "providerDispatchAtMs": 1785330233552,
+        "providerFirstDeltaAtMs": 1785330247266
+      },
+      "metrics": {
+        "processToInteractiveMs": 2895,
+        "submitToDispatchMs": 10,
+        "providerToFirstDeltaMs": 13714,
+        "deltaToFirstPaintMs": 2145,
+        "submitToFirstPaintMs": 15869
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "fresh",
+      "sampleIndex": 5,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330249419,
+        "interactiveAtMs": 1785330252417,
+        "submittedAtMs": 1785330252480,
+        "firstPaintedAtMs": 1785330269591,
+        "turnStartedAtMs": 1785330252487,
+        "providerDispatchAtMs": 1785330252489,
+        "providerFirstDeltaAtMs": 1785330267294
+      },
+      "metrics": {
+        "processToInteractiveMs": 2998,
+        "submitToDispatchMs": 9,
+        "providerToFirstDeltaMs": 14805,
+        "deltaToFirstPaintMs": 2297,
+        "submitToFirstPaintMs": 17111
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "warm",
+      "sampleIndex": 1,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330269600,
+        "interactiveAtMs": 1785330274071,
+        "submittedAtMs": 1785330274212,
+        "firstPaintedAtMs": 1785330292355,
+        "turnStartedAtMs": 1785330274282,
+        "providerDispatchAtMs": 1785330274291,
+        "providerFirstDeltaAtMs": 1785330290321
+      },
+      "metrics": {
+        "processToInteractiveMs": 4471,
+        "submitToDispatchMs": 79,
+        "providerToFirstDeltaMs": 16030,
+        "deltaToFirstPaintMs": 2034,
+        "submitToFirstPaintMs": 18143
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "warm",
+      "sampleIndex": 2,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330292363,
+        "interactiveAtMs": 1785330294968,
+        "submittedAtMs": 1785330295035,
+        "firstPaintedAtMs": 1785330312373,
+        "turnStartedAtMs": 1785330295048,
+        "providerDispatchAtMs": 1785330295051,
+        "providerFirstDeltaAtMs": 1785330310107
+      },
+      "metrics": {
+        "processToInteractiveMs": 2605,
+        "submitToDispatchMs": 16,
+        "providerToFirstDeltaMs": 15056,
+        "deltaToFirstPaintMs": 2266,
+        "submitToFirstPaintMs": 17338
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "warm",
+      "sampleIndex": 3,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330312380,
+        "interactiveAtMs": 1785330315345,
+        "submittedAtMs": 1785330315412,
+        "firstPaintedAtMs": 1785330333490,
+        "turnStartedAtMs": 1785330315426,
+        "providerDispatchAtMs": 1785330315428,
+        "providerFirstDeltaAtMs": 1785330331363
+      },
+      "metrics": {
+        "processToInteractiveMs": 2965,
+        "submitToDispatchMs": 16,
+        "providerToFirstDeltaMs": 15935,
+        "deltaToFirstPaintMs": 2127,
+        "submitToFirstPaintMs": 18078
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "warm",
+      "sampleIndex": 4,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330333496,
+        "interactiveAtMs": 1785330337526,
+        "submittedAtMs": 1785330337606,
+        "firstPaintedAtMs": 1785330357508,
+        "turnStartedAtMs": 1785330337626,
+        "providerDispatchAtMs": 1785330337630,
+        "providerFirstDeltaAtMs": 1785330355012
+      },
+      "metrics": {
+        "processToInteractiveMs": 4030,
+        "submitToDispatchMs": 24,
+        "providerToFirstDeltaMs": 17382,
+        "deltaToFirstPaintMs": 2496,
+        "submitToFirstPaintMs": 19902
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "cli",
+      "profileMode": "warm",
+      "sampleIndex": 5,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330357514,
+        "interactiveAtMs": 1785330360800,
+        "submittedAtMs": 1785330360866,
+        "firstPaintedAtMs": 1785330375821,
+        "turnStartedAtMs": 1785330360878,
+        "providerDispatchAtMs": 1785330360881,
+        "providerFirstDeltaAtMs": 1785330374129
+      },
+      "metrics": {
+        "processToInteractiveMs": 3286,
+        "submitToDispatchMs": 15,
+        "providerToFirstDeltaMs": 13248,
+        "deltaToFirstPaintMs": 1692,
+        "submitToFirstPaintMs": 14955
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "fresh",
+      "sampleIndex": 1,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330375828,
+        "interactiveAtMs": 1785330378288,
+        "submittedAtMs": 1785330378349,
+        "firstPaintedAtMs": 1785330392381,
+        "turnStartedAtMs": 1785330378367,
+        "providerDispatchAtMs": 1785330378369,
+        "providerFirstDeltaAtMs": 1785330392361
+      },
+      "metrics": {
+        "processToInteractiveMs": 2460,
+        "submitToDispatchMs": 20,
+        "providerToFirstDeltaMs": 13992,
+        "deltaToFirstPaintMs": 20,
+        "submitToFirstPaintMs": 14032
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "fresh",
+      "sampleIndex": 2,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330392390,
+        "interactiveAtMs": 1785330394727,
+        "submittedAtMs": 1785330394788,
+        "firstPaintedAtMs": 1785330409744,
+        "turnStartedAtMs": 1785330394801,
+        "providerDispatchAtMs": 1785330394803,
+        "providerFirstDeltaAtMs": 1785330409731
+      },
+      "metrics": {
+        "processToInteractiveMs": 2337,
+        "submitToDispatchMs": 15,
+        "providerToFirstDeltaMs": 14928,
+        "deltaToFirstPaintMs": 13,
+        "submitToFirstPaintMs": 14956
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "fresh",
+      "sampleIndex": 3,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330409753,
+        "interactiveAtMs": 1785330411955,
+        "submittedAtMs": 1785330412016,
+        "firstPaintedAtMs": 1785330424959,
+        "turnStartedAtMs": 1785330412028,
+        "providerDispatchAtMs": 1785330412030,
+        "providerFirstDeltaAtMs": 1785330424936
+      },
+      "metrics": {
+        "processToInteractiveMs": 2202,
+        "submitToDispatchMs": 14,
+        "providerToFirstDeltaMs": 12906,
+        "deltaToFirstPaintMs": 23,
+        "submitToFirstPaintMs": 12943
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "fresh",
+      "sampleIndex": 4,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330424966,
+        "interactiveAtMs": 1785330427197,
+        "submittedAtMs": 1785330427256,
+        "firstPaintedAtMs": 1785330440986,
+        "turnStartedAtMs": 1785330427268,
+        "providerDispatchAtMs": 1785330427270,
+        "providerFirstDeltaAtMs": 1785330440962
+      },
+      "metrics": {
+        "processToInteractiveMs": 2231,
+        "submitToDispatchMs": 14,
+        "providerToFirstDeltaMs": 13692,
+        "deltaToFirstPaintMs": 24,
+        "submitToFirstPaintMs": 13730
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "fresh",
+      "sampleIndex": 5,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330440995,
+        "interactiveAtMs": 1785330443497,
+        "submittedAtMs": 1785330443559,
+        "firstPaintedAtMs": 1785330457021,
+        "turnStartedAtMs": 1785330443575,
+        "providerDispatchAtMs": 1785330443577,
+        "providerFirstDeltaAtMs": 1785330456995
+      },
+      "metrics": {
+        "processToInteractiveMs": 2502,
+        "submitToDispatchMs": 18,
+        "providerToFirstDeltaMs": 13418,
+        "deltaToFirstPaintMs": 26,
+        "submitToFirstPaintMs": 13462
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "warm",
+      "sampleIndex": 1,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330457029,
+        "interactiveAtMs": 1785330459217,
+        "submittedAtMs": 1785330459277,
+        "firstPaintedAtMs": 1785330472485,
+        "turnStartedAtMs": 1785330459288,
+        "providerDispatchAtMs": 1785330459290,
+        "providerFirstDeltaAtMs": 1785330472461
+      },
+      "metrics": {
+        "processToInteractiveMs": 2188,
+        "submitToDispatchMs": 13,
+        "providerToFirstDeltaMs": 13171,
+        "deltaToFirstPaintMs": 24,
+        "submitToFirstPaintMs": 13208
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "warm",
+      "sampleIndex": 2,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330472492,
+        "interactiveAtMs": 1785330474109,
+        "submittedAtMs": 1785330474171,
+        "firstPaintedAtMs": 1785330488171,
+        "turnStartedAtMs": 1785330474184,
+        "providerDispatchAtMs": 1785330474186,
+        "providerFirstDeltaAtMs": 1785330488150
+      },
+      "metrics": {
+        "processToInteractiveMs": 1617,
+        "submitToDispatchMs": 15,
+        "providerToFirstDeltaMs": 13964,
+        "deltaToFirstPaintMs": 21,
+        "submitToFirstPaintMs": 14000
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "warm",
+      "sampleIndex": 3,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330488178,
+        "interactiveAtMs": 1785330490197,
+        "submittedAtMs": 1785330490258,
+        "firstPaintedAtMs": 1785330503917,
+        "turnStartedAtMs": 1785330490271,
+        "providerDispatchAtMs": 1785330490272,
+        "providerFirstDeltaAtMs": 1785330503890
+      },
+      "metrics": {
+        "processToInteractiveMs": 2019,
+        "submitToDispatchMs": 14,
+        "providerToFirstDeltaMs": 13618,
+        "deltaToFirstPaintMs": 27,
+        "submitToFirstPaintMs": 13659
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "warm",
+      "sampleIndex": 4,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330503923,
+        "interactiveAtMs": 1785330505868,
+        "submittedAtMs": 1785330505928,
+        "firstPaintedAtMs": 1785330519299,
+        "turnStartedAtMs": 1785330505942,
+        "providerDispatchAtMs": 1785330505943,
+        "providerFirstDeltaAtMs": 1785330519285
+      },
+      "metrics": {
+        "processToInteractiveMs": 1945,
+        "submitToDispatchMs": 15,
+        "providerToFirstDeltaMs": 13342,
+        "deltaToFirstPaintMs": 14,
+        "submitToFirstPaintMs": 13371
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "tui",
+      "profileMode": "warm",
+      "sampleIndex": 5,
+      "outputObservation": "terminal_cell",
+      "timestamps": {
+        "processStartedAtMs": 1785330519306,
+        "interactiveAtMs": 1785330521254,
+        "submittedAtMs": 1785330521318,
+        "firstPaintedAtMs": 1785330534864,
+        "turnStartedAtMs": 1785330521332,
+        "providerDispatchAtMs": 1785330521334,
+        "providerFirstDeltaAtMs": 1785330534847
+      },
+      "metrics": {
+        "processToInteractiveMs": 1948,
+        "submitToDispatchMs": 16,
+        "providerToFirstDeltaMs": 13513,
+        "deltaToFirstPaintMs": 17,
+        "submitToFirstPaintMs": 13546
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "fresh",
+      "sampleIndex": 1,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330534878,
+        "interactiveAtMs": 1785330536789,
+        "submittedAtMs": 1785330536792,
+        "firstPaintedAtMs": 1785330550581,
+        "turnStartedAtMs": 1785330537069,
+        "providerDispatchAtMs": 1785330537070,
+        "providerFirstDeltaAtMs": 1785330550576
+      },
+      "metrics": {
+        "processToInteractiveMs": 1911,
+        "submitToDispatchMs": 278,
+        "providerToFirstDeltaMs": 13506,
+        "deltaToFirstPaintMs": 5,
+        "submitToFirstPaintMs": 13789
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "fresh",
+      "sampleIndex": 2,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330552067,
+        "interactiveAtMs": 1785330554025,
+        "submittedAtMs": 1785330554027,
+        "firstPaintedAtMs": 1785330567931,
+        "turnStartedAtMs": 1785330554321,
+        "providerDispatchAtMs": 1785330554323,
+        "providerFirstDeltaAtMs": 1785330567929
+      },
+      "metrics": {
+        "processToInteractiveMs": 1958,
+        "submitToDispatchMs": 296,
+        "providerToFirstDeltaMs": 13606,
+        "deltaToFirstPaintMs": 2,
+        "submitToFirstPaintMs": 13904
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "fresh",
+      "sampleIndex": 3,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330570373,
+        "interactiveAtMs": 1785330572743,
+        "submittedAtMs": 1785330572746,
+        "firstPaintedAtMs": 1785330586480,
+        "turnStartedAtMs": 1785330573065,
+        "providerDispatchAtMs": 1785330573067,
+        "providerFirstDeltaAtMs": 1785330586478
+      },
+      "metrics": {
+        "processToInteractiveMs": 2370,
+        "submitToDispatchMs": 321,
+        "providerToFirstDeltaMs": 13411,
+        "deltaToFirstPaintMs": 2,
+        "submitToFirstPaintMs": 13734
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "fresh",
+      "sampleIndex": 4,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330588297,
+        "interactiveAtMs": 1785330590412,
+        "submittedAtMs": 1785330590415,
+        "firstPaintedAtMs": 1785330604599,
+        "turnStartedAtMs": 1785330590711,
+        "providerDispatchAtMs": 1785330590713,
+        "providerFirstDeltaAtMs": 1785330604597
+      },
+      "metrics": {
+        "processToInteractiveMs": 2115,
+        "submitToDispatchMs": 298,
+        "providerToFirstDeltaMs": 13884,
+        "deltaToFirstPaintMs": 2,
+        "submitToFirstPaintMs": 14184
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "fresh",
+      "sampleIndex": 5,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330606385,
+        "interactiveAtMs": 1785330608650,
+        "submittedAtMs": 1785330608653,
+        "firstPaintedAtMs": 1785330622867,
+        "turnStartedAtMs": 1785330609049,
+        "providerDispatchAtMs": 1785330609051,
+        "providerFirstDeltaAtMs": 1785330622866
+      },
+      "metrics": {
+        "processToInteractiveMs": 2265,
+        "submitToDispatchMs": 398,
+        "providerToFirstDeltaMs": 13815,
+        "deltaToFirstPaintMs": 1,
+        "submitToFirstPaintMs": 14214
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "warm",
+      "sampleIndex": 1,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330624386,
+        "interactiveAtMs": 1785330625830,
+        "submittedAtMs": 1785330625833,
+        "firstPaintedAtMs": 1785330639629,
+        "turnStartedAtMs": 1785330626132,
+        "providerDispatchAtMs": 1785330626134,
+        "providerFirstDeltaAtMs": 1785330639628
+      },
+      "metrics": {
+        "processToInteractiveMs": 1444,
+        "submitToDispatchMs": 301,
+        "providerToFirstDeltaMs": 13494,
+        "deltaToFirstPaintMs": 1,
+        "submitToFirstPaintMs": 13796
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "warm",
+      "sampleIndex": 2,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330641312,
+        "interactiveAtMs": 1785330642654,
+        "submittedAtMs": 1785330642656,
+        "firstPaintedAtMs": 1785330657161,
+        "turnStartedAtMs": 1785330642767,
+        "providerDispatchAtMs": 1785330642768,
+        "providerFirstDeltaAtMs": 1785330657159
+      },
+      "metrics": {
+        "processToInteractiveMs": 1342,
+        "submitToDispatchMs": 112,
+        "providerToFirstDeltaMs": 14391,
+        "deltaToFirstPaintMs": 2,
+        "submitToFirstPaintMs": 14505
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "warm",
+      "sampleIndex": 3,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330658739,
+        "interactiveAtMs": 1785330660929,
+        "submittedAtMs": 1785330660932,
+        "firstPaintedAtMs": 1785330675301,
+        "turnStartedAtMs": 1785330661057,
+        "providerDispatchAtMs": 1785330661059,
+        "providerFirstDeltaAtMs": 1785330675299
+      },
+      "metrics": {
+        "processToInteractiveMs": 2190,
+        "submitToDispatchMs": 127,
+        "providerToFirstDeltaMs": 14240,
+        "deltaToFirstPaintMs": 2,
+        "submitToFirstPaintMs": 14369
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "warm",
+      "sampleIndex": 4,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330676894,
+        "interactiveAtMs": 1785330678775,
+        "submittedAtMs": 1785330678778,
+        "firstPaintedAtMs": 1785330693486,
+        "turnStartedAtMs": 1785330678902,
+        "providerDispatchAtMs": 1785330678903,
+        "providerFirstDeltaAtMs": 1785330693482
+      },
+      "metrics": {
+        "processToInteractiveMs": 1881,
+        "submitToDispatchMs": 125,
+        "providerToFirstDeltaMs": 14579,
+        "deltaToFirstPaintMs": 4,
+        "submitToFirstPaintMs": 14708
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "gateway",
+      "profileMode": "warm",
+      "sampleIndex": 5,
+      "outputObservation": "delivered_sse_delta",
+      "timestamps": {
+        "processStartedAtMs": 1785330695451,
+        "interactiveAtMs": 1785330697590,
+        "submittedAtMs": 1785330697597,
+        "firstPaintedAtMs": 1785330714274,
+        "turnStartedAtMs": 1785330697840,
+        "providerDispatchAtMs": 1785330697844,
+        "providerFirstDeltaAtMs": 1785330714271
+      },
+      "metrics": {
+        "processToInteractiveMs": 2139,
+        "submitToDispatchMs": 247,
+        "providerToFirstDeltaMs": 16427,
+        "deltaToFirstPaintMs": 3,
+        "submitToFirstPaintMs": 16677
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": false
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "fresh",
+      "sampleIndex": 1,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330716622,
+        "interactiveAtMs": 1785330727959,
+        "submittedAtMs": 1785330728760,
+        "firstPaintedAtMs": 1785330750187,
+        "turnStartedAtMs": 1785330729691,
+        "providerDispatchAtMs": 1785330729700,
+        "providerFirstDeltaAtMs": 1785330750165
+      },
+      "metrics": {
+        "processToInteractiveMs": 11337,
+        "submitToDispatchMs": 940,
+        "providerToFirstDeltaMs": 20465,
+        "deltaToFirstPaintMs": 22,
+        "submitToFirstPaintMs": 21427
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "fresh",
+      "sampleIndex": 2,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330750977,
+        "interactiveAtMs": 1785330755205,
+        "submittedAtMs": 1785330755942,
+        "firstPaintedAtMs": 1785330774847,
+        "turnStartedAtMs": 1785330756076,
+        "providerDispatchAtMs": 1785330756077,
+        "providerFirstDeltaAtMs": 1785330774834
+      },
+      "metrics": {
+        "processToInteractiveMs": 4228,
+        "submitToDispatchMs": 135,
+        "providerToFirstDeltaMs": 18757,
+        "deltaToFirstPaintMs": 13,
+        "submitToFirstPaintMs": 18905
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "fresh",
+      "sampleIndex": 3,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330775095,
+        "interactiveAtMs": 1785330783744,
+        "submittedAtMs": 1785330784870,
+        "firstPaintedAtMs": 1785330804137,
+        "turnStartedAtMs": 1785330785451,
+        "providerDispatchAtMs": 1785330785456,
+        "providerFirstDeltaAtMs": 1785330804133
+      },
+      "metrics": {
+        "processToInteractiveMs": 8649,
+        "submitToDispatchMs": 586,
+        "providerToFirstDeltaMs": 18677,
+        "deltaToFirstPaintMs": 4,
+        "submitToFirstPaintMs": 19267
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "fresh",
+      "sampleIndex": 4,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330804368,
+        "interactiveAtMs": 1785330807693,
+        "submittedAtMs": 1785330807949,
+        "firstPaintedAtMs": 1785330827902,
+        "turnStartedAtMs": 1785330808218,
+        "providerDispatchAtMs": 1785330808221,
+        "providerFirstDeltaAtMs": 1785330827892
+      },
+      "metrics": {
+        "processToInteractiveMs": 3325,
+        "submitToDispatchMs": 272,
+        "providerToFirstDeltaMs": 19671,
+        "deltaToFirstPaintMs": 10,
+        "submitToFirstPaintMs": 19953
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "fresh",
+      "sampleIndex": 5,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330828162,
+        "interactiveAtMs": 1785330831011,
+        "submittedAtMs": 1785330831759,
+        "firstPaintedAtMs": 1785330850953,
+        "turnStartedAtMs": 1785330831981,
+        "providerDispatchAtMs": 1785330831983,
+        "providerFirstDeltaAtMs": 1785330850942
+      },
+      "metrics": {
+        "processToInteractiveMs": 2849,
+        "submitToDispatchMs": 224,
+        "providerToFirstDeltaMs": 18959,
+        "deltaToFirstPaintMs": 11,
+        "submitToFirstPaintMs": 19194
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "warm",
+      "sampleIndex": 1,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330851190,
+        "interactiveAtMs": 1785330854775,
+        "submittedAtMs": 1785330855523,
+        "firstPaintedAtMs": 1785330873381,
+        "turnStartedAtMs": 1785330855756,
+        "providerDispatchAtMs": 1785330855758,
+        "providerFirstDeltaAtMs": 1785330873374
+      },
+      "metrics": {
+        "processToInteractiveMs": 3585,
+        "submitToDispatchMs": 235,
+        "providerToFirstDeltaMs": 17616,
+        "deltaToFirstPaintMs": 7,
+        "submitToFirstPaintMs": 17858
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "warm",
+      "sampleIndex": 2,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330873577,
+        "interactiveAtMs": 1785330876340,
+        "submittedAtMs": 1785330877084,
+        "firstPaintedAtMs": 1785330893657,
+        "turnStartedAtMs": 1785330877298,
+        "providerDispatchAtMs": 1785330877300,
+        "providerFirstDeltaAtMs": 1785330893648
+      },
+      "metrics": {
+        "processToInteractiveMs": 2763,
+        "submitToDispatchMs": 216,
+        "providerToFirstDeltaMs": 16348,
+        "deltaToFirstPaintMs": 9,
+        "submitToFirstPaintMs": 16573
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "warm",
+      "sampleIndex": 3,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330893832,
+        "interactiveAtMs": 1785330900149,
+        "submittedAtMs": 1785330901694,
+        "firstPaintedAtMs": 1785330919332,
+        "turnStartedAtMs": 1785330902288,
+        "providerDispatchAtMs": 1785330902326,
+        "providerFirstDeltaAtMs": 1785330919319
+      },
+      "metrics": {
+        "processToInteractiveMs": 6317,
+        "submitToDispatchMs": 632,
+        "providerToFirstDeltaMs": 16993,
+        "deltaToFirstPaintMs": 13,
+        "submitToFirstPaintMs": 17638
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "warm",
+      "sampleIndex": 4,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330919525,
+        "interactiveAtMs": 1785330926392,
+        "submittedAtMs": 1785330927293,
+        "firstPaintedAtMs": 1785330945281,
+        "turnStartedAtMs": 1785330927629,
+        "providerDispatchAtMs": 1785330927649,
+        "providerFirstDeltaAtMs": 1785330945271
+      },
+      "metrics": {
+        "processToInteractiveMs": 6867,
+        "submitToDispatchMs": 356,
+        "providerToFirstDeltaMs": 17622,
+        "deltaToFirstPaintMs": 10,
+        "submitToFirstPaintMs": 17988
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    },
+    {
+      "surface": "desktop",
+      "profileMode": "warm",
+      "sampleIndex": 5,
+      "outputObservation": "rendered_dom_animation_frame",
+      "timestamps": {
+        "processStartedAtMs": 1785330945338,
+        "interactiveAtMs": 1785330948204,
+        "submittedAtMs": 1785330948943,
+        "firstPaintedAtMs": 1785330966475,
+        "turnStartedAtMs": 1785330949150,
+        "providerDispatchAtMs": 1785330949152,
+        "providerFirstDeltaAtMs": 1785330966466
+      },
+      "metrics": {
+        "processToInteractiveMs": 2866,
+        "submitToDispatchMs": 209,
+        "providerToFirstDeltaMs": 17314,
+        "deltaToFirstPaintMs": 9,
+        "submitToFirstPaintMs": 17532
+      },
+      "providerMode": "live",
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "packaged": true,
+      "signed": true
+    }
+  ]
+}

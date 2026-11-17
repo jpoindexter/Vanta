@@ -1,0 +1,85 @@
+name: Trust boundary
+
+on:
+  pull_request:
+    paths:
+      - "vanta-ts/src/agent/effect-persistence.ts"
+      - "vanta-ts/src/effects/**"
+      - "vanta-ts/src/agents/**"
+      - "vanta-ts/src/gateway/**"
+      - "vanta-ts/src/loop/**"
+      - "vanta-ts/src/mcp/**"
+      - "vanta-ts/src/plugins/**"
+      - "vanta-ts/src/schedule/**"
+      - "vanta-ts/src/tools/**"
+      - "vanta-ts/src/webhook-workflows/**"
+      - "vanta-ts/package.json"
+      - "vanta-ts/package-lock.json"
+      - "docs/trust-02-effect-inventory-2026-07-31.md"
+      - ".github/workflows/trust-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  trust-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: vanta-ts/package-lock.json
+      - name: Install exact dependencies
+        working-directory: vanta-ts
+        run: npm ci
+      - name: Runtime typecheck
+        working-directory: vanta-ts
+        run: npm run typecheck
+      - name: Renderer typecheck
+        working-directory: vanta-ts
+        run: npm run desktop:renderer:typecheck
+      - name: Focused trust boundary tests
+        working-directory: vanta-ts
+        run: >-
+          npx vitest run
+          src/effects/execute-effect.test.ts
+          src/agent/effect-persistence.test.ts
+          src/exec/child-env.test.ts
+          src/gateway/run.test.ts
+          src/gateway/stream-run.test.ts
+          src/gateway/context-refs.integration.test.ts
+          src/gateway/deliverable-send.test.ts
+          src/gateway/platforms/teams-webhook.test.ts
+          src/gateway/platforms/telegram-webhook.test.ts
+          src/schedule/script-mode.test.ts
+          src/schedule/script-run.test.ts
+          src/schedule/commands.test.ts
+          src/mcp/mount.test.ts
+          src/mcp/mount-security.test.ts
+          src/tools/mcp-auth.test.ts
+          src/tools/mount-mcp.test.ts
+          src/plugins/worker.test.ts
+          src/tools/self-repair.test.ts
+          src/tools/shell-cmd.test.ts
+          src/webhook-workflows/runtime.test.ts
+      - name: Full TypeScript suite
+        working-directory: vanta-ts
+        run: npm test -- --maxWorkers=4
+      - name: Protected-path diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --name-only "$BASE_SHA"...HEAD > /tmp/vanta-trust-paths.txt
+          if grep -E '^(src/|vanta-ts/src/factory/|MANIFESTO\.md$)' /tmp/vanta-trust-paths.txt; then
+            echo "Protected path changed"
+            exit 1
+          fi
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mkdtemp, writeFile, readFile } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { editFileTool } from "./edit-file.js";
@@ -20,6 +20,21 @@ async function tempFile(dir: string, name: string, content: string): Promise<str
 }
 
 describe("editFileTool", () => {
+  it("leaves a mismatched delegated target unchanged without another approval", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "edit-delegated-"));
+    try {
+      const file = await tempFile(dir, "other.txt", "original");
+      let prompts = 0;
+      const ctx = { ...makeCtx(dir), delegatedWritePath: join(dir, "approved.txt"), requestApproval: async () => { prompts++; return true; } };
+      const result = await editFileTool.execute({ path: file, old_string: "original", new_string: "changed" }, ctx);
+      expect(result.ok).toBe(false);
+      expect(result.effectDisposition).toBe("denied");
+      expect(result.output).toContain("delegated write target changed");
+      expect(prompts).toBe(0);
+      expect(await readFile(file, "utf8")).toBe("original");
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
   it("replaces a unique string in-place", async () => {
     const dir = await mkdtemp(join(tmpdir(), "edit-test-"));
     await tempFile(dir, "a.ts", "const x = 1;\nconst y = 2;\n");

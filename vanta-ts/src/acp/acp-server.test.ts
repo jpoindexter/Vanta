@@ -91,18 +91,25 @@ describe("ACP server: session lifecycle", () => {
 
 describe("ACP server: session/prompt", () => {
   it("drives the fake agent and streams session/update notifications", async () => {
+    let request: RunRequest | undefined;
     const runner: AgentRunner = async (req: RunRequest) => {
+      request = req;
       req.emit({ type: "text_delta", delta: "answer" });
       return { stopReason: "end_turn" };
     };
     const s = start(runner);
-    const sid = await newSession(s);
+    const sid = await newSession(s, {
+      systemPrompt: "Use Buzz.",
+      mcpServers: [{ name: "buzz", command: "buzz-mcp", args: [], env: [] }],
+    });
     s.push({ jsonrpc: "2.0", id: 10, method: "session/prompt", params: { sessionId: sid, prompt: [{ type: "text", text: "hi" }] } });
     await tick();
     const msgs = sent(s.out);
     expect(msgs.some((m) => m.method === "session/update" && m.params.update.sessionUpdate === "agent_message_chunk")).toBe(true);
     const reply = msgs.find((m) => m.id === 10);
     expect(reply.result).toEqual({ stopReason: "end_turn" });
+    expect(request?.systemPrompt).toBe("Use Buzz.");
+    expect(request?.mcpServers[0]?.name).toBe("buzz");
     s.close();
     await s.done;
   });
@@ -213,8 +220,11 @@ describe("ACP server: cancel + errors", () => {
   });
 });
 
-async function newSession(s: { push: (o: unknown) => void; out: string[] }): Promise<string> {
-  s.push({ jsonrpc: "2.0", id: 1000 + s.out.length, method: "session/new", params: {} });
+async function newSession(
+  s: { push: (o: unknown) => void; out: string[] },
+  params: Record<string, unknown> = {},
+): Promise<string> {
+  s.push({ jsonrpc: "2.0", id: 1000 + s.out.length, method: "session/new", params });
   await tick();
   const created = sent(s.out).filter((m) => m.result?.sessionId).at(-1);
   return created.result.sessionId as string;

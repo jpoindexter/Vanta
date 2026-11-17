@@ -1,10 +1,11 @@
+import { WebSocket, type MessageEvent } from "undici";
 import type { InboundMessage, OutboundMessage, PlatformAdapter } from "./base.js";
 import { formatForDialect } from "./format.js";
 import { splitForLimit } from "./split.js";
 import { buildTwitchPrivmsg, parseTwitchLine, parseTwitchMessages } from "./twitch-parse.js";
 
 // Twitch-chat adapter — Twitch chat IS IRC-over-WebSocket, so this mirrors the raw
-// `irc.ts` adapter but swaps the TCP socket for a global `WebSocket` to
+// `irc.ts` adapter but swaps the TCP socket for Vanta's maintained Undici WebSocket to
 // wss://irc-ws.chat.twitch.tv:443. The handshake is PASS oauth:<token> / NICK <nick>
 // / JOIN #channel; the server PINGs and we PONG to stay alive; inbound PRIVMSG lines
 // are buffered as they arrive and `poll()` drains them into the gateway tick loop.
@@ -106,7 +107,7 @@ function handshakeLines(token: string, nick: string, channel: string): string[] 
 }
 
 /**
- * Build the live Twitch transport over the global `WebSocket` (Node 22). THE WIRE: the oauth
+ * Build the live Twitch transport over the maintained Undici WebSocket. THE WIRE: the oauth
  * token (a secret) is read ONLY here, into the PASS line — never stored on the adapter and
  * never a literal elsewhere. `connect` opens wss://irc-ws.chat.twitch.tv:443, sends the
  * PASS/NICK/JOIN handshake, and buffers inbound frames; server PINGs are answered with PONG at

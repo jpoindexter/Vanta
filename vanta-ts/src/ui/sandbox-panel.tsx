@@ -1,6 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { HEALTH, ACTIVITY, RISK, FOCUS } from "../term/palette.js";
+import { SettingsChangeError } from "./settings-recovery.js";
 import type { SandboxState, DoctorCheck, ToggleKey } from "../settings/sandbox.js";
 import {
   SANDBOX_TABS, configRows, configToggleKey, dependencyRows, doctorGlyph,
@@ -15,6 +16,7 @@ import {
 
 export function SandboxPanel(props: {
   state: SandboxState;
+  error?: string;
   doctor: DoctorCheck[];
   onToggle: (key: ToggleKey) => void;
   onCycleOverride: (tool: string) => void;
@@ -37,6 +39,7 @@ export function SandboxPanel(props: {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Text bold>Sandbox settings <Text color={FOCUS}>· {sandboxSummary(props.state)}</Text></Text>
+      <SettingsChangeError error={props.error} command="/sandbox" />
       <TabBar active={tab} />
       <Text> </Text>
       <TabBody tab={tabName} state={props.state} doctor={props.doctor} sel={sel} />

@@ -8,31 +8,36 @@ const TOOL_SEARCH_CONTEXT_LIMIT = 3;
 // regardless of the request's keywords. WRITING a file or running a command must
 // never require a tool_search round-trip (that flailing stalled real tasks).
 const CORE = [
-  "tool_search", "clarify", "brain", "recall", "inspect_state", "inspect_context",
+  "tool_search", "clarify", "ask_user", "brain", "recall", "inspect_state", "inspect_context",
   "read_file", "write_file", "edit_file", "shell_cmd", "grep_files", "glob_files",
+  "todo",
 ];
 
 const GROUPS: Record<string, string[]> = {
   code: ["git_status", "git_diff", "lsp_diagnostics", "lsp_definition", "edit_file", "write_file", "shell_cmd", "run_code"],
-  research: ["web_search", "web_fetch", "browser_read", "browser_navigate", "screenshot", "life_search", "ref_search", "ref_ingest"],
-  comms: ["gmail_search", "gmail_read", "gmail_draft", "calendar_read", "send_message"],
+  research: ["web_search", "web_fetch", "browser_read", "browser_navigate", "screenshot", "life_search", "job_profile_scan", "ref_search", "ref_ingest", "pdf_read", "document_read"],
+  comms: ["gmail_search", "gmail_read", "gmail_draft", "apple_mail_audit", "calendar_read", "send_message"],
   business: ["money", "radar", "world", "life_search", "graph_query"],
-  ops: ["todo", "loop", "team", "regression_lock", "roadmap_status", "roadmap_move", "roadmap_add"],
+  ops: ["loop", "team", "regression_lock", "roadmap_status", "roadmap_move", "roadmap_add"],
   media: ["describe_image", "compare_vision", "look_at_screen", "look_at_camera", "transcribe", "speak"],
+  computer: ["native_app_launch", "vision_action", "look_at_screen"],
   // VANTA-AGENT-ROUTING-DISCOVERY: any cross-agent mention must keep call_agent's
   // schema callable (under scoping it was hidden → the model shelled out instead).
   agents: ["call_agent", "delegate"],
   workflow: ["compose_workflow", "protect", "brief", "review_artifact"],
+  history: ["session_search"],
 };
 
 const HINTS: Array<[RegExp, keyof typeof GROUPS]> = [
   [/\b(code|test|typescript|tsc|build|commit|git|file|bug|fix|repo|diff|lint)\b/i, "code"],
   [/\b(research|source|market|web|browser|search|read|evidence|solutioning|recommendation)\b/i, "research"],
-  [/\b(email|gmail|calendar|message|schedule|meeting|outreach|draft)\b/i, "comms"],
+  [/\b(email|gmail|mail|calendar|message|schedule|meeting|outreach|draft|job applications?)\b/i, "comms"],
   [/\b(revenue|money|opportunity|prospect|business|market|customer|price)\b/i, "business"],
   [/\b(roadmap|task|team|loop|verify|regression|todo|plan)\b/i, "ops"],
   [/\b(image|screen|camera|audio|voice|transcribe|vision)\b/i, "media"],
+  [/\b(desktop|computer|native app|calculator|launch an? app|open an? app)\b/i, "computer"],
   [/\b(claude|codex|gemini|cursor|opencode|another agent|other agent|sub-?agent|call_agent|delegate)\b/i, "agents"],
+  [/\b(earlier session|previous session|past session|last (?:week|session|time)|we (?:decided|discussed|agreed)|did we|remember when)\b/i, "history"],
   [/\b(workflow|architecture|kubernetes|deploy(?:ment)?|isolation|secrets?|health check|rollback|approval gate|reviewable brief)\b/i, "workflow"],
 ];
 

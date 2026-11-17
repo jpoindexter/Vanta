@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+import { execFileSync } from 'node:child_process'
+import { mkdirSync, readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { parseArgs } from 'node:util'
+import { isMain, workspaceTool } from '../../../scripts/build/frontend-common.mjs'
+import { environmentDefaultsBanner } from './bundle-env.mjs'
+import { sharedAliases } from './shared-alias.mjs'
+
+const repoRoot = resolve(import.meta.dirname, '../../..')
+
+// Evaluate the one identity module in a fresh process. Its CJS cache and the
+// caller's environment must not carry a previous variant into this artifact.
+function productIdentity(source, stamp) {
+  const variant = stamp.updateMechanism === 'microsoft-store' ? 'store'
+    : stamp.payload === 'bootstrap' ? '' : stamp.payload
+  if (!['', 'bundled', 'light', 'store'].includes(variant)) {
+    throw new Error(`Invalid desktop stamp payload: ${stamp.payload}`)
+  }
+  return execFileSync(process.execPath, ['-e', 'console.log(JSON.stringify(require(process.argv[1])))',
+    join(source, 'apps/desktop/product-identity.cjs')], {
+    env: { ...process.env, VANTA_DESKTOP_VARIANT: variant, VANTA_PAYLOAD_TAG: stamp.tag || '',
+      // Commit builds stamp source='commit-build'; the display name carries
+      // the short SHA (see product-identity.cjs). Tagged builds pass ''.
+      VANTA_BUILD_COMMIT: stamp.source === 'commit-build' ? (stamp.commit || '') : '' },
+    encoding: 'utf8',
+  }).trim()
+}
+
+/** Every file bundleElectronMain writes: the only outputs that bake the install stamp. */
+export const electronOutputs = Object.freeze({
+  main: 'electron-main.mjs', preload: 'electron-preload.js', previewGuestPreload: 'preview-guest-preload.js',
+})
+
+// The Vanta shell (electron/vanta/*) boots the Vanta server and exposes the bridge facade.
+const shellEntries = Object.freeze({
+  vanta: { main: 'apps/desktop/electron/vanta/entry.ts', preload: 'apps/desktop/electron/vanta/preload.ts' },
+})
+
+/** Bundle main/preload using only the prepared workspace's compiler. */
+export async function bundleElectronMain({ source, out, stamp, dev = false, shell = process.env.VANTA_DESKTOP_SHELL || 'vanta' }) {
+  const entries = shellEntries[shell]
+  if (!entries) throw new Error(`Unknown desktop shell "${shell}". Use "vanta".`)
+  source = resolve(source)
+  out = resolve(out)
+  const { build } = await import(pathToFileURL(workspaceTool(source, 'apps/desktop', 'esbuild')).href)
+  // Defaults must run before bundled modules resolve paths or onboarding flags.
+  // Dev bundles leave the environment alone so source-tree resolution keeps working.
+  const envBanner = dev ? '' : environmentDefaultsBanner(process.env.VANTA_BUNDLE_ENV_JSON || '{}')
+  const define = {}
+  let bakedStamp = null
+  if (!dev) {
+    if (!stamp) throw new Error('A prepared install stamp is required')
+    const raw = readFileSync(stamp, 'utf8')
+    const metadata = JSON.parse(raw)
+    // The baked bytes, and the clock the caller must record: re-reading the stamp
+    // after this point would report a restamp the output never saw.
+    bakedStamp = metadata.builtAt ?? null
+    define['process.env.VANTA_DESKTOP_IS_PACKAGED'] = JSON.stringify(true)
+    define.__VANTA_INSTALL_STAMP__ = raw
+    define.__VANTA_PRODUCT_IDENTITY__ = productIdentity(source, metadata)
+  }
+  mkdirSync(out, { recursive: true })
+  const common = {
+    absWorkingDir: join(source, 'apps/desktop'),
+    bundle: true,
+    platform: 'node',
+    target: 'node20',
+    alias: sharedAliases(join(source, 'apps/shared')),
+    external: ['electron', 'original-fs', 'node-pty', 'get-windows', 'fs'],
+    define,
+    logLevel: 'info',
+  }
+  await build({
+    ...common,
+    // entry.ts picks the Linux ozone platform (native Wayland/WSLg) and
+    // relaunches before main.ts loads; Electron reads it only from argv.
+    entryPoints: [join(source, entries.main)],
+    format: 'esm',
+    outfile: join(out, electronOutputs.main),
+    banner: { js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);" + envBanner },
+  })
+  await build({
+    ...common,
+    entryPoints: [join(source, entries.preload)],
+    format: 'cjs',
+    outfile: join(out, electronOutputs.preload),
+  })
+  // Preview-pane <webview> guest preload; main.ts hands this path to the
+  // preview webview via will-attach-webview.
+  await build({
+    ...common,
+    entryPoints: [join(source, 'apps/desktop/electron/preview-guest-preload-entry.ts')],
+    format: 'cjs',
+    outfile: join(out, electronOutputs.previewGuestPreload),
+  })
+  return { stampClock: bakedStamp }
+}
+
+if (isMain(import.meta.url)) {
+  const { values } = parseArgs({ options: {
+    source: { type: 'string', default: repoRoot },
+    out: { type: 'string' }, stamp: { type: 'string' }, dev: { type: 'boolean' }, shell: { type: 'string' },
+  } })
+  await bundleElectronMain({
+    ...values,
+    out: values.out || join(values.source, 'apps/desktop/dist'),
+    stamp: values.stamp || join(values.source, 'apps/desktop/build/install-stamp.json'),
+  })
+}

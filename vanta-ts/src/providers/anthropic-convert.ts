@@ -83,7 +83,7 @@ type ToolBlock = { id: string; name: string; json: string };
 type StreamState = {
   text: string;
   finishReason: string;
-  usage?: { inputTokens: number; outputTokens: number };
+  usage?: CompletionResult["usage"];
   toolCalls: ToolCall[];
   tools: Map<number, ToolBlock>;
 };
@@ -118,10 +118,18 @@ function finishBlock(ev: Record<string, unknown>, st: StreamState): StreamChunk 
   return { type: "tool_call", call };
 }
 
+function cacheReadUsage(usage: Record<string, unknown>): { cacheTokens?: number } {
+  return usage.cache_read_input_tokens == null ? {} : { cacheTokens: Number(usage.cache_read_input_tokens) || 0 };
+}
+
 function startUsage(ev: Record<string, unknown>, st: StreamState): void {
   if (!isRecord(ev.message) || !isRecord(ev.message.usage)) return;
   const u = ev.message.usage;
-  st.usage = { inputTokens: Number(u.input_tokens) || 0, outputTokens: Number(u.output_tokens) || 0 };
+  st.usage = {
+    inputTokens: Number(u.input_tokens) || 0,
+    outputTokens: Number(u.output_tokens) || 0,
+    ...cacheReadUsage(u),
+  };
 }
 
 function startToolBlock(ev: Record<string, unknown>, st: StreamState): void {
@@ -131,7 +139,15 @@ function startToolBlock(ev: Record<string, unknown>, st: StreamState): void {
 
 function readMessageDelta(ev: Record<string, unknown>, st: StreamState): void {
   if (isRecord(ev.delta) && typeof ev.delta.stop_reason === "string") st.finishReason = ev.delta.stop_reason;
-  if (isRecord(ev.usage) && ev.usage.output_tokens != null) st.usage = { inputTokens: st.usage?.inputTokens ?? 0, outputTokens: Number(ev.usage.output_tokens) || 0 };
+  if (!isRecord(ev.usage)) return;
+  const u = ev.usage;
+  if (u.output_tokens == null && u.cache_read_input_tokens == null) return;
+  st.usage = {
+    ...st.usage,
+    inputTokens: st.usage?.inputTokens ?? 0,
+    outputTokens: u.output_tokens != null ? Number(u.output_tokens) || 0 : st.usage?.outputTokens ?? 0,
+    ...cacheReadUsage(u),
+  };
 }
 
 function applyAnthropicEvent(ev: Record<string, unknown>, st: StreamState): StreamChunk | null {

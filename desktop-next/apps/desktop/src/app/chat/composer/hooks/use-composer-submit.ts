@@ -1,0 +1,425 @@
+import { SLASH_COMMAND_RE } from '@vanta/shared'
+import { type RefObject } from 'react'
+
+import { translateNow, useI18n } from '@/i18n'
+import { isSlashCommandText } from '@/lib/chat-runtime'
+import { isSideTaskSlashCommand } from '@/lib/desktop-slash-commands'
+import { triggerHaptic } from '@/lib/haptics'
+import { hasClarifyRequest, skipClarifyRequest } from '@/store/clarify'
+import {
+  clearSessionDraft,
+  type ComposerAttachment,
+  freezeComposerTransportPayload,
+  isFreshDraftScope
+} from '@/store/composer'
+import { resetBrowseState } from '@/store/composer-input-history'
+import { enqueueQueuedPrompt, getQueuedPrompts, type QueuedPromptEntry } from '@/store/composer-queue'
+import { hasConnectionRequest, skipConnectionRequest } from '@/store/connection-request'
+import { notify } from '@/store/notifications'
+import { answerParkedCard } from '@/store/parked-card-answers'
+import { hasBlockingPromptRequest } from '@/store/prompts'
+import type { DraftCustodyClient, CustodyReservation } from '@/store/draft-custody-client'
+import type { DraftTextQuote } from '@/store/draft-text-storage'
+
+import { cloneAttachments, type QueueEditState } from '../composer-utils'
+import { pathifyRefs } from '../path-refs'
+import { composerPlainText } from '../rich-editor'
+import { useComposerScope } from '../scope'
+import type { ChatBarProps } from '../types'
+import { dispatchReservedComposer } from './composer-custody-dispatch'
+import { useExternalComposerSubmit } from './use-external-composer-submit'
+import type { DraftOwner } from '../../../../../../shared/src/vanta/draft-custody'
+
+export interface UseComposerSubmitArgs {
+  activeQueueSessionKey: string | null
+  activeQueueSessionKeyRef: RefObject<string | null>
+  attachments: ComposerAttachment[]
+  busy: boolean
+  clearDraft: () => void
+  disabled: boolean
+  draftScopeRef: RefObject<string | null>
+  draftTextOwnerRef?: RefObject<DraftOwner | undefined>
+  draftRef: RefObject<string>
+  custodyRef?: RefObject<DraftCustodyClient | null>
+  captureCustodyText?: () => DraftTextQuote | null
+  drainNextQueued: () => Promise<boolean>
+  editorRef: RefObject<HTMLDivElement | null>
+  exitQueuedEdit: (action: 'cancel' | 'save') => boolean
+  focusInput: () => void
+  inputDisabled: boolean
+  loadIntoComposer: (text: string, attachments: ComposerAttachment[]) => void
+  onCancel: ChatBarProps['onCancel']
+  onSteer: ChatBarProps['onSteer']
+  onSteerHidden: ChatBarProps['onSteerHidden']
+  onSubmit: ChatBarProps['onSubmit']
+  queueCurrentDraft: () => boolean
+  queueEdit: QueueEditState | null
+  queuedPrompts: QueuedPromptEntry[]
+  sessionId: string | null | undefined
+  setComposerText: (value: string) => void
+  stashAt: (scope: string | null, text?: string, attachments?: ComposerAttachment[]) => void
+}
+
+/**
+ * The composer's submit engine — the orchestration seam where the draft and
+ * queue meet. `submitDraft` is the one decision tree (queue-edit save · slash-
+ * now-while-busy · queue · drain · send · stop); `dispatchSubmit` is the shared
+ * send-with-restore primitive (re-loads + re-stashes the draft if the gateway
+ * rejects, so nothing is ever lost); `steerDraft` redirects the live turn. Reads
+ * the draft + queue APIs; owns no state of its own beyond the stable
+ * external-submit listener ref.
+ */
+export function useComposerSubmit({
+  activeQueueSessionKey,
+  activeQueueSessionKeyRef,
+  attachments,
+  busy,
+  clearDraft,
+  disabled,
+  draftScopeRef,
+  draftTextOwnerRef,
+  draftRef,
+  custodyRef,
+  captureCustodyText,
+  drainNextQueued,
+  editorRef,
+  exitQueuedEdit,
+  focusInput,
+  inputDisabled,
+  loadIntoComposer,
+  onCancel,
+  onSteer,
+  onSteerHidden,
+  onSubmit,
+  queueCurrentDraft,
+  queueEdit,
+  queuedPrompts,
+  sessionId,
+  setComposerText,
+  stashAt
+}: UseComposerSubmitArgs) {
+  const scope = useComposerScope()
+  const { t } = useI18n()
+  const copy = t.desktop
+
+  // Shared send primitive: fire onSubmit, and if the gateway rejects (accepted
+  // === false) or throws, re-stash the draft so the words survive. Repaint it
+  // only while the same session still owns the visible composer; a late reject
+  // must not publish an old session's text into the newly focused one.
+  const dispatchSubmit = (text: string, attachments?: ComposerAttachment[], displayKind?: 'hidden', reservation?: CustodyReservation) => {
+    // A fresh chat's composer is keyed by its per-lifecycle fresh-draft key
+    // (`__new__:<uuid>`), but the submit contract spells "no session yet" as
+    // null: the create handoff below and the composer drift prong both key off
+    // it, and draftKey(null) resolves to that same fresh bucket.
+    const actualScope = reservation ? draftScopeRef.current || reservation.client.address.session : draftScopeRef.current
+    const submittedScope = isFreshDraftScope(actualScope) ? null : actualScope
+    const submittedOwner = reservation?.client.address.owner ?? draftTextOwnerRef?.current
+    let restoreScope = actualScope
+    let assignedScope: string | undefined
+    const submittedAttachments = attachments ?? []
+
+    // Only this operation's explicit session.create handoff may re-home a
+    // pre-session submit. A null → stored render can also be user navigation.
+    const assignment =
+      submittedScope === null
+        ? {
+            onComposerScopeAssigned: (scope: string) => {
+              assignedScope = scope
+              if (reservation) reservation.client.assign(reservation, scope)
+              if (!reservation) restoreScope = scope
+            }
+          }
+        : {}
+
+    const restore = () => {
+      stashAt(restoreScope, text, submittedAttachments)
+
+      const visibleOwner = draftTextOwnerRef?.current ?? custodyRef?.current?.address.owner
+      if (draftScopeRef.current === restoreScope && (!submittedOwner || JSON.stringify(visibleOwner) === JSON.stringify(submittedOwner))) {
+        loadIntoComposer(text, submittedAttachments)
+      }
+    }
+
+    // A hidden submit is machine text (a setup note, never something the user
+    // typed), so a rejection drops it instead of loading it into the draft.
+    const rejected = displayKind ? () => {} : restore
+
+    if (reservation) {
+      dispatchReservedComposer({
+        reservation, text, actualScope, submittedScope, assignedScope: () => assignedScope, assignment,
+        onSubmit, sessionId, draftScopeRef, draftRef, custodyRef, clearDraft, stashAt,
+        attachments: scope.attachments
+      })
+      return
+    }
+
+    void Promise.resolve(
+      attachments
+        ? onSubmit(text, {
+            attachments,
+            composerScope: submittedScope,
+            ...assignment,
+            ...(displayKind ? { displayKind } : {})
+          })
+        : onSubmit(text, { composerScope: submittedScope, ...assignment, ...(displayKind ? { displayKind } : {}) })
+    )
+      .then(accepted => void (accepted === false ? rejected() : attachments ? clearSessionDraft(actualScope, submittedOwner) : undefined))
+      .catch(rejected)
+  }
+
+  useExternalComposerSubmit({ activeQueueSessionKeyRef, busy, dispatchSubmit, inputDisabled,
+    onSteer, onSteerHidden, queuedPrompts, sessionId })
+
+  // Returns false when the submit was refused and must not refocus the input.
+  const submitWhileBusy = (text: string, payloadPresent: boolean, blockingPrompt: boolean) => {
+    // Slash commands should execute immediately even while the agent is
+    // busy — they're client-side operations (/yolo, /skin, /new, /help,
+    // etc.) or self-contained gateway RPCs (/status, /compress).  onSubmit
+    // routes them to executeSlashCommand, which has its own per-command
+    // busy guard for commands that genuinely need an idle session (skill
+    // /send directives).  Queuing them would make every slash command wait
+    // for the current turn to finish, which is how the TUI never behaves.
+    if (isSlashCommandText(text)) {
+      if (attachments.length) {
+        // Slash commands cannot ride alongside attachments — warn the user
+        // instead of silently queuing the payload (which would then reach the
+        // idle path and be submitted as plain text with no command execution).
+        notify({
+          kind: 'warning',
+          title: copy.slashCommandIgnoredTitle,
+          message: copy.slashCommandIgnoredBody
+        })
+
+        return false
+      }
+
+      triggerHaptic('submit')
+      clearDraft()
+      dispatchSubmit(text)
+    } else if (!blockingPrompt && !attachments.length && text.trim()) {
+      // Cursor-style stop-and-correct: interrupt the live turn and redirect
+      // it with this text. redirect() preserves the shown reasoning/work; if
+      // the turn already ended, steerDraft re-queues so nothing is lost.
+      // Compaction is the gateway's call: it answers `queued` under the
+      // compression lock. The client flag can outlive an aborted compaction.
+      steerDraft()
+    } else if (payloadPresent) {
+      // Attachments can't ride a redirect (no tool-result image carriage) —
+      // queue the whole payload for the next turn. Same for a turn parked on
+      // an approval/sudo/secret prompt: a steer can't reach the model while
+      // the tool batch is blocked, so the message runs as the next turn.
+      queueCurrentDraft()
+    } else {
+      // Stop button (the only way to reach here while busy with an empty
+      // composer — empty Enter is short-circuited in the keydown handler).
+      triggerHaptic('cancel')
+      void Promise.resolve(onCancel())
+    }
+
+    return true
+  }
+
+  // True when the draft was consumed as a parked card's answer.
+  const answerParkedCardWithDraft = (text: string, payloadPresent: boolean) => {
+    // A card parked on this session owns the turn: the agent is blocked inside
+    // its tool batch, so a steer or queued follow-up would sit undelivered until
+    // the card's own timeout. Plain text answers the card instead (a clarify
+    // takes it as its next question's answer) and is not sent again.
+    //
+    // A slash command or attachments cannot be an answer: the card is skipped
+    // and the draft routes normally. The skip is fire-and-forget, not awaited:
+    // it clears the card synchronously and both RPCs ride the same socket in
+    // call order, so the gateway resolves the clarify before it sees the
+    // follow-up. Awaiting first would leave the draft live for a tick, long
+    // enough for a second Enter to send it twice.
+    //
+    // /btw and /bg run beside the turn (snapshot / separate session) and touch
+    // no parked card. With attachments the draft isn't routed as a slash
+    // command, so it falls back to the ordinary-message behavior.
+    const isSideQuestion = !attachments.length && isSideTaskSlashCommand(text)
+    const routable = payloadPresent && !queueEdit && !isSideQuestion
+
+    if (
+      routable &&
+      !attachments.length &&
+      !SLASH_COMMAND_RE.test(text.trim()) &&
+      answerParkedCard(sessionId ?? '', text.trim())
+    ) {
+      triggerHaptic('submit')
+      resetBrowseState(sessionId)
+      clearDraft()
+      focusInput()
+
+      return true
+    }
+
+    if (routable && hasClarifyRequest(sessionId)) {
+      void skipClarifyRequest(sessionId)
+    }
+
+    // Same for a pending connection card: ordinary typing continues the operation.
+    if (routable && hasConnectionRequest(sessionId)) {
+      void skipConnectionRequest(sessionId)
+    }
+
+    return false
+  }
+
+  // Refresh draftRef from the editor: fast typing or IME can leave it a render behind (see the note below).
+  const syncDraftFromEditor = () => {
+    const editor = editorRef.current
+
+    if (editor) {
+      const domText = composerPlainText(editor)
+
+      if (domText !== draftRef.current) {
+        draftRef.current = domText
+        setComposerText(domText)
+      }
+    }
+  }
+
+  const submitDraft = () => {
+    // Native restoration must finish before any path can consume unseen saved attachments.
+    const hasLivePayload = (editorRef.current ? composerPlainText(editorRef.current).trim() : draftRef.current.trim()) || attachments.length
+    if (!queueEdit && hasLivePayload && custodyRef?.current && !custodyRef.current.canConsume()) return
+    if (disabled) {
+      // The backend is down: keep the words as a saved message that runs once Vanta reconnects (the
+      // offline banner's promise). Nothing is sent, so a failed send can't lose or duplicate it.
+      if (!queueEdit) {
+        syncDraftFromEditor()
+        queueCurrentDraft()
+      }
+
+      return
+    }
+
+    // Source the text from the DOM editor, not React state. The AUI composer
+    // state (`draft`) and the derived `hasComposerPayload` lag the DOM by a
+    // render, so on fast typing or IME composition the final keystroke(s) may
+    // not have synced yet — reading state here drops the message (Enter looks
+    // like it does nothing; typing a trailing space only "fixes" it because the
+    // extra input event forces a state sync). draftRef is updated on every
+    // input event; refresh it from the editor once more to also cover an
+    // in-flight keystroke that hasn't fired its input event yet.
+    syncDraftFromEditor()
+
+    // A path that never got its committing space (`@apps/desktop/` left by a Tab
+    // descend, then Enter) is still the reference the user picked — promote it
+    // on the way out so it attaches instead of submitting as inert text.
+    const text = pathifyRefs(draftRef.current)
+    const payloadPresent = text.trim().length > 0 || attachments.length > 0
+
+    if (answerParkedCardWithDraft(text, payloadPresent)) {
+      return
+    }
+
+    // Approval / sudo / secret prompts also park the turn inside a tool batch,
+    // but typing CANNOT answer them (no message text approves a command or
+    // supplies a password), so there is no skip-and-steer path: a steer would
+    // sit undelivered behind the blocked prompt, and stopping the turn to force
+    // it through resolves the prompt to empty and ends the turn as "Operation
+    // interrupted." — the message looks eaten. Queue the words as the next turn
+    // instead; the prompt stays answerable and the queue drains on settle.
+    const blockingPrompt = !queueEdit && hasBlockingPromptRequest(sessionId)
+
+    if (queueEdit) {
+      exitQueuedEdit('save')
+    } else if (
+      payloadPresent &&
+      !isSlashCommandText(text) &&
+      (queuedPrompts.length > 0 || getQueuedPrompts(activeQueueSessionKey).length > 0)
+    ) {
+      // A fresh send must not overtake a redirect that fell back to the queue.
+      queueCurrentDraft()
+    } else if (busy) {
+      if (!submitWhileBusy(text, payloadPresent, blockingPrompt)) {
+        return
+      }
+    } else if (!payloadPresent && queuedPrompts.length > 0) {
+      void drainNextQueued()
+    } else if (payloadPresent) {
+      const submittedAttachments = cloneAttachments(attachments)
+      const usesCustody = custodyRef?.current && !isSlashCommandText(text)
+      const reservation = usesCustody ? custodyRef.current!.reserve(submittedAttachments, text, captureCustodyText?.() ?? undefined) : null
+      if (usesCustody && !reservation) return
+      triggerHaptic('submit')
+      resetBrowseState(sessionId)
+      if (!reservation) clearDraft()
+      // Keep blob: previews alive for the optimistic bubble; revoke when that
+      // consumer is discarded/replaced (not here — clear would race the clone).
+      if (!reservation) scope.attachments.clear({ retainPreviewUrls: true })
+      dispatchSubmit(text, submittedAttachments, undefined, reservation ?? undefined)
+    }
+
+    focusInput()
+  }
+
+  // Redirect the live turn with a correction. The gateway either restarts the
+  // active model request with its displayed context or waits for the current
+  // tool boundary. If the turn already ended, queue the words instead.
+  const steerDraft = () => {
+    const text = draftRef.current.trim()
+
+    // Guard on live editor state, not the render-lagged `canSteer`: a redirect
+    // fired on a fast Enter must not be dropped because state hasn't synced.
+    if (!onSteer || !text || attachments.length > 0 || SLASH_COMMAND_RE.test(text)) {
+      return
+    }
+
+    // Freeze `@terminal:` chips the same way idle submit / queue enqueue do.
+    // Steer used to forward the bare token only (#77078).
+    const frozen = freezeComposerTransportPayload(text)
+
+    if (frozen.missingLabels.length > 0) {
+      notify({
+        kind: 'warning',
+        title: translateNow('composer.terminalSelectionMissingTitle'),
+        message: translateNow('composer.terminalSelectionMissingBody')
+      })
+
+      return
+    }
+
+    triggerHaptic('submit')
+    clearDraft()
+
+    // The draft is already cleared, so a refused or failed redirect must keep
+    // the only copy: queue it for the next turn, or restore it when there is no
+    // queue yet (a new chat is busy before its first session exists). Keep the
+    // frozen transport for the queue; restoring to the composer keeps the chip
+    // form so the user can re-send it as-is.
+    const hasTerminalTransport = frozen.displayText !== frozen.transportText
+
+    const keep = () => {
+      if (activeQueueSessionKey) {
+        enqueueQueuedPrompt(activeQueueSessionKey, {
+          text: frozen.displayText,
+          attachments: [],
+          ...(hasTerminalTransport ? { displayText: frozen.displayText, frozenTransport: frozen.transportText } : {})
+        })
+      } else {
+        loadIntoComposer(frozen.displayText, [])
+      }
+    }
+
+    void Promise.resolve(onSteer(frozen.transportText))
+      .then(accepted => {
+        if (!accepted) {
+          keep()
+        }
+      })
+      .catch(keep)
+  }
+
+  const queueDraft = () => {
+    if (disabled || !busy) {
+      return
+    }
+
+    queueCurrentDraft()
+    focusInput()
+  }
+
+  return { dispatchSubmit, queueDraft, steerDraft, submitDraft }
+}

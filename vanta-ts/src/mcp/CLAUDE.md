@@ -9,5 +9,7 @@ MCP support for Vanta.
 - `mount-skills.ts`: registers MCP-provided skills into the existing `PluginCommandRegistry` (not a fork) so they appear in `/skills` and are invokable as `/mcp-<server>-<prompt>`. Gated behind `VANTA_MCP_SKILLS` (default off). Skill command names are hyphenated to satisfy the registry name rule.
 - `http-transport.ts`: remote MCP over HTTP with bearer-token resolution from explicit token or `VANTA_MCP_TOKEN_<SERVER>`.
 - `server.ts`: Vanta-as-MCP-server; default exposure is read-only and kernel-gated.
+- `msa_memory` is discoverable through the default serve allowlist for shared long-context access; the kernel still refuses any call classified Ask/Block, including headless indexing when approval is required.
+- `package-spec.ts` / `package-guard.ts` / `package-guard-default.ts`: local-only deny-list for package-runner launches (`npx`, `uvx`, `pnpm dlx`, `pipx run`, ...). Shipped seed merges with `<VANTA_HOME>/mcp-package-denylist.json`. Checked before the trust prompt (mount, connect, `mount_mcp`) and again in `stdioTransport`. Never make a network call here.
 
 Tests stay transport-injected; do not require external MCP binaries.

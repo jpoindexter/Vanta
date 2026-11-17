@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import type { SliceArtifact, VerifyResult, VerifyOpts, VerifyCheck, VerifyCheckCtx } from "./types.js";
@@ -87,14 +88,13 @@ const newTestsFailOnPreChangeCheck: VerifyCheck = {
   run: async ({ artifact, preExisting, root, tsRoot }) => {
     const { newTestFiles } = classifyTouchedFiles(artifact.touchedFiles, preExisting);
     if (newTestFiles.length === 0) return { ok: true };
-    const exec = await promisifiedExecFile();
-    await exec("git", ["stash"], { cwd: root });
+    await gitExecFile("git", ["stash"], { cwd: root });
     try {
       const failCount = await runTestFiles(tsRoot, newTestFiles);
       if (failCount === 0) return { ok: false, reason: "new test(s) pass on pre-change code — test exercises nothing" };
       return { ok: true };
     } finally {
-      await exec("git", ["stash", "pop"], { cwd: root }).catch(() => {});
+      await gitExecFile("git", ["stash", "pop"], { cwd: root }).catch(() => {});
     }
   },
 };

@@ -1,7 +1,5 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { gatherStatus, type StatusReport } from "../status.js";
-import { resolveVantaHome } from "../store/home.js";
+import { GOOGLE_SERVICES, hasGoogleAuth, hasGoogleClient, type GoogleService } from "../google/auth.js";
 import type { SlashHandler } from "./types.js";
 
 // `/health` — capability view: each capability with ✓ ready / ✗ missing + the
@@ -44,13 +42,44 @@ export function searchCap(env: NodeJS.ProcessEnv): Cap {
   };
 }
 
-export function googleCap(env: NodeJS.ProcessEnv, home: string): Cap {
-  const creds = Boolean(env.VANTA_GOOGLE_CLIENT_ID?.trim() && env.VANTA_GOOGLE_CLIENT_SECRET?.trim());
-  const token = existsSync(join(home, "google-tokens.json"));
-  const ok = creds && token;
-  const detail = ok ? "authorized" : creds ? "not authorized" : "no OAuth client";
-  const fix = ok ? undefined : creds ? "run: vanta auth google" : "set VANTA_GOOGLE_CLIENT_ID/SECRET, then: vanta auth google";
-  return { name: "gmail/calendar/drive", ok, detail, fix };
+type GoogleCapDeps = {
+  hasClient?: typeof hasGoogleClient;
+  hasAuth?: (env: NodeJS.ProcessEnv, service: GoogleService) => Promise<boolean>;
+};
+
+function googleAuthFix(services: readonly GoogleService[]): string {
+  return services.map((service) => `vanta auth google ${service}`).join("; then: ");
+}
+
+export async function googleCap(env: NodeJS.ProcessEnv, deps: GoogleCapDeps = {}): Promise<Cap> {
+  const client = await (deps.hasClient ?? hasGoogleClient)(env);
+  if (!client) {
+    return {
+      name: "gmail/calendar/drive",
+      ok: false,
+      detail: "no OAuth client",
+      fix: "run: vanta auth google gmail --client <client_secret.json>",
+    };
+  }
+  const check = deps.hasAuth ?? hasGoogleAuth;
+  const grants = await Promise.all(GOOGLE_SERVICES.map(async (service) => ({
+    service,
+    authorized: await check(env, service),
+  })));
+  const authorized = grants.filter((grant) => grant.authorized).map((grant) => grant.service);
+  const missing = grants.filter((grant) => !grant.authorized).map((grant) => grant.service);
+  if (missing.length === 0) {
+    return { name: "gmail/calendar/drive", ok: true, detail: "gmail/calendar/drive authorized" };
+  }
+  const detail = authorized.length === 0
+    ? "not authorized"
+    : `${authorized.join("/")} authorized; ${missing.join("/")} not authorized`;
+  return {
+    name: "gmail/calendar/drive",
+    ok: false,
+    detail,
+    fix: `run: ${googleAuthFix(missing)}`,
+  };
 }
 
 export function visionCap(env: NodeJS.ProcessEnv): Cap {
@@ -74,13 +103,17 @@ async function mcpCap(env: NodeJS.ProcessEnv): Promise<Cap> {
   const { readMcpConfig } = await import("../mcp/mount.js");
   const cfg = await readMcpConfig(env).catch(() => ({ servers: {} as Record<string, unknown> }));
   const n = Object.keys(cfg.servers ?? {}).length;
-  return { name: "mcp servers", ok: n > 0, detail: n > 0 ? `${n} configured` : "none (optional)", fix: n > 0 ? undefined : "add .mcp.json or VANTA_MCP_SERVERS" };
+  return {
+    name: "mcp configuration",
+    ok: n > 0,
+    detail: n > 0 ? `${n} configured; live mount is checked separately` : "none (optional)",
+    fix: n > 0 ? undefined : "add .mcp.json or VANTA_MCP_SERVERS",
+  };
 }
 
 export async function gatherCapabilities(env: NodeJS.ProcessEnv): Promise<Cap[]> {
   const st = await gatherStatus(env);
-  const home = resolveVantaHome(env);
-  return [kernelCap(st), modelCap(st), searchCap(env), googleCap(env, home), visionCap(env), await browserCap(), await mcpCap(env)];
+  return [kernelCap(st), modelCap(st), searchCap(env), await googleCap(env), visionCap(env), await browserCap(), await mcpCap(env)];
 }
 
 /** Pure: render the capability list with ✓/✗ + the fix for each missing one. */

@@ -9,11 +9,13 @@ import {
   hasGoogleClient,
   readApiToken,
   resolveClientCreds,
+  googleScopesFor,
   type buildClient,
 } from "./auth.js";
 import { runAuthCommand } from "./commands.js";
+import { loadTokens, saveTokens } from "./auth-store.js";
 
-const NOT_AUTH = "Google not authorized — run: vanta auth google";
+const NOT_AUTH = "Google gmail not authorized — run: vanta auth google gmail";
 
 describe("parseTokenFile", () => {
   it("accepts a well-formed token object", () => {
@@ -44,6 +46,27 @@ describe("parseTokenFile", () => {
   });
 });
 
+describe("Google capability-scoped authority", () => {
+  it("requests exactly one service scope per consent flow", () => {
+    expect(googleScopesFor("gmail")).toEqual(["https://www.googleapis.com/auth/gmail.modify"]);
+    expect(googleScopesFor("calendar")).toEqual(["https://www.googleapis.com/auth/calendar"]);
+    expect(googleScopesFor("drive")).toEqual(["https://www.googleapis.com/auth/drive"]);
+  });
+
+  it("stores refresh tokens in separate service slots", async () => {
+    const home = await mkdtemp(join(tmpdir(), "vanta-auth-scopes-"));
+    const env = { VANTA_HOME: home };
+    try {
+      await saveTokens({ refresh_token: "gmail-refresh" }, env, "gmail");
+      expect(await loadTokens(env, "gmail")).toMatchObject({ refresh_token: "gmail-refresh" });
+      expect(await loadTokens(env, "calendar")).toBeNull();
+      expect(await loadTokens(env, "drive")).toBeNull();
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("token file persistence", () => {
   let home: string;
   let env: NodeJS.ProcessEnv;
@@ -59,8 +82,10 @@ describe("token file persistence", () => {
 
   async function writeTokens(obj: unknown): Promise<void> {
     await mkdir(home, { recursive: true });
+    // Gmail is the default service for backwards-compatible call sites, but
+    // its authority is stored separately from Calendar and Drive.
     await writeFile(
-      join(home, "google-tokens.json"),
+      join(home, "google-tokens-gmail.json"),
       JSON.stringify(obj),
       "utf8",
     );
@@ -82,7 +107,7 @@ describe("token file persistence", () => {
 
   it("hasGoogleAuth is false for a corrupt token file", async () => {
     await mkdir(home, { recursive: true });
-    await writeFile(join(home, "google-tokens.json"), "{not json", "utf8");
+    await writeFile(join(home, "google-tokens-gmail.json"), "{not json", "utf8");
     expect(await hasGoogleAuth(env)).toBe(false);
   });
 
@@ -149,7 +174,7 @@ describe("token file persistence", () => {
 
     await expect(getAccessToken(env, clientFactory)).resolves.toBe("fresh-access");
     expect(client.setCredentials).toHaveBeenCalledWith({ refresh_token: "refresh-token" });
-    expect(JSON.parse(await readFile(join(home, "google-tokens.json"), "utf8"))).toMatchObject({
+    expect(JSON.parse(await readFile(join(home, "google-tokens-gmail.json"), "utf8"))).toMatchObject({
       refresh_token: "refresh-token",
       access_token: "fresh-access",
       expiry_date: 456,
@@ -158,7 +183,7 @@ describe("token file persistence", () => {
 
   it("names both setup routes when authorization exists but client credentials do not", async () => {
     await writeTokens({ refresh_token: "refresh-token" });
-    await expect(getAccessToken(env)).rejects.toThrow("vanta auth google --client <client_secret.json>");
+    await expect(getAccessToken(env)).rejects.toThrow("vanta auth google gmail --client <client_secret.json>");
     await expect(getAccessToken(env)).rejects.toThrow("connect Google from Vanta Desktop");
   });
 });

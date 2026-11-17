@@ -12,6 +12,12 @@
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# The TypeScript CLI starts from vanta-ts/, where an ignored nested .vanta/
+# directory can otherwise shadow this installation's kernel token. Keep the
+# kernel client rooted at the checkout that launched it; respect an explicit
+# caller override for embedded or multi-checkout use.
+export VANTA_ROOT="${VANTA_ROOT:-$DIR}"
+
 # --- self-register this location ---------------------------------------------
 # Record where the repo lives so the global `vanta` launcher always finds us —
 # even after the repo is moved. Running `./run.sh` (or `vanta`) once from the new
@@ -65,13 +71,13 @@ vanta_acquire_deps() {
   vanta_install_agent_deps "$DIR/vanta-ts"
 }
 
-if [ ! -x "$DIR/target/debug/vanta-kernel" ] || ! vanta_node_ready || [ ! -d "$DIR/vanta-ts/node_modules" ]; then
+if [ ! -x "$DIR/target/debug/vanta-kernel" ] || ! vanta_node_ready || ! vanta_agent_deps_ready "$DIR/vanta-ts"; then
   VANTA_INSTALL_RETRY_COMMAND="$DIR/run.sh"
   export VANTA_INSTALL_RETRY_COMMAND
   vanta_install_init run.sh "kernel,node,deps"
   [ -x "$DIR/target/debug/vanta-kernel" ] || vanta_install_stage kernel "Acquire safety kernel" vanta_acquire_kernel
   vanta_node_ready || vanta_install_stage node "Acquire Node.js 22+" vanta_acquire_node
-  [ -d "$DIR/vanta-ts/node_modules" ] || vanta_install_stage deps "Install agent dependencies" vanta_acquire_deps
+  vanta_agent_deps_ready "$DIR/vanta-ts" || vanta_install_stage deps "Install agent dependencies" vanta_acquire_deps
   vanta_install_finish
 fi
 
@@ -89,10 +95,17 @@ else
   TSX="npx tsx"   # degraded fallback (deps not installed) — still carries the IPC server
 fi
 
-# Relaunch loop: /restart exits with code 75 → re-run tsx so edited source is
-# picked up without quitting to the shell. Any other exit code passes through.
+# Relaunch loop: /restart exits with code 75 and selects the current source again.
+# Any other exit code passes through.
 # VANTA_RELAUNCH tells the agent the loop is active (so /restart is offered).
 export VANTA_RELAUNCH=1
+
+# Ink uses React's development reconciler unless NODE_ENV is set before Node
+# imports it. That reconciler records multiple global performance measures per
+# render and never clears them, so a long TUI session eventually crosses Node's
+# one-million-entry warning threshold. Keep explicit development overrides, but
+# default the shipped launcher to the production reconciler.
+export NODE_ENV="${NODE_ENV:-production}"
 
 # V8 heap headroom: node's default old-space cap is ~4GB, and large extractions
 # or long sessions can exceed it (a default-heap node OOMs near 4GB — observed).
@@ -103,7 +116,14 @@ VANTA_HEAP_OPTION="--max-old-space-size=${VANTA_NODE_MAX_MB:-$VANTA_NODE_MAX_DEF
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }$VANTA_HEAP_OPTION"
 
 while :; do
-  if $TSX src/cli.ts "$@"; then code=0; else code=$?; fi
+  # Pin this process to one complete build; another launch must not replace it.
+  RUNTIME="src/cli.ts"
+  RUNNER="$TSX"
+  if COMPILED_ROOT=$(node scripts/ensure-startup-compile.mjs 2>/dev/null) && [ -f "$COMPILED_ROOT/src/cli.js" ]; then
+    RUNNER="node"
+    RUNTIME="$COMPILED_ROOT/src/cli.js"
+  fi
+  if $RUNNER "$RUNTIME" "$@"; then code=0; else code=$?; fi
   [ "$code" = 75 ] || exit "$code"
   echo "vanta: reloading…" >&2
 done

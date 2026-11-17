@@ -22,3 +22,10 @@ regexes = [
   '''<YOUR_.*>''',
   '''PLACEHOLDER''',
 ]
+
+[[allowlists]]
+description = "Imported desktop shell: sentinel constant and test-fixture token (not credentials)"
+paths = [
+  '''desktop-next/apps/desktop/electron/api-expected-404\.ts''',
+  '''desktop-next/apps/desktop/scripts/side-by-side\.windows\.test\.mjs''',
+]

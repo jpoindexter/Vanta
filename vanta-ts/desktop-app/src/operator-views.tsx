@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, ExternalLink, FileText, Image, Link2, Mail, Network, PackageOpen, PauseCircle, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
-import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, GoogleConnectStatus, MessagingPlatform, Provider, ReleaseProofReport, ReleaseProofStage, Session, Status } from "./types.js";
+import { Activity, ArrowRight, Bot, Boxes, CheckCircle2, Clock3, ExternalLink, FileText, Image, Link2, Mail, Network, PackageOpen, PauseCircle, PlugZap, Plus, RefreshCw, Search, ShieldAlert, Wrench } from "lucide-react";
+import type { Artifact, Capability, ConnectStatus, ConnectTestResult, EventRow, GatewayStartResult, GoogleConnectStatus, MessagingPlatform, Provider, ReleaseProofReport, ReleaseProofStage, ScheduledTask, Session, Status } from "./types.js";
 import { McpConnectorsView } from "./mcp-connectors-view.js";
 import type { useDesktopMcp } from "./mcp-state.js";
 import { WorkflowRunLedger } from "./workflow-runs.js";
@@ -11,7 +11,7 @@ type TestConnection = (kind: "provider" | "messaging", id?: string) => Promise<C
 export function OperateView(props: { sessions: Session[]; events: EventRow[]; status: Status | null; onOpenSession: (id: string) => void }) {
   const active = props.sessions.filter((session) => !session.archived).slice(0, 6);
   const needsAttention = props.events.filter((event) => event.ok === false).length;
-  return <WorkspaceView title="Operate" eyebrow="Background work" description="See what Vanta is running, what needs a decision, and what finished without opening every task.">
+  return <WorkspaceView title="Runs" eyebrow="Recent work" description="Open a current task or inspect work that needs your attention.">
     <div className="operate-summary" aria-label="Task summary">
       <div><Activity size={16} /><strong>{active.length}</strong><span>active tasks</span></div>
       <div><ShieldAlert size={16} /><strong>{needsAttention}</strong><span>need you</span></div>
@@ -27,6 +27,50 @@ export function OperateView(props: { sessions: Session[]; events: EventRow[]; st
     </div>
     <section className="operate-policy"><div><p className="eyebrow">Execution contract</p><h2>Kernel {props.status?.kernel ?? "checking"}</h2></div><p>Vanta can continue routine work in the background. Consequential commands and file changes still surface an exact approval.</p></section>
     <WorkflowRunLedger />
+  </WorkspaceView>;
+}
+
+export function ScheduledView(props: { items: ScheduledTask[]; onCreate: () => void }) {
+  return <WorkspaceView
+    title="Scheduled"
+    eyebrow="Background work"
+    description="Recurring tasks live here. One-off follow-ups stay in the active task queue."
+    actions={<button className="workspace-action" type="button" onClick={props.onCreate}><Plus size={15} />New schedule</button>}
+  >
+    <section className="streamlined-workspace-section">
+      <h2>Schedules</h2>
+      <div className="streamlined-workspace-list">
+        {props.items.map((item) => <article className="streamlined-workspace-row" key={item.id}>
+          <Clock3 size={16} aria-hidden="true" />
+          <span><strong>{item.instruction}</strong><small>{item.cron}{item.routine ? ` · ${item.routine} missed-run policy` : ""}</small></span>
+          <em className={item.status === "active" ? "ready" : ""}>{item.status}</em>
+        </article>)}
+        {!props.items.length ? <div className="streamlined-empty"><Clock3 size={20} /><strong>No scheduled tasks</strong><p>Create one in the task composer. Vanta will show it here after the kernel saves it.</p><button type="button" onClick={props.onCreate}>Draft a schedule</button></div> : null}
+      </div>
+    </section>
+  </WorkspaceView>;
+}
+
+export function PluginsView(props: { items: Capability[]; onConnect: () => void }) {
+  const visible = props.items.slice(0, 18);
+  return <WorkspaceView
+    title="Plugins"
+    eyebrow="Capabilities"
+    description="Use capabilities when a task needs them. Connection details stay out of the main task."
+    actions={<button className="workspace-action" type="button" onClick={props.onConnect}><PlugZap size={15} />Manage connections</button>}
+  >
+    <section className="streamlined-workspace-section">
+      <h2>Available to this project</h2>
+      <div className="streamlined-workspace-list">
+        {visible.map((item) => <article className="streamlined-workspace-row" key={item.id}>
+          <Wrench size={16} aria-hidden="true" />
+          <span><strong>{item.name}</strong><small>{item.description}</small></span>
+          <em>{item.kind}</em>
+        </article>)}
+        {!visible.length ? <div className="streamlined-empty"><PlugZap size={20} /><strong>No capabilities reported</strong><p>Open Connect to repair providers, MCP servers, or integrations.</p><button type="button" onClick={props.onConnect}>Open Connect</button></div> : null}
+      </div>
+      {props.items.length > visible.length ? <p className="streamlined-more">{props.items.length - visible.length} more capabilities are available through Connect.</p> : null}
+    </section>
   </WorkspaceView>;
 }
 

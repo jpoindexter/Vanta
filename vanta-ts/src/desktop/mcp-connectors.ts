@@ -8,6 +8,7 @@ import {
   setMcpConnectorTrust,
 } from "../mcp/registry.js";
 import {
+  addDesktopMcp,
   authorizeDesktopMcp,
   desktopMcpPayload,
   importClaudeDesktopMcp,
@@ -17,8 +18,9 @@ import {
 } from "./mcp-control.js";
 import { readJson, sendJson, type DesktopState } from "./handlers.js";
 
-type DesktopMcpAction = "test" | "reconnect" | "enable" | "disable" | "trust" | "deny" | "install" | "import_desktop" | "remove" | "auth" | "read_resource";
-type McpActionRequest = { name?: string; action: DesktopMcpAction; uri?: string; withTools: string[] };
+type DesktopMcpAction = "test" | "reconnect" | "enable" | "disable" | "trust" | "deny" | "install" | "add" | "import_desktop" | "remove" | "auth" | "read_resource";
+type McpActionBody = { name?: unknown; action?: unknown; uri?: unknown; withTools?: unknown; env?: unknown; command?: unknown; args?: unknown; url?: unknown };
+type McpActionRequest = { name?: string; action: DesktopMcpAction; uri?: string; withTools: string[]; settings?: unknown; custom?: { command?: string; args?: string[]; url?: string } };
 
 export async function handleDesktopMcpList(state: DesktopState, res: http.ServerResponse): Promise<void> {
   sendJson(res, 200, await desktopMcpPayload(state.root));
@@ -29,7 +31,7 @@ export async function handleDesktopMcpAction(
   req: http.IncomingMessage,
   res: http.ServerResponse,
 ): Promise<void> {
-  const body = await readJson(req) as { name?: unknown; action?: unknown; uri?: unknown; withTools?: unknown };
+  const body = await readJson(req) as McpActionBody;
   const parsed = parseMcpAction(body);
   if (!parsed) return sendJson(res, 400, { error: "a valid MCP action and its required fields are required" });
   try {
@@ -42,20 +44,31 @@ export async function handleDesktopMcpAction(
   return handleProbeAction(state, res, parsed);
 }
 
-function parseMcpAction(body: { name?: unknown; action?: unknown; uri?: unknown; withTools?: unknown }): McpActionRequest | null {
+const stringList = (value: unknown): string[] | undefined => (Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : undefined);
+
+function customOf(body: McpActionBody): McpActionRequest["custom"] {
+  const text = (value: unknown): string | undefined => (typeof value === "string" && value.trim() ? value.trim() : undefined);
+  const args = stringList(body.args);
+  return { command: text(body.command), url: text(body.url), ...(args ? { args } : {}) };
+}
+
+const ACTIONS: readonly DesktopMcpAction[] = ["test", "reconnect", "enable", "disable", "trust", "deny", "install", "add", "import_desktop", "remove", "auth", "read_resource"];
+
+const missingRequired = (action: DesktopMcpAction, name: string, uri: string | undefined): boolean =>
+  (action !== "import_desktop" && !name) || (action === "read_resource" && !uri);
+
+function parseMcpAction(body: McpActionBody): McpActionRequest | null {
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  const action = typeof body.action === "string" ? body.action as DesktopMcpAction : undefined;
-  const actions: DesktopMcpAction[] = ["test", "reconnect", "enable", "disable", "trust", "deny", "install", "import_desktop", "remove", "auth", "read_resource"];
-  if (!action || !actions.includes(action)) return null;
-  if (action !== "import_desktop" && !name) return null;
+  const action = ACTIONS.find((candidate) => candidate === body.action);
+  if (!action) return null;
   const uri = typeof body.uri === "string" ? body.uri.trim() : undefined;
-  if (action === "read_resource" && !uri) return null;
-  const withTools = Array.isArray(body.withTools) ? body.withTools.filter((item): item is string => typeof item === "string") : [];
-  return { ...(name ? { name } : {}), action, ...(uri ? { uri } : {}), withTools };
+  if (missingRequired(action, name, uri)) return null;
+  return { ...(name ? { name } : {}), action, ...(uri ? { uri } : {}), withTools: stringList(body.withTools) ?? [], settings: body.env, custom: customOf(body) };
 }
 
 async function handleLifecycleAction(root: string, request: McpActionRequest): Promise<unknown | null> {
-  if (request.action === "install") return installDesktopMcp(root, request.name!, request.withTools);
+  if (request.action === "install") return installDesktopMcp(root, request.name!, request.withTools, request.settings);
+  if (request.action === "add") return addDesktopMcp(root, { name: request.name!, ...request.custom }, request.settings);
   if (request.action === "import_desktop") return importClaudeDesktopMcp(root);
   if (request.action === "remove") return removeDesktopMcp(root, request.name!);
   if (request.action === "auth") return authorizeDesktopMcp(root, request.name!);
@@ -138,6 +151,7 @@ async function recordDesktopTest(root: string, name: string, action: DesktopMcpA
 async function sendDesktopProbeResult(root: string, res: http.ServerResponse, connection: McpConnection): Promise<void> {
   const ok = connection.status === "connected";
   sendJson(res, ok ? 200 : 409, {
+    ...(!ok ? { error: connection.error ?? "MCP connector did not connect" } : {}),
     result: { status: connection.status, tools: connection.tools.map((tool) => tool.name), resources: connection.resources?.map((resource) => resource.uri) ?? [], error: connection.error },
     ...(await desktopMcpPayload(root)),
   });

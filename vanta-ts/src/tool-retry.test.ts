@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isRetryableTool, isTransientFailure, shouldRetryTool, resolveToolRetries } from "./tool-retry.js";
+import { isRetryableTool, isTransientError, isTransientFailure, shouldRetryTool, resolveToolRetries } from "./tool-retry.js";
 
 describe("isRetryableTool", () => {
   it("allows idempotent reads", () => {
@@ -34,6 +34,12 @@ describe("isTransientFailure", () => {
 
   it("never flags a success", () => {
     expect(isTransientFailure(true, "ok, fetched 200 timeout-free")).toBe(false);
+  });
+});
+
+describe("isTransientError", () => {
+  it("recognizes Undici's mid-stream terminated transport error", () => {
+    expect(isTransientError(new TypeError("terminated"))).toBe(true);
   });
 });
 

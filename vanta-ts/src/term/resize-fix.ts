@@ -23,6 +23,16 @@ export type InkInternals = {
   lastOutputHeight: number;
 };
 
+export type ResizeScheduler = (repaint: () => void) => () => void;
+
+const scheduleSettledRepaint: ResizeScheduler = (repaint) => {
+  // Ink throttles normal frames to 30 fps. Repaint after that trailing frame and
+  // after React resize subscribers have committed their dimension-dependent
+  // layout; repainting synchronously from SIGWINCH can redraw the previous width.
+  const timer = setTimeout(repaint, 50);
+  return () => clearTimeout(timer);
+};
+
 export function isInkInternals(v: unknown): v is InkInternals {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
@@ -43,25 +53,43 @@ export function forceFullRepaint(ink: InkInternals): void {
 }
 
 /**
- * Append a resize listener that force-repaints via the absolute-clear path —
- * but ONLY on a WIDTH change, which is what rewraps displayed lines and ghosts.
- * A height-only resize has no rewrap, so we leave Ink's normal relative
- * re-render in place (it keeps content naturally bottom-anchored; force-clearing
- * would jump it to the top with a gap below). Appended (not replacing) so Ink's
- * own `resized()` and use-window-size's listener still run; ours runs last and
- * overwrites any ghost with a clean absolute repaint. Returns the listener so
- * callers can detach it in tests.
+ * Append a resize listener that force-repaints via the absolute-clear path after
+ * the resize settles. Width and height both invalidate the physical frame: width
+ * changes rewrap existing rows, while height changes alter fullscreen/viewport
+ * geometry. The deferred repaint runs after Ink's 30 fps trailing frame and
+ * React's resize subscribers, so it cannot redraw a stale pre-resize layout.
+ * Rapid resize events coalesce into one repaint at the final dimensions.
+ *
+ * Appended (not replacing) so Ink's own `resized()` and layout listeners still
+ * run. Returns a cleanup so a restarted TUI cannot retain either the listener or
+ * a scheduled repaint for an unmounted Ink instance.
  */
-export function attachResizeRepaint(stdout: Pick<NodeJS.WriteStream, "on" | "columns">, ink: InkInternals): () => void {
+export function attachResizeRepaint(
+  stdout: Pick<NodeJS.WriteStream, "on" | "off" | "columns" | "rows">,
+  ink: InkInternals,
+  schedule: ResizeScheduler = scheduleSettledRepaint,
+): () => void {
   let lastWidth = stdout.columns;
+  let lastHeight = stdout.rows;
+  let cancelRepaint: (() => void) | null = null;
   const listener = (): void => {
     const width = stdout.columns;
-    if (width === lastWidth) return; // height-only resize: no rewrap, no ghost
+    const height = stdout.rows;
+    if (width === lastWidth && height === lastHeight) return;
     lastWidth = width;
-    forceFullRepaint(ink);
+    lastHeight = height;
+    cancelRepaint?.();
+    cancelRepaint = schedule(() => {
+      cancelRepaint = null;
+      forceFullRepaint(ink);
+    });
   };
   stdout.on("resize", listener);
-  return listener;
+  return () => {
+    stdout.off("resize", listener);
+    cancelRepaint?.();
+    cancelRepaint = null;
+  };
 }
 
 /** Resolve Ink's live instance for a stdout via its internal (non-exported) map. */
@@ -78,14 +106,17 @@ async function resolveInkInstance(stdout: NodeJS.WriteStream): Promise<InkIntern
 
 /**
  * Install the resize ghost fix on a TTY stdout after Ink has rendered into it.
- * No-op on non-TTY streams or if Ink's internals are unavailable.
+ * Returns a cleanup; it is a no-op on non-TTY streams or when Ink's internals
+ * are unavailable.
  */
-export async function installResizeGhostFix(stdout: NodeJS.WriteStream): Promise<void> {
-  if (!stdout.isTTY) return;
+export async function installResizeGhostFix(stdout: NodeJS.WriteStream): Promise<() => void> {
+  const noop = (): void => {};
+  if (!stdout.isTTY) return noop;
   try {
     const ink = await resolveInkInstance(stdout);
-    if (ink) attachResizeRepaint(stdout, ink);
+    return ink ? attachResizeRepaint(stdout, ink) : noop;
   } catch {
     /* Ink internals unavailable — leave Ink's default resize behavior in place. */
+    return noop;
   }
 }

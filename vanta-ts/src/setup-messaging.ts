@@ -138,8 +138,8 @@ export async function runMessagingSetup(
       const currentAllow = env.VANTA_TELEGRAM_ALLOW?.trim() ?? "";
       const allow = (await ownRl.question(
         currentAllow
-          ? `  Owner Telegram user/chat IDs [${currentAllow}]: `
-          : "  Owner Telegram user/chat IDs (comma-separated; empty uses pairing): ",
+          ? `  Owner Telegram numeric user/chat IDs [${currentAllow}]: `
+          : "  Owner Telegram numeric user/chat IDs (comma-separated; empty uses pairing): ",
       )).trim() || currentAllow;
       if (!validateTelegramAllowlist(allow)) {
         log("  Telegram owner IDs must be comma-separated numbers. Nothing written.");

@@ -30,6 +30,10 @@ describe("desktop file context API", () => {
       expect(context.recent).toContain("src/app.ts");
       expect([...files, ...context.files]).not.toContain(".env");
       expect([...files, ...context.files]).not.toContain("ignored.log");
+      const preview = await fetch(`${base}/api/file-preview?path=src%2Fapp.ts`);
+      expect(preview.status).toBe(200);
+      expect(await preview.json()).toEqual({ path: "src/app.ts", content: "export {};\n", markdown: false });
+      expect((await fetch(`${base}/api/file-preview?path=.env`)).status).toBe(422);
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }

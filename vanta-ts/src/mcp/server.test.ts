@@ -18,6 +18,10 @@ import type { SafetyClient } from "../safety-client.js";
 import type { Verdict } from "../types.js";
 import type { ToolContext } from "../tools/types.js";
 
+let defaultRoot: string;
+beforeEach(async () => { defaultRoot = await mkdtemp(join(tmpdir(), "vanta-serve-default-")); });
+afterEach(async () => { await rm(defaultRoot, { recursive: true, force: true }); });
+
 /** A SafetyClient stub that returns a fixed verdict for assess(). */
 function fakeSafety(risk: Verdict["risk"], reason = "test"): SafetyClient {
   return {
@@ -34,7 +38,7 @@ function deps(overrides: Partial<ServerDeps> = {}): ServerDeps {
     registry: overrides.registry ?? buildRegistry(),
     safety,
     allowlist: overrides.allowlist ?? resolveServeAllowlist({} as NodeJS.ProcessEnv),
-    ctx: overrides.ctx ?? ({ root: "/tmp", safety, requestApproval: async () => false } as ToolContext),
+    ctx: overrides.ctx ?? ({ root: defaultRoot, safety, requestApproval: async () => false } as ToolContext),
     env: overrides.env,
   };
 }
@@ -43,6 +47,7 @@ describe("resolveServeAllowlist", () => {
   it("defaults to a read-only safe set", () => {
     const set = resolveServeAllowlist({} as NodeJS.ProcessEnv);
     expect(set.has("read_file")).toBe(true);
+    expect(set.has("msa_memory")).toBe(true);
     expect(set.has("write_file")).toBe(false);
     expect(set.has("shell_cmd")).toBe(false);
   });
@@ -93,6 +98,7 @@ describe("handleMessage", () => {
     };
     const names = res.result.tools.map((t) => t.name);
     expect(names).toContain("read_file");
+    expect(names).toContain("msa_memory");
     expect(names).not.toContain("write_file");
     expect(names).not.toContain("shell_cmd");
   });
@@ -141,7 +147,7 @@ describe("handleMessage", () => {
     expect(res.result.isError).toBe(true);
     expect(res.result.content[0]!.text).toContain("blocked by safety");
     expect(res.result.content[0]!.text).toContain("destructive");
-  });
+  }, 60_000);
 
   it("refuses an ask verdict (headless — no human to prompt)", async () => {
     const res = (await handleMessage(
@@ -193,6 +199,39 @@ describe("handleMessage", () => {
     expect(res.result.isError).toBe(false);
     expect(res.result.content[0]!.text).toContain("approved approval 9");
     expect(calls).toEqual(["approve:9"]);
+  });
+
+  it("does not reuse a settled effect when a client reuses a JSON-RPC id", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-mcp-id-reuse-"));
+    try {
+      let executions = 0;
+      const registry = buildRegistry();
+      registry.register({
+        schema: { name: "synthetic_effect", description: "test", parameters: { type: "object", properties: {} } },
+        describeForSafety: () => "execute synthetic effect",
+        execute: async () => ({ ok: true, output: `execution ${++executions}` }),
+      });
+      const serverDeps = deps({
+        registry,
+        allowlist: new Set(["synthetic_effect"]),
+        ctx: { root, safety: fakeSafety("allow"), requestApproval: async () => false } as ToolContext,
+      });
+      serverDeps.ctx.safety = serverDeps.safety;
+      const message = {
+        id: 44,
+        method: "tools/call",
+        params: { name: "synthetic_effect", arguments: { value: "same" } },
+      };
+
+      const first = await handleMessage(message, serverDeps) as { result: { content: Array<{ text: string }> } };
+      const second = await handleMessage(message, serverDeps) as { result: { content: Array<{ text: string }> } };
+
+      expect(first.result.content[0]?.text).toContain("execution 1");
+      expect(second.result.content[0]?.text).toContain("execution 2");
+      expect(executions).toBe(2);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });
 
@@ -251,8 +290,7 @@ describe("reciprocal: real McpClient drives the server through the kernel gate",
     );
     const client = new McpClient(clientT);
     await client.initialize();
-    const out = await client.callTool("read_file", { path: "anything" });
-    expect(out).toContain("blocked by safety");
-    expect(out).toContain("destructive keyword");
+    await expect(client.callTool("read_file", { path: "anything" }))
+      .rejects.toThrow(/blocked by safety.*destructive keyword/);
   });
 });

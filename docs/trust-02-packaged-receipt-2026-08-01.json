@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "roadmapId": "TRUST-02",
+  "roadmapState": "building",
+  "branch": "codex/trust-02-packaged-receipts-20260801",
+  "baseSha": "9cd34c3575b4bbac188c69d9d7ec7dd8b44cff1c",
+  "remoteMainObservedSha": "4911ae44bbb35beef4511ba298475ba5a82b7e1c",
+  "executedAt": "2026-08-01T15:21:28Z",
+  "platform": "Darwin arm64",
+  "command": "npm run desktop:trust-02:proof",
+  "provider": {
+    "kind": "synthetic local OpenAI-compatible server",
+    "liveExternalAccount": false
+  },
+  "desktopBoundary": {
+    "packaged": true,
+    "launchBoundaryPresent": true,
+    "hostileRequestsDenied": 9,
+    "hostileMutationAbsent": true,
+    "navigationDenied": true,
+    "windowDenied": true,
+    "trustedRendererPassed": true
+  },
+  "effectBoundary": {
+    "secretExposure": 0,
+    "secretMutation": 0,
+    "hookPayloadSha256": "5ba1867041025c0dcce39a3f16a4d8e45c6de6c21d7bd37ffc0520e965ea4214",
+    "exactApprovalTransitions": 4,
+    "sameRunActivation": false,
+    "restartActivation": true,
+    "requiredToolReceipts": 8,
+    "retainedToolTransitions": 21,
+    "retainedActionReceipts": 8
+  },
+  "package": {
+    "appAsarSha256": "aee2a72f1cd0afe6d4ae682f047462523beb00bb1e38d1040c4e39fbc71387c7",
+    "kernelSha256": "dbce0757421076e0d2d85e872cdf5dbcca09078fccfb9c5291f15fb4454c0695",
+    "localCodeSignatureVerified": true,
+    "notarized": false,
+    "published": false
+  },
+  "limits": [
+    "This receipt covers the local packaged Darwin ARM64 path only.",
+    "The provider was synthetic and local; no live external account was used.",
+    "The branch is unmerged and TRUST-02 is not claimed shipped."
+  ]
+}

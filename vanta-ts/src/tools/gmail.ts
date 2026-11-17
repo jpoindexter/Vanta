@@ -1,17 +1,17 @@
 import { z } from "zod";
 import { buildUrl } from "../google/client.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+import { executeGmailOutbound } from "./gmail-outbound.js";
 import {
   HeaderSchema,
   headerValue,
-  encodeMime,
   PayloadSchema,
   extractPlainText,
   httpError,
   authError,
   OutboundArgs,
-  IdResponse,
   googleFetch,
+  quarantineGmailContent,
 } from "./gmail-helpers.js";
 
 const BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
@@ -67,7 +67,7 @@ export const gmailSearchTool: Tool = {
       const ids = (list.messages ?? []).map((m) => m.id);
       if (ids.length === 0) return { ok: true, output: "no messages matched" };
       const lines = await Promise.all(ids.map((id) => fetchMetadataLine(id)));
-      return { ok: true, output: lines.join("\n") };
+      return { ok: true, output: quarantineGmailContent(lines.join("\n")) };
     } catch (err) {
       return authError(err);
     }
@@ -109,7 +109,7 @@ export const gmailReadTool: Tool = {
         "",
         text,
       ].join("\n");
-      return { ok: true, output: out };
+      return { ok: true, output: quarantineGmailContent(out) };
     } catch (err) {
       return authError(err);
     }
@@ -134,22 +134,7 @@ export const gmailDraftTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = OutboundArgs.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'gmail_draft needs "to", "subject", and "body"' };
-    const approved = await ctx.requestApproval("create a gmail draft", "creates a draft in your account");
-    if (!approved) return { ok: false, output: "denied by user" };
-    const { to, subject, body } = parsed.data;
-    try {
-      const raw64 = encodeMime(to, subject, body);
-      const res = await googleFetch(`${BASE}/drafts`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: { raw: raw64 } }),
-      });
-      if (!res.ok) return httpError(res);
-      const out = IdResponse.parse(await res.json());
-      return { ok: true, output: `draft created: ${out.id}` };
-    } catch (err) {
-      return authError(err);
-    }
+    return executeGmailOutbound("draft", parsed.data, ctx);
   },
 };
 
@@ -171,21 +156,6 @@ export const gmailSendTool: Tool = {
   async execute(raw, ctx: ToolContext): Promise<ToolResult> {
     const parsed = OutboundArgs.safeParse(raw);
     if (!parsed.success) return { ok: false, output: 'gmail_send needs "to", "subject", and "body"' };
-    const approved = await ctx.requestApproval("send an email", "sends mail from your account — irreversible");
-    if (!approved) return { ok: false, output: "denied by user" };
-    const { to, subject, body } = parsed.data;
-    try {
-      const raw64 = encodeMime(to, subject, body);
-      const res = await googleFetch(`${BASE}/messages/send`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ raw: raw64 }),
-      });
-      if (!res.ok) return httpError(res);
-      const out = IdResponse.parse(await res.json());
-      return { ok: true, output: `email sent: ${out.id}` };
-    } catch (err) {
-      return authError(err);
-    }
+    return executeGmailOutbound("send", parsed.data, ctx);
   },
 };

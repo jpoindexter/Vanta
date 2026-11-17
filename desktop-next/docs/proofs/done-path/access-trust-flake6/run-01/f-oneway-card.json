@@ -1,0 +1,7 @@
+{
+  "text": "Run a command | This is a one-way action that can't be undone, so Vanta asks every time, even after Always allow. | npm publish --dry-run | Details | Allow once | Reject",
+  "buttons": [
+    "Allow once",
+    "Reject"
+  ]
+}

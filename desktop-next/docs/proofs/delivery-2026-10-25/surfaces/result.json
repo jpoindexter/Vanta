@@ -1,0 +1,42 @@
+{
+  "checks": [
+    "New chat reuses localized copy",
+    "Composer radius follows the 22px wireframe",
+    "Composer has layered elevation",
+    "Resting composer has no dark border",
+    "Composer backing is opaque white",
+    "Sidebar has its scoped edge elevation",
+    "Tab reaches the row menu, not an invisible timestamp",
+    "Keyboard reveal preserves row width",
+    "Keyboard opens the real session actions menu",
+    "Pointer hover exposes the same action",
+    "Composer model control has a keyboard focus ring",
+    "Model menu still opens",
+    "Permission menu still opens without changing authority",
+    "Draft remains editable",
+    "New chat opens the real draft composer",
+    "F-115 attachment regression: Files… / Folder… / Images… / Paste image / URL… / Prompt snippets… / Capture selection / Capture window / Capture screen; Images… (native picker, stubbed to pixel.png) attached a chip, the message carried the image in its request body and the model answered \"I can see the attached image.\", then the chip cleared",
+    "F-116 attachment regression: both entries are in the menu",
+    "F-118 attachment regression: Folder… opened the native picker (stubbed) and the folder became a chip; its remove control is the chip's ×",
+    "Composer fits an 800px window",
+    "Send stays inside the narrow composer",
+    "Actual theme switches to dark",
+    "Dark composer retains elevation"
+  ],
+  "paint": {
+    "radius": "22px",
+    "shadow": "color(srgb 0.12549 0.12549 0.141176 / 0.06) 0px 0px 0px 1px, color(srgb 0.12549 0.12549 0.141176 / 0.04) 0px 2px 8px 0px, color(srgb 0.12549 0.12549 0.141176 / 0.03) 0px 4px 40px 0px",
+    "border": "rgba(0, 0, 0, 0)",
+    "fill": "rgb(255, 255, 255)"
+  },
+  "shots": [
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk/01-chat-light.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk/02-sidebar-keyboard-menu.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk/03-composer-draft.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk/04-new-chat-light.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk/05-chat-narrow.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk/06-chat-dark.png"
+  ],
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-K04cGk",
+  "rendererErrors": []
+}

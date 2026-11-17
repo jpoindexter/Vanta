@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { FILE_TOOLS, EDIT_PERMISSION_OPTIONS, decideEditPrompt, pathFromAction } from "./edit-policy.js";
 import type { StreamEvent } from "../agent/agent-types.js";
+import type { ApprovalDetail } from "../permissions/request.js";
+import type { AcpMcpServer } from "./protocol.js";
 
 // ACP session lifecycle — PURE + injectable. Owns the set of live sessions, maps
 // an ACP `session/prompt` onto an injected agent runner, converts the agent's
@@ -14,11 +16,13 @@ export type StopReason = "end_turn" | "cancelled" | "max_tokens" | "tool_calls" 
 export type RunRequest = {
   sessionId: string;
   prompt: string;
+  systemPrompt?: string;
+  mcpServers: AcpMcpServer[];
   signal: AbortSignal;
   /** Emit an agent StreamEvent — the session converts it to a session/update. */
   emit: (event: StreamEvent) => void;
   /** Ask the host to approve a gated action; resolves true=allow, false=deny. */
-  approve: (action: string, reason: string, toolName?: string, detail?: { diff?: string }) => Promise<boolean>;
+  approve: (action: string, reason: string, toolName?: string, detail?: ApprovalDetail) => Promise<boolean>;
 };
 
 /** The injected agent runner: drives a Vanta conversation for one prompt turn. */
@@ -33,7 +37,7 @@ export type SessionSink = {
    * client's chosen optionId ("" = denied/closed). EXT-ACP-EDIT-DIFF reads the
    * id (not just allow-ness) so "allow_always" can arm the session grant.
    */
-  requestPermission: (sessionId: string, req: PermissionRequest) => Promise<string>;
+  requestPermission: (sessionId: string, req: PermissionRequest, signal?: AbortSignal) => Promise<string>;
 };
 
 /** The `session/update` payload union (the subset Vanta emits). */
@@ -60,6 +64,26 @@ export const PERMISSION_OPTIONS: PermissionOption[] = [
   { optionId: "reject", name: "Reject", kind: "reject_once" },
 ];
 
+type ApprovalAsk = { action: string; reason: string; toolName?: string; detail?: ApprovalDetail };
+
+function approvalPolicy(ask: ApprovalAsk) {
+  const oneTime = ask.detail?.fresh === true || ask.detail?.canRemember === false;
+  const repeatableEdit = ask.toolName !== undefined && FILE_TOOLS.has(ask.toolName) && !oneTime;
+  return { oneTime, repeatableEdit, options: repeatableEdit ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS };
+}
+
+function permissionRequest(ask: ApprovalAsk, options: PermissionOption[], oneTime: boolean): PermissionRequest {
+  const content: ToolCallContent[] = ask.detail?.diff
+    ? [{ type: "content", content: { type: "text", text: ask.detail.diff } }]
+    : [];
+  if (oneTime && ask.reason) content.push({ type: "content", content: { type: "text", text: ask.reason } });
+  return {
+    toolCall: { toolCallId: ask.toolName ? toolId(ask.toolName) : "approval",
+      title: oneTime ? ask.action : ask.reason || ask.action, content: content.length ? content : undefined },
+    options,
+  };
+}
+
 type Session = {
   id: string;
   cwd: string;
@@ -68,6 +92,13 @@ type Session = {
   abort?: AbortController;
   /** EXT-ACP-EDIT-DIFF: "Allow edits this session" grant (sensitive paths still prompt). */
   autoApproveEdits?: boolean;
+  systemPrompt?: string;
+  mcpServers: AcpMcpServer[];
+};
+
+type SessionOptions = {
+  systemPrompt?: string;
+  mcpServers?: AcpMcpServer[];
 };
 
 /** Map an agent StreamEvent to its `session/update` payload, or null if it has none. */
@@ -110,20 +141,34 @@ export class SessionManager {
   ) {}
 
   /** Create a new session; returns its id. */
-  newSession(cwd?: string): { sessionId: string } {
+  newSession(cwd?: string, options: SessionOptions = {}): { sessionId: string } {
     const id = randomUUID();
-    this.sessions.set(id, { id, cwd: cwd ?? this.defaultCwd, modeId: "default" });
+    this.sessions.set(id, {
+      id,
+      cwd: cwd ?? this.defaultCwd,
+      modeId: "default",
+      systemPrompt: options.systemPrompt,
+      mcpServers: options.mcpServers ?? [],
+    });
     return { sessionId: id };
   }
 
   /** Load (re-register) an existing session id so a client can resume against it. */
-  loadSession(sessionId: string, cwd?: string): { sessionId: string } {
+  loadSession(sessionId: string, cwd?: string, options: SessionOptions = {}): { sessionId: string } {
     const existing = this.sessions.get(sessionId);
     if (existing) {
       if (cwd) existing.cwd = cwd;
+      if (options.systemPrompt !== undefined) existing.systemPrompt = options.systemPrompt;
+      if (options.mcpServers !== undefined) existing.mcpServers = options.mcpServers;
       return { sessionId };
     }
-    this.sessions.set(sessionId, { sessionId, cwd: cwd ?? this.defaultCwd, modeId: "default" } as unknown as Session);
+    this.sessions.set(sessionId, {
+      id: sessionId,
+      cwd: cwd ?? this.defaultCwd,
+      modeId: "default",
+      systemPrompt: options.systemPrompt,
+      mcpServers: options.mcpServers ?? [],
+    });
     return { sessionId };
   }
 
@@ -148,21 +193,20 @@ export class SessionManager {
    */
   private async approveWithEditPolicy(
     s: Session,
-    ask: { action: string; reason: string; toolName?: string; diff?: string },
+    ask: ApprovalAsk,
+    turnSignal: AbortSignal,
   ): Promise<boolean> {
-    const isFileTool = ask.toolName !== undefined && FILE_TOOLS.has(ask.toolName);
-    if (isFileTool && decideEditPrompt({ autoApproveEdits: s.autoApproveEdits === true, path: pathFromAction(ask.action) }) === "auto-allow") {
+    const signal = ask.detail?.signal === undefined ? turnSignal : ask.detail.signal;
+    if (signal?.aborted) return false;
+    const { oneTime, repeatableEdit, options } = approvalPolicy(ask);
+    if (repeatableEdit && decideEditPrompt({ autoApproveEdits: s.autoApproveEdits === true, path: pathFromAction(ask.action) }) === "auto-allow") {
       return true;
     }
-    const content: ToolCallContent[] | undefined = ask.diff
-      ? [{ type: "content", content: { type: "text", text: ask.diff } }]
-      : undefined;
-    const optionId = await this.sink.requestPermission(s.id, {
-      toolCall: { toolCallId: ask.toolName ? toolId(ask.toolName) : "approval", title: ask.reason || ask.action, content },
-      options: isFileTool ? EDIT_PERMISSION_OPTIONS : PERMISSION_OPTIONS,
-    });
-    if (optionId === "allow_always" && isFileTool) s.autoApproveEdits = true;
-    return optionId.startsWith("allow");
+    const optionId = await this.sink.requestPermission(s.id, permissionRequest(ask, options, oneTime), signal ?? undefined);
+    if (signal?.aborted) return false;
+    const kind = options.find(option => option.optionId === optionId)?.kind;
+    if (kind === "allow_always") s.autoApproveEdits = true;
+    return kind === "allow_once" || kind === "allow_always";
   }
 
   /** Cancel the in-flight prompt for a session (best-effort; no-op if idle). */
@@ -180,14 +224,31 @@ export class SessionManager {
     if (!s) throw new Error(`unknown session: ${sessionId}`);
     const abort = new AbortController();
     s.abort = abort;
+    let sawTextDelta = false;
     const emit = (event: StreamEvent): void => {
+      if (event.type === "text_delta") sawTextDelta = true;
+      if (event.type === "text_complete" && !sawTextDelta && event.text) {
+        this.sink.update(sessionId, {
+          sessionUpdate: "agent_message_chunk",
+          content: { type: "text", text: event.text },
+        });
+        return;
+      }
       const update = eventToUpdate(event);
       if (update) this.sink.update(sessionId, update);
     };
-    const approve = (action: string, reason: string, toolName?: string, detail?: { diff?: string }): Promise<boolean> =>
-      this.approveWithEditPolicy(s, { action, reason, toolName, diff: detail?.diff });
+    const approve: RunRequest["approve"] = (action, reason, toolName, detail) =>
+      this.approveWithEditPolicy(s, { action, reason, toolName, detail }, abort.signal);
     try {
-      const { stopReason } = await this.runner({ sessionId, prompt, signal: abort.signal, emit, approve });
+      const { stopReason } = await this.runner({
+        sessionId,
+        prompt,
+        systemPrompt: s.systemPrompt,
+        mcpServers: s.mcpServers,
+        signal: abort.signal,
+        emit,
+        approve,
+      });
       return { stopReason: abort.signal.aborted ? "cancelled" : stopReason };
     } catch (err) {
       if (abort.signal.aborted) return { stopReason: "cancelled" };

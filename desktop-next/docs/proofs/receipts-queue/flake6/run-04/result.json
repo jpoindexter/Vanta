@@ -1,0 +1,178 @@
+{
+  "sandbox": "(removed)",
+  "steps": [
+    {
+      "id": "a1",
+      "title": "forced failure shows the specific reason, the partial output and the saved actions; Retry the step recovers the run",
+      "status": "PASS",
+      "ms": 1220,
+      "detail": {
+        "headline": "Vanta stopped: the same step kept failing",
+        "partialOutputVisible": true,
+        "buttons": [
+          "Retry the step",
+          "Edit request",
+          "Start from checkpoint"
+        ],
+        "recoveredWith": "Retry the step",
+        "modelTurns": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "a2",
+      "title": "Start from checkpoint puts the saved request in the message box; sending it recovers the run",
+      "status": "PASS",
+      "ms": 1229,
+      "detail": {
+        "headline": "Vanta stopped: the same step kept failing",
+        "partialOutputVisible": true,
+        "buttons": [
+          "Retry the step",
+          "Edit request",
+          "Start from checkpoint"
+        ],
+        "composerHeld": "Continue from this checkpoint and avoid repeating completed work. Original request: flaky second job Saved partial output: Stopped: called no_such_tool with id",
+        "recoveredWith": "Start from checkpoint"
+      }
+    },
+    {
+      "id": "a3",
+      "title": "Edit request opens the request for editing; sending it recovers the run",
+      "status": "PASS",
+      "ms": 1109,
+      "detail": {
+        "headline": "Vanta stopped: the same step kept failing",
+        "partialOutputVisible": true,
+        "buttons": [
+          "Retry the step",
+          "Edit request",
+          "Start from checkpoint"
+        ],
+        "editBoxHeld": "flaky third step",
+        "recoveredWith": "Edit request"
+      }
+    },
+    {
+      "id": "b1",
+      "title": "three messages queued behind a busy run appear in the panel and in the saved queue file",
+      "status": "PASS",
+      "ms": 565,
+      "detail": {
+        "panel": [
+          "Queued: echo alpha · Runs next",
+          "Queued: echo bravo · Runs next",
+          "Queued: echo charlie · Runs next"
+        ],
+        "file": [
+          "echo alpha",
+          "echo bravo",
+          "echo charlie"
+        ]
+      }
+    },
+    {
+      "id": "b2",
+      "title": "edit one queued message",
+      "status": "PASS",
+      "ms": 268,
+      "detail": {
+        "panel": [
+          "Queued: echo alpha · Runs next",
+          "Queued: echo bravo edited · Runs next",
+          "Queued: echo charlie · Runs next"
+        ],
+        "file": [
+          "echo alpha",
+          "echo bravo edited",
+          "echo charlie"
+        ]
+      }
+    },
+    {
+      "id": "b3",
+      "title": "reorder: move the last message one place earlier",
+      "status": "PASS",
+      "ms": 227,
+      "detail": {
+        "panel": [
+          "Queued: echo alpha · Runs next",
+          "Queued: echo charlie · Runs next",
+          "Queued: echo bravo edited · Runs next"
+        ],
+        "file": [
+          "echo alpha",
+          "echo charlie",
+          "echo bravo edited"
+        ]
+      }
+    },
+    {
+      "id": "b4",
+      "title": "cancel the first message",
+      "status": "PASS",
+      "ms": 229,
+      "detail": {
+        "panel": [
+          "Queued: echo charlie · Runs next",
+          "Queued: echo bravo edited · Runs next"
+        ],
+        "file": [
+          "echo charlie",
+          "echo bravo edited"
+        ]
+      }
+    },
+    {
+      "id": "b5",
+      "title": "quit the app mid-run, relaunch, reopen the chat: the remaining queue is intact and not running",
+      "status": "PASS",
+      "ms": 6652,
+      "detail": {
+        "panel": [
+          "Queued: echo charlie · Runs next",
+          "Queued: echo bravo edited · Runs next"
+        ],
+        "file": [
+          "echo charlie",
+          "echo bravo edited"
+        ],
+        "ranOnTheirOwn": 0
+      }
+    },
+    {
+      "id": "b6",
+      "title": "Run queue: the queued turns execute in the edited order and the queue empties",
+      "status": "PASS",
+      "ms": 714,
+      "detail": {
+        "askedInOrder": [
+          "echo charlie",
+          "echo bravo edited"
+        ],
+        "fileAfter": []
+      }
+    },
+    {
+      "id": "b7",
+      "title": "after another restart the chat shows both queued messages and their answers, in the edited order",
+      "status": "PASS",
+      "ms": 7333,
+      "detail": {
+        "positions": [
+          228,
+          258,
+          284,
+          319
+        ]
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ],
+  "pass": true
+}

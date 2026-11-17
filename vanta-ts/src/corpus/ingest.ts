@@ -7,8 +7,13 @@ import { embed } from "../search/embed.js";
 import { extractEntities } from "../search/entities.js";
 import { loadCorpus, upsertCorpus } from "./store.js";
 import { sourceFreshness, type CorpusChunk, type CorpusSource, type Embedder } from "./schema.js";
+import {
+  convertDocumentBytes,
+  isSupportedDocumentExtension,
+  type DocumentConverter,
+} from "../documents/anydoc.js";
 
-const SUPPORTED = new Set([".md", ".markdown", ".txt", ".vtt", ".srt"]);
+const TEXT_EXTENSIONS = new Set([".md", ".markdown", ".txt", ".vtt", ".srt"]);
 const DEFAULT_STALE_DAYS = 30;
 const CHUNK_SIZE = 1_200;
 const CHUNK_OVERLAP = 120;
@@ -21,6 +26,7 @@ export type IngestDeps = {
   embedder?: Embedder;
   fetcher?: typeof fetch;
   guard?: (url: string) => Promise<GuardResult>;
+  documentConverter?: DocumentConverter;
 };
 
 type InputDoc = { origin: string; relativePath?: string; title: string; text: string; sourceDate: Date; kind: "local" | "url" };
@@ -30,7 +36,7 @@ export async function ingestCorpus(target: string, deps: IngestDeps = {}): Promi
   const env = deps.env ?? process.env;
   const now = deps.now ?? new Date();
   const embedder = deps.embedder ?? ((text) => embed(text, env));
-  const input = isUrl(target) ? await readUrl(target, deps) : await readLocal(target, deps.root);
+  const input = isUrl(target) ? await readUrl(target, deps) : await readLocal(target, deps);
   const existing = await loadCorpus(env);
   const existingById = new Map(existing.sources.map((source) => [source.id, source]));
   const sources: CorpusSource[] = [];
@@ -66,18 +72,29 @@ async function compileChunks(text: string, sourceId: string, embedder: Embedder)
   }));
 }
 
-async function readLocal(target: string, projectRoot?: string): Promise<{ docs: InputDoc[]; skipped: number }> {
-  const root = resolve(projectRoot ?? process.cwd(), target);
+async function readLocal(target: string, deps: IngestDeps): Promise<{ docs: InputDoc[]; skipped: number }> {
+  const root = resolve(deps.root ?? process.cwd(), target);
   const info = await lstat(root);
   if (info.isSymbolicLink()) throw new Error("Corpus ingest refuses symbolic links");
   if (info.isFile()) {
-    if (!SUPPORTED.has(extname(root).toLowerCase())) throw new Error(`Unsupported corpus file: ${target}`);
-    return { docs: [await localDoc(root, basename(root))], skipped: 0 };
+    if (!isSupportedCorpusExtension(extname(root))) throw new Error(`Unsupported corpus file: ${target}`);
+    return { docs: [await localDoc(root, basename(root), deps.documentConverter)], skipped: 0 };
   }
   if (!info.isDirectory()) throw new Error(`Corpus target is not a file or folder: ${target}`);
   const walked = await walk(root);
-  const docs = await Promise.all(walked.files.map((file) => localDoc(file, relative(root, file).split(sep).join("/"))));
+  const docs = await readLocalDocs(walked.files, root, deps.documentConverter);
   return { docs, skipped: walked.skipped };
+}
+
+async function readLocalDocs(files: string[], root: string, converter?: DocumentConverter): Promise<InputDoc[]> {
+  const docs: InputDoc[] = [];
+  for (let start = 0; start < files.length; start += 2) {
+    const batch = files.slice(start, start + 2).map((file) => (
+      localDoc(file, relative(root, file).split(sep).join("/"), converter)
+    ));
+    docs.push(...await Promise.all(batch));
+  }
+  return docs;
 }
 
 async function walk(dir: string): Promise<{ files: string[]; skipped: number }> {
@@ -88,15 +105,19 @@ async function walk(dir: string): Promise<{ files: string[]; skipped: number }> 
     if (entry.isDirectory()) {
       if (entry.name.startsWith(".")) continue;
       const nested = await walk(path); files.push(...nested.files); skipped += nested.skipped;
-    } else if (entry.isFile() && SUPPORTED.has(extname(entry.name).toLowerCase()) && !entry.name.startsWith(".")) files.push(path);
+    } else if (entry.isFile() && isSupportedCorpusExtension(extname(entry.name)) && !entry.name.startsWith(".")) files.push(path);
     else skipped += 1;
   }
   return { files: files.sort(), skipped };
 }
 
-async function localDoc(path: string, relativePath: string): Promise<InputDoc> {
+async function localDoc(path: string, relativePath: string, converter?: DocumentConverter): Promise<InputDoc> {
   const info = await stat(path);
-  return { kind: "local", origin: resolve(path), relativePath, title: basename(path, extname(path)), text: await readFile(path, "utf8"), sourceDate: info.mtime };
+  const extension = extname(path).toLowerCase();
+  const text = TEXT_EXTENSIONS.has(extension)
+    ? await readFile(path, "utf8")
+    : await (converter ?? convertDocumentBytes)(await readFile(path), extension);
+  return { kind: "local", origin: resolve(path), relativePath, title: basename(path, extension), text, sourceDate: info.mtime };
 }
 
 async function readUrl(url: string, deps: IngestDeps): Promise<{ docs: InputDoc[]; skipped: number }> {
@@ -124,5 +145,9 @@ function normalizeTranscript(text: string): string {
 }
 
 function isUrl(value: string): boolean { return /^https?:\/\//i.test(value); }
+function isSupportedCorpusExtension(extension: string): boolean {
+  const normalized = extension.toLowerCase();
+  return TEXT_EXTENSIONS.has(normalized) || isSupportedDocumentExtension(normalized);
+}
 function hash(value: string): string { return createHash("sha256").update(value).digest("hex"); }
 function stableId(origin: string): string { return hash(origin).slice(0, 16); }

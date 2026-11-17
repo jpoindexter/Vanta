@@ -78,23 +78,22 @@ try {
   await page.locator(".app-shell").waitFor({ timeout: 20_000 });
   await page.getByPlaceholder("Ask Vanta to do something...").waitFor();
   await loadState(page, "mixed");
-  const mixed = await assertReadyState(page, "openai · gpt-5.6-sol", "Local Mac · qwen.gguf");
+  const mixed = await assertReadyState(page, "gpt-5.6-sol");
   await assertExpandedState(page, "openai · gpt-5.6-sol", "Local Mac · qwen.gguf");
 
   await loadState(page, "remote-only");
-  const remoteOnly = await assertReadyState(page, "openai · gpt-5.6-sol", "Local Mac · Inactive");
+  const remoteOnly = await assertReadyState(page, "gpt-5.6-sol");
   await assertExpandedState(page, "openai · gpt-5.6-sol", "Local Mac · Inactive");
 
   await loadState(page, "local-only");
-  const localOnly = await assertReadyState(page, "ollama · qwen.gguf", "Local Mac · qwen.gguf");
+  const localOnly = await assertReadyState(page, "qwen.gguf");
 
   state = "loading";
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.getByText("Connecting to Vanta").waitFor();
-  await page.locator("[data-runtime-strip]").getByText("Agent model", { exact: true }).waitFor();
-  await page.locator("[data-runtime-strip]").getByText("Loading", { exact: true }).waitFor();
-  await page.locator("[data-runtime-strip]").getByText("Local runtime", { exact: true }).waitFor();
-  await page.locator("[data-runtime-strip]").getByText("Unavailable", { exact: true }).waitFor();
+  await page.getByRole("heading", { name: "Connecting to Vanta" }).waitFor();
+  await page.locator("[data-runtime-strip]").getByText("Task system", { exact: true }).waitFor();
+  await page.locator("[data-runtime-strip]").getByText("Checking", { exact: true }).waitFor();
+  await page.locator("[data-runtime-strip]").getByText("Connecting to the selected model.", { exact: true }).waitFor();
   const loading = true;
   state = "mixed";
   releaseLoading?.();
@@ -102,13 +101,14 @@ try {
 
   await loadState(page, "unavailable");
   await page.getByRole("alert").getByText("provider status unavailable").waitFor();
-  await page.locator("[data-runtime-strip]").getByText("Agent model", { exact: true }).waitFor();
-  await page.locator("[data-runtime-strip]").getByText("Unavailable", { exact: true }).first().waitFor();
+  await page.locator("[data-runtime-strip]").getByText("Task system", { exact: true }).waitFor();
+  await page.locator("[data-runtime-strip]").getByText("Model needed", { exact: true }).waitFor();
   const unavailable = true;
 
   await loadState(page, "mixed");
   await page.setViewportSize({ width: 700, height: 850 });
   await page.getByRole("button", { name: "Agent model: gpt-5.6-sol. Change model" }).waitFor();
+  await page.locator("[data-runtime-strip]").getByText("Ready", { exact: true }).waitFor();
   const compact = await page.locator("[data-runtime-strip]").evaluate((element) => ({
     width: element.getBoundingClientRect().width,
     scrollWidth: element.scrollWidth,
@@ -116,7 +116,7 @@ try {
     text: element.textContent,
   }));
   if (compact.scrollWidth > compact.clientWidth + 1) throw new Error(`compact model/runtime strip scrolls horizontally: ${JSON.stringify(compact)}`);
-  if (!compact.text?.includes("Agent model") || !compact.text.includes("Local runtime")) throw new Error(`compact model/runtime scope labels are missing: ${JSON.stringify(compact)}`);
+  if (!compact.text?.includes("Task system") || !compact.text.includes("Runtime details")) throw new Error(`compact task-system disclosure is missing: ${JSON.stringify(compact)}`);
 
   console.log(JSON.stringify({
     ok: true,
@@ -139,22 +139,19 @@ async function loadState(page, next) {
   if (next !== "unavailable") await page.getByPlaceholder("Ask Vanta to do something...").waitFor();
 }
 
-async function assertReadyState(page, agent, local) {
+async function assertReadyState(page, model) {
   const strip = page.locator("[data-runtime-strip]");
   let observed = "";
   for (let attempt = 0; attempt < 100; attempt += 1) {
     observed = await strip.textContent() ?? "";
-    if (observed.includes(agent) && observed.includes(local)) break;
+    if (observed.includes("Task system") && observed.includes("Ready")) break;
     await page.waitForTimeout(50);
   }
-  if (!observed?.includes(agent) || !observed.includes(local)) throw new Error(`model/runtime state mismatch; expected ${agent} and ${local}, observed ${observed}`);
-  await strip.getByText("Agent model", { exact: true }).waitFor();
-  await strip.getByText(agent, { exact: true }).waitFor();
-  await strip.getByText("Local runtime", { exact: true }).waitFor();
-  await strip.getByText(local, { exact: true }).first().waitFor();
-  const model = agent.split(" · ").at(-1);
+  if (!observed.includes("Task system") || !observed.includes("Ready")) throw new Error(`task-system state mismatch; observed ${observed}`);
+  for (const hidden of ["Agent model", "Local runtime", "Memory pressure", "tok/s"]) {
+    if (observed.includes(hidden)) throw new Error(`runtime telemetry escaped progressive disclosure: ${hidden}`);
+  }
   await page.getByRole("button", { name: `Agent model: ${model}. Change model` }).waitFor();
-  await page.locator(".titlebar-runtime").getByRole("button", { name: `Agent model: ${agent}. Change model` }).waitFor();
   return true;
 }
 

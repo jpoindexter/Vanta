@@ -1,0 +1,66 @@
+{
+  "id": "T-1",
+  "title": "Migrate invoices to the new ledger [reported]",
+  "status": "done",
+  "workerId": "engineer",
+  "projectId": null,
+  "goalId": null,
+  "parentId": null,
+  "labels": [],
+  "inbox": "unread",
+  "source": "both",
+  "blocker": null,
+  "result": "finished T-1",
+  "pendingReviews": 0,
+  "workProductCount": 1,
+  "commentCount": 0,
+  "createdAt": "2026-10-13T08:42:02.000Z",
+  "updatedAt": "2026-10-13T19:49:28.233Z",
+  "thread": [],
+  "blockers": [],
+  "runs": [
+    {
+      "runId": "r0008",
+      "ticketId": "T-1",
+      "workerId": "engineer",
+      "runtime": "vanta-native",
+      "status": "done",
+      "attempt": 1,
+      "startedAt": "2026-10-13T09:03:03.000Z",
+      "finishedAt": "2026-10-13T09:22:27.000Z",
+      "summary": "finished T-1",
+      "error": null,
+      "usage": {
+        "inputTokens": 100,
+        "outputTokens": 50
+      },
+      "costUsd": 0.42,
+      "costBasis": "reported",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5"
+    }
+  ],
+  "workProducts": [
+    {
+      "id": "product-wp-1",
+      "ticketId": "T-1",
+      "kind": "report",
+      "artifact": "# Report for Migrate invoices to the new ledger [reported]\nAll done.",
+      "truncated": false,
+      "approved": false,
+      "createdAt": "2026-10-13T09:12:45.000Z",
+      "provenance": {
+        "taskId": "T-1",
+        "workerId": "engineer",
+        "departmentId": "product",
+        "runtimeId": "vanta-native",
+        "runId": "r0008"
+      },
+      "revisions": []
+    }
+  ],
+  "ancestry": [],
+  "reviewStages": [],
+  "outcome": null,
+  "attachments": []
+}

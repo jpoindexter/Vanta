@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, relative, resolve, win32 } from "node:path";
@@ -68,9 +68,12 @@ function requireSupported(platform: Platform): void {
 }
 
 export function protectedMacServicePath(repoRoot: string, home: string): boolean {
-  const target = resolve(repoRoot);
+  let target = resolve(repoRoot);
+  let canonicalHome = resolve(home);
+  try { target = realpathSync.native(target); } catch { /* installation validates existence later */ }
+  try { canonicalHome = realpathSync.native(canonicalHome); } catch { /* use the lexical home path */ }
   return ["Documents", "Desktop", "Downloads"].some((folder) => {
-    const rel = relative(resolve(home, folder), target);
+    const rel = relative(resolve(canonicalHome, folder), target);
     return rel === "" || (!rel.startsWith("..") && !rel.startsWith("/"));
   });
 }
@@ -152,7 +155,11 @@ async function restart(ctx: Context): Promise<void> {
 async function runningState(ctx: Context): Promise<{ running: boolean; detail?: string }> {
   if (ctx.platform === "darwin") {
     const result = await ctx.run("launchctl", ["list"]).catch(() => ignored);
-    return { running: result.stdout.includes(SERVICE_LABEL) };
+    const line = result.stdout.split(/\r?\n/).find((row) => row.trim().endsWith(SERVICE_LABEL));
+    if (!line) return { running: false };
+    const [pid, status] = line.trim().split(/\s+/);
+    if (pid && pid !== "-") return { running: true, detail: `launchd pid ${pid}` };
+    return { running: false, detail: `launchd loaded; last exit status ${status ?? "unknown"}` };
   }
   if (ctx.platform === "linux") {
     const active = await ctx.run("systemctl", ["--user", "is-active", SYSTEMD_NAME]).catch(() => ignored);

@@ -23,6 +23,35 @@ function withoutCompletedStarts(events: readonly TraceEvidence[]): TraceEvidence
   return events.filter((event) => !(event.kind === "tool_start" && event.name && completed.has(event.name)));
 }
 
+function statusOf(event: TraceEvidence): TraceGroup["status"] {
+  if (event.ok === false) return "attention";
+  return event.kind === "tool_start" || event.ok === undefined ? "active" : "done";
+}
+
+/**
+ * Collapse a RUN of consecutive successful calls to the same tool into one row
+ * with a count — six `edit_file` lines say no more than "edit_file ×6" and cost
+ * six times the vertical space. Only consecutive events merge, so a repeat later
+ * in the turn still reads as a separate step, and a failure never merges into a
+ * success run: `attention` has to stay individually visible.
+ */
+function coalesce(events: readonly TraceEvidence[]): TraceGroup[] {
+  const groups: TraceGroup[] = [];
+  for (const event of events) {
+    const status = statusOf(event);
+    const prev = groups.at(-1);
+    const head = prev?.evidence[0];
+    const mergeable = prev && head && status === "done" && prev.status === "done" && Boolean(head.name) && head.name === event.name;
+    if (!mergeable) {
+      groups.push({ label: event.label, status, evidence: [event] });
+      continue;
+    }
+    prev.evidence.push(event);
+    prev.label = `${head.label} ×${prev.evidence.length}`;
+  }
+  return groups;
+}
+
 export function compactTrace(events: readonly TraceEvidence[]): TraceGroup[] {
   const visible = withoutCompletedStarts(events).filter((event) => event.kind !== "note");
   const reads = visible.filter((event) => event.kind === "tool_end" && event.ok !== false && readLike(event));
@@ -38,13 +67,7 @@ export function compactTrace(events: readonly TraceEvidence[]): TraceGroup[] {
     });
   }
 
-  for (const event of rest) {
-    groups.push({
-      label: event.label,
-      status: event.ok === false ? "attention" : event.kind === "tool_start" || event.ok === undefined ? "active" : "done",
-      evidence: [event],
-    });
-  }
+  groups.push(...coalesce(rest));
 
   const active = groups.filter((group) => group.status === "active");
   if (active.length > 1) {

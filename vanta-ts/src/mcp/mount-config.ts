@@ -2,10 +2,19 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { resolveVantaHome } from "../store/home.js";
-import type { McpClient, McpToolDef } from "./client.js";
+import { McpToolCallError, type McpClient, type McpToolDef } from "./client.js";
 import type { Tool } from "../tools/types.js";
+import {
+  executeEffect,
+  payloadSha256,
+  stableEffectId,
+} from "../effects/execute-effect.js";
+import { effectGateFromToolContext, effectOperationKey } from "../effects/gate-context.js";
 import type { TrustConfirmer } from "../settings/trust-gate.js";
 import type { McpAuthConfig } from "./auth-flow.js";
+import { validateScraplingToolArgs } from "./scrapling-guard.js";
+
+export { validateScraplingToolArgs } from "./scrapling-guard.js";
 
 // Pure config-resolution + tool-mapping helpers for the MCP mount layer. No
 // spawn, no live client lifecycle — that lives in mount.ts. Split out so both
@@ -23,11 +32,11 @@ export type McpTrust = { root: string; confirm?: TrustConfirmer };
 const ServerSchema = z.object({
   command: z.string().optional(),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   // MCP remote: HTTP transport support
   url: z.string().url().optional(),
   token: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   // OAuth: when the server requires auth, these drive the `mcp_auth` flow.
   authorizationUrl: z.string().url().optional(),
   tokenUrl: z.string().url().optional(),
@@ -43,8 +52,8 @@ const ServerSchema = z.object({
 // Accept both "servers" (Vanta) and "mcpServers" (common convention) keys; merge with servers winning.
 const ConfigSchema = z
   .object({
-    servers: z.record(ServerSchema).optional(),
-    mcpServers: z.record(ServerSchema).optional(),
+    servers: z.record(z.string(), ServerSchema).optional(),
+    mcpServers: z.record(z.string(), ServerSchema).optional(),
   })
   .transform((d) => ({ servers: { ...(d.mcpServers ?? {}), ...(d.servers ?? {}) } }));
 
@@ -55,6 +64,8 @@ export type McpConfigResolution = {
   config: McpConfig;
   sources: Record<string, McpConfigSource>;
 };
+
+const FILESYSTEM_SERVER_PACKAGE = "@modelcontextprotocol/server-filesystem";
 
 function parseOrEmpty(raw: string): McpConfig {
   try {
@@ -105,6 +116,55 @@ function toolName(server: string, tool: string): string {
   return `mcp_${server}_${tool}`.replace(/[^a-zA-Z0-9_-]/g, "_");
 }
 
+function buildMcpToolExecutor(
+  client: Pick<McpClient, "callTool">,
+  server: string,
+  def: McpToolDef,
+): Tool["execute"] {
+  return async (args, ctx) => {
+    const blocked = await validateScraplingToolArgs(server, def.name, args);
+    if (blocked) {
+      return {
+        ok: false,
+        output: `mcp ${server}.${def.name} blocked: ${blocked}`,
+        effectDisposition: "denied",
+      };
+    }
+    const hash = payloadSha256(JSON.stringify(args));
+    const seed = {
+      host: `mcp:${server}`,
+      kind: "mcp.tool.call",
+      targetClass: "mcp-tool",
+      payloadSha256: hash,
+      idempotencyKey: effectOperationKey("mcp-tool", ctx),
+    };
+    const result = await executeEffect({
+      id: stableEffectId(seed),
+      actor: def.name,
+      action: `call MCP tool ${server}.${def.name} with payload sha256:${hash}`,
+      ...seed,
+    }, effectGateFromToolContext(ctx), async () => ({
+      value: await client.callTool(def.name, args),
+      acknowledgementId: `${server}.${def.name}:response`,
+    }));
+    if (result.outcome !== "confirmed" && result.outcome !== "verified") {
+      const diagnostic = result.operationError instanceof McpToolCallError
+        ? `: ${result.operationError.message}` : "";
+      return {
+        ok: false,
+        output: `mcp ${server}.${def.name} ${result.outcome}${diagnostic}; do not retry automatically`,
+        effectDisposition: result.outcome === "unknown" ? "unknown" : "denied",
+      };
+    }
+    return {
+      ok: true,
+      output: result.value || "(empty result)",
+      effectDisposition: "confirmed",
+      verification: { status: "unverified" },
+    };
+  };
+}
+
 /** Build an Vanta Tool that proxies to an MCP server tool. */
 export function mcpToolToVantaTool(
   client: Pick<McpClient, "callTool">,
@@ -127,14 +187,7 @@ export function mcpToolToVantaTool(
     // Surface server/tool/args so the kernel can assess (an MCP fs-write is gated
     // like any other). Truncated to keep content keywords from false-triggering.
     describeForSafety: (args) => `mcp ${server} ${def.name} ${JSON.stringify(args).slice(0, 200)}`,
-    async execute(args) {
-      try {
-        const output = await client.callTool(def.name, args as Record<string, unknown>);
-        return { ok: true, output: output || "(empty result)" };
-      } catch (err) {
-        return { ok: false, output: `mcp ${server}.${def.name} failed: ${(err as Error).message}` };
-      }
-    },
+    execute: buildMcpToolExecutor(client, server, def),
   };
 }
 
@@ -203,4 +256,16 @@ export function missingDeclaredMcpEnv(
     const match = /^\$\{([A-Z_][A-Z0-9_]*)\}$/.exec(value);
     return match && !processEnv[match[1]!] ? [match[1]!] : [];
   });
+}
+
+/**
+ * The reference filesystem server requires at least one allowed directory.
+ * Older Vanta/Claude imports omitted it; bind those legacy specs to the active
+ * project without overriding an explicitly configured directory.
+ */
+export function resolveMcpStdioArgs(spec: ServerSpec, root: string): string[] {
+  const args = [...(spec.args ?? [])];
+  const packageIndex = args.indexOf(FILESYSTEM_SERVER_PACKAGE);
+  if (packageIndex >= 0 && packageIndex === args.length - 1) args.push(root);
+  return args;
 }

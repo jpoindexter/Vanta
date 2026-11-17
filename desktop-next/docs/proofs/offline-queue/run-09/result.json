@@ -1,0 +1,73 @@
+{
+  "sandbox": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-dtSQAp",
+  "modelRequests": 2,
+  "steps": [
+    {
+      "id": "a",
+      "title": "online baseline: a typed message is answered",
+      "status": "PASS",
+      "ms": 1447,
+      "detail": {
+        "requests": 1
+      }
+    },
+    {
+      "id": "b",
+      "title": "the runtime is killed: the offline banner shows and the composer stays usable",
+      "status": "PASS",
+      "ms": 277,
+      "detail": {
+        "killed": 97236,
+        "bannerBottom": 88,
+        "toastTop": 90,
+        "banner": "Offline. Messages queue until Vanta reconnects. Retry now"
+      }
+    },
+    {
+      "id": "c",
+      "title": "a message typed while offline is queued: the draft clears and nothing reaches the model",
+      "status": "PASS",
+      "ms": 1027,
+      "detail": {
+        "visible": true
+      }
+    },
+    {
+      "id": "d",
+      "title": "Retry now brings the backend back and the queued message runs",
+      "status": "PASS",
+      "ms": 8703,
+      "detail": {
+        "requestsAfter": 2,
+        "retryClicked": true
+      }
+    },
+    {
+      "id": "e",
+      "title": "Memory Graph opens from the command palette and draws the seeded skill and memory",
+      "status": "PASS",
+      "ms": 2415,
+      "detail": {
+        "legend": true,
+        "counter": "1 / 1"
+      }
+    },
+    {
+      "id": "f",
+      "title": "the toast's Restart Vanta brings a killed backend back at once (not after the automatic delay)",
+      "status": "PASS",
+      "ms": 691,
+      "detail": {
+        "backAfterMs": 478,
+        "killed": 97764,
+        "requestsBefore": 2
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+    "[profiles] refreshProfiles failed after 3 attempt(s): Error: unreachable: fetch failed"
+  ],
+  "pass": true
+}

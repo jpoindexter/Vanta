@@ -1,14 +1,34 @@
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, realpath, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createKernelClient, type KernelClient } from "./client.js";
+import { prepareProfileKernelState, profileKernelState } from "./profile-state.js";
 
 // The KernelClient port: the factory builds the default HTTP adapter, and any
 // stub structurally satisfying the interface is a drop-in (what tests rely on).
 
 describe("KernelClient port", () => {
+  it("refuses a named profile with no private token instead of falling back to project authority", async () => {
+    const base = await realpath(await mkdtemp(join(tmpdir(), "vanta-kernel-profile-token-")));
+    const root = join(base, "project");
+    const home = join(base, "profiles", "writer");
+    await mkdir(join(root, ".vanta"), { recursive: true });
+    await mkdir(home, { recursive: true });
+    await writeFile(join(root, ".vanta", "api-token"), "wrong-project-token");
+    vi.stubEnv("VANTA_PROFILE", "writer");
+    vi.stubEnv("VANTA_HOME", home);
+    vi.stubEnv("VANTA_PROFILE_BASE_HOME", base);
+    try {
+      const state = profileKernelState(root)!;
+      prepareProfileKernelState(state);
+      expect(() => createKernelClient("http://127.0.0.1:1", root)).toThrow();
+      await writeFile(join(state.directory, "api-token"), "");
+      expect(() => createKernelClient("http://127.0.0.1:1", root)).toThrow(/unavailable/);
+    } finally { vi.unstubAllEnvs(); await rm(base, { recursive: true, force: true }); }
+  });
+
   it("factory builds a client exposing the full port surface", () => {
     const c = createKernelClient("http://127.0.0.1:7788");
     for (const m of ["status", "assess", "getGoals", "addGoal", "completeGoal", "getApprovals", "proposeApproval", "approve", "deny", "logEvent"] as const) {

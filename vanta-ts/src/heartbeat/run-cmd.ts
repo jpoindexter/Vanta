@@ -4,11 +4,14 @@ import { runHeartbeat, pidAlive, STAGE_ORDER, type HeartbeatStage } from "./runt
 import { peekLoopWakeCount, drainLoopWakes } from "../loop/wake.js";
 import { getBudget } from "../budget/store.js";
 import { isExceeded } from "../budget/types.js";
+import { dispatchableCount, dispatchExternalTasks, type DispatchReport } from "../worker-runtimes/headless-dispatch.js";
 
 // `vanta heartbeat` — one wakeup of the coalesced pipeline. The stages are wired
 // to real subsystems where they exist (budget gate, adapter resolution, workspace
 // dir); secret/skill are best-effort presence gates (deeper injection is a later
-// slice). Queued work = pending loop wakes; executing drains them.
+// slice). Queued work = pending loop wakes plus tickets queued for external CLI
+// workers (paused workers' tickets are not counted or started); executing drains
+// the wakes and dispatches those tickets through the worker-runtime registry.
 
 async function budgetGate(dataDir: string): Promise<{ ok: boolean; reason?: string }> {
   const b = await getBudget(dataDir, "session").catch(() => null);
@@ -25,6 +28,14 @@ async function adapterGate(): Promise<{ ok: boolean; reason?: string }> {
   }
 }
 
+/** A missing model provider only blocks the pipeline when a Vanta-loop job needs it; CLI workers bring their own. */
+async function adapterStage(dataDir: string): Promise<{ ok: boolean; reason?: string }> {
+  const provider = await adapterGate();
+  if (provider.ok) return provider;
+  const onlyCliWork = (await peekLoopWakeCount(dataDir)) === 0 && (await dispatchableCount(process.env)) > 0;
+  return onlyCliWork ? { ok: true } : provider;
+}
+
 /** The default budget→workspace→secret→skill→adapter gates, in STAGE_ORDER. */
 export function buildDefaultStages(dataDir: string): HeartbeatStage[] {
   const byName: Record<(typeof STAGE_ORDER)[number], HeartbeatStage["run"]> = {
@@ -36,22 +47,27 @@ export function buildDefaultStages(dataDir: string): HeartbeatStage[] {
     },
     secret: async () => ({ ok: true }),
     skill: async () => ({ ok: true }),
-    adapter: () => adapterGate(),
+    adapter: () => adapterStage(dataDir),
   };
   return STAGE_ORDER.map((name) => ({ name, run: byName[name] }));
 }
 
 export async function runHeartbeatCommand(repoRoot: string): Promise<void> {
   const dataDir = join(repoRoot, ".vanta");
+  let dispatched: DispatchReport = { started: [], skipped: [] };
   const result = await runHeartbeat({
     dataDir,
     now: () => new Date(),
     pid: process.pid,
     isAlive: pidAlive,
-    queuedCount: () => peekLoopWakeCount(dataDir),
+    queuedCount: async () => (await peekLoopWakeCount(dataDir)) + (await dispatchableCount(process.env)),
     stages: buildDefaultStages(dataDir),
-    execute: async () => ({ ran: (await drainLoopWakes(dataDir)).length }),
+    execute: async () => {
+      const wakes = (await drainLoopWakes(dataDir)).length;
+      dispatched = await dispatchExternalTasks({ root: repoRoot, env: process.env });
+      return { ran: wakes + dispatched.started.length };
+    },
     newId: () => randomUUID(),
   });
-  console.log(JSON.stringify({ heartbeat: result }, null, 2));
+  console.log(JSON.stringify({ heartbeat: result, dispatched }, null, 2));
 }

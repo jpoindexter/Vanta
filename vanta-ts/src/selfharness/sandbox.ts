@@ -21,7 +21,7 @@ export const ConfigOverrideSchema = z.object({
   promptPrefix: z.string().min(1).optional(),
   model: z.string().min(1).optional(),
   provider: z.string().min(1).optional(),
-  toolNames: z.array(z.string().min(1)).min(1).optional(),
+  toolNames: z.array(z.string().min(1)).optional(),
 });
 export type ConfigOverride = z.infer<typeof ConfigOverrideSchema>;
 
@@ -105,7 +105,7 @@ function describeOverride(o: ConfigOverride): string {
   const parts: string[] = [];
   if (o.provider) parts.push(`provider=${o.provider}`);
   if (o.model) parts.push(`model=${o.model}`);
-  if (o.toolNames?.length) parts.push(`tools=[${o.toolNames.join(", ")}]`);
+  if (o.toolNames !== undefined) parts.push(`tools=[${o.toolNames.join(", ")}]`);
   if (o.promptPrefix) parts.push("prompt-prefix");
   return parts.length ? parts.join(" ") : "default config";
 }

@@ -1,0 +1,485 @@
+{
+  "checks": [
+    {
+      "name": "light-1440 skin is vanta/light",
+      "pass": true,
+      "detail": "vanta/light"
+    },
+    {
+      "name": "light-1440 no visible text under 12px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "light-1440 main grey is neutral",
+      "pass": true,
+      "detail": "#ffffff spread 0"
+    },
+    {
+      "name": "light-1440 main equals #ffffff",
+      "pass": true,
+      "detail": "#ffffff"
+    },
+    {
+      "name": "light-1440 sidebar grey is neutral",
+      "pass": true,
+      "detail": "#f7f7f8 spread 1"
+    },
+    {
+      "name": "light-1440 sidebar equals #f7f7f8",
+      "pass": true,
+      "detail": "#f7f7f8"
+    },
+    {
+      "name": "light-1440 tertiary text meets 4.5:1",
+      "pass": true,
+      "detail": "4.92:1 on #ececed"
+    },
+    {
+      "name": "light-1440 no tinted pixels outside the send button and focused composer",
+      "pass": true,
+      "detail": "0px tinted; "
+    },
+    {
+      "name": "light-1440 send button is violet",
+      "pass": true,
+      "detail": "#7c3aed"
+    },
+    {
+      "name": "light-1440 focused composer border is violet",
+      "pass": true,
+      "detail": "2906px violet-family pixels on the composer edge"
+    },
+    {
+      "name": "light-900 skin is vanta/light",
+      "pass": true,
+      "detail": "vanta/light"
+    },
+    {
+      "name": "light-900 no visible text under 12px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "light-900 main grey is neutral",
+      "pass": true,
+      "detail": "#ffffff spread 0"
+    },
+    {
+      "name": "light-900 tertiary text meets 4.5:1",
+      "pass": true,
+      "detail": "4.92:1 on #ececed"
+    },
+    {
+      "name": "light-900 no tinted pixels outside the send button and focused composer",
+      "pass": true,
+      "detail": "0px tinted; "
+    },
+    {
+      "name": "light-900 send button is violet",
+      "pass": true,
+      "detail": "#7c3aed"
+    },
+    {
+      "name": "light-900 focused composer border is violet",
+      "pass": true,
+      "detail": "1825px violet-family pixels on the composer edge"
+    },
+    {
+      "name": "light-1440 settings: no tinted pixels",
+      "pass": true,
+      "detail": "0px tinted; "
+    },
+    {
+      "name": "light-1440 settings: no visible text under 12px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "light primary button fill is #202024",
+      "pass": true,
+      "detail": "#202024"
+    },
+    {
+      "name": "light primary button ink is #ffffff",
+      "pass": true,
+      "detail": "#ffffff"
+    },
+    {
+      "name": "light --dt-primary-solid pair",
+      "pass": true,
+      "detail": "#202024 / #ffffff"
+    },
+    {
+      "name": "light keyboard focus ring is #7c3aed",
+      "pass": true,
+      "detail": "[{\"el\":\"BUTTON.inline-flex h-full items-center gap-1 ro\",\"outline\":\"2px rgb(124, 58, 237)\"},{\"el\":\"BUTTON.inline-flex h-full items-center gap-1 ro\",\"outline\":\"2px rgb(124, 58, 237)\"},{\"el\":\"BUTTON.inline-flex h-full items-center gap-1 ro\",\"outline\":\"2px rgb(124, 58, 237)\"}]"
+    },
+    {
+      "name": "dark-1440 skin is vanta/dark",
+      "pass": true,
+      "detail": "vanta/dark"
+    },
+    {
+      "name": "dark-1440 no visible text under 12px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "dark-1440 main grey is neutral",
+      "pass": true,
+      "detail": "#161616 spread 0"
+    },
+    {
+      "name": "dark-1440 main equals #161616",
+      "pass": true,
+      "detail": "#161616"
+    },
+    {
+      "name": "dark-1440 sidebar grey is neutral",
+      "pass": true,
+      "detail": "#101011 spread 1"
+    },
+    {
+      "name": "dark-1440 sidebar equals #101011",
+      "pass": true,
+      "detail": "#101011"
+    },
+    {
+      "name": "dark-1440 tertiary text meets 4.5:1",
+      "pass": true,
+      "detail": "5.12:1 on #1b1b1c"
+    },
+    {
+      "name": "dark-1440 no tinted pixels outside the send button and focused composer",
+      "pass": true,
+      "detail": "0px tinted; "
+    },
+    {
+      "name": "dark-1440 send button is violet",
+      "pass": true,
+      "detail": "#9d6bf5"
+    },
+    {
+      "name": "dark-1440 focused composer border is violet",
+      "pass": true,
+      "detail": "2879px violet-family pixels on the composer edge"
+    },
+    {
+      "name": "dark-900 skin is vanta/dark",
+      "pass": true,
+      "detail": "vanta/dark"
+    },
+    {
+      "name": "dark-900 no visible text under 12px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "dark-900 main grey is neutral",
+      "pass": true,
+      "detail": "#161616 spread 0"
+    },
+    {
+      "name": "dark-900 tertiary text meets 4.5:1",
+      "pass": true,
+      "detail": "5.12:1 on #1b1b1c"
+    },
+    {
+      "name": "dark-900 no tinted pixels outside the send button and focused composer",
+      "pass": true,
+      "detail": "0px tinted; "
+    },
+    {
+      "name": "dark-900 send button is violet",
+      "pass": true,
+      "detail": "#9d6bf5"
+    },
+    {
+      "name": "dark-900 focused composer border is violet",
+      "pass": true,
+      "detail": "1799px violet-family pixels on the composer edge"
+    },
+    {
+      "name": "dark-1440 settings: no tinted pixels",
+      "pass": true,
+      "detail": "0px tinted; "
+    },
+    {
+      "name": "dark-1440 settings: no visible text under 12px",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "dark primary button fill is #f4f4f5",
+      "pass": true,
+      "detail": "#f4f4f5"
+    },
+    {
+      "name": "dark primary button ink is #161616",
+      "pass": true,
+      "detail": "#161616"
+    },
+    {
+      "name": "dark --dt-primary-solid pair",
+      "pass": true,
+      "detail": "#f4f4f5 / #161616"
+    },
+    {
+      "name": "dark keyboard focus ring is #9d6bf5",
+      "pass": true,
+      "detail": "[{\"el\":\"BUTTON.mx-1 grid size-5 shrink-0 place-items-ce\",\"outline\":\"2px rgb(157, 107, 245)\"},{\"el\":\"BUTTON.inline-flex shrink-0 cursor-pointer item\",\"outline\":\"2px rgb(157, 107, 245)\"},{\"el\":\"BUTTON.composer-human-message standalone-glass \",\"outline\":\"2px rgb(157, 107, 245)\"}]"
+    }
+  ],
+  "results": [
+    {
+      "tag": "light-1440",
+      "info": {
+        "small": [],
+        "theme": "vanta",
+        "mode": "light",
+        "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Inter, ",
+        "ring": "#7c3aed",
+        "primarySolid": [
+          "#202024",
+          "#ffffff"
+        ],
+        "tertiary": {
+          "color": "color(srgb 0.12549 0.12549 0.141176 / 0.66)",
+          "x": 212.84375,
+          "y": 365.5
+        }
+      },
+      "samples": {
+        "main": {
+          "at": [
+            864,
+            300
+          ],
+          "rgb": "#ffffff",
+          "spread": 0
+        },
+        "sidebar": {
+          "at": [
+            130,
+            640
+          ],
+          "rgb": "#f7f7f8",
+          "spread": 1
+        },
+        "send": {
+          "rgb": "#7c3aed"
+        }
+      },
+      "tertiaryContrast": 4.92,
+      "tintedPixels": 0,
+      "composerFocusVioletPixels": 2906
+    },
+    {
+      "tag": "light-900",
+      "info": {
+        "small": [],
+        "theme": "vanta",
+        "mode": "light",
+        "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Inter, ",
+        "ring": "#7c3aed",
+        "primarySolid": [
+          "#202024",
+          "#ffffff"
+        ],
+        "tertiary": {
+          "color": "color(srgb 0.12549 0.12549 0.141176 / 0.66)",
+          "x": 212.84375,
+          "y": 365.5
+        }
+      },
+      "samples": {
+        "main": {
+          "at": [
+            540,
+            300
+          ],
+          "rgb": "#ffffff",
+          "spread": 0
+        },
+        "send": {
+          "rgb": "#7c3aed"
+        }
+      },
+      "tertiaryContrast": 4.92,
+      "tintedPixels": 0,
+      "composerFocusVioletPixels": 1825
+    },
+    {
+      "tag": "primary-light",
+      "fill": "#202024",
+      "ink": "#ffffff",
+      "contrast": 16.24
+    },
+    {
+      "tag": "settings-light",
+      "info": {
+        "small": [],
+        "theme": "vanta",
+        "mode": "light",
+        "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Inter, ",
+        "ring": "#7c3aed",
+        "primarySolid": [
+          "#202024",
+          "#ffffff"
+        ],
+        "tertiary": {
+          "color": "color(srgb 0.12549 0.12549 0.141176 / 0.66)",
+          "x": 212.84375,
+          "y": 365.5
+        }
+      }
+    },
+    {
+      "tag": "focus-light",
+      "ring": [
+        {
+          "el": "BUTTON.inline-flex h-full items-center gap-1 ro",
+          "outline": "2px rgb(124, 58, 237)"
+        },
+        {
+          "el": "BUTTON.inline-flex h-full items-center gap-1 ro",
+          "outline": "2px rgb(124, 58, 237)"
+        },
+        {
+          "el": "BUTTON.inline-flex h-full items-center gap-1 ro",
+          "outline": "2px rgb(124, 58, 237)"
+        }
+      ],
+      "expectedRing": [
+        7,
+        3
+      ]
+    },
+    {
+      "tag": "dark-1440",
+      "info": {
+        "small": [],
+        "theme": "vanta",
+        "mode": "dark",
+        "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Inter, ",
+        "ring": "#9d6bf5",
+        "primarySolid": [
+          "#f4f4f5",
+          "#161616"
+        ],
+        "tertiary": {
+          "color": "color(srgb 0.92549 0.92549 0.933333 / 0.54)",
+          "x": 212.84375,
+          "y": 365.5
+        }
+      },
+      "samples": {
+        "main": {
+          "at": [
+            864,
+            300
+          ],
+          "rgb": "#161616",
+          "spread": 0
+        },
+        "sidebar": {
+          "at": [
+            130,
+            640
+          ],
+          "rgb": "#101011",
+          "spread": 1
+        },
+        "send": {
+          "rgb": "#9d6bf5"
+        }
+      },
+      "tertiaryContrast": 5.12,
+      "tintedPixels": 0,
+      "composerFocusVioletPixels": 2879
+    },
+    {
+      "tag": "dark-900",
+      "info": {
+        "small": [],
+        "theme": "vanta",
+        "mode": "dark",
+        "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Inter, ",
+        "ring": "#9d6bf5",
+        "primarySolid": [
+          "#f4f4f5",
+          "#161616"
+        ],
+        "tertiary": {
+          "color": "color(srgb 0.92549 0.92549 0.933333 / 0.54)",
+          "x": 212.84375,
+          "y": 365.5
+        }
+      },
+      "samples": {
+        "main": {
+          "at": [
+            540,
+            300
+          ],
+          "rgb": "#161616",
+          "spread": 0
+        },
+        "send": {
+          "rgb": "#9d6bf5"
+        }
+      },
+      "tertiaryContrast": 5.12,
+      "tintedPixels": 0,
+      "composerFocusVioletPixels": 1799
+    },
+    {
+      "tag": "primary-dark",
+      "fill": "#f4f4f5",
+      "ink": "#161616",
+      "contrast": 16.46
+    },
+    {
+      "tag": "settings-dark",
+      "info": {
+        "small": [],
+        "theme": "vanta",
+        "mode": "dark",
+        "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Inter, ",
+        "ring": "#9d6bf5",
+        "primarySolid": [
+          "#f4f4f5",
+          "#161616"
+        ],
+        "tertiary": {
+          "color": "color(srgb 0.92549 0.92549 0.933333 / 0.54)",
+          "x": 212.84375,
+          "y": 365.5
+        }
+      }
+    },
+    {
+      "tag": "focus-dark",
+      "ring": [
+        {
+          "el": "BUTTON.mx-1 grid size-5 shrink-0 place-items-ce",
+          "outline": "2px rgb(157, 107, 245)"
+        },
+        {
+          "el": "BUTTON.inline-flex shrink-0 cursor-pointer item",
+          "outline": "2px rgb(157, 107, 245)"
+        },
+        {
+          "el": "BUTTON.composer-human-message standalone-glass ",
+          "outline": "2px rgb(157, 107, 245)"
+        }
+      ],
+      "expectedRing": [
+        9,
+        6,
+        5
+      ]
+    }
+  ]
+}

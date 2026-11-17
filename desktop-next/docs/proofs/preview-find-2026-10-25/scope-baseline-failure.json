@@ -1,0 +1,23 @@
+{
+  "checks": [
+    "The real local document is visible and clicked"
+  ],
+  "state": {
+    "focus": "<input aria-label=\"Find in page\" autocomplete=\"off\" class=\"h-6 w-40 bg-transparent text-xs text-(--ui-text-primary) outline-none placeholder:text-(--ui-text-tertiary)\" placeholder=\"Find in page\" type=\"search\" value=\"Local brief\">",
+    "roots": [
+      {
+        "html": "<div class=\"relative isolate flex h-full min-w-0 flex-col overflow-hidden bg-(--ui-chat-surface-background)\" data-chat-surface=\"\" data-composer-surface-id=\"_r_50_\" data-composer-target=\"main\" data-session-anchor=\"workspace\" style=\"--composer-measured-height: 184px; --composer-surface-measured-height",
+        "text": "Chat-only navigation testChat-only navigation testCopyEdit12:05Scripted turn finished.1sCopyRetryScripted turn finished.Response completeScroll to bottomWaking up …main/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-vt6gf7/project/alphaUnsent preview-navigation draftUnsent preview-navigation draftEnter to send · Shift Enter for a new line",
+        "marks": []
+      }
+    ],
+    "body": "Chat-only navigation test\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nChat-only navigation test\nnow\nChat-only navigation test\nCopy\nEdit\n12:05\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-vt6gf7/project/alpha\nUnsent preview-navigation draft\n\nEnter to send · Shift Enter for a new line\n\nbrief.md\nPREVIEW\nSOURCE\nEdit\nLocal brief\n\nNo operator data.\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n3\nSmart\nv0.0.0\n0/0",
+    "drafts": [
+      {
+        "visible": true,
+        "text": "Unsent preview-navigation draft"
+      }
+    ]
+  },
+  "errors": []
+}

@@ -13,6 +13,15 @@ const allow: Verdict = { risk: "allow", needsHuman: false, reason: "ok" };
 afterEach(async () => Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))));
 
 describe("durable workflow execution", () => {
+  it("rejects a changed graph at the same revision before another node executes", async () => {
+    const dataDir = await fixtureRoot();
+    const graph = chainGraph();
+    await runWorkflowGraph(graph, deps(async () => { throw new Error("first attempt stopped"); }), { dataDir, runId: "pinned" });
+    graph.nodes[0] = { ...graph.nodes[0]!, label: "Changed source" };
+    await expect(runWorkflowGraph(graph, deps(async () => { throw new Error("must not execute"); }),
+      { dataDir, runId: "pinned" })).rejects.toThrow(/graph content changed/);
+  });
+
   it("resumes after failure without replaying a confirmed side effect", async () => {
     const dataDir = await fixtureRoot();
     const firstCalls: string[] = [];
@@ -71,7 +80,7 @@ describe("durable workflow execution", () => {
     expect(run?.budget).toMatchObject({ limitUsd: 4, usedUsd: 0, usedTokens: 0 });
   });
 
-  it("honors an operator pause at the next durable node checkpoint", async () => {
+  it.each(["pause", "cancel"] as const)("honors operator %s at the next durable node checkpoint", async (action) => {
     const dataDir = await fixtureRoot();
     let release!: () => void;
     let started!: () => void;
@@ -82,10 +91,15 @@ describe("durable workflow execution", () => {
       return "should not run";
     }), { dataDir, runId: "operator-pause" });
     await entered;
-    await requestGraphRunControl(dataDir, "operator-pause", "pause", "2026-07-20T12:00:00.000Z");
+    await requestGraphRunControl(dataDir, "operator-pause", action, "2026-07-20T12:00:00.000Z");
+    expect((await loadGraphRunState(dataDir, "operator-pause"))?.status).toBe("running");
     release();
-    await expect(running).resolves.toMatchObject({ status: "paused", reason: "operator pause requested" });
-    expect((await loadGraphRunState(dataDir, "operator-pause"))?.attempts.map((item) => item.nodeId)).toEqual(["write"]);
+    await expect(running).resolves.toMatchObject({ status: action === "pause" ? "paused" : "cancelled",
+      reason: action === "pause" ? "operator pause requested" : "operator cancellation requested" });
+    const final = await loadGraphRunState(dataDir, "operator-pause");
+    expect(final?.attempts.map((item) => item.nodeId)).toEqual(["write"]);
+    expect(final?.results.write?.status).toBe("ok");
+    if (action === "cancel") expect(final?.terminal?.recoveryAction).toBe("Review completed steps before starting a new workflow.");
   });
 });
 

@@ -37,21 +37,11 @@ export function pathScopeRecovery(args: {
   ].join("\n");
 }
 
-export function sandboxBackgroundRecovery(root: string): string {
-  return [
-    "Recovery:",
-    "- For a short command, retry in the foreground without background:true.",
-    `- For a long-running command or dev server, relaunch non-sandboxed: cd ${q(root)} && VANTA_SHELL_SANDBOX=0 vanta`,
-    "- Then retry the command with background:true.",
-  ].join("\n");
-}
-
 export function sandboxServeRecovery(root: string): string {
   return [
     "Recovery:",
-    `- Relaunch non-sandboxed for server work: cd ${q(root)} && VANTA_SHELL_SANDBOX=0 vanta`,
-    "- Then start the server with background:true.",
+    `- Keep the sandbox on and allow network for this session: cd ${q(root)} && VANTA_SHELL_SANDBOX=1 VANTA_SANDBOX_NET=1 vanta`,
+    "- Then start the server with background:true; it remains filesystem-sandboxed.",
     "- If you only need static output, build files instead of serving.",
   ].join("\n");
 }
-

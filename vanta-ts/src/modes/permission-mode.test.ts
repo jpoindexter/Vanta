@@ -42,11 +42,11 @@ describe("resolvePermissionMode", () => {
 
 describe("acceptsEditsWithoutKernel", () => {
   it.each(["write_file", "edit_file", "read_file", "mkdir", "glob_files", "grep_files"])(
-    "allows %s only in acceptEdits mode",
+    "allows %s in acceptEdits and auto modes",
     (toolName) => {
       expect(acceptsEditsWithoutKernel("acceptEdits", toolName)).toBe(true);
+      expect(acceptsEditsWithoutKernel("auto", toolName)).toBe(true);
       expect(acceptsEditsWithoutKernel("default", toolName)).toBe(false);
-      expect(acceptsEditsWithoutKernel("auto", toolName)).toBe(false);
     },
   );
 

@@ -40,6 +40,7 @@ export function structuredOutcome(
     iterations: iter,
     stoppedReason,
     toolIterations: 1,
+    completionState: result.structuredResult === undefined ? "failed" : "verified",
     ...(usage ? { usage } : {}),
     ...(result.structuredResult === undefined ? {} : { structuredResult: result.structuredResult }),
   };

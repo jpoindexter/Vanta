@@ -8,6 +8,19 @@ sidebar_position: 2
 
 Major capability milestones, newest first. This is a curated highlight reel — the full per-slice history lives in `roadmap.json`.
 
+## 2026-08-14 — bounded local document reading
+- **One document path** — `document_read` converts Word, PowerPoint, Excel, OpenDocument, RTF, EPUB, CSV, and PDF files to Markdown with Firecrawl AnyDoc 0.1.9; the existing `pdf_read` interface now shares that parser.
+- **Corpus support** — local corpus ingest converts those same document formats before chunking, hashing, embedding, and provenance capture.
+- **Local privacy boundary** — conversion runs in a size-, output-, and time-bounded child without provider or OAuth credentials. Canonical path checks reject escaping symlinks before parser execution. Scanned PDFs fail honestly with “OCR required” and are not uploaded to a hosted parser.
+
+## 2026-07-24 — v0.9.8 reusable runs and operator handoffs
+- **Reusable run library** — Desktop records redacted, versioned turn provenance and lets operators search, inspect, save, delete, fork, or replay useful work.
+- **Fresh replay safety** — replay compares file, project, provider, model, and tool drift, then submits a normal new turn through the current kernel. Recorded approvals and tool calls never become authority.
+- **Structured attachment snapshots** — explicitly attached project files receive hashes and bounded local snapshots only after scope, secret, and size checks.
+- **Buzz ACP and integrations** — Buzz joins the ACP surface, while Buzz, Dropbox, Google Drive, Slack, and Trello share the integration catalog.
+- **Reliability repairs** — PDF typed-array compatibility, terminal resize recovery, clipboard-image parsing, model identity, Claude Code keychain fallback, and a per-turn tool-budget circuit breaker.
+- **Honest release boundary** — 1,473 test files and 13,687 tests pass with 3 intentional skips; the production Electron replay smoke dispatches a structured fresh turn with a deterministic response fixture. v0.9.5 remains the latest notarized Desktop DMG.
+
 ## 2026-07-21 — adaptive executive support
 - **Automatic task adaptation** — a deterministic private router detects observable activation, correction, load, reorientation, and task-complexity cues before each model call; no diagnosis or durable personal claim is inferred.
 - **Harness self-redirect** — action turns that accumulate six read-only calls or repeat the same failing call receive one bounded change-of-approach directive before the existing hard stop.
@@ -57,7 +70,9 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 ## 2026-06-22 — public launch (v0.2.0)
 - **Open source** — the repo is public at [github.com/jpoindexter/Vanta](https://github.com/jpoindexter/Vanta) under the **MIT** license.
 - **Zero-toolchain install** — only `git` is required. The Rust safety kernel ships as a prebuilt binary and a portable Node 22 is fetched automatically on first run (both checksum-verified); no Rust or system Node to install.
-- **Messaging** — 20 adapters wired (Telegram · WhatsApp · Signal · Discord · Slack live today; the rest configurable).
+- **Messaging (historical snapshot)** — 20 adapters were wired at this release
+  point. Current catalog and live-proof counts are maintained in
+  [Comms & gateway](/comms-and-gateway), not this historical entry.
 
 ## Voice, desktop & on-device tuning
 - **Voice input** — hold-to-talk speech-to-text, transcribed locally on your machine.
@@ -91,7 +106,9 @@ Major capability milestones, newest first. This is a curated highlight reel — 
 - Hook to **any model** (OpenAI/Ollama/Anthropic/Gemini/OpenRouter) via a first-run **setup wizard**.
 - **Continuity** — age-gated resume, fork, handoff, session memory, standing loops.
 - **Self-improvement loop**, bundled **skill library**.
-- **Gateway** — run as a service, messaging (20 adapters wired; Telegram · WhatsApp · Signal · Discord · Slack live), webhooks.
+- **Gateway (historical snapshot)** — run as a service, messaging (20 adapters
+  were wired at this release point), webhooks. This entry is not a current
+  live-proof claim.
 
 ## v0 — all the parts
 - Rust **safety kernel** — risk classifier (allow/ask/block), approval queue, goal ledger, tamper-evident event log, HTTP sidecar.

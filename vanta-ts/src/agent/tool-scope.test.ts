@@ -5,16 +5,20 @@ import { buildToolSearchTool } from "../tools/tool-search.js";
 import type { ToolSchema, LLMProvider, CompletionResult } from "../providers/interface.js";
 import type { SafetyClient } from "../safety-client.js";
 import { scopeToolSchemas, toolScopeSummary } from "./tool-scope.js";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 function schema(name: string, description = `${name} tool`): ToolSchema {
   return { name, description, parameters: { type: "object", properties: {} } };
 }
 
 const manySchemas = [
-  "tool_search", "clarify", "brain", "recall", "inspect_state", "inspect_context", "read_file", "grep_files", "glob_files",
-  "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics",
-  "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_status", "roadmap_move", "call_agent", "delegate",
+  "tool_search", "clarify", "ask_user", "brain", "recall", "inspect_state", "inspect_context", "read_file", "grep_files", "glob_files",
+  "web_search", "web_fetch", "pdf_read", "document_read", "git_status", "git_diff", "edit_file", "write_file", "shell_cmd", "lsp_diagnostics", "todo",
+  "gmail_send", "apple_mail_audit", "calendar_create", "browser_act", "money", "radar", "roadmap_status", "roadmap_move", "call_agent", "delegate",
   "compose_workflow", "protect", "brief",
+  "native_app_launch", "vision_action", "look_at_screen",
 ].map((name) => schema(name));
 
 const fakeSafety = {
@@ -23,6 +27,11 @@ const fakeSafety = {
 } as unknown as SafetyClient;
 
 describe("per-task tool scoping", () => {
+  it("exposes native launch and observation for computer tasks without adding them to unrelated requests", () => {
+    const names = scopeToolSchemas(manySchemas, "Open Calculator on my desktop").map((s) => s.name);
+    expect(names).toEqual(expect.arrayContaining(["native_app_launch", "vision_action", "look_at_screen"]));
+    expect(scopeToolSchemas(manySchemas, "draft an email").map((s) => s.name)).not.toContain("native_app_launch");
+  });
   it("exposes a smaller task-relevant subset while keeping tool_search reachable", () => {
     const scoped = scopeToolSchemas(manySchemas, "fix the failing TypeScript test and commit it");
     const names = scoped.map((s) => s.name);
@@ -32,11 +41,19 @@ describe("per-task tool scoping", () => {
     expect(toolScopeSummary(manySchemas, scoped)).toContain("reduction");
   });
 
-  it("always keeps the action primitives (write_file/edit_file/shell_cmd) in scope, even for a non-code request", () => {
+  it("always keeps action primitives and live task tracking in scope, even for a non-code request", () => {
     const scoped = scopeToolSchemas(manySchemas, "send an email to bob about the meeting").map((s) => s.name);
-    for (const core of ["read_file", "write_file", "edit_file", "shell_cmd"]) {
+    for (const core of ["read_file", "write_file", "edit_file", "shell_cmd", "todo", "ask_user"]) {
       expect(scoped).toContain(core); // never hidden behind tool_search
     }
+  });
+
+  it("exposes the local Apple Mail audit for Apple Mail and job-application requests", () => {
+    const appleMail = scopeToolSchemas(manySchemas, "audit Apple Mail for job application replies").map((s) => s.name);
+    const application = scopeToolSchemas(manySchemas, "check my job applications in Mail").map((s) => s.name);
+
+    expect(appleMail).toContain("apple_mail_audit");
+    expect(application).toContain("apple_mail_audit");
   });
 
   it("keeps call_agent callable when the user wants to talk to another agent (VANTA-AGENT-ROUTING-DISCOVERY)", () => {
@@ -58,6 +75,11 @@ describe("per-task tool scoping", () => {
   it("keeps the read-only roadmap tool in scope for roadmap questions", () => {
     const scoped = scopeToolSchemas(manySchemas, "what is left on the roadmap?").map((s) => s.name);
     expect(scoped).toContain("roadmap_status");
+  });
+
+  it("exposes local document readers for a document task", () => {
+    const scoped = scopeToolSchemas(manySchemas, "read this PDF and summarize the document").map((s) => s.name);
+    expect(scoped).toEqual(expect.arrayContaining(["pdf_read", "document_read"]));
   });
 
   it("returns the full set when the user explicitly asks for all tools", () => {
@@ -93,6 +115,7 @@ describe("per-task tool scoping", () => {
   });
 
   it("exposes a searched tool's full schema on the next provider call", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vanta-tool-scope-"));
     const registry = new ToolRegistry();
     for (const s of manySchemas) registry.register({ schema: s, execute: async () => ({ ok: true, output: "" }) });
     registry.register(buildToolSearchTool(registry));
@@ -116,13 +139,16 @@ describe("per-task tool scoping", () => {
       provider,
       safety: fakeSafety,
       registry,
-      root: "/x",
+      root,
       requestApproval: async () => true,
     });
 
-    await convo.send("use a deferred calendar tool");
-
-    expect(seen[0]).not.toContain("calendar_create");
-    expect(seen[1]).toContain("calendar_create");
+    try {
+      await convo.send("use a deferred calendar tool");
+      expect(seen[0]).not.toContain("calendar_create");
+      expect(seen[1]).toContain("calendar_create");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

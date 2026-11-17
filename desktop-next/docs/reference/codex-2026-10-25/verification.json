@@ -1,0 +1,23 @@
+{
+  "resourceHashesVerified": 375,
+  "sourceOffsetsVerified": 5847,
+  "tokenOffsets": 2388,
+  "componentOffsets": 3069,
+  "stateOffsets": 390,
+  "categories": {
+    "included:shared-primary-shell-and-core-components": 18,
+    "excluded:feature-specific": 331,
+    "included:approvals-actions": 3,
+    "excluded:cards": 1,
+    "included:tabs": 5,
+    "included:dialogs": 6,
+    "included:settings-setup": 5,
+    "included:motion-scroll-loading": 2,
+    "included:cards": 1,
+    "included:search": 1,
+    "excluded:search": 1,
+    "excluded:settings-setup": 1
+  },
+  "currentComputedStyles": "not observed",
+  "proprietarySourceCopiedToVanta": false
+}

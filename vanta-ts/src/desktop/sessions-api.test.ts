@@ -62,6 +62,29 @@ describe("desktop session management API", () => {
     }
   });
 
+  it("moves a large selection to trash in one bulk request", async () => {
+    const ids = Array.from({ length: 44 }, (_, index) => `bulk-${String(index + 1).padStart(2, "0")}`);
+    await Promise.all(ids.map((id) => saveSession(id, TRANSCRIPT, { env: process.env, title: `Bulk session ${id}` })));
+    const server = createDesktopServer(root);
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("desktop server did not bind");
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/api/sessions/bulk`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ids, action: "trash" }),
+      });
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({ action: "trash", count: 44 });
+      const sessions = await Promise.all(ids.map((id) => loadSession(id, process.env)));
+      expect(sessions.every((session) => session?.trashed && session.messages.length === 1)).toBe(true);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   it("pins sessions and persists an explicit active pinned order", async () => {
     await saveSession("pin-a", TRANSCRIPT, { env: process.env, title: "Pin A" });
     await saveSession("pin-b", TRANSCRIPT, { env: process.env, title: "Pin B" });
@@ -101,6 +124,14 @@ describe("desktop session management API", () => {
         method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "x", trashed: "yes" }),
       });
       expect(malformedTrash.status).toBe(400);
+      const emptyBulk = await fetch(`${base}/api/sessions/bulk`, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids: [], action: "trash" }),
+      });
+      expect(emptyBulk.status).toBe(400);
+      const malformedBulkAction = await fetch(`${base}/api/sessions/bulk`, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids: ["x"], action: "erase" }),
+      });
+      expect(malformedBulkAction.status).toBe(400);
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }

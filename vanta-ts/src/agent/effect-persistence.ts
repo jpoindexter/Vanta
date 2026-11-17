@@ -1,29 +1,84 @@
-import { appendFile, mkdir } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { EffectDisposition, Message, ToolCall } from "../types.js";
+import type { WorkItemState } from "../work-items/contract.js";
 import { checkpointSessionMessages } from "../sessions/store.js";
+import { withJournalLock } from "./effect-journal-lock.js";
+import { buildEnvelope, commitEnvelope, reconcileEffectJournalUnlocked, type Projection } from "./effect-journal.js";
+import { approvalProjections, toolProjections } from "./effect-tool-projections.js";
+import { hostProjections } from "./effect-host-projections.js";
+export { reconcileEffectJournal } from "./effect-journal.js";
 
 export type EffectTransition = "pending" | "started" | "settled";
+export type ApprovalTransition = "requested" | "approved" | "denied" | "expired";
+export type HostEffectOutcome = "denied" | "blocked" | "confirmed" | "unknown" | "verified" | "failed";
+export type HostEffectRecord = {
+  id: string;
+  actor: string;
+  host: string;
+  kind: string;
+  targetClass: string;
+  payloadSha256: string;
+  idempotencyKey: string;
+};
+export type HostEffectReceipt = {
+  outcome: HostEffectOutcome;
+  acknowledgementId?: string;
+  readbackSha256?: string;
+  errorSha256?: string;
+};
 
-/** Persist metadata only: arguments and outputs may contain secrets and are excluded. */
+async function persistProjections(root: string, kind: "approval" | "effect", build: (at: string) => Projection[], ensureDirectory = false): Promise<void> {
+  await withJournalLock(root, async () => {
+    await reconcileEffectJournalUnlocked(root).catch(() => {});
+    if (ensureDirectory) await mkdir(join(root, ".vanta"), { recursive: true, mode: 0o700 });
+    const at = new Date().toISOString();
+    await commitEnvelope(root, buildEnvelope(kind, at, build(at)));
+  });
+}
+
+/** Compatibility boundary: persist only redacted metadata through the serialized journal. */
+export async function persistApprovalTransition(
+  root: string,
+  sessionId: string | undefined,
+  call: ToolCall,
+  action: string,
+  transition: ApprovalTransition,
+): Promise<void> {
+  if (!root) return;
+  await persistProjections(root, "approval", at => approvalProjections({ sessionId, call, action, transition, at }), true);
+}
+
 export async function persistEffectTransition(
   root: string,
   sessionId: string | undefined,
   call: ToolCall,
   transition: EffectTransition,
   disposition?: EffectDisposition,
+  settledState?: WorkItemState,
 ): Promise<void> {
-  try {
-    const dir = join(root, ".vanta");
-    await mkdir(dir, { recursive: true });
-    const record = { at: new Date().toISOString(), sessionId: sessionId ?? "one-shot", toolCallId: call.id, tool: call.name, transition, ...(disposition ? { disposition } : {}) };
-    await appendFile(join(dir, "tool-effects.jsonl"), `${JSON.stringify(record)}\n`, "utf8");
-  } catch {
-    // The transcript checkpoint remains the primary recovery path; audit is best-effort.
-  }
+  if (!root) return;
+  await persistProjections(root, "effect", at => toolProjections({ sessionId, call, transition, disposition, settledState, at }), true);
 }
 
-export async function checkpointToolTranscript(sessionId: string | undefined, messages: Message[]): Promise<void> {
-  if (!sessionId) return;
-  await checkpointSessionMessages(sessionId, messages).catch(() => {});
+export async function persistHostEffectTransition(
+  root: string,
+  sessionId: string | undefined,
+  effect: HostEffectRecord,
+  transition: EffectTransition,
+  receipt?: HostEffectReceipt,
+): Promise<void> {
+  if (!root) throw new Error("effect journal requires a project root");
+  await persistProjections(root, "effect", at => hostProjections({ sessionId, effect, transition, receipt, at }));
+}
+
+export async function checkpointToolTranscript(
+  sessionId: string | undefined,
+  messages: Message[],
+  checkpointWorker?: (messages: Message[]) => Promise<void>,
+): Promise<void> {
+  // Unlike best-effort normal session persistence, child custody must be
+  // durable before the next action. Do not swallow this callback's failure.
+  await checkpointWorker?.(messages);
+  if (sessionId) await checkpointSessionMessages(sessionId, messages).catch(() => {});
 }

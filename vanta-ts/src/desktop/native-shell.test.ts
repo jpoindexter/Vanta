@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_DESKTOP_PORT,
+  authenticatedDesktopUrl,
   desktopServerArgs,
   desktopUrl,
   parseDesktopLaunchArgs,
@@ -11,6 +12,11 @@ describe("desktop native shell planning", () => {
   it("uses the default localhost desktop URL", () => {
     expect(desktopUrl(DEFAULT_DESKTOP_PORT)).toBe("http://127.0.0.1:7790");
     expect(parseDesktopLaunchArgs([], {}).url).toBe("http://127.0.0.1:7790");
+  });
+
+  it("places the high-entropy CLI boundary credential in a URL fragment", () => {
+    expect(authenticatedDesktopUrl("http://127.0.0.1:7790", "launch-secret"))
+      .toBe("http://127.0.0.1:7790/#boundary=launch-secret");
   });
 
   it("accepts an explicit port and suppresses browser opening for child servers", () => {

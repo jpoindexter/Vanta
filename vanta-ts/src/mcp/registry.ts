@@ -1,7 +1,7 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { z } from "zod";
-import { loadMcpToken } from "./auth-store.js";
+import { isMcpTokenUsable, loadMcpToken } from "./auth-store.js";
 import {
   extractAuthConfig,
   missingDeclaredMcpEnv,
@@ -12,6 +12,7 @@ import {
 import { serverAccessDecision } from "../settings/mcp-access.js";
 import { SettingsSchema, loadSettings } from "../settings/store.js";
 import { readTrust, trustMcp } from "../settings/trust.js";
+import { applyMcpToolNamePolicy } from "./tool-policy.js";
 
 export type McpConnectorHealth = "ready" | "needs_setup" | "blocked" | "disabled" | "error";
 export type McpConnectorTrust = "trusted" | "denied" | "pending";
@@ -42,7 +43,7 @@ const ProbeSchema = z.object({
 });
 const RegistryStateSchema = z.object({
   version: z.literal(1),
-  servers: z.record(ProbeSchema),
+  servers: z.record(z.string(), ProbeSchema),
 });
 type Probe = z.infer<typeof ProbeSchema>;
 type RegistryState = z.infer<typeof RegistryStateSchema>;
@@ -78,7 +79,8 @@ function connectorAuth(spec: ServerSpec, token: Awaited<ReturnType<typeof loadMc
   const missingEnv = missingDeclaredMcpEnv(env, spec.env);
   if (missingEnv.length) return { auth: "needs_auth" as const, authMode: "environment" as const, missingEnv };
   if (!extractAuthConfig(spec)) return { auth: "not_required" as const, authMode: "none" as const, missingEnv };
-  return { auth: token?.access_token ? "ready" as const : "needs_auth" as const, authMode: "oauth" as const, missingEnv };
+  const usableToken = isMcpTokenUsable(token);
+  return { auth: usableToken ? "ready" as const : "needs_auth" as const, authMode: "oauth" as const, missingEnv };
 }
 
 function connectorHealth(input: {
@@ -118,7 +120,7 @@ export async function readMcpRegistry(
       trust,
       ...authState,
       health: connectorHealth({ enabled, trust, auth: authState.auth, probe }),
-      tools: probe?.tools ?? [],
+      tools: applyMcpToolNamePolicy(probe?.tools ?? [], spec.tools),
       resources: probe?.resources ?? [],
       lastCheckedAt: probe?.lastCheckedAt,
       lastError: probe?.lastError,

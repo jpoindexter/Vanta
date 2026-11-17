@@ -1,0 +1,59 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-bEXLmX",
+  "checks": [
+    "Cmd+Shift+F focuses chat history search",
+    "ArrowDown reaches the first matching chat",
+    "Selecting history restores that chat's own draft",
+    "Cmd+L and native End continue only the selected chat's draft",
+    "Repeating chat search selects its retained query",
+    "Typing replaces the old query without appending",
+    "Returning to the other chat preserves its separate draft",
+    "Escape closes Find without clearing history search",
+    "Escape does not replace the selected draft",
+    "Navigation does not send either draft",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "shortcut",
+      "focus": "<input aria-label=\"Search chats\" class=\"h-7 min-w-0 max-w-full flex-1 bg-transparent text-xs text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none\" placeholder=\"Search chats…\" type=\"text\" value=\"\">",
+      "url": "file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/sidebar-history-candidate-20261025-fhPWve/desktop-next/apps/desktop/dist/index.html#/20261025-114958-db1ecc3b-77c2-4935-8af8-3f2d58ca2c40",
+      "body": "History Alpha\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nHistory Alpha\nnow\nHistory Bravo\nnow\nHistory Alpha\nCopy\nEdit\n11:49\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-bEXLmX/project/alpha\nUnsent Alpha draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n0\nSmart\nv0.0.0",
+      "sidebar": "New session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nHistory Alpha\nnow\nHistory Bravo\nnow",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    },
+    {
+      "name": "arrow-down",
+      "focus": "<button class=\"block w-full text-left\" data-slot=\"row-button\" type=\"button\" data-testid=\"sidebar-row-title\"><span class=\"min-w-0 truncate text-[0.875rem] text-(--ui-text-secondary) leading-[1.35] hover-marquee block font-normal group-hover:text-foreground group-data-[working=true]:text-foreground/90\" data-state=\"closed\" data-slot=\"tooltip-trigger\"><span class=\"hover-marquee-inner\">History Bravo</span></span></button>",
+      "url": "file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/sidebar-history-candidate-20261025-fhPWve/desktop-next/apps/desktop/dist/index.html#/20261025-114958-db1ecc3b-77c2-4935-8af8-3f2d58ca2c40",
+      "body": "History Alpha\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nHistory Bravo\nnow\nHistory Alpha\nCopy\nEdit\n11:49\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-bEXLmX/project/alpha\nUnsent Alpha draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n0\nSmart\nv0.0.0",
+      "sidebar": "New session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nHistory Bravo\nnow",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    },
+    {
+      "name": "selected",
+      "focus": "<input aria-label=\"Search chats\" class=\"h-7 min-w-0 max-w-full flex-1 bg-transparent text-xs text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none\" placeholder=\"Search chats…\" type=\"text\" value=\"History Alpha\">",
+      "url": "file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/sidebar-history-candidate-20261025-fhPWve/desktop-next/apps/desktop/dist/index.html#/20261025-114958-db1ecc3b-77c2-4935-8af8-3f2d58ca2c40",
+      "body": "History Alpha\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nHistory Alpha\nnow\nHistory Alpha\nCopy\nEdit\n11:49\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-bEXLmX/project/alpha\nUnsent Alpha draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n1\nSmart\nv0.0.0",
+      "sidebar": "New session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nHistory Alpha\nnow",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    }
+  ],
+  "modelRequests": 2,
+  "rendererErrors": []
+}

@@ -103,6 +103,14 @@ describe("resolveReadablePath (shared read-path policy)", () => {
     if (!r.ok) expect(r.error).toContain("never accessible");
   });
 
+  it("refuses project credentials and kernel audit state even though they are in-root", () => {
+    for (const path of [".env", ".env.local", ".vanta/api-token", ".vanta/audit.key", ".vanta/audit.head", ".vanta/events.jsonl"]) {
+      const r = resolveReadablePath(path, root, {} as NodeJS.ProcessEnv);
+      expect(r.ok, path).toBe(false);
+      if (!r.ok) expect(r.error, path).toContain("protected");
+    }
+  });
+
   it("names the exact recovery commands for an out-of-zone read", () => {
     const r = resolveReadablePath("/srv/elsewhere/x.md", root, {} as NodeJS.ProcessEnv);
     expect(r.ok).toBe(false);
@@ -144,6 +152,13 @@ describe("resolveWritablePath", () => {
   it("accepts an in-root path", () => {
     expect(resolveWritablePath("src/a.ts", root, {} as NodeJS.ProcessEnv).ok).toBe(true);
   });
+  it("refuses project credentials and kernel audit state even though they are in-root", () => {
+    for (const path of [".env", ".env.production", ".vanta/api-token", ".vanta/audit.key", ".vanta/audit.head", ".vanta/events.jsonl"]) {
+      const r = resolveWritablePath(path, root, {} as NodeJS.ProcessEnv);
+      expect(r.ok, path).toBe(false);
+      if (!r.ok) expect(r.error, path).toContain("protected");
+    }
+  });
   it("accepts a ~/Desktop path (default writable zone)", () => {
     expect(resolveWritablePath("~/Desktop/x.md", root, {} as NodeJS.ProcessEnv).ok).toBe(true);
   });
@@ -167,6 +182,24 @@ describe("resolveWritablePath", () => {
 
 describe("resolve path with session approval", () => {
   const root = "/Users/x/Documents/GitHub/Vanta";
+
+  it("never lets approval override protected project credential or audit reads", async () => {
+    for (const path of [".env", ".vanta/audit.key", ".vanta/events.jsonl"]) {
+      let asked = false;
+      const result = await resolveReadablePathAsk(path, root, {}, async () => { asked = true; return true; });
+      expect(result.ok, path).toBe(false);
+      expect(asked, path).toBe(false);
+    }
+  });
+
+  it("never lets approval override protected project credential or audit writes", async () => {
+    for (const path of [".env", ".vanta/audit.key", ".vanta/events.jsonl"]) {
+      let asked = false;
+      const result = await resolveWritablePathAsk(path, root, {}, async () => { asked = true; return true; });
+      expect(result.ok, path).toBe(false);
+      expect(asked, path).toBe(false);
+    }
+  });
 
   it("approval adds an out-of-zone readable dir to the session and proceeds", async () => {
     const env = {} as NodeJS.ProcessEnv;

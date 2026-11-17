@@ -1,9 +1,15 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir, symlink, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+
+export function typescriptCompilerPath(packageRoot: string, resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath): string {
+  const packaged = resourcesPath ? join(resourcesPath, "typescript", "node_modules", "@typescript", "native", "bin", "tsc") : "";
+  return packaged && existsSync(packaged) ? packaged : join(packageRoot, "node_modules", "@typescript", "native", "bin", "tsc");
+}
 
 export const POSTURE_ROUTINE_SPEC_FIXTURE = [
   "Build a polished responsive React/Tailwind posture routine app.",
@@ -72,7 +78,7 @@ export async function runSpecToAppWizard(opts: {
   await scaffoldApp({ appDir, packageRoot: opts.packageRoot, spec, requirements, createdAt });
   const runner = opts.runner ?? runProcess;
   const checks = [
-    await runCheck({ name: "typecheck", runner, cmd: process.execPath, args: [join(opts.packageRoot, "node_modules", "typescript", "bin", "tsc"), "--project", "tsconfig.json", "--noEmit"], cwd: appDir }),
+    await runCheck({ name: "typecheck", runner, cmd: process.execPath, args: [typescriptCompilerPath(opts.packageRoot), "--project", "tsconfig.json", "--noEmit"], cwd: appDir }),
     await runCheck({ name: "build", runner, cmd: process.execPath, args: [join(opts.packageRoot, "node_modules", "vite", "bin", "vite.js"), "build"], cwd: appDir }),
   ];
   const previewUrl = `file://${join(appDir, "dist", "index.html")}`;

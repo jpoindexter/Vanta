@@ -1,0 +1,25 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-QviTyH",
+  "rows": [
+    {
+      "id": "F-048",
+      "area": "sidebar list",
+      "label": "Chats grouped by project",
+      "result": "PASS",
+      "note": "Two folder-backed chats group under their real projects; entering the second excludes the first and the unfiled chat; All projects restores them."
+    },
+    {
+      "id": "F-050",
+      "area": "sidebar list",
+      "label": "New project from sidebar",
+      "result": "PASS",
+      "note": "Visible at rest; keyboard opens the existing dialog; name/folder create a real private project."
+    }
+  ],
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

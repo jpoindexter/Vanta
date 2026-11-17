@@ -12,7 +12,7 @@ export type LoopsTickDeps = {
   dataDir: string;
   now: Date;
   /** Fire a loop iteration — caller wires the detached child. */
-  spawn: (id: string, wake: WakeContext) => void;
+  spawn: (id: string, wake: WakeContext) => unknown | Promise<unknown>;
   log: (msg: string) => void;
 };
 
@@ -21,7 +21,7 @@ async function tickOne(def: LoopDef, deps: LoopsTickDeps): Promise<boolean> {
   const state = await loadState(deps.dataDir, def.id);
 
   if (isLoopDue(def, state, deps.now)) {
-    deps.spawn(def.id, wakeContextFromLoop(def, state, deps.now));
+    await deps.spawn(def.id, wakeContextFromLoop(def, state, deps.now));
     deps.log(`loop ${def.id}: due → spawned`);
     return true;
   }

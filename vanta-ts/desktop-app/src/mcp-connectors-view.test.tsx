@@ -36,4 +36,14 @@ describe("McpConnectorsView", () => {
     expect(html).toContain("Authorize");
     expect(html).toContain("Trust");
   });
+
+  it("renders a ready explicit-empty connector without inventing tool names", () => {
+    const empty: DesktopMcpPayload = {
+      ...payload,
+      connectors: [{ ...payload.connectors[0]!, tools: [] }],
+    };
+    const html = renderToStaticMarkup(<McpConnectorsView payload={empty} loading={false} pending="" error="" onRefresh={async () => undefined} onAction={async () => empty} />);
+    expect(html).toContain("<dt>Tools</dt><dd>0</dd>");
+    expect(html).not.toContain("search_notes");
+  });
 });

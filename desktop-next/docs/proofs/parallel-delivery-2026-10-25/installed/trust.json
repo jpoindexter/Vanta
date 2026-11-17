@@ -1,0 +1,40 @@
+{
+  "app": "/Applications/Vanta.app",
+  "embeddedSource": "745629c6",
+  "executable": "/Applications/Vanta.app/Contents/MacOS/Vanta",
+  "runtime": {
+    "electron": "43.8.1",
+    "node": "24.22.0"
+  },
+  "modules": {
+    "chunk-W2CHOVKX.mjs": "9fb59e417f00e2c84d6d320af8269e652756ffb7c00865bc9487ae26bd28cc30",
+    "chunk-UQ23SVB6.mjs": "e31aa7f3db7050108b57529264c74a44702352267f034a7281a03bff93e75abd",
+    "chunk-N73Y4XMR.mjs": "2aaf89e4a4888977cdd22d958df4ba95715f350c4282618bd14b20a5f2a3d169"
+  },
+  "mail": {
+    "seam": "shipped registered EmailAdapter constructor and executeEffect; not private sendGatewayMessage",
+    "first": "unknown",
+    "replay": "unknown",
+    "attempts": 1,
+    "disposition": "unknown",
+    "verification": "unverified",
+    "receiptHasRawBodyOrError": false
+  },
+  "settings": {
+    "seam": "shipped exported setSkillEnabled",
+    "rejectedWithExactPathRecovery": true,
+    "sourcePreserved": true,
+    "beforeSha256": "96ae93477566aea15331bdf9e37c1430afc4c979e85c7a66f7b89fc32b92602a",
+    "afterSha256": "96ae93477566aea15331bdf9e37c1430afc4c979e85c7a66f7b89fc32b92602a"
+  },
+  "guards": {
+    "socket": 0,
+    "tls": 0,
+    "fetch": 0,
+    "subprocess": 0
+  },
+  "limits": [
+    "No SMTP, recipient delivery, owner profile, UI or private bundled gateway helper executed.",
+    "Proof does not certify all canonical state stores or package acceptance."
+  ]
+}

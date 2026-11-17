@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { DANGEROUS_DIRS, expandHome } from "../tools/writable-zones.js";
+import { DANGEROUS_DIRS, DANGEROUS_FILES, expandHome } from "../tools/writable-zones.js";
 
 // Sandbox (opt-in OS isolation) — the PURE builders. These emit the backend
 // config text/argv from resolved absolute paths; the impure file/temp work and
@@ -13,29 +13,44 @@ export type SandboxBackend = "seatbelt" | "bwrap";
 export interface SandboxOpts {
   /** Allow network access. Default (false) → deny. */
   net: boolean;
+  /** Project credential/control-plane paths hidden even when root is readable/writable. */
+  deniedPaths?: readonly string[];
 }
 
 /** DANGEROUS_DIRS resolved to absolute paths (mirrors `isDangerousPath`). */
-function dangerousAbs(): string[] {
+function dangerousDirsAbs(): string[] {
   return DANGEROUS_DIRS.map((p) => resolve(expandHome(p)));
+}
+
+function dangerousAbs(): string[] {
+  return [...DANGEROUS_DIRS, ...DANGEROUS_FILES].map((p) => resolve(expandHome(p)));
 }
 
 /** Pseudo-devices nearly every program opens read+write (git/node/shells open
  *  /dev/null O_RDWR). Safe to grant — not credential paths. `/dev/tty` (+ioctl) and
  *  `/dev/fd` (subpath) are handled separately in the profile. */
 const DEV_WRITE = ["/dev/null", "/dev/zero", "/dev/stdout", "/dev/stderr", "/dev/dtracehelper"];
+const REQUIRED_RUNTIME_READS = ["/System/Library/OpenSSL/openssl.cnf"];
 
 /** Quote a path for an SBPL `subpath`/`literal` clause (escapes `"` and `\`). */
 function sb(path: string): string {
   return `"${path.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
 
+function requireAll(filters: string[]): string {
+  return `(require-all ${filters.join(" ")})`;
+}
+
+function excludes(paths: readonly string[]): string[] {
+  return paths.map((path) => `(require-not (subpath ${sb(resolve(path))}))`);
+}
+
 /**
- * macOS Seatbelt profile (`.sb`). Order is load-bearing: SBPL is last-match-wins,
- * so the DANGEROUS_DIRS denies MUST come AFTER the broad read-allow to override
- * it for those paths (a deny placed before the allow would be dead). Reads are
- * permissive (everything except dangerous dirs); WRITES are strict — only under
- * root + writableZones. Network denied unless `opts.net`.
+ * macOS Seatbelt profile (`.sb`). Seatbelt does not let a later standalone deny
+ * override an unconditional allow. Every read/write grant therefore carries its
+ * protected-path exclusions as part of the grant's own `require-all` filter.
+ * Reads are broad except for credential/control-plane paths; writes are further
+ * constrained to root + writableZones. Network is denied unless `opts.net`.
  */
 export function buildSeatbeltProfile(
   root: string,
@@ -43,6 +58,8 @@ export function buildSeatbeltProfile(
   opts: SandboxOpts,
 ): string {
   const writable = [resolve(root), ...writableZones.map((z) => resolve(z))];
+  const denied = [...new Set([...dangerousAbs(), ...(opts.deniedPaths ?? []).map((path) => resolve(path))])];
+  const denyFilters = excludes(denied);
   const lines = [
     "(version 1)",
     "(deny default)",
@@ -52,21 +69,24 @@ export function buildSeatbeltProfile(
     "(allow process-fork)",
     "(allow sysctl-read)",
     "(allow mach-lookup)",
-    "(allow signal (target self))",
-    "; reads: permissive (system libs, binaries, project) — dangerous dirs denied below",
-    "(allow file-read*)",
+    // Test runners and other orchestrators must be able to reap workers they
+    // spawned inside the same sandbox, without gaining host-wide signal access.
+    "(allow signal (target same-sandbox))",
+    "; reads: broad runtime/project visibility with credential/control-plane exclusions",
+    `(allow file-read* ${requireAll(denyFilters)})`,
+    "; one exact runtime exception: this Node distribution opens its public OpenSSL config",
+    ...REQUIRED_RUNTIME_READS.map((path) => `(allow file-read* (literal ${sb(path)}))`),
     "; pseudo-devices: reads are covered above; grant WRITE-DATA so tools that open",
     "; /dev/null|tty|fd O_RDWR (git, node, shells) don't get EPERM. Specific ops (not",
     "; file-write*) so the 'only root+zones get file-write*' invariant still holds.",
     ...DEV_WRITE.map((d) => `(allow file-write-data (literal ${sb(d)}))`),
     `(allow file-write-data file-ioctl (literal ${sb("/dev/tty")}))`,
     `(allow file-write-data (subpath ${sb("/dev/fd")}))`,
-    "; writes: ONLY under the project root + resolved writable zones (incl. temp)",
-    ...writable.map((z) => `(allow file-write* (subpath ${sb(z)}))`),
-    "; DANGEROUS_DIRS: deny LAST so this overrides the broad read-allow above",
-    ...dangerousAbs().map((d) => `(deny file* (subpath ${sb(d)}))`),
+    "; writes: ONLY under root + zones, with the same protected-path exclusions",
+    ...writable.map((z) => `(allow file-write* ${requireAll([`(subpath ${sb(z)})`, ...denyFilters])})`),
+    "; protected paths are absent from every matching read/write grant",
   ];
-  if (!opts.net) lines.push("; network", "(deny network*)");
+  lines.push("; network", opts.net ? "(allow network*)" : "(deny network*)");
   return lines.join("\n") + "\n";
 }
 
@@ -99,7 +119,9 @@ export function buildBwrapArgs(
   root: string,
   writableZones: string[],
   opts: SandboxOpts,
-  maskDirs: string[] = dangerousAbs(),
+  maskDirs: string[] = dangerousDirsAbs(),
+  protectedDirs: string[] = [],
+  protectedFiles: string[] = [],
 ): string[] {
   const writable = [resolve(root), ...writableZones.map((z) => resolve(z))];
   // `--ro-bind / /` binds the host /dev read-only → /dev/null writes EPERM. `--dev`
@@ -109,6 +131,8 @@ export function buildBwrapArgs(
     if (!within(d, writable)) args.push("--tmpfs", d);
   }
   for (const z of writable) args.push("--bind", z, z);
+  for (const d of protectedDirs.map((p) => resolve(p))) args.push("--tmpfs", d);
+  for (const f of protectedFiles.map((p) => resolve(p))) args.push("--ro-bind", "/dev/null", f);
   if (!opts.net) args.push("--unshare-net");
   args.push("--die-with-parent", "--");
   return args;

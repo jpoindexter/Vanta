@@ -100,9 +100,7 @@ export class EmailAdapter implements PlatformAdapter {
       subject,
     };
     const reply = buildEmailReply(inbound, stripControl(msg.text));
-    await this.transport.sendMail(reply).catch(() => {
-      /* errors-as-values: a send failure must not throw through the gateway loop */
-    });
+    await this.transport.sendMail(reply);
   }
 }
 

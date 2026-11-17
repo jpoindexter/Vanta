@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "Document Find is live before close",
+    "Find input retains focus before Cmd+W",
+    "Closing the searched document moves Find to the visible chat",
+    "Find remains open with its original query",
+    "The retained search can find visible chat text",
+    "Dismissal restores visible typing focus",
+    "Draft remains unchanged",
+    "Document remains unchanged",
+    "No extra send",
+    "No renderer errors"
+  ],
+  "state": {
+    "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w-full\" contenteditable=\"true\" data-placeholder=\"Ask Vanta to do something\" data-slot=\"composer-rich-input\" data-vp=\"composer-input\" role=\"textbox\" spellcheck=\"false\">Unsent Find-close draft</div>",
+    "roots": []
+  },
+  "errors": []
+}

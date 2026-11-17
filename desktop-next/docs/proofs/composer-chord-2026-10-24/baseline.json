@@ -1,0 +1,26 @@
+[
+  {
+    "name": "away",
+    "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center gap-1.5 text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-[color,background-color,border-color,box-shadow,opacity] duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-inva",
+    "tooltips": [
+      "<div data-side=\"left\" data-align=\"center\" data-state=\"instant-open\" role=\"tooltip\" id=\"radix-_r_5p_\" class=\"tooltip-bubble pointer-events-none z-(--z-over-modal) w-fit select-none bg-foreground px-2 py-1 text-meta font-medium leading-[1.4] text-background\" data-slot=\"tooltip-content\" style=\"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-avai"
+    ],
+    "composer": false
+  },
+  {
+    "name": "tooltip",
+    "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center gap-1.5 text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-[color,background-color,border-color,box-shadow,opacity] duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-inva",
+    "tooltips": [
+      "<div data-side=\"left\" data-align=\"center\" data-state=\"instant-open\" role=\"tooltip\" id=\"radix-_r_5p_\" class=\"tooltip-bubble pointer-events-none z-(--z-over-modal) w-fit select-none bg-foreground px-2 py-1 text-meta font-medium leading-[1.4] text-background\" data-slot=\"tooltip-content\" style=\"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-avai"
+    ],
+    "composer": false
+  },
+  {
+    "name": "chord",
+    "focus": "<button class=\"inline-flex cursor-pointer items-center justify-center gap-1.5 text-xs leading-4 font-medium whitespace-nowrap shadow-none transition-[color,background-color,border-color,box-shadow,opacity] duration-(--motion-control) ease-(--motion-ease) outline-none disabled:pointer-events-none disabled:cursor-default disabled:opacity-50 aria-inva",
+    "tooltips": [
+      "<div data-side=\"top\" data-align=\"center\" data-state=\"instant-open\" role=\"tooltip\" id=\"radix-_r_5p_\" class=\"tooltip-bubble pointer-events-none z-(--z-over-modal) w-fit select-none bg-foreground px-2 py-1 text-meta font-medium leading-[1.4] text-background\" data-slot=\"tooltip-content\" style=\"--radix-tooltip-content-transform-origin: var(--radix-popper-transform-origin); --radix-tooltip-content-avail"
+    ],
+    "composer": false
+  }
+]

@@ -107,6 +107,28 @@ describe("approvalPreferenceFor", () => {
     expect(decision.reason).toContain("one-way");
   });
 
+  it("treats a plain git push as one-way, so a saved shell Always cannot skip the ask", () => {
+    const profile = { ...defaultOperatorProfile(), approvalPreferences: { shell_cmd: "never_ask" as const } };
+    const decision = approvalPreferenceFor(profile, {
+      toolName: "shell_cmd",
+      action: "run shell command: git push origin main",
+      currentDecision: "allow",
+      kernelRisk: "ask",
+    });
+    expect(decision).toMatchObject({ decision: "ask", canRemember: false });
+  });
+
+  it("does not treat a file path containing push as one-way", () => {
+    const profile = defaultOperatorProfile();
+    const decision = approvalPreferenceFor(profile, {
+      toolName: "edit_file",
+      action: "Edit file docs/git-push-guide.md",
+      currentDecision: "allow",
+      kernelRisk: "allow",
+    });
+    expect(decision.canRemember).not.toBe(false);
+  });
+
   it("always_ask escalates an allowed matching request", () => {
     const profile = { ...defaultOperatorProfile(), approvalPreferences: { read_file: "always_ask" as const } };
     const decision = approvalPreferenceFor(profile, {

@@ -1,0 +1,15 @@
+{
+  "name": "vanta-next",
+  "productName": "Vanta",
+  "version": "0.1.0",
+  "description": "Vanta Next: the next-generation Vanta desktop shell.",
+  "author": "Theft Studio",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/electron-main.mjs",
+  "desktopName": "studio.theft.vanta-next",
+  "vantaBuild": {
+    "commit": "0bc61361",
+    "builtAt": "2026-10-16T07:25:59.986Z"
+  }
+}

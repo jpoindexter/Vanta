@@ -4,6 +4,7 @@ import { formatGraphHandoff, graphReplayPacket, listGraphReplayPackets } from ".
 import { requestGraphRunControl } from "../workflow/run-control.js";
 import { loadGraphRunState } from "../workflow/run-state-store.js";
 import { readJson, sendJson, type DesktopState } from "./handlers.js";
+import { resumeDesktopWorkflow } from "./workflow-resume.js";
 
 export async function handleWorkflowRunRoute(
   state: DesktopState,
@@ -20,10 +21,10 @@ export async function handleWorkflowRunRoute(
     return true;
   }
   if (!runId) return badRequest(res, "run id is required");
-  return handleKnownRun({ dataDir, runId, actionPath: parts[3], req, res });
+  return handleKnownRun({ dataDir, runId, actionPath: parts[3], req, res, state });
 }
 
-async function handleKnownRun(input: { dataDir: string; runId: string; actionPath?: string; req: http.IncomingMessage; res: http.ServerResponse }): Promise<true> {
+async function handleKnownRun(input: { dataDir: string; runId: string; actionPath?: string; req: http.IncomingMessage; res: http.ServerResponse; state: DesktopState }): Promise<true> {
   const { dataDir, runId, actionPath, req, res } = input;
   const run = await loadGraphRunState(dataDir, runId);
   if (!run) { sendJson(res, 404, { error: `graph run not found: ${runId}` }); return true; }
@@ -37,6 +38,7 @@ async function handleKnownRun(input: { dataDir: string; runId: string; actionPat
   if (body.action !== "pause" && body.action !== "cancel" && body.action !== "retry") {
     return badRequest(res, "action must be pause, cancel, or retry");
   }
+  if (body.action === "retry") { await resumeDesktopWorkflow(input.state, run, res); return true; }
   const updated = await requestGraphRunControl(dataDir, runId, body.action);
   sendJson(res, 200, graphReplayPacket(updated));
   return true;

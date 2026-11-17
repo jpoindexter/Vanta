@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { dirname } from "node:path";
 import { oneLine } from "./format.js";
 import { recentToolNames } from "./bug-cmd.js";
@@ -57,12 +58,9 @@ function lastByRole(messages: Message[], role: "user" | "assistant"): string {
 
 async function captureGit(repoRoot: string): Promise<{ branch: string; changed: string }> {
   try {
-    const { execFile } = await import("node:child_process");
-    const { promisify } = await import("node:util");
-    const run = promisify(execFile);
     const [{ stdout: branch }, { stdout: changed }] = await Promise.all([
-      run("git", ["-C", repoRoot, "rev-parse", "--abbrev-ref", "HEAD"]),
-      run("git", ["-C", repoRoot, "status", "--short"]),
+      gitExecFile("git", ["-C", repoRoot, "rev-parse", "--abbrev-ref", "HEAD"]),
+      gitExecFile("git", ["-C", repoRoot, "status", "--short"]),
     ]);
     return { branch: branch.trim() || "unknown", changed };
   } catch {

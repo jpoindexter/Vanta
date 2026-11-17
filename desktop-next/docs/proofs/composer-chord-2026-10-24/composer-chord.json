@@ -1,0 +1,56 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-TTXVtz",
+  "checks": [
+    "Local model replies",
+    "Keyboard leaves the composer",
+    "A real passive tooltip is open without composer focus",
+    "Cmd+L focuses the existing composer through the tooltip",
+    "Typing remains visible after Cmd+L",
+    "An actual permission menu keeps its focused control",
+    "Cmd+L does not focus behind an interactive menu",
+    "Cmd+L works again after dismissing the menu",
+    "The unsent draft survives menu navigation",
+    "Focus navigation never submits or retries",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "tooltip-before-chord",
+      "focus": "Dictate",
+      "composer": false,
+      "tooltips": [
+        {
+          "state": "instant-open",
+          "text": "Dictate"
+        }
+      ],
+      "menu": false
+    },
+    {
+      "name": "chord",
+      "focus": "Message Vanta",
+      "composer": true,
+      "tooltips": [
+        {
+          "state": "closed",
+          "text": "Dictate"
+        }
+      ],
+      "menu": false
+    },
+    {
+      "name": "menu-keeps-focus",
+      "focus": null,
+      "composer": false,
+      "tooltips": [
+        {
+          "state": "closed",
+          "text": "Dictate"
+        }
+      ],
+      "menu": true
+    }
+  ],
+  "modelRequests": 1,
+  "rendererErrors": []
+}

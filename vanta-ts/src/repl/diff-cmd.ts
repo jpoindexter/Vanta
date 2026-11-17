@@ -1,9 +1,7 @@
+import { gitExecFile } from "../git/process.js";
 import { dirname } from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import type { SlashHandler } from "./types.js";
 
-const execFileAsync = promisify(execFile);
 
 /**
  * `/diff`
@@ -15,7 +13,7 @@ export const diff: SlashHandler = async (_arg, ctx) => {
 
   const run = async (args: string[]): Promise<string> => {
     try {
-      const { stdout } = await execFileAsync("git", args, { cwd: repoRoot });
+      const { stdout } = await gitExecFile("git", args, { cwd: repoRoot });
       return stdout.trim();
     } catch (err: unknown) {
       // git diff exits non-zero only on real errors, not on empty diff

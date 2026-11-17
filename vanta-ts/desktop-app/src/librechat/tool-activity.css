@@ -1,0 +1,38 @@
+/* LibreChat's ghost disclosure header and inset activity rail, translated to
+ * Vanta tokens. Copyright (c) 2026 LibreChat. MIT; see ./LICENSE. */
+.lc-tool-activity, .lc-run-activity { width: min(var(--chat-measure, 768px), 100%); margin: 0 auto 4px; }
+.lc-tool-group, .lc-trace-row { min-width: 0; border: 0; padding: 0; margin: 0; background: transparent; }
+.lc-tool-group > summary, .lc-trace-row > summary {
+  display: flex; align-items: center; gap: var(--space-2); min-height: 36px;
+  padding: var(--space-1) 0; color: var(--muted); border-radius: var(--radius-md); cursor: pointer; list-style: none;
+  font-size: 13px; line-height: 1.5;
+}
+.lc-tool-group > summary::-webkit-details-marker, .lc-trace-row > summary::-webkit-details-marker { display: none; }
+.lc-tool-group > summary:hover, .lc-trace-row > summary:hover { color: var(--text); background: var(--raised); }
+.lc-tool-group > summary:focus-visible, .lc-trace-row > summary:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.lc-tool-group > summary > svg, .lc-trace-row > summary > svg { flex-shrink: 0; }
+.lc-activity-label { min-width: 0; overflow-wrap: anywhere; }
+.lc-activity-meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.lc-tool-group > summary > .lc-activity-chevron { margin-inline-start: var(--space-1); }
+.lc-tool-group[open] > summary { color: var(--text); }
+.lc-tool-group[open] > summary .lc-activity-chevron, .lc-trace-row[open] > summary .lc-activity-chevron { transform: rotate(90deg); }
+.lc-activity-rail { border-inline-start: 1px solid var(--line-strong); margin: 2px 0 8px 10px; padding-inline-start: 16px; }
+.lc-tool-result { min-width: 0; padding-block: 8px; }
+.lc-tool-result + .lc-tool-result { border-block-start: 1px solid var(--line); }
+.lc-tool-result > strong { color: var(--text); font-size: 13px; font-weight: 500; }
+.lc-tool-result > code { display: block; color: var(--muted); font-size: 12px; }
+.lc-tool-result pre, .lc-activity-evidence pre {
+  max-height: 320px; overflow: auto; margin: 8px 0; padding: 12px;
+  border-radius: 6px; background: var(--raised); color: var(--text);
+  font: 12px/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.lc-activity-evidence { padding-inline-start: 26px; }
+.lc-trace-row[data-status="attention"] > summary { color: var(--danger); }
+.lc-trace-row[data-status="attention"] .lc-activity-meta { color: inherit; }
+@media (max-width: 760px) {
+  .lc-tool-group > summary, .lc-trace-row > summary { min-height: 44px; flex-wrap: wrap; }
+  .lc-activity-meta { white-space: normal; }
+}
+@media (forced-colors: active) {
+  .lc-tool-group > summary:focus-visible, .lc-trace-row > summary:focus-visible { outline-color: Highlight; }
+}

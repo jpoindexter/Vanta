@@ -1,0 +1,39 @@
+
+--- runtime started 2026-10-14T19:09:46.854Z (pid 56377) ---
+[err] node:events:487
+[err]       throw er; // Unhandled 'error' event
+[err]       ^
+[err] 
+[err] Error: listen EADDRINUSE: address already in use 127.0.0.1:7790
+[err]     at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+[err]     at listenInCluster (node:net:2065:12)
+[err]     at node:net:2274:7
+[err]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+[err] Emitted 'error' event on Server instance at:
+[err]     at emitErrorNT (node:net:2044:8)
+[err]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+[err]   code: 'EADDRINUSE',
+[err]   errno: -48,
+[err]   syscall: 'listen',
+[err]   address: '127.0.0.1',
+[err]   port: 7790
+[err] }
+[err] 
+[err] Node.js v25.9.0
+[err] 
+--- runtime exited 2026-10-14T19:09:47.959Z (code 1, signal null) ---
+
+--- runtime started 2026-10-14T19:10:33.984Z (pid 58880) ---
+vanta desktop — http://127.0.0.1:7791/#boundary=f80726e9b7dcfe737da6d9e005f8c707e67b50a48b189648b4472cefd6eb0d8e
+
+--- runtime exited 2026-10-14T19:10:47.992Z (code 0, signal null) ---
+
+--- runtime started 2026-10-14T19:10:51.784Z (pid 60041) ---
+vanta desktop — http://127.0.0.1:7790/#boundary=e423e3cad6c57575ace7f10a1df25a56e488802732102ce13de31142853a3a63
+
+--- runtime exited 2026-10-14T19:11:04.044Z (code null, signal SIGTERM) ---
+
+--- runtime started 2026-10-14T19:11:04.068Z (pid 61237) ---
+vanta desktop — http://127.0.0.1:7790/#boundary=4565a31cbe2671f9de4f7805553daeb110b276aaa4dc8452ad24f7fea23f061e
+
+--- runtime exited 2026-10-14T19:11:20.293Z (code 0, signal null) ---

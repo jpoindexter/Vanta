@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveAuxProvider, describeAuxMap } from "./aux-map.js";
+import { resolveAuxProvider, describeAuxMap, hasAuxOverride } from "./aux-map.js";
 
 const BASE_ENV: NodeJS.ProcessEnv = {
   VANTA_PROVIDER: "openai",
@@ -70,5 +70,23 @@ describe("describeAuxMap", () => {
     const desc = describeAuxMap(env);
     expect(desc).not.toContain("embed");
     expect(desc).not.toContain("classify");
+  });
+});
+
+describe("learn (background forks)", () => {
+  it("is off unless VANTA_MODEL_LEARN or VANTA_LEARN_PROVIDER is set", () => {
+    expect(hasAuxOverride("learn", BASE_ENV)).toBe(false);
+    expect(hasAuxOverride("learn", { ...BASE_ENV, VANTA_MODEL_LEARN: "gpt-4o-mini" })).toBe(true);
+    expect(hasAuxOverride("learn", { ...BASE_ENV, VANTA_LEARN_PROVIDER: "ollama" })).toBe(true);
+  });
+
+  it("swaps only the model on the active provider when VANTA_MODEL_LEARN is set", () => {
+    const p = resolveAuxProvider("learn", { ...BASE_ENV, VANTA_MODEL: "gpt-4o", VANTA_MODEL_LEARN: "gpt-4o-mini" });
+    expect(p.modelId()).toBe("gpt-4o-mini");
+    expect(p.routeInfo?.().provider).toBe("openai");
+  });
+
+  it("is listed by describeAuxMap", () => {
+    expect(describeAuxMap({ VANTA_MODEL_LEARN: "gpt-4o-mini" })).toContain("learn");
   });
 });

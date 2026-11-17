@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Vanta strategy realignment audit — 2026-07-30</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #11100f;
+      --panel: #1a1816;
+      --panel-strong: #211e1b;
+      --text: #f5f1ea;
+      --muted: #bdb5aa;
+      --line: #3d3832;
+      --accent: #b7a3ff;
+      --accent-strong: #d4c9ff;
+      --good: #91d8b0;
+      --warn: #ffd17a;
+      --bad: #ff9a9a;
+      --info: #8fd3ff;
+      --max: 78rem;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        color-scheme: light;
+        --bg: #f4f1eb;
+        --panel: #fffdf8;
+        --panel-strong: #f0ebe2;
+        --text: #171512;
+        --muted: #625c54;
+        --line: #c9c1b6;
+        --accent: #4d339f;
+        --accent-strong: #352170;
+        --good: #14613a;
+        --warn: #7a4b00;
+        --bad: #a32626;
+        --info: #075f91;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      margin: 0;
+    }
+
+    a {
+      color: var(--accent-strong);
+    }
+
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid var(--info);
+      outline-offset: 3px;
+      border-radius: 0.2rem;
+    }
+
+    header,
+    main,
+    footer {
+      width: min(calc(100% - 2rem), var(--max));
+      margin-inline: auto;
+    }
+
+    header {
+      padding: clamp(2.5rem, 7vw, 6rem) 0 2rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    main {
+      display: grid;
+      gap: 1rem;
+      padding: 1rem 0 4rem;
+    }
+
+    footer {
+      padding: 1.5rem 0 3rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 18ch;
+      margin-bottom: 1rem;
+      font-size: clamp(2.3rem, 8vw, 5.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.055em;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      letter-spacing: -0.025em;
+    }
+
+    h3 {
+      margin-bottom: 0.45rem;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .eyebrow,
+    .label {
+      color: var(--accent-strong);
+      font-size: 0.75rem;
+      font-weight: 750;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .lede {
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+    }
+
+    .canonical {
+      max-width: 70ch;
+      margin: 1.5rem 0 0;
+      padding-left: 1rem;
+      border-left: 4px solid var(--accent);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+    }
+
+    .section,
+    .metric,
+    .finding,
+    details {
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+      background: var(--panel);
+    }
+
+    .section {
+      padding: clamp(1.1rem, 3vw, 2rem);
+    }
+
+    .metric-grid,
+    .finding-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+      gap: 0.75rem;
+    }
+
+    .metric,
+    .finding {
+      min-width: 0;
+      padding: 1rem;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 0.2rem;
+      font-size: clamp(1.65rem, 4vw, 2.5rem);
+      line-height: 1;
+    }
+
+    .metric span,
+    .finding p,
+    .muted {
+      color: var(--muted);
+    }
+
+    .status {
+      display: inline-flex;
+      gap: 0.45rem;
+      align-items: center;
+      padding: 0.28rem 0.6rem;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .status::before {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: currentColor;
+      content: "";
+    }
+
+    .good {
+      color: var(--good);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .info {
+      color: var(--info);
+    }
+
+    .callout {
+      padding: 1rem;
+      border-left: 4px solid var(--warn);
+      background: var(--panel-strong);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    th,
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel-strong);
+      color: var(--accent-strong);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      overflow-wrap: anywhere;
+      color: var(--accent-strong);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.25rem;
+    }
+
+    li + li {
+      margin-top: 0.35rem;
+    }
+
+    details {
+      padding: 0.85rem 1rem;
+    }
+
+    details + details {
+      margin-top: 0.6rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+      gap: 1rem;
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        background: white;
+      }
+
+      .section,
+      .metric,
+      .finding,
+      details {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Superseded first-pass audit · retained as historical evidence · 2026-07-30</p>
+    <h1>One operator. One trust contract.</h1>
+    <p class="canonical">
+      <strong>Historical-only warning:</strong> this audit started from stale
+      <code>origin/main</code>. Its 1,305-record baseline, 18-card disposition,
+      autonomy ladder, and lifecycle language are superseded by
+      <code>docs/strategy-realignment-audit-v2-2026-07-30.html</code> and
+      <code>docs/strategy-realignment-correction-2026-07-30.md</code>. Retain
+      this file for audit continuity; do not use it as current authority.
+    </p>
+    <p class="lede">
+      This is the before/after evidence record for Vanta’s canonical strategy and roadmap realignment.
+      It records the original state, isolated mutation boundary, resolved conflicts, validated roadmap
+      migration, and the implementation gaps that documentation cannot close.
+    </p>
+    <p class="canonical">
+      <strong>Target statement:</strong> Vanta is a full-capability, life-integrated, progressively
+      autonomous personal AI operator for the general human experience. It can do the broad work
+      expected of a Hermes/OpenClaw-class agent, while specializing in trusted continuity and
+      responsibility transfer when human attention, memory, time, and executive function are finite.
+      Neurodivergent and disability experience supplies curb-cut universal-design requirements
+      without limiting the audience.
+    </p>
+  </header>
+
+  <main>
+    <section class="section" aria-labelledby="boundary-title">
+      <p class="label">Mutation boundary</p>
+      <h2 id="boundary-title">Isolated before editing</h2>
+      <div class="metric-grid">
+        <article class="metric">
+          <span>Working branch</span>
+          <strong>codex/total-realignment-20260730</strong>
+        </article>
+        <article class="metric">
+          <span>Base</span>
+          <strong>origin/main</strong>
+        </article>
+        <article class="metric">
+          <span>Base commit</span>
+          <strong><code>4911ae44</code></strong>
+        </article>
+        <article class="metric">
+          <span>Commit / push authority</span>
+          <strong>None</strong>
+        </article>
+      </div>
+      <p class="callout">
+        The original checkout remains on <code>agent/v0-9-7-desktop-demo-and-identity</code> with
+        unrelated Desktop distribution, Desktop state, and TTFT harness changes. Those files are
+        excluded from this work and must remain untouched.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="after-title">
+      <p class="label">Validated migration result</p>
+      <h2 id="after-title">Roadmap after-state</h2>
+      <div class="metric-grid">
+        <article class="metric">
+          <span>Total cards</span>
+          <strong>1,317</strong>
+        </article>
+        <article class="metric">
+          <span>Shipped</span>
+          <strong>1,272</strong>
+        </article>
+        <article class="metric">
+          <span>Open build-order cards</span>
+          <strong>12</strong>
+        </article>
+        <article class="metric">
+          <span>Parked</span>
+          <strong>33</strong>
+        </article>
+        <article class="metric">
+          <span>Next</span>
+          <strong>4</strong>
+        </article>
+        <article class="metric">
+          <span>Building</span>
+          <strong>2</strong>
+        </article>
+        <article class="metric">
+          <span>Implementation-ready</span>
+          <strong>6</strong>
+        </article>
+        <article class="metric">
+          <span>Horizon</span>
+          <strong>6</strong>
+        </article>
+      </div>
+      <p class="callout">
+        All 18 prior open cards remain byte-content-preserved as parked history with explicit
+        dispositions. Twelve outcome-aligned cards now drive the build order. The reconciliation
+        catalog contains 28 unique outcomes, and every dependency resolves to a known card.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="baseline-title">
+      <p class="label">Canonical work database</p>
+      <h2 id="baseline-title">Roadmap baseline</h2>
+      <div class="metric-grid">
+        <article class="metric">
+          <span>Total cards</span>
+          <strong>1,305</strong>
+        </article>
+        <article class="metric">
+          <span>Shipped</span>
+          <strong>1,272</strong>
+        </article>
+        <article class="metric">
+          <span>Open build-order cards</span>
+          <strong>18</strong>
+        </article>
+        <article class="metric">
+          <span>Parked</span>
+          <strong>15</strong>
+        </article>
+        <article class="metric">
+          <span>Next</span>
+          <strong>2</strong>
+        </article>
+        <article class="metric">
+          <span>Building</span>
+          <strong>0</strong>
+        </article>
+      </div>
+      <p class="muted">
+        Baseline <code>roadmap.json</code> SHA-256:
+        <code>07969a59171ab52da78057702a498878b73c42fb709549a5ec7a28c3c24a72ae</code>.
+        A byte-identical backup is held outside the repository at
+        <code>/tmp/vanta-roadmap-pre-realignment-20260730.json</code>.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="truth-title">
+      <p class="label">Evidence before narrative</p>
+      <h2 id="truth-title">The central trust gap</h2>
+      <div class="finding-grid">
+        <article class="finding">
+          <span class="status bad">P0</span>
+          <h3>Hook and control-plane bypass</h3>
+          <p>A project write can create hook configuration that later executes host shell code outside the ordinary tool boundary.</p>
+        </article>
+        <article class="finding">
+          <span class="status bad">P0</span>
+          <h3>Credential exposure</h3>
+          <p>Shell and code paths can inherit process credentials or read project secret-bearing files without a narrow broker.</p>
+        </article>
+        <article class="finding">
+          <span class="status bad">P0</span>
+          <h3>Audit integrity</h3>
+          <p>Agent-readable project state currently contains material that can undermine the audit chain’s claim of independence.</p>
+        </article>
+        <article class="finding">
+          <span class="status bad">P0</span>
+          <h3>Incomplete capability boundary</h3>
+          <p>The kernel assesses TypeScript-provided descriptions while TypeScript and extensions still perform many effects.</p>
+        </article>
+        <article class="finding">
+          <span class="status warn">P1</span>
+          <h3>Completion laundering</h3>
+          <p>Desktop, CLI, TUI, memory, and verification paths do not yet consume one typed, evidence-backed terminal state.</p>
+        </article>
+        <article class="finding">
+          <span class="status warn">P1</span>
+          <h3>Operator fragmentation</h3>
+          <p>Multiple stores, queues, modes, dashboards, commands, and agents obscure who owns work and what genuinely needs the user.</p>
+        </article>
+      </div>
+      <p class="callout">
+        Documentation alignment is not implementation evidence. This pass can install a truthful
+        strategy and build order; it cannot claim these runtime gaps are fixed.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="conflict-title">
+      <p class="label">Before / after conflict map</p>
+      <h2 id="conflict-title">Claims that cannot remain authoritative</h2>
+      <div class="table-wrap" tabindex="0" aria-label="Strategy conflict map">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Observed conflict</th>
+              <th scope="col">Disposition</th>
+              <th scope="col">New authority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ND-only audience framing</td>
+              <td>Supersede the market boundary; preserve disability-led requirements.</td>
+              <td>2026-06-04 curb-cut decision plus the 2026-07-30 clarification.</td>
+            </tr>
+            <tr>
+              <td>Cofounder/company mechanics as product identity</td>
+              <td>Keep bounded worker capability; move speculative organizations to Lab.</td>
+              <td>One customer-facing Vanta product with Engine and Lab trust boundaries.</td>
+            </tr>
+            <tr>
+              <td>Broad capability treated as drift or a tool-count race</td>
+              <td>Preserve a representative generalist floor; hide machinery behind intent.</td>
+              <td>Hermes/OpenClaw-class capability is table stakes, not the wedge.</td>
+            </tr>
+            <tr>
+              <td>Draft/confirm as the permanent autonomy ceiling</td>
+              <td>Replace with workflow-by-workflow earned authority.</td>
+              <td>Observe → Prepare → Confirm → Delegate → Autonomous delegate.</td>
+            </tr>
+            <tr>
+              <td>Generated views or prose acting as work databases</td>
+              <td>Make them read-only projections.</td>
+              <td><code>roadmap.json</code> remains the sole product-development work database.</td>
+            </tr>
+            <tr>
+              <td>Feature volume used as product proof</td>
+              <td>Retain shipped history but remove it from live prioritization.</td>
+              <td>Burden transferred, truthful closure, safety, retention, and payment evidence.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="target-title">
+      <p class="label">Migration acceptance</p>
+      <h2 id="target-title">Required after-state</h2>
+      <div class="two-column">
+        <div>
+          <h3>Roadmap focus</h3>
+          <ul>
+            <li>No more than 12 open build-order cards.</li>
+            <li>No more than 4 cards in Next.</li>
+            <li>No more than 6 implementation-ready cards.</li>
+            <li>Exactly 2 Building lanes: one urgent Trust slice and one safe Operator-value slice.</li>
+            <li>All 28 convergence outcomes represented once in a reconciliation catalog.</li>
+            <li>Every prior open card mapped to core, hidden, pack, Lab/deferred, or consolidated history.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Product contract</h3>
+          <ul>
+            <li>One broad operator identity across supported hosts.</li>
+            <li>One work, authority, memory, and receipt contract.</li>
+            <li>Universal support by default, with negotiated preferences and no diagnosis inference.</li>
+            <li>Practical autonomy earned through visible, revocable workflow/domain grants.</li>
+            <li>Vanta, Engine, and Lab as boundaries—not competing products.</li>
+            <li>No present-tense upgrade from aspiration to shipped behavior.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="proof-title">
+      <p class="label">Executed validation</p>
+      <h2 id="proof-title">Migration proof and remaining gaps</h2>
+      <details open>
+        <summary><span class="status good">Passed</span> Canonical agreement</summary>
+        <p>One append-only decision was added while every prior byte in <code>DECISIONS.md</code> remained unchanged. Strategy, soul, PRD, acceptance, agent context, README, current website docs, roadmap rationale, and the local handoff now use the same product, autonomy, universal-design, and Vanta/Engine/Lab contract.</p>
+      </details>
+      <details open>
+        <summary><span class="status good">Passed</span> Structured roadmap integrity</summary>
+        <p>The real schema parsed 1,317 items; five focused roadmap suites passed 59 tests. Unique IDs, dependency resolution, parked reasons, WIP budgets, 18-card migration rows, 28 unique outcome rows, generated build order, HTML board, and website projection all agree with <code>roadmap.json</code>.</p>
+      </details>
+      <details open>
+        <summary><span class="status good">Passed</span> Render and public-doc build</summary>
+        <p>The standalone audit rendered through macOS Quick Look, the roadmap HTML was generated through the real TypeScript builder, and the Docusaurus production build completed successfully without broken-link warnings.</p>
+      </details>
+      <details open>
+        <summary><span class="status good">Passed</span> Protected boundary</summary>
+        <p><code>MANIFESTO.md</code>, Rust kernel source, product runtime source, protected factory source, user runtime state, credentials, profiles, commits, pushes, releases, and publication were not changed. The branch remains at the exact <code>origin/main</code> commit with zero commits ahead.</p>
+      </details>
+      <details open>
+        <summary><span class="status warn">Open</span> Source-level implementation</summary>
+        <p>This realignment does not fix the audited runtime trust gaps. <code>scripts/build-order.mjs</code> also still emits legacy five-pillar language and unconditional commit instructions; the mismatch is recorded on OP-01 because this handoff did not authorize source edits.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Validated repository state on <code>codex/total-realignment-20260730</code> at base
+      <code>4911ae44</code>. No commit or push was created. Runtime trust work remains governed
+      by the two Building slices in <code>roadmap.json</code>.
+    </p>
+  </footer>
+</body>
+</html>

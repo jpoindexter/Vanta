@@ -110,6 +110,8 @@ function buildCodexBody(model: string, messages: Message[], tools: ToolSchema[],
     input,
     tools: tools.length ? toCodexTools(tools) : undefined,
     tool_choice: tools.length ? "auto" : undefined,
+    reasoning: config?.effortLevel ? { effort: config.effortLevel } : undefined,
+    service_tier: config?.serviceTier === "fast" ? "fast" : undefined,
     stream: true,
     store: false,
   };

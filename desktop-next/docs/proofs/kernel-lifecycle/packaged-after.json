@@ -1,0 +1,68 @@
+{
+  "app": "~/Documents/GitHub/docs/Vanta-kernel-closeout-20261014/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+  "results": [
+    {
+      "exitPath": "quit",
+      "appPath": "~/Documents/GitHub/docs/Vanta-kernel-closeout-20261014/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel-guard": 1,
+        "kernel": 1
+      },
+      "runningTotal": 7,
+      "pidFileWritten": true,
+      "pidFilesWhileRunning": [
+        "kernel-18865.json"
+      ],
+      "pidFilesAfter": [],
+      "pidFileGoneAfter": true,
+      "afterSeconds": 0.4,
+      "after": {},
+      "afterTotal": 0
+    },
+    {
+      "exitPath": "sigterm",
+      "appPath": "~/Documents/GitHub/docs/Vanta-kernel-closeout-20261014/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel-guard": 1,
+        "kernel": 1
+      },
+      "runningTotal": 7,
+      "pidFileWritten": true,
+      "pidFilesWhileRunning": [
+        "kernel-17546.json"
+      ],
+      "pidFilesAfter": [],
+      "pidFileGoneAfter": true,
+      "afterSeconds": 0.5,
+      "after": {},
+      "afterTotal": 0
+    },
+    {
+      "exitPath": "sigkill",
+      "appPath": "~/Documents/GitHub/docs/Vanta-kernel-closeout-20261014/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel-guard": 1,
+        "kernel": 1
+      },
+      "runningTotal": 7,
+      "pidFileWritten": true,
+      "pidFilesWhileRunning": [
+        "kernel-17871.json"
+      ],
+      "pidFilesAfter": [],
+      "pidFileGoneAfter": true,
+      "afterSeconds": 0.5,
+      "after": {},
+      "afterTotal": 0
+    }
+  ]
+}

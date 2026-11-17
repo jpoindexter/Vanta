@@ -1,0 +1,120 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-WgEBpg",
+  "checks": [
+    "Real local reply 1 arrives",
+    "Real local reply 2 arrives",
+    "Real local reply 3 arrives",
+    "Real local reply 4 arrives",
+    "Shift+Tab reaches the active prompt",
+    "Transcript rail has exactly one sequential Tab stop",
+    "Focused tick has a visible 2px ring",
+    "Home focuses prompt 0 without another Tab stop",
+    "ArrowDown focuses prompt 1 without another Tab stop",
+    "End focuses prompt 3 without another Tab stop",
+    "ArrowUp focuses prompt 2 without another Tab stop",
+    "Home focuses prompt 0 without another Tab stop",
+    "ArrowUp focuses prompt 0 without another Tab stop",
+    "Arrow navigation does not submit a new model request",
+    "Enter actually jumps the transcript to its first prompt",
+    "Tab leaves the rail without visiting the next prompt",
+    "Keyboard Scroll to bottom actually returns to the latest reply",
+    "Tab returns to the chat composer",
+    "Scrolling after leaving the rail does not steal typing focus",
+    "Navigation never sends the draft or replays tools",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "entry",
+      "index": "3",
+      "label": "Timeline 3: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 98,
+      "maxScroll": 98
+    },
+    {
+      "name": "Home",
+      "index": "0",
+      "label": "Timeline 1: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 122,
+      "maxScroll": 123
+    },
+    {
+      "name": "ArrowDown",
+      "index": "1",
+      "label": "Timeline 2: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 122,
+      "maxScroll": 123
+    },
+    {
+      "name": "End",
+      "index": "3",
+      "label": "Timeline 3: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 122,
+      "maxScroll": 123
+    },
+    {
+      "name": "ArrowUp",
+      "index": "2",
+      "label": "Timeline 4: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 122,
+      "maxScroll": 123
+    },
+    {
+      "name": "Home",
+      "index": "0",
+      "label": "Timeline 1: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 122,
+      "maxScroll": 123
+    },
+    {
+      "name": "ArrowUp",
+      "index": "0",
+      "label": "Timeline 1: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 122,
+      "maxScroll": 123
+    },
+    {
+      "name": "jump-first",
+      "index": "0",
+      "label": "Timeline 1: Local navigation paragraph with several lines.Local navigation paragraph with several lines. Local navigati…",
+      "focused": true,
+      "shadow": "rgb(44, 103, 197) 0px 0px 0px 2px inset",
+      "stops": 1,
+      "scroll": 35,
+      "maxScroll": 123
+    },
+    {
+      "name": "leave",
+      "index": null,
+      "label": "Scroll to bottom",
+      "focused": true,
+      "shadow": "none",
+      "stops": 1,
+      "scroll": 35,
+      "maxScroll": 123
+    }
+  ],
+  "rendererErrors": [],
+  "modelRequests": 4
+}

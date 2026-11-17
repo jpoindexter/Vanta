@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
 import { runKanbanCommand } from "./kanban-cmd.js";
 import { createProfile } from "../profiles/store.js";
+import { decomposeGoal } from "../kanban/kanban.js";
+import { saveKanbanBoard } from "../kanban/store.js";
 
 let tmp: string | null = null;
 
@@ -27,6 +29,23 @@ describe("runKanbanCommand", () => {
     lines.length = 0;
     expect(await runKanbanCommand(tmp, ["status"], (line) => lines.push(line))).toBe(0);
     expect(lines.join("\n")).toContain("done");
+  });
+
+  it("honors the positional board id advertised by status", async () => {
+    tmp = await mkdtemp(join(tmpdir(), "vanta-kanban-cli-"));
+    const first = decomposeGoal("first exact board", {
+      now: () => new Date("2026-07-09T00:00:00.000Z"),
+    });
+    const second = decomposeGoal("newer default board", {
+      now: () => new Date("2026-07-10T00:00:00.000Z"),
+    });
+    saveKanbanBoard(tmp, first);
+    saveKanbanBoard(tmp, second);
+    const lines: string[] = [];
+
+    expect(await runKanbanCommand(tmp, ["status", first.id], (line) => lines.push(line))).toBe(0);
+    expect(lines.join("\n")).toContain("goal first exact board");
+    expect(lines.join("\n")).not.toContain("goal newer default board");
   });
 
   it("routes durable cards through capable profiles and receipt-gated transitions", async () => {

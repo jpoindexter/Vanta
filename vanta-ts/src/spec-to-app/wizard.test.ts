@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { extractPostureRequirements, POSTURE_ROUTINE_SPEC_FIXTURE, runSpecToAppWizard, type Runner } from "./wizard.js";
+import { extractPostureRequirements, POSTURE_ROUTINE_SPEC_FIXTURE, runSpecToAppWizard, typescriptCompilerPath, type Runner } from "./wizard.js";
 
 describe("spec-to-app wizard", () => {
   it("extracts posture app requirements from the fixture", () => {
@@ -11,6 +11,19 @@ describe("spec-to-app wizard", () => {
     expect(requirements).toContain("Tailwind-styled responsive interface");
     expect(requirements).toContain("localStorage progress persistence");
     expect(requirements).toContain("Accessible semantic controls and focus states");
+  });
+
+  it("uses the intact extra-resource compiler in a packaged app", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-typescript-runtime-"));
+    try {
+      const packaged = join(dir, "resources", "typescript", "node_modules", "@typescript", "native", "bin", "tsc");
+      await mkdir(join(packaged, ".."), { recursive: true });
+      await writeFile(packaged, "fixture");
+      expect(typescriptCompilerPath(join(dir, "package"), join(dir, "resources"))).toBe(packaged);
+      expect(typescriptCompilerPath(join(dir, "package"), join(dir, "missing"))).toBe(join(dir, "package", "node_modules", "@typescript", "native", "bin", "tsc"));
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("scaffolds a preview, runs checks, and records evidence", async () => {

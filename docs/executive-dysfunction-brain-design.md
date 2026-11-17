@@ -1,5 +1,11 @@
 # Executive Dysfunction → Vanta Brain Design
 
+> **Historical research translation (2026-06-04).** Preserve this as design provenance,
+> not current product authority or a clinical model of users. Current support must describe
+> observable task state, permit `unknown`, avoid diagnosis inference and unsourced
+> neuroscience generalization, and be validated through the universal-design contract in
+> `STRATEGY.md`, `docs/prd.md`, and `docs/product-acceptance.md`.
+
 Source: Rabinovici GD, Stephens ML, Possin KL. "Executive Dysfunction."  
 Continuum (Minneap Minn). 2015 Jun;21(3 Behavioral Neurology and Neuropsychiatry):646–659.  
 PMC4455841 — UCSF Memory and Aging Center. Full text + clinical cases read 2026-06-04.

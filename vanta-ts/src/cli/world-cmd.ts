@@ -1,12 +1,10 @@
+import { gitExecFile } from "../git/process.js";
 import { readdir } from "node:fs/promises";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { join } from "node:path";
 import { listRooms } from "../projects/rooms.js";
 import { appendWorld } from "../world/store.js";
 import { scanSystemMap, formatSystemMap, type ScanDeps } from "../world/system-map.js";
 
-const exec = promisify(execFile);
 
 // WORLD-MODEL CLI — `vanta world map` scans every repo under the projects dir
 // (_active/), detects each one's stack + last-known git state, stores them as
@@ -16,7 +14,7 @@ const exec = promisify(execFile);
 /** git branch + last-commit subject for a repo dir (nulls when unavailable). */
 async function gitStateFor(path: string): Promise<{ branch: string | null; lastCommit: string | null }> {
   const run = async (args: string[]): Promise<string | null> =>
-    exec("git", ["-C", path, ...args]).then((r) => r.stdout.trim() || null).catch(() => null);
+    gitExecFile("git", ["-C", path, ...args]).then((r) => r.stdout.trim() || null).catch(() => null);
   const [branch, lastCommit] = await Promise.all([
     run(["rev-parse", "--abbrev-ref", "HEAD"]),
     run(["log", "-1", "--format=%s"]),

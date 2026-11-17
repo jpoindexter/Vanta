@@ -3,6 +3,8 @@ use std::path::Path;
 // calls as `safety::*` so callers (app.rs) need no change.
 pub use crate::scope::{inside_scope, is_protected_path};
 use crate::scope::{is_safe_dev_device, mentions_outside_home, mentions_outside_scope, references_abs_path_outside_root};
+#[path = "safety_replacement.rs"]
+mod replacement;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Risk {
@@ -64,8 +66,8 @@ const MACHINE_CONFIG: &[&str] = &["install", "sudo", "launchctl", "system", "pro
 // Irreversible-but-not-destructive operations: publishing, pushing, applying
 // migrations, deploying, rewriting history. They don't lose local data (so they're
 // NOT Block), but they can't be cleanly undone — so they escalate Allow → Ask.
-// `delete`/`overwrite` are the card's other irreversible examples and are already
-// Block above; this set covers the `push`/`migrate` families that otherwise Allow.
+// Generic delete/overwrite remain Block; a bounded file replacement asks separately.
+// This set covers the `push`/`migrate` families that otherwise Allow.
 const IRREVERSIBLE: &[&str] = &[
     "git push", "push origin", "push -u", "git rebase", "rebase -i", "git restore",
     "checkout --", "git checkout .", "branch -d", "tag -d", "stash drop", "stash clear",
@@ -105,6 +107,9 @@ pub fn assess_action(text: &str, root: &Path) -> Verdict {
         return block("destructive file operation violates rule zero");
     }
     if has_any(&t, DATA_LOSS) {
+        if !has_any(&t, EXFIL) && replacement::ordinary_replacement(text, root) {
+            return ask("ordinary project file replacement requires a fresh exact one-time approval");
+        }
         return block("overwrite/data-loss operation needs explicit separate approval");
     }
     if is_secret_file_read(&t) {
@@ -298,3 +303,7 @@ fn allow(reason: &str) -> Verdict {
 #[cfg(test)]
 #[path = "safety_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "safety_replacement_tests.rs"]
+mod replacement_tests;

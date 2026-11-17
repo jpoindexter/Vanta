@@ -1,0 +1,97 @@
+{
+  "artifact": {
+    "path": "/Applications/ChatGPT.app/Contents/Resources/app.asar",
+    "sha256": "130145706a912db74e4d260ad7538f10f1e05e88af955f9afba42cdf01e64606",
+    "packageName": "openai-codex-electron",
+    "packageVersion": "26.1021.31345",
+    "product": "Codex",
+    "note": "Bundle installed at ChatGPT.app path identifies itself as Codex. Not separate ChatGPT-product evidence."
+  },
+  "themes": [
+    {
+      "file": "webview/assets/defaults-930c9f21f410.js",
+      "fileSha256": "a3337b2a1efdfa144d1ec30f8cf645618809ee78a3ec42bc494ac39f5dddcae6",
+      "utf16Offset": 93,
+      "configuration": {
+        "dark": {
+          "accent": "#339cff",
+          "contrast": 60,
+          "fonts": {
+            "code": null,
+            "ui": null
+          },
+          "ink": "#ffffff",
+          "opaqueWindows": false,
+          "semanticColors": {
+            "diffAdded": "#40c977",
+            "diffRemoved": "#fa423e",
+            "skill": "#ad7bf9"
+          },
+          "surface": "#181818"
+        },
+        "light": {
+          "accent": "#339cff",
+          "contrast": 45,
+          "fonts": {
+            "code": null,
+            "ui": null
+          },
+          "ink": "#1a1c1f",
+          "opaqueWindows": false,
+          "semanticColors": {
+            "diffAdded": "#00a240",
+            "diffRemoved": "#ba2623",
+            "skill": "#924ff7"
+          },
+          "surface": "#ffffff"
+        }
+      },
+      "confidence": "observed-static-default-object",
+      "appliedAtRuntime": "not-observed"
+    },
+    {
+      "file": "webview/assets/chatgpt-theme-6958a674b836.js",
+      "fileSha256": "510975655af6b37f025d4574b48955a02d494c52bd8db0612e5575d17e9c53e4",
+      "utf16Offset": 93,
+      "configuration": {
+        "light": {
+          "accent": "#3a83f7",
+          "accentSource": "chatgpt",
+          "contrast": 45,
+          "fonts": {
+            "code": null,
+            "ui": null
+          },
+          "ink": "#0d0d0d",
+          "opaqueWindows": true,
+          "semanticColors": {
+            "diffAdded": "#00a240",
+            "diffRemoved": "#ba2623",
+            "skill": "#924ff7"
+          },
+          "surface": "#fcfcfc"
+        },
+        "dark": {
+          "accent": "#3a83f7",
+          "accentSource": "chatgpt",
+          "contrast": 60,
+          "fonts": {
+            "code": null,
+            "ui": null
+          },
+          "ink": "#ededed",
+          "opaqueWindows": true,
+          "semanticColors": {
+            "diffAdded": "#40c977",
+            "diffRemoved": "#fa423e",
+            "skill": "#ad7bf9"
+          },
+          "surface": "#000000"
+        }
+      },
+      "confidence": "observed-static-default-object",
+      "appliedAtRuntime": "not-observed"
+    }
+  ],
+  "limitation": "Defaults only; actual settings, variant selection and dynamically derived color tokens not executed. Desktop and browser reference objects are intentionally separate."
+}

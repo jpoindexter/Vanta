@@ -66,7 +66,7 @@ function liveDeps(ctx: ReplCtx): ReloadDeps {
   return {
     async readEnabled() {
       const { loadSettings } = await import("../settings/store.js");
-      const settings = await loadSettings(repoRoot, ctx.env).catch(() => ({}) as Awaited<ReturnType<typeof loadSettings>>);
+      const settings = await loadSettings(repoRoot, ctx.env);
       return settings.plugins?.enabled ?? [];
     },
     readLoaded() {
@@ -75,7 +75,7 @@ function liveDeps(ctx: ReplCtx): ReloadDeps {
     async loadPlugins(names) {
       const { loadEnabledPlugins } = await import("../plugins/loader.js");
       const { loadSettings } = await import("../settings/store.js");
-      const settings = await loadSettings(repoRoot, ctx.env).catch(() => ({}) as Awaited<ReturnType<typeof loadSettings>>);
+      const settings = await loadSettings(repoRoot, ctx.env);
       // Load only the newly-available subset; the loader registers tools/commands
       // through the same kernel-gated dispatch path as a startup load.
       const loaded = await loadEnabledPlugins({

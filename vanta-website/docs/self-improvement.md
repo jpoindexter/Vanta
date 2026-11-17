@@ -6,7 +6,13 @@ sidebar_position: 3
 
 # Self-improvement
 
-Vanta can improve its own codebase and its own reasoning — bounded, verified, and gated. These are operator-triggered, never silent.
+Vanta includes experimental self-improvement machinery. The target strategy
+places it in Vanta Lab as operator-triggered, isolated, proposal-only, and
+unable to promote, merge, deploy, alter policy, credentials, audit state,
+evaluators, or the root of trust. Current legacy factory paths can commit and
+push at L4 and can merge to a non-default integration branch at armed L5;
+auto-research can also commit and merge a kept candidate. Those executable
+paths are release blockers until migrated or disabled behind the Lab boundary.
 
 ## The self-learning loop — Vanta learns by doing
 
@@ -31,7 +37,10 @@ It's on by default (`VANTA_SELF_IMPROVE=0` to disable); adoption is always gated
 
 ## The factory — improve the codebase
 
-The factory orchestrates autonomous codebase improvement slice by slice, with kernel-enforced safety (the kernel source / "skeleton" is protected; reflexes, limbs, and memory are autonomous).
+The factory can orchestrate codebase candidates. Current acceptance requires an
+isolated worktree, scrubbed environment, bounded diff, frozen tests/evaluators,
+receipts, rollback, and human-approved promotion. Existing protected-path checks
+are evidence for a narrow path, not a universal self-repair boundary.
 
 ```bash
 vanta improve            # L1 — show suggested fixes (read-only)
@@ -44,7 +53,9 @@ vanta factory approve    # L2–L5 — implement / commit / push / merge per aut
 | `VANTA_FACTORY_DISABLED` | kill switch |
 | `VANTA_AUTONOMY_ALLOW_MERGE` / `VANTA_FACTORY_MERGE_TARGET` | gate + target for L5 merges |
 
-Each change is verified before it's kept. Protected paths (kernel source, factory loops, the manifesto) can never be edited — enforced by the kernel's scope check.
+No candidate is kept merely because the factory reports success. Promotion
+requires the exact acceptance path and human review; protected paths and
+boundary changes remain out of autonomous scope.
 
 ## Evolve — improve the reasoning
 
@@ -86,4 +97,6 @@ VANTA_CRITIC=1           # opt-in; fires post-turn when ≥3 tools ran
 
 Output is a `[███░░] 7/10` score plus an issues list, judging goal alignment, verification, tool efficiency, and honesty. A stateless anomaly pass (loop / error-spike / blind-write detection) runs alongside it.
 
-> All four are best-effort and operator-triggered. The factory and evolve loops only ever act within the kernel's [safety boundary](./safety-model.md) and Rule Zero.
+> These mechanisms are best-effort Lab capabilities, not permission for
+> production self-modification. See the [safety boundary](./safety-model.md) and
+> current acceptance gaps.

@@ -1,0 +1,41 @@
+{
+  "checks": [
+    "Cmd+Shift+F focuses chat history search"
+  ],
+  "states": [
+    {
+      "name": "shortcut",
+      "focus": "<input aria-label=\"Search chats\" class=\"h-7 min-w-0 max-w-full flex-1 bg-transparent text-xs text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none\" placeholder=\"Search chats…\" type=\"text\" value=\"\">",
+      "sidebar": "New session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nHistory Alpha\nnow\nHistory Bravo\nnow",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    },
+    {
+      "name": "arrow-down",
+      "focus": "<input aria-label=\"Search chats\" class=\"h-7 min-w-0 max-w-full flex-1 bg-transparent text-xs text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none\" placeholder=\"Search chats…\" type=\"text\" value=\"History Bravo\">",
+      "sidebar": "New session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nHistory Bravo\nnow",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    },
+    {
+      "name": "failure",
+      "focus": "<input aria-label=\"Search chats\" class=\"h-7 min-w-0 max-w-full flex-1 bg-transparent text-xs text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none\" placeholder=\"Search chats…\" type=\"text\" value=\"History Bravo\">",
+      "sidebar": "New session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nRESULTS\nHistory Bravo\nnow",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent Alpha draft"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

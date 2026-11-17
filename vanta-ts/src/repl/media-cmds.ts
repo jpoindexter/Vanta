@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { basename, join } from "node:path";
 import { homedir } from "node:os";
 import { dirname } from "node:path";
@@ -43,9 +44,7 @@ export const copy: SlashHandler = async (_arg, ctx) => {
 export const update: SlashHandler = async (_arg, ctx) => {
   const repoRoot = dirname(ctx.dataDir);
   try {
-    const { execFile } = await import("node:child_process");
-    const { promisify } = await import("node:util");
-    const { stdout } = await promisify(execFile)("git", ["-C", repoRoot, "pull", "--ff-only"]);
+    const { stdout } = await gitExecFile("git", ["-C", repoRoot, "pull", "--ff-only"]);
     return { output: `  ⬆ ${stdout.trim() || "already up to date"}\n  · run ./install.sh to rebuild if anything changed` };
   } catch (err) {
     return { output: `  update failed: ${(err as Error).message.split("\n")[0]}` };

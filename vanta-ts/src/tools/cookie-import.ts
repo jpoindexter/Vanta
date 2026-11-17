@@ -2,7 +2,7 @@ import { z } from "zod";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import type { Tool } from "./types.js";
-import { saveCookie } from "../reach/cookie.js";
+import { cookieHasName, saveCookie } from "../reach/cookie.js";
 import { extractBrowserCookies } from "../reach/browser-cookies.js";
 
 const Args = z.object({
@@ -65,6 +65,14 @@ export const cookieImportTool: Tool = {
     if (!parsed.success) return { ok: false, output: "cookie_import needs a channel + a cookie or file" };
     const src = resolveRaw(parsed.data);
     if ("error" in src) return { ok: false, output: src.error };
+    if (parsed.data.channel === "linkedin" && !cookieHasName(src.raw, "li_at")) {
+      return {
+        ok: false,
+        output:
+          "LinkedIn session is not authenticated: the import has no li_at cookie. " +
+          "Vanta did not store it. Use a LinkedIn data export or approved OAuth; keep profile edits manual.",
+      };
+    }
     const result = saveCookie(parsed.data.channel, src.raw);
     return result.ok
       ? { ok: true, output: `Stored login cookie for "${parsed.data.channel}" (kept 0600 in ~/.vanta, never logged).` }

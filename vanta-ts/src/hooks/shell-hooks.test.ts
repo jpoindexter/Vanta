@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, rm, writeFile, access } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile, access } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -69,6 +69,12 @@ describe("loadShellHooks", () => {
 
   it("rejects an mcp_tool hook with missing server (zod) → {}", async () => {
     await writeHooks(dir, { PostToolUse: [{ type: "mcp_tool", tool: "t" }] });
+    expect(await loadShellHooks(dir)).toEqual({});
+  });
+
+  it("snapshots project hooks for the process so same-run writes cannot activate", async () => {
+    expect(await loadShellHooks(dir)).toEqual({});
+    await writeHooks(dir, { PostToolUse: [{ command: "echo newly-created" }] });
     expect(await loadShellHooks(dir)).toEqual({});
   });
 });
@@ -174,6 +180,35 @@ describe("runShellHook", () => {
   it("does not surface EPIPE when a hook exits before reading stdin", async () => {
     const r = await runShellHook("true", "x".repeat(1_000_000));
     expect(r.code).toBe(0);
+  });
+
+  it("does not inherit provider credentials from the Vanta process", async () => {
+    const previous = process.env.OPENAI_API_KEY;
+    process.env.OPENAI_API_KEY = "should-never-reach-hook";
+    try {
+      const r = await runShellHook('printf "${OPENAI_API_KEY-unset}"', "{}");
+      expect(r.stdout).toBe("unset");
+    } finally {
+      if (previous === undefined) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = previous;
+    }
+  });
+
+  it.runIf(process.platform === "darwin")("cannot read or overwrite project credentials", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-hook-secret-"));
+    const envPath = join(dir, ".env");
+    try {
+      await writeFile(envPath, "PROJECT_SECRET=original\n", "utf8");
+      const read = await runShellHook("cat .env", "{}", { cwd: dir });
+      expect(read.code).not.toBe(0);
+      expect(read.stdout).not.toContain("PROJECT_SECRET");
+
+      const write = await runShellHook("printf hacked > .env", "{}", { cwd: dir });
+      expect(write.code).not.toBe(0);
+      expect(await readFile(envPath, "utf8")).toBe("PROJECT_SECRET=original\n");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });
 
