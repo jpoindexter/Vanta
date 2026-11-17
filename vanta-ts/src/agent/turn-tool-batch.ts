@@ -68,7 +68,7 @@ async function closeAcquisitionCall(args: ProcessToolCallsArgs, call: ToolCall, 
   state.toolIterations++;
   messages.push({ role: "tool", toolCallId: call.id, name: call.name, content: output, effectDisposition: "none" });
   await persistEffectTransition(ctx.root, deps.sessionId, call, "settled", "none");
-  await checkpointToolTranscript(deps.sessionId, messages);
+  await checkpointToolTranscript(deps.sessionId, messages, deps.checkpointWorker);
   await logToolOutcome(deps, call.name, false, output.length);
   return recordToolOutcome(state, call, outcome, deps);
 }
@@ -83,7 +83,7 @@ async function dispatchTrackedCall(args: ProcessToolCallsArgs, call: ToolCall): 
       executionStarted = true;
       call.effectState = "started";
       await persistEffectTransition(ctx.root, deps.sessionId, call, "started");
-      await checkpointToolTranscript(deps.sessionId, messages);
+      await checkpointToolTranscript(deps.sessionId, messages, deps.checkpointWorker);
     },
   };
   let outcome: DispatchOutcome;
@@ -122,7 +122,7 @@ async function settleCall(args: ProcessToolCallsArgs, call: ToolCall, outcome: D
     outcome.effectDisposition,
     outcome.workItemState,
   );
-  await checkpointToolTranscript(deps.sessionId, messages);
+  await checkpointToolTranscript(deps.sessionId, messages, deps.checkpointWorker);
   await logToolOutcome(deps, call.name, outcome.ok, reactive.output.length);
   const stuck = recordToolOutcome(state, call, outcome, deps);
   maybeRunAdvisor(messages, deps, state);
@@ -140,7 +140,7 @@ export async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ st
     if (hardToolBudget > 0 && state.toolIterations >= hardToolBudget) {
       budgetExhausted = true;
       await settleBudgetExhausted({ calls: calls.slice(index), messages, ctx, deps, state });
-      await checkpointToolTranscript(deps.sessionId, messages);
+      await checkpointToolTranscript(deps.sessionId, messages, deps.checkpointWorker);
       break;
     }
     if (toolBudgetClosure && !isToolAllowedDuringClosure(call.name)) {
@@ -155,7 +155,7 @@ export async function processToolCalls(args: ProcessToolCallsArgs): Promise<{ st
   // and leaves the rest of the batch un-answered). One result per call is a
   // transcript invariant, not a happy-path nicety — see agent/tool-pairing.ts.
   await settleUnansweredCalls({ calls, messages, ctx, deps, state });
-  await checkpointToolTranscript(deps.sessionId, messages);
+  await checkpointToolTranscript(deps.sessionId, messages, deps.checkpointWorker);
   assertToolPairing(messages, "processToolCalls");
   await fireHooks(join(ctx.root, ".vanta"), "PostToolBatch", { tools: batch }, { cwd: ctx.root, ...buildAgentHookDeps(deps) });
   return { stuckTool, budgetExhausted };

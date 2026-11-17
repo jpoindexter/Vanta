@@ -86,7 +86,7 @@ async function stopDaemon(log: (line: string) => void, uninstallService: () => P
 }
 
 function usage(log: (line: string) => void): number {
-  log("Usage: vanta agents [list|logs|attach|stop|rm|respawn <id>|delegations [tree]|delegation replay|follow-up <id> [text]|daemon status|daemon stop]");
+  log("Usage: vanta agents [list|logs|attach|stop|rm|respawn <id>|delegations [tree]|delegation inspect|replay|follow-up <id> [text]|daemon status|daemon stop]");
   return 1;
 }
 
@@ -101,6 +101,7 @@ async function handleDelegations(root: string, treeId: string | undefined, log: 
 
 async function handleDelegationControl(root: string, args: string[], env: NodeJS.ProcessEnv, log: (line: string) => void): Promise<number> {
   const [action, id, ...detail] = args;
+  if (action === "inspect" && id) return handleWorkerInspection(root, id, log);
   if (!id || (action !== "replay" && action !== "follow-up")) return usage(log);
   const node = await findDelegationNode(root, id);
   if (!node) { log(`delegation not found: ${id}`); return 1; }
@@ -110,6 +111,16 @@ async function handleDelegationControl(root: string, args: string[], env: NodeJS
   await appendTask(assigned.value, env);
   log(`queued ${action} ${assigned.value.id} · raw ${node.rawSidechain}`);
   return 0;
+}
+
+async function handleWorkerInspection(root: string, id: string, log: (line: string) => void): Promise<number> {
+  const { inspectWorker, formatWorkerInspection } = await import("../subagent/worker-inspection.js");
+  try {
+    const result = await inspectWorker(root, id);
+    if (!result) { log("Worker inspection not found; legacy workers may have no partial checkpoint."); return 1; }
+    log(formatWorkerInspection(result));
+    return 0;
+  } catch { log("Worker checkpoint needs manual review: invalid, unreadable, or outside this project. Nothing was retried or changed."); return 1; }
 }
 
 async function agentViewDisabled(projectRoot: string, env: NodeJS.ProcessEnv): Promise<boolean> {

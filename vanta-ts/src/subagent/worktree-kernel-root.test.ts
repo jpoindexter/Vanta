@@ -15,6 +15,8 @@ vi.mock("../worktree/manager.js", () => ({
 import { delegateTool } from "../tools/delegate.js";
 import { runFleet } from "../fleet/fleet.js";
 import { runAutoResearch } from "../auto-research/loop.js";
+import { readFile } from "node:fs/promises";
+import { listDelegationTrees } from "./delegation-receipt.js";
 
 let base: string, root: string, deps: AgentDeps;
 beforeEach(() => {
@@ -40,9 +42,28 @@ function expectScope() {
 }
 
 it("binds delegated worktree spawn auth to the parent kernel without replacing its safety client", async () => {
-  await delegateTool.execute({ goal: "fixture", instruction: "fixture", isolation: "worktree" }, deps);
+  const result = await delegateTool.execute({ goal: "fixture", instruction: "fixture", isolation: "worktree" }, deps);
   expectScope();
-  expect(probe.cleanup).toHaveBeenCalledOnce();
+  expect(probe.cleanup).not.toHaveBeenCalled();
+  expect(result.output).toContain(probe.workerRoot);
+  expect(result.output).toContain("fixture");
+  expect(result.output).toContain(`delegation inspect ${probe.spawn.mock.calls[0]![0].inspection.id}`);
+  expect(probe.spawn.mock.calls[0]![0].inspection).toMatchObject({ root, workerRoot: probe.workerRoot });
+});
+
+it("binds background custody, child inspection and final receipt to one stable identity", async () => {
+  probe.spawn.mockResolvedValue({ finalText: "fixture", iterations: 1, stoppedReason: "done", toolIterations: 0,
+    workerEvidence: { rawSidechain: ".vanta/sidechains/fixture.json", tools: [], durationMs: 1, model: "fixture" } });
+  const result = await delegateTool.execute({ goal: "fixture", instruction: "fixture", background: true }, { ...deps, sessionId: "parent-fixture" });
+  expect(result.ok).toBe(true);
+  await vi.waitFor(async () => expect((await listDelegationTrees(root))[0]?.nodes).toHaveLength(1));
+  const inspection = probe.spawn.mock.calls[0]![0].inspection;
+  expect(inspection).toMatchObject({ id: inspection.custodyId, parentSessionId: "parent-fixture", root, workerRoot: root });
+  const rows = (await readFile(join(root, ".vanta", "async-delegate.jsonl"), "utf8")).trim().split("\n").map(line => JSON.parse(line));
+  expect(rows[0]).toEqual({ event: "started", id: inspection.id });
+  expect((await listDelegationTrees(root))[0]?.nodes[0]?.id).toBe(inspection.id);
+  expect((await listDelegationTrees(root))[0]?.nodes[0]?.rawSidechain).toBe(join(root, ".vanta", "sidechains", "fixture.json"));
+  expect(result.output).toContain(`delegation inspect ${inspection.id}`);
 });
 
 it("binds the real fleet spawn adapter to the parent kernel identity", async () => {

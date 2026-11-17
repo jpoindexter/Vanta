@@ -8,6 +8,8 @@ This follows the [pinned Hermes review](hermes-delivery-priorities-2026-11-17.md
 
 ## Executed source repairs
 
+Both repairs were independently reviewed and published at [`206efac6`](https://github.com/jpoindexter/Vanta/commit/206efac60c4b9a69eb260627063c055ced0408b6); the remote branch SHA matched exactly. The commit passed the secret, staged-size and five architecture gates. A shared two-use cache-field helper removed the converter complexity violation without bypassing the gate; its five affected Anthropic files then passed 33 cases and runtime typecheck passed again.
+
 ### MCP authentication expiry
 
 Owner: `MCP-FLEET-HEALTH-CONTEXT-BUDGET` ([card](https://trello.com/c/R1Z1iJXc)). Broad fleet/context-budget acceptance remains open.
@@ -26,7 +28,7 @@ Not established: live OAuth refresh, mounted-server behavior, packaged Desktop U
 
 ### Streamed Anthropic cache accounting
 
-Owner: new narrow defect `ANTHROPIC-STREAM-CACHE-USAGE` ([card](https://trello.com/c/45udwYQb)), linked after the existing shipped `HERMES-DELTA-USAGE-ROUTE-LEDGER`. Do not rewrite the shipped card's historical acceptance.
+Owner: new narrow defect `ANTHROPIC-STREAM-CACHE-USAGE` ([card](https://trello.com/c/45udwYQb)), linked after the existing shipped `HERMES-DELTA-USAGE-ROUTE-LEDGER`. Its source-scoped Done contract is executed and marked shipped; installed delivery remains separate. Do not rewrite the older shipped card's historical acceptance.
 
 The converter discarded `cache_read_input_tokens` in streamed responses, although non-streaming completion, `Usage.cacheTokens` and the route ledger already support it. A production SDK/provider/consumer replay against a local synthetic HTTP/SSE server reproduced correct text with missing cache usage before the change.
 
@@ -41,15 +43,51 @@ Executed checks:
 
 Not established: a live paid Anthropic request, vendor billing reconciliation, or installed CLI/Desktop delivery. Tests use synthetic input and a loopback server, not an owner's conversation or credentials.
 
+## Executed source follow-ons
+
+### Keep typing while an existing conversation restores
+
+Owners: `UX-04` and DN-22's existing continuity backlog. The composed production keyboard handler claimed a printable key while the conversation's composer was gated off, then lost that key. The initial mounted-editor regression failed with empty text instead of `h`; restoring the text also exposed a caret-at-zero issue in a detached portal mount.
+
+The repair uses the identified destination's existing owner-scoped draft store only during that loading interval. It preserves attachments and restores the captured typing caret only if that same editor already owns focus. There is no window-wide key replay queue, navigation, send, new loader or visual redesign. Unknown owners, hidden/foreign surfaces, stale routes, abandoned restores, IME, shortcuts and programmatic inserts are excluded. Whitespace-only drafts retain their existing empty-draft semantics.
+
+Parent executed five focused renderer files: **68 passing**, including ten new mounted-editor cases. After extracting the narrow caret guard for the enforced complexity limit, the ten cases passed again and the four affected production files showed no new/worse size findings (16 existing). Renderer and Electron typechecks passed. This applies accessibility's keyboard/focus ownership and cognitive-load reduction: preserve intended input rather than require the person to notice and retype it.
+
+Limits: the harness composes production hooks, the floating portal and real rich editor, with assistant-ui runtime/theme mocked. It is not a whole-ChatView or native cold-launch proof. Two existing floating pointer-selection tests fail identically with unchanged HEAD `focus.ts` substituted at transform time; the failure is tracked separately in DN-22, not hidden or attributed to this repair. No whole-suite-green claim.
+
+### Inspect configured fallbacks without testing another route
+
+Owner: `UX-04`'s existing first-use/diagnosis slice. Before the change, `doctor --fallbacks` ran unrelated health/context checks and did not enumerate configured fallback failures. `buildFallbackChain` intentionally still skips unresolved entries during actual fallback execution; its behavior is unchanged.
+
+`vanta doctor --fallbacks` now preserves configured order, duplicates, model settings and user-provider overrides while reporting every entry as `configuration-resolved`, `unavailable` or `not-checked`. It uses the real ordinary/custom resolver but avoids built-in Codex credential access and Claude credential-store access without an explicit environment token. Output excludes raw errors, keys, model names and endpoints. It invokes no model, discovery, kernel, service-health or context probe. Any unavailable/unchecked entry returns 1; an intentionally empty fallback list returns 0.
+
+Parent executed **28 passing** cases across static readiness, unchanged fallback behavior and doctor routing. Isolated handler replays observed zero network requests, process launches, credential-store reads or unrelated checks, with fixture hashes unchanged. This is configuration diagnosis, not authenticated readiness, valid-model proof or live failover acceptance. No live probe or paid request was added.
+
+A separate fresh-process proof ran the real `src/cli.ts doctor --fallbacks` entrypoint from an empty fixture project with an isolated environment and network/process/protected-file guards. It reported ordered local/unknown/subscription entries correctly and returned the intended exit 1; counters were zero network, zero child launches and zero protected credential reads. Initial CLI store setup created only private fixture scaffolding. Yoga's bundled WASM data URI was decoded locally under the guard, not fetched from a remote service. This establishes source dispatch, not the unchanged global CLI pin.
+
+### Interrupted child work: inspection, not automatic continuation
+
+Owner: `DELEGATION-LIVE-STEERING-BUDGET`. A stable child ID now links initial custody, private checkpoint, parent session/project/worker-root evidence and final receipt. Checkpoints are awaited before provider iterations and at pending/started/settled tool boundaries, using existing failure-atomic persistence. Reads/writes stop at 8 MiB, conflicts preserve original bytes, and checkpoint failure stops the worker before further execution. Inspectable workers do not use streamed read-prefetch that could bypass those boundaries.
+
+`vanta agents delegation inspect <id>` is offline local-owner inspection: bounded redacted/control-safe excerpts, last known boundary, declared iteration cap and **remaining budget unknown**. It does not register a normal chat, append a task, call a model/tool, acknowledge custody, restore approvals or continue execution. Queue-wide custody review is labelled queue-wide. The inspector validates the project/root and immutable recorded identity; it is **not** an agent-facing parent/profile/branch authorization mechanism. Historical workers may have no partial checkpoint.
+
+Parent executed seven focused files: **47 passing**. Two actual owned fixture processes were terminated separately after a read-only result and after a text-only retry nudge; a fresh process inspected the exact partial work through the CLI with unchanged custody/review bytes and no additional model/tool ledger entries. Pending and started checkpoint-failure cases prevented tool execution. Identity tampering, symlink ancestors, malformed/oversized records and existing async/receipt/CLI cases passed. This is a real restart proof for inspection, not resumable execution or automatic budget restoration.
+
+Independent review identified an inherited data-loss risk: the delegate's `finally` forcibly removed its worktree/branch even after checkpoint failure or a successful clean but unmerged commit. Both real owned-Git reproductions lost their worker file before the repair. Delegate now retains isolated worktrees on all outcomes, shows the path/branch/cursor, and keeps failures conservatively unknown. No global worktree-manager policy, merge, archive or other caller was changed. New receipt paths also resolve against the actual worker root rather than the parent's different base; historical receipts remain unchanged.
+
+Final focused recovery command covers eight files and **49 passing** cases, including both real retained-worktree cases and the two actual process-interruption cases. The retained edit, raw sidechain, unmerged branch and exact stored receipt path are readable, while parent HEAD/status/existing file stay unchanged. Tests explicitly cleaned only their own fixtures after asserting survival.
+
+Retention limit: no new count/size/age cleanup policy was invented. Retained worktrees consume disk and currently use the existing OS temporary location, which is not an archival backup. Review and preserve useful artifacts before explicit cleanup; do not infer cross-device/file-loss recovery from this proof.
+
 ## Dependency-ordered work remaining
 
-1. Review and checkpoint these two source repairs; keep package delivery distinct from source acceptance.
-2. Preserve interrupted child work for **inspection**, with stable parent/child/root ownership and awaited private checkpoints. A fresh process must inspect exact partial work without any model/tool replay or grant restoration. Existing unresolved-result review holds remain. Remaining execution budget must never be silently reset.
-3. Reproduce cold-start typing with the actual mounted composer lifecycle. Vanta keeps a floating editor mounted and already has destination-owned draft handling; absence of a Hermes-style buffer is not proof of a Vanta defect.
-4. Diagnose configured fallback entries without inference; test an exact selected route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
+1. Review/checkpoint follow-ons and keep installed package delivery separate from source acceptance. Production website documentation build passes; publishing help is a separate deployment.
+2. Before child continuation or agent-facing inspection: validate expected parent/profile/branch authority, preserve real remaining budgets, reconcile effects and retain review holds. Never restore grants or replay unknown effects.
+3. Run actual packaged cold-launch typing/owner acceptance and diagnose the separately reproduced floating-pointer test gap; do not infer native acceptance from mounted-component tests.
+4. Test an exact selected fallback route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
 5. Reproduce adopted-reply/late-tail reconnect behavior before changing production streaming. Existing session identity/no-second-POST protections stay intact.
 
-The MCP, child recovery and reconnect cards now contain bounded ordered checklists. No broad card was blanket-closed and no Building/Next lane was added. Owner/live-account/hardware/visual/unfamiliar-person gates remain separate.
+MCP, child recovery, reconnect, first-use diagnostics and DN-22 now have bounded ordered checklists. Only the new source-scoped cache-accounting defect is closed; no broad card was blanket-closed and no Building/Next lane was added. Owner/live-account/hardware/visual/unfamiliar-person gates remain separate.
 
 ## Delivery boundary
 

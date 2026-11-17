@@ -10,6 +10,7 @@ import { buildAgentHookDeps } from "../hooks/agent-hook-deps.js";
 import { fireHooks } from "../hooks/shell-hooks.js";
 import { startProgressReporter } from "./progress-reporter.js";
 import { resolveSpawnDepth, checkSpawnDepth, withSpawnDepth } from "./spawn-guard.js";
+import { startWorkerInspection, type WorkerInspectionIdentity } from "./worker-inspection.js";
 import type { RecentCall } from "./progress.js";
 import type { SpawnGuardOptions, SpawnGuardVerdict } from "./spawn-guard.js";
 import type { AgentDeps, AgentOutcome } from "../agent.js";
@@ -30,6 +31,8 @@ type WorkerOpts = {
   promptPreset?: PromptPreset;
   // Injected for deterministic tests; defaults to wall-clock at call time.
   now?: Date;
+  /** Private inspection custody; never registers a normal chat session. */
+  inspection?: WorkerInspectionIdentity;
 };
 
 const DEFAULT_MAX_ITERATIONS = 50;
@@ -105,7 +108,42 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   const started = Date.now();
   const dataDir = join(deps.root, ".vanta");
   const agentType = opts.promptPreset?.name ?? "general-purpose";
+  const inspection = await prepareWorkerInspection(opts, agentType);
   await fireHooks(dataDir, "SubagentStart", { goal: opts.goal, instruction: opts.instruction, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
+  const systemPrompt = await workerSystemPrompt(opts, now);
+  const convo = createConversation(systemPrompt, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS,
+    // Durable children dispatch only after the assembled completion: streamed
+    // read prefetch otherwise bypasses the awaited tool checkpoint boundary.
+    ...(inspection ? { checkpointWorker: inspection.checkpoint, onTextDelta: undefined } : {}) });
+  await inspection?.checkpoint([...convo.messages, { role: "user", content: opts.instruction }]);
+  // Live footer pill: shows immediately (title), then a ~30s-throttled side-query
+  // names the file/symbol in flight. Sub-30s workers stop before billing one.
+  const stopProgress = startProgressReporter({ id: opts.inspection?.id ?? randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
+  try {
+    const outcome = await convo.send(opts.instruction, undefined, opts.signal);
+    await inspection?.finish(convo.messages, outcome);
+    const rawSidechain = await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
+    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
+    return { ...outcome, workerEvidence: { rawSidechain, tools: getToolNames(), durationMs: Date.now() - started, model: deps.provider.modelId() } };
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    await inspection?.finish(convo.messages, undefined, error).catch(() => {});
+    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, error, messages: convo.messages });
+    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
+    throw err;
+  } finally {
+    stopProgress();
+  }
+}
+
+async function prepareWorkerInspection(opts: WorkerOpts, agentType: string) {
+  if (!opts.inspection) return undefined;
+  return startWorkerInspection({ ...opts.inspection, goal: opts.goal, instruction: opts.instruction, agentType,
+    model: opts.deps.provider.modelId(), declaredMaxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
+}
+
+async function workerSystemPrompt(opts: WorkerOpts, now: string): Promise<string> {
+  const deps = opts.deps;
   const goals: Goal[] = [{ id: 0, text: opts.goal, status: "active" }];
   // Workers are as aware as the parent: they see the skill index + the brain.
   const skills = (await listSkills(process.env).catch(() => [])).map((s) => ({
@@ -114,7 +152,7 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   }));
   const brain = await resolveBrain(process.env).digest(process.env).catch(() => "");
   const ndPreferences = await loadPromptNdPreferences(process.env);
-  const systemPrompt = await buildSystemPrompt({
+  return buildSystemPrompt({
     root: deps.root,
     soulPath: opts.soulPath ?? join(deps.root, "SOUL.md"),
     goals,
@@ -126,22 +164,6 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
     ndPreferences,
     promptPreset: opts.promptPreset,
   });
-  const convo = createConversation(systemPrompt, { ...deps, maxIterations: opts.maxIterations ?? DEFAULT_MAX_ITERATIONS });
-  // Live footer pill: shows immediately (title), then a ~30s-throttled side-query
-  // names the file/symbol in flight. Sub-30s workers stop before billing one.
-  const stopProgress = startProgressReporter({ id: randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
-  try {
-    const outcome = await convo.send(opts.instruction, undefined, opts.signal);
-    const rawSidechain = await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, outcome, messages: convo.messages });
-    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, result: outcome.finalText, stoppedReason: outcome.stoppedReason, agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
-    return { ...outcome, workerEvidence: { rawSidechain, tools: getToolNames(), durationMs: Date.now() - started, model: deps.provider.modelId() } };
-  } catch (err) {
-    await persistSidechain({ root: deps.root, goal: opts.goal, instruction: opts.instruction, agentType, model: deps.provider.modelId(), createdAt: now, error: err instanceof Error ? err.message : String(err), messages: convo.messages });
-    await fireHooks(dataDir, "SubagentStop", { goal: opts.goal, error: err instanceof Error ? err.message : String(err), agentType }, { cwd: deps.root, matcherValue: agentType, ...buildAgentHookDeps(deps) });
-    throw err;
-  } finally {
-    stopProgress();
-  }
 }
 
 async function persistSidechain(o: {

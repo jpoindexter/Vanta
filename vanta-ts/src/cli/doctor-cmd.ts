@@ -25,6 +25,14 @@ export async function runDoctorCommand(
   args: string[] = [],
   deps: DoctorDeps = defaultDeps,
 ): Promise<number> {
+  if (args.includes("--fallbacks")) {
+    const { inspectFallbackReadiness } = await import("../providers/fallback-readiness.js");
+    const entries = inspectFallbackReadiness(process.env);
+    deps.log("Fallback configuration (static only; no connections or credential-store lookups)");
+    if (!entries.length) deps.log("No fallback entries configured; primary route unchanged. Set VANTA_FALLBACK_PROVIDERS to configure an ordered list.");
+    for (const entry of entries) deps.log(`${entry.index}. ${entry.provider}: ${entry.status} — ${entry.detail}`);
+    return entries.some(entry => entry.status !== "configuration-resolved") ? 1 : 0;
+  }
   await deps.status(args);
   deps.log(await deps.context(repoRoot, resultLimit(args)));
   deps.log(

@@ -68,3 +68,25 @@ Run from the repo with `./run.sh` (alias `./vanta`), or globally as `vanta` afte
 | `vanta mcp receipts` | Show recent credential-free connector lifecycle receipts |
 
 > Counts and exact flags evolve; `vanta help` is the live source of truth.
+
+## Source-candidate recovery diagnostics — 2026-11-17
+
+These additions require the current integration source. They are not included
+in the previously delivered Desktop 0.1.3 or the unchanged normal CLI pin.
+Rebuilding source is separate from installing or updating a packaged app.
+
+| Command | Does |
+|---------|------|
+| `vanta doctor --fallbacks` | Reports every configured fallback entry, in order, without inference or subscription credential-store lookup. `configuration-resolved` does not mean authenticated or reachable. Review entries marked unavailable or not checked; exit 1 means at least one needs attention. |
+| `vanta agents delegation inspect <id>` | Reads a new worker's owned private partial checkpoint offline. It does not resume work, replay tools or restore permissions. Historical workers may have no partial checkpoint. |
+
+The inspection command reports remaining budget as unknown and keeps uncertain
+effects under review. Existing delegation `replay`/`follow-up` creates a **new
+task**, not continuation from the saved checkpoint. Never use it to retry an
+external action whose outcome is unknown. Keep any retained worktree and branch
+until its files and results have been reviewed.
+
+For a connector shown as `auth needs_auth`, review its authentication through
+the normal connection/setup flow, then test it explicitly. A saved successful
+probe does not override a token's known expiration; unknown expiration does not
+prove a working connection. Diagnostics do not silently launch interactive OAuth.

@@ -64,6 +64,7 @@ import { ChatSwapOverlay, ChatSyncBadge } from './chat-swap-overlay'
 import { ChatBar, ChatBarFallback } from './composer'
 import { FloatingComposerSurface } from './composer/floating-surface'
 import { requestComposerInsert } from './composer/focus'
+import { useRestoringComposerTyping } from './composer/hooks/use-restoring-composer-typing'
 import { droppedFileInlineRefs } from './composer/inline-refs'
 import {
   ComposerScopeProvider,
@@ -688,6 +689,12 @@ const ChatViewContent = memo(function ChatViewContent({
     resumeExhausted,
     routedSessionId,
     routedSessionView: isRoutedSessionView
+  })
+  useRestoringComposerTyping({
+    enabled: loadingSession && !showChatBar && !guideOpening && !resumeExhausted,
+    sessionKey: queueSessionKey,
+    surfaceId: composerSurfaceId,
+    target: composerScope.target
   })
 
   const threadKey = selectedSessionId || activeSessionId || (isRoutedSessionView ? location.pathname : 'new')

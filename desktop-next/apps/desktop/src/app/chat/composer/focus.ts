@@ -28,6 +28,8 @@ export interface FocusDetail {
   target: ComposerTarget
   /** Append after focus (type-to-focus / soft `/`). */
   typeChar?: string
+  /** Only the unbound printable-key path may edit a restoring chat's draft. */
+  source?: 'unbound-key'
 }
 
 interface InsertDetail {
@@ -264,9 +266,9 @@ export const getActiveComposer = (): ComposerTarget => resolveActive()
 
 export const requestComposerFocus = (
   target: ComposerTarget | 'active' = 'active',
-  { typeChar }: { typeChar?: string } = {}
+  { typeChar, source }: Pick<FocusDetail, 'typeChar' | 'source'> = {}
 ) => {
-  const detail = { target: resolve(target), typeChar }
+  const detail = { target: resolve(target), typeChar, ...(source ? { source } : {}) }
   const owner = $floatingComposerOwner.get()
 
   // A first character must land before subsequent native input events, not

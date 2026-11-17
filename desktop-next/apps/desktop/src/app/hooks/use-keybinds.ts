@@ -556,7 +556,7 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
 
         if (typeChar && composerFocusKeysAllowed(event, 'type')) {
           event.preventDefault()
-          requestComposerFocus('active', { typeChar })
+          requestComposerFocus('active', { typeChar, source: 'unbound-key' })
         }
 
         return

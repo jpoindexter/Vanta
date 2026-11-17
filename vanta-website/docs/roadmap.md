@@ -8,7 +8,7 @@ sidebar_position: 1
 
 Where Vanta is headed and what just shipped — generated straight from the project board, so it never goes stale.
 
-_1289 capabilities shipped · 6 in flight · 14 parked external-proof items · 5 on the horizon. Updated 2026-11-17._
+_1290 capabilities shipped · 6 in flight · 14 parked external-proof items · 5 on the horizon. Updated 2026-11-17._
 
 ## In flight
 
@@ -52,8 +52,9 @@ Make every current and future browser action use one explicit policy boundary. N
 
 ## Recently shipped
 
-The latest of 1289+ capabilities. See the [changelog](./changelog) for curated milestones.
+The latest of 1290+ capabilities. See the [changelog](./changelog) for curated milestones.
 
+- **Preserve streamed Anthropic cache usage through route accounting** — Harness · 2026-11-17
 - **Capability-grounded prompt — promise only callable tools and routes** — Harness · 2026-10-08
 - **Explicit-empty MCP allowlist — zero means zero tools** — Harness · 2026-08-26
 - **Desktop semantic foundation — contrast, type, controls, and one token authority** — Desktop App · 2026-08-26
@@ -73,7 +74,6 @@ The latest of 1289+ capabilities. See the [changelog](./changelog) for curated m
 - **Claude-style output hierarchy — compact evidence and scan-friendly answers** — TUI · 2026-07-29
 - **Hot reload continuity — preserve the active conversation and reset runtime status** — TUI · 2026-07-29
 - **AskUserQuestion tool — structured multi-question UI with options, previews, multi-select** — Operator · 2026-07-28
-- **Task-scoped go-ahead — one approval for repeated reversible work** — Operator · 2026-07-28
 
 ## Parked external-proof items
 

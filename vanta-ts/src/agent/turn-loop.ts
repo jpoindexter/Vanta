@@ -124,7 +124,7 @@ async function handleToolCallsPresent(args: ToolCallIterArgs): Promise<AgentOutc
     call.effectState = "pending";
     await persistEffectTransition(ctx.root, deps.sessionId, call, "pending");
   }
-  await checkpointToolTranscript(deps.sessionId, messages);
+  await checkpointToolTranscript(deps.sessionId, messages, deps.checkpointWorker);
   const structured = maybeStructuredOutput(result.toolCalls, deps.outputSchema);
   if (structured.handled) {
     // Answer EVERY call in the batch, in call order. Emitting only the
@@ -185,6 +185,9 @@ async function runTurnIterations(runtime: TurnRuntime): Promise<AgentOutcome> {
   for (let iter = 1; iter <= maxIter; iter++) {
     runtime.iteration = iter;
     if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter: iter - 1, reason: "interrupted", text: "Interrupted." });
+    // Includes text-only contract/continuation nudges from the prior iteration.
+    // Normal sessions retain their existing persistence behavior.
+    await deps.checkpointWorker?.(messages);
     const { schemas, prefetched, completion } = await completeTurnIteration(runtime, iter);
     if (completion.ok) {
       recordUsage(state, completion.result);

@@ -72,7 +72,13 @@ export async function persistHostEffectTransition(
   await persistProjections(root, "effect", at => hostProjections({ sessionId, effect, transition, receipt, at }));
 }
 
-export async function checkpointToolTranscript(sessionId: string | undefined, messages: Message[]): Promise<void> {
-  if (!sessionId) return;
-  await checkpointSessionMessages(sessionId, messages).catch(() => {});
+export async function checkpointToolTranscript(
+  sessionId: string | undefined,
+  messages: Message[],
+  checkpointWorker?: (messages: Message[]) => Promise<void>,
+): Promise<void> {
+  // Unlike best-effort normal session persistence, child custody must be
+  // durable before the next action. Do not swallow this callback's failure.
+  await checkpointWorker?.(messages);
+  if (sessionId) await checkpointSessionMessages(sessionId, messages).catch(() => {});
 }
