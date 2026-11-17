@@ -105,6 +105,7 @@ export const CH = {
   batteryGet: 'vanta:power-battery:get',
   batteryChanged: 'desktop:power-battery',
   openFolderRequested: 'desktop:open-folder-requested',
+  feedbackRequested: 'desktop:feedback-requested',
   closePreviewRequested: 'desktop:close-preview-requested',
   deepLink: 'desktop:deep-link',
   deepLinkReady: 'vanta:deep-link-ready',

@@ -4,7 +4,7 @@
 historical narrative and does not override the JSON, `STRATEGY.md`, or
 `DECISIONS.md`.
 
-## Current converged build order — 2026-10-28
+## Current converged build order — 2026-11-17
 
 Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. Do not hand-edit this section.
 
@@ -32,7 +32,7 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 1. `DESKTOP-NEXT-CUTOVER` — Desktop Next — supervision surface for the company engine, Hermes shell as base, wireframe as spec
 
-Inventory: 1365 cards; 1289 shipped; 12 open; 64 parked.
+Inventory: 1369 cards; 1289 shipped; 12 open; 68 parked.
 
 Next means planned, not implemented. Preserve shipped evidence; card completion requires its executed Done contract.
 

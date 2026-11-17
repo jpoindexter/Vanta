@@ -219,6 +219,7 @@ export const SURFACE_MANIFEST: SurfaceManifest = {
   onClosePreviewRequested: 'event',
   onPreviewNav: 'event',
   onOpenFolderRequested: 'event',
+  onFeedbackRequested: 'event',
   onOpenUpdatesRequested: 'event',
   onDeepLink: 'event',
   signalDeepLinkReady: 'async',

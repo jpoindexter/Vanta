@@ -15,6 +15,7 @@ import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introDe } from './intro-de'
 
 export const deOverrides = {
+  feedback: localizedFeedback['de'],
   sharedMetrics: deSharedMetrics,
   intro: introDe,
   connectors: deConnectorCard,
@@ -5700,3 +5701,4 @@ export const deOverrides = {
 } satisfies TranslationOverrides
 
 export const de = defineLocale(deOverrides)
+import { localizedFeedback } from './feedback'

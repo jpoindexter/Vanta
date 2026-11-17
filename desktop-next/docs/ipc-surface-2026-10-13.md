@@ -6,6 +6,13 @@ Regenerate the stub inventory with `node scripts/generate-bridge-manifest.mjs` (
 
 ## 1. Summary
 
+2026-11-17 addition: the native Help menu sends `desktop:feedback-requested`.
+The typed `onFeedbackRequested` listener opens the one renderer feedback host;
+this event carries no data and grants no send authority. An explicit in-form
+Send posts only the reviewed, schema-validated report to Vanta's private
+receiver. See `docs/desktop-feedback-2026-11-17.md` at the repository root.
+The historical inventory counts below are not recomputed by this addition.
+
 | | Hermes shell | Vanta shell |
 |---|---|---|
 | `ipcMain` channels registered | 206 literal + 1 computed (`command-screenshot.ts`) across `electron/*.ts` | 120 channel names in `channels.ts`: 90 `vanta:*` and 30 `hermes:*` (pushes the renderer already listens for, plus three modules reused unchanged: notifications, machine profile, `hud-ipc.ts`). 37 old channels had a Vanta counterpart at DN-07; R2 adds the rest of table C |

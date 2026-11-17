@@ -15,6 +15,7 @@ import { esUpdateChannel } from './es_update_channel'
 import { introEs } from './intro-es'
 
 export const esOverrides = {
+  feedback: localizedFeedback['es'],
   sharedMetrics: esSharedMetrics,
   intro: introEs,
   connectors: esConnectorCard,
@@ -5694,3 +5695,4 @@ export const esOverrides = {
 } satisfies TranslationOverrides
 
 export const es = defineLocale(esOverrides)
+import { localizedFeedback } from './feedback'

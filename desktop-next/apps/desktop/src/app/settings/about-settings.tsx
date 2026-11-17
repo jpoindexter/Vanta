@@ -2,11 +2,13 @@ import { useStore } from '@nanostores/react'
 import { type ReactElement, useEffect } from 'react'
 
 import { UpdateStatusCard, VersionHero } from '@/components/update-status'
+import { Button } from '@/components/ui/button'
 import { VersionDetails } from '@/components/version-details'
 import { useI18n } from '@/i18n'
 import { RefreshCw } from '@/lib/icons'
 import { $connection } from '@/store/session'
 import { $desktopVersion, checkBackendUpdates, refreshDesktopVersion } from '@/store/updates'
+import { requestFeedback } from '@/store/feedback'
 
 import { SectionHeading, SettingsContent } from './primitives'
 import { SETTING_IDS, settingElementId } from './settings-manifest'
@@ -54,6 +56,7 @@ function AppUpdatesSettings({ includeUninstall }: AppUpdatesSettingsProps): Reac
   return (
     <SettingsContent>
       <VersionHero version={version} />
+      <div className="flex justify-center"><Button variant="ghost" onClick={requestFeedback}>{t.feedback.title}</Button></div>
       <div className="mx-auto mt-4 w-full max-w-2xl">
         <SectionHeading icon={RefreshCw} title={t.settings.about.updates} />
         <div className="grid gap-3" id={settingElementId(SETTING_IDS.about.updates)}>

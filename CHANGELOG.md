@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Desktop feedback checkpoint (2026-11-17)
+
+- Add Help and About entries for private bug/idea reports, exact previews,
+  local drafts and explicit same-ID retry against a separate receipt-backed
+  Vanta receiver. Build facts are opt-in; no automatic chat/log collection.
+- Reserve composer shadow space at narrow Chat/Home pane boundaries without
+  changing the existing surface radius or 720px width cap.
+- Track the tester's failed-image chat recovery regression and real signed
+  Desktop auto-update as separate unfinished cards. A new ZIP is not an updater.
+- Source checks and pending package gates: `docs/desktop-feedback-2026-11-17.md`.
+
 Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
 attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
 

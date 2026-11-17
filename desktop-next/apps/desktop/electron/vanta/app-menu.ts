@@ -94,7 +94,10 @@ const viewMenu = (deps: MenuDeps): MenuItemConstructorOptions => ({
 const helpMenu = (deps: MenuDeps): MenuItemConstructorOptions => ({
   label: "Help",
   role: "help",
-  submenu: [{ click: () => deps.openExternal(DOCS_URL), label: `${deps.appName} Docs` }]
+  submenu: [
+    { click: () => deps.openExternal(DOCS_URL), label: `${deps.appName} Docs` },
+    { click: () => deps.sendToRenderer(CH.feedbackRequested), label: 'Send feedback…' }
+  ]
 });
 
 /** Vanta's application menu: About, standard Edit roles, View with zoom and DevTools, Window and Help. */

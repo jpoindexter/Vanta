@@ -18,6 +18,14 @@ const submenu = (template: MenuItemConstructorOptions[], label: string) =>
   (template.find(entry => entry.label === label)?.submenu ?? []) as MenuItemConstructorOptions[];
 
 describe("application menu", () => {
+  it("opens the feedback form without opening a browser or sending a report", () => {
+    const d = deps();
+    const item = submenu(buildAppMenuTemplate(d), "Help").find(item => item.label === "Send feedback…");
+    expect(item).toBeDefined();
+    (item?.click as () => void)();
+    expect(d.sendToRenderer).toHaveBeenCalledWith("desktop:feedback-requested");
+    expect(d.openExternal).not.toHaveBeenCalled();
+  });
   it("has Vanta, File, Edit, View, Window and Help on macOS, and no app menu elsewhere", () => {
     expect(buildAppMenuTemplate(deps("darwin")).map(entry => entry.label)).toEqual(["Vanta", "File", "Edit", "View", "Window", "Help"]);
     expect(buildAppMenuTemplate(deps("linux")).map(entry => entry.label)).toEqual(["File", "Edit", "View", "Window", "Help"]);

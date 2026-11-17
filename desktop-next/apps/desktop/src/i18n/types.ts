@@ -9,6 +9,7 @@ import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
 import type { AppTourTranslations, HandoffTourTranslations } from './types_app_tour'
+import type { FeedbackCopy } from './feedback'
 import type { AuxTaskCopyMap } from './types_aux_tasks'
 import type { BillingTranslations } from './types_billing'
 import type { BootTranslations } from './types_boot'
@@ -78,6 +79,7 @@ interface ModeOptionCopy {
 }
 
 export interface Translations extends NoticeTranslations {
+  feedback: FeedbackCopy
   /** Shell chrome: sidebar, titlebar, status words, offline banner. */
   vantaShell: VantaShellTranslations
   /** Shared-metrics consent: first-run dialog + Settings › Safety toggles. */

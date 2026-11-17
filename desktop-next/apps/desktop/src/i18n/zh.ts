@@ -13,6 +13,7 @@ import { zhSharedMetrics } from './zh_shared_metrics'
 import { zhUpdateChannel } from './zh_update_channel'
 
 export const zhOverrides = {
+  feedback: localizedFeedback['zh'],
   externalOpenFailed: {
     title: '无法打开此链接',
     message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开。',
@@ -4921,3 +4922,4 @@ export const zhOverrides = {
 } satisfies TranslationOverrides
 
 export const zh = defineLocale(zhOverrides)
+import { localizedFeedback } from './feedback'

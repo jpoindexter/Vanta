@@ -13,6 +13,7 @@ import { zhHantDiagnostics } from './zh-hant_diagnostics'
 import { zhHantSettings } from './zh-hant_settings'
 
 export const zhHantOverrides = {
+  feedback: localizedFeedback['zh-hant'],
   connectors: {
     directory: {
       suggested: '推薦',
@@ -163,3 +164,4 @@ export const zhHantOverrides = {
 } satisfies TranslationOverrides
 
 export const zhHant = defineLocale(zhHantOverrides)
+import { localizedFeedback } from './feedback'

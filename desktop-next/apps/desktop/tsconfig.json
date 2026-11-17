@@ -19,6 +19,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@vanta/plugin-sdk": ["./src/sdk/index.ts"],
+      "@vanta/shared/feedback": ["../shared/src/feedback.ts"],
       "@vanta/shared/charge-settlement": ["../shared/src/charge-settlement.ts"],
       "@vanta/shared/model-search-text": ["../shared/src/model-search-text.ts"],
       "@vanta/shared/reconnect-backoff": ["../shared/src/reconnect-backoff.ts"],

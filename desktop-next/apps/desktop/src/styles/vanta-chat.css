@@ -598,7 +598,7 @@
   align-items: center;
   width: 100%;
   max-width: none;
-  padding-inline: var(--vp-gutter);
+  padding-inline: max(var(--vp-gutter), var(--composer-shadow-gutter, 0px));
   translate: none;
 }
 

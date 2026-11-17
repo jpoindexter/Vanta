@@ -12,6 +12,7 @@
     "./color": "./src/color.ts",
     "./format": "./src/format.ts",
     "./fuzzy": "./src/fuzzy.ts",
+    "./feedback": "./src/feedback.ts",
     "./gateway-events": "./src/gateway-events.ts",
     "./i18n": "./src/i18n.ts",
     "./json-rpc-channel": "./src/json-rpc-channel.ts",
@@ -31,6 +32,9 @@
     "fix": "npm run lint:fix",
     "typecheck": "tsc -p . --noEmit",
     "check": "npm run typecheck && npm run lint"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "typescript": "6.0.3"

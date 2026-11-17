@@ -14,6 +14,7 @@ import { jaSharedMetrics } from './ja_shared_metrics'
 import { jaUpdateChannel } from './ja_update_channel'
 
 export const jaOverrides = {
+  feedback: localizedFeedback['ja'],
   connectors: jaConnectors.connectors,
   externalOpenFailed: {
     title: 'このリンクを開けませんでした',
@@ -3955,3 +3956,4 @@ export const jaOverrides = {
 } satisfies TranslationOverrides
 
 export const ja = defineLocale(jaOverrides)
+import { localizedFeedback } from './feedback'

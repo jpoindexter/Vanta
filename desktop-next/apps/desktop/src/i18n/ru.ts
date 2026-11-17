@@ -33,6 +33,7 @@ const RU_NOUN = (count: number | string, one: string, few: string, many: string)
 }
 
 export const ruOverrides = {
+  feedback: localizedFeedback['ru'],
   connectors: ruConnectors.connectors,
   sharedMetrics: ruSharedMetrics,
   sessionImport: ruConnectors.sessionImport,
@@ -4088,3 +4089,4 @@ export const ruOverrides = {
 } satisfies TranslationOverrides
 
 export const ru = defineLocale(ruOverrides)
+import { localizedFeedback } from './feedback'

@@ -235,6 +235,7 @@ export default defineConfig(({ command }) => ({
       '@/debug/dev-only': debugEntry(command, process.env as Record<string, string>),
       '@': path.resolve(__dirname, './src'),
       '@vanta/plugin-sdk': path.resolve(__dirname, './src/sdk/index.ts'),
+      '@vanta/shared/feedback': path.resolve(__dirname, '../shared/src/feedback.ts'),
       '@vanta/shared/charge-settlement': path.resolve(__dirname, '../shared/src/charge-settlement.ts'),
       '@vanta/shared/model-search-text': path.resolve(__dirname, '../shared/src/model-search-text.ts'),
       '@vanta/shared/reconnect-backoff': path.resolve(__dirname, '../shared/src/reconnect-backoff.ts'),

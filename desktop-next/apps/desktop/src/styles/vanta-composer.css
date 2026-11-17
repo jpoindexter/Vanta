@@ -72,6 +72,10 @@
 }
 
 /* One opaque typing surface; the backing and status cards share its existing fill. */
+.vp-page:has([data-vp='composer']) {
+  padding-inline: max(24px, var(--composer-shadow-gutter, 0px));
+}
+
 :root[data-vanta-theme='vanta'] [data-slot='composer-root'] {
   --composer-fill: var(--composer-surface-background);
 }

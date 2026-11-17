@@ -12,6 +12,7 @@ import { arSettings } from './ar_settings'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 
 export const arOverrides = {
+  feedback: localizedFeedback['ar'],
   connectors: {
     directory: {
       suggested: 'مقترحة',
@@ -90,3 +91,4 @@ export const arOverrides = {
 } satisfies TranslationOverrides
 
 export const ar = defineLocale(arOverrides)
+import { localizedFeedback } from './feedback'

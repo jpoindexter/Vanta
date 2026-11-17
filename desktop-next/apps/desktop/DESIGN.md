@@ -212,6 +212,12 @@ focus uses the visible caret and a quiet neutral edge, while buttons retain thei
 keyboard rings. No global
 surface-radius, menu, titlebar, approval or permission-policy redesign is implied.
 
+The docked Chat and Home composer reserve `--composer-shadow-gutter` (40px)
+inside clipping pane boundaries. This is paint space for the existing ambient
+shadow and focus outline, not another border or a change to the 720px surface
+cap. Narrow panes shrink the surface within that gutter; they do not let it
+paint over neighboring panes or remove their scroll/pointer containment.
+
 DN-29 titlebar/transcript continuation (2026-10-23, source preview): keep the
 44px native drag strip and direct workbench pane controls. Advanced window
 controls use the existing More menu instead of a second row of competing icons.

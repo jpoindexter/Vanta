@@ -54,6 +54,7 @@
     0 0 0 1px color-mix(in srgb, var(--ui-base) 6%, transparent),
     0 2px 8px color-mix(in srgb, var(--ui-base) 4%, transparent),
     0 4px 40px color-mix(in srgb, var(--ui-base) 3%, transparent);
+  --composer-shadow-gutter: 2.5rem;
   --shadow-sidebar:
     inset -1px 0 color-mix(in srgb, var(--ui-base) 4%, transparent),
     inset -8px 0 16px -16px color-mix(in srgb, var(--ui-base) 16%, transparent);

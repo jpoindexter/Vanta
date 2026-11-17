@@ -15,6 +15,7 @@ import { frUpdateChannel } from './fr_update_channel'
 import { introFr } from './intro-fr'
 
 export const frOverrides = {
+  feedback: localizedFeedback['fr'],
   sharedMetrics: frSharedMetrics,
   intro: introFr,
   connectors: frConnectorCard,
@@ -5708,3 +5709,4 @@ export const frOverrides = {
 } satisfies TranslationOverrides
 
 export const fr = defineLocale(frOverrides)
+import { localizedFeedback } from './feedback'
