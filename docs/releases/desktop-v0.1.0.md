@@ -87,8 +87,16 @@ archives remain for rollback; historical documentation is preserved.
 CLI/kernel `v0.9.8` remains GitHub's global Latest because existing CLI installers
 fetch kernel assets through that endpoint. Desktop `desktop-v0.1.0` is a normal,
 non-prerelease release with its own direct download. This does not merge source
-into protected `main`, bypass independent review, replace the owner's running
-app/CLI, deploy the website, or enable GitHub Actions.
+into protected `main`, bypass independent review, deploy the website, or enable
+GitHub Actions. At publication it did not replace the owner's app/CLI. The
+owner subsequently requested and received installation of this exact Desktop
+with retained rollback and visible version/history checks; see the
+[installation receipt](../desktop-v0.1.0-install-2026-11-17.md). The normal CLI
+selection was not changed.
+
+No DMG is published for this version and its native auto-updater remains
+unconfigured. The [installer audit and delivery cards](../desktop-installer-hermes-audit-2026-11-17.md)
+track those separate gaps; the historical v0.9.5 DMG is not this Desktop build.
 
 Project-local existing file references are limited to 16 MiB and existing
 private-path/symlink/root guards. External files, remote/container byte uploads,

@@ -32,7 +32,7 @@ Generated from `roadmap.json` by `node scripts/roadmap-current-projection.mjs`. 
 
 1. `DESKTOP-NEXT-CUTOVER` — Desktop Next — supervision surface for the company engine, Hermes shell as base, wireframe as spec
 
-Inventory: 1370 cards; 1289 shipped; 12 open; 69 parked.
+Inventory: 1372 cards; 1289 shipped; 12 open; 71 parked.
 
 Next means planned, not implemented. Preserve shipped evidence; card completion requires its executed Done contract.
 

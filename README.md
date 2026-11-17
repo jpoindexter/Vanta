@@ -42,7 +42,11 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 [Vanta Desktop v0.1.0](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0)
 replaces the separate Iris test downloads. The final signed/notarized ZIP passed
 the scoped interactive checks recorded in its [release notes](docs/releases/desktop-v0.1.0.md).
-The existing owner-installed copy was not replaced. The dated development and
+The owner subsequently installed that exact release with retained rollback and
+visible history/readiness checks; see the [installation receipt](docs/desktop-v0.1.0-install-2026-11-17.md).
+The [installer audit](docs/desktop-installer-hermes-audit-2026-11-17.md) tracks
+the still-missing current DMG, first-run acceptance and native auto-updater.
+The dated development and
 local-delivery records below are historical evidence, not the current download.
 
 **Current execution priority — October 28:** agent usefulness for business

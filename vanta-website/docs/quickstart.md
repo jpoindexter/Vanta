@@ -6,13 +6,26 @@ sidebar_position: 2
 
 # Quickstart
 
-**macOS/Linux prereq:** `git`. The Rust kernel and Node 22 are downloaded automatically on first install when supported prebuilt assets are available.
+The macOS Desktop download bundles its runtime and kernel; no Git, Rust or
+system Node is required. The separate CLI/source installation below uses Git
+and provisions supported prebuilt runtime assets when available.
 
 ## Install
 
 ### Desktop app for macOS
 
-[Download the signed and notarized Vanta v0.9.5 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg), open it, and drag Vanta into Applications. This build targets Apple Silicon Macs and shares `~/.vanta` configuration and sessions with the CLI.
+[Download Vanta Desktop v0.1.0 for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip).
+Check the checksum on the
+[release page](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0),
+quit any running Vanta, retain a rollback copy and extract `Vanta.app` into
+Applications. Open normally; the app is signed, notarized and stapled, with no
+Gatekeeper bypass required. Configure a model through existing settings if
+needed. Do not run two app versions on the same profile.
+
+This normal release replaces the separate Iris downloads. It currently ships
+as a ZIP, not a DMG; automatic Desktop updates remain unconfigured. The CLI
+updater does not replace the installed Desktop. See [TUI & desktop](./desktop-and-tui.md)
+for the current delivery boundary.
 
 ### macOS and Linux
 

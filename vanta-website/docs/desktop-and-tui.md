@@ -28,6 +28,29 @@ Chords are configurable via `~/.vanta/keybindings.json` (zod-validated, fail-sof
 
 ## The desktop app
 
+### Current download — 17 November 2026
+
+[Download the signed/notarized Vanta Desktop v0.1.0 ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip)
+for Apple Silicon macOS. Verify the checksum on the
+[release page](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0),
+quit Vanta, keep a rollback copy, extract the app into Applications and open
+normally. Runtime and safety kernel are bundled; no source build is required.
+The normal release replaces the separate Iris test downloads.
+
+The current release has no published DMG and its native auto-updater is not
+configured. DMG delivery, recoverable first-launch setup and safe updates are
+tracked separately; an owner-machine upgrade is not clean-Mac acceptance.
+The [release notes](https://github.com/jpoindexter/Vanta/blob/codex/desktop-feedback-20261117/docs/releases/desktop-v0.1.0.md)
+state exactly which packaged checks ran and which gaps remain. CLI/kernel
+release numbering and updating remain separate from Desktop.
+
+### Earlier Desktop reference — historical
+
+The descriptions, source-build commands and legacy release workflow below
+document the earlier Desktop. They are not a current feature-by-feature or
+fresh-machine acceptance claim for Desktop v0.1.0. Use the current download
+above; ordinary users should not rebuild from this historical workflow.
+
 Vanta includes a native Electron app for macOS with sessions, chat, model switching, approvals, canvas, project files, a kernel-gated terminal, tray controls, and the mobile companion bridge. Its shell follows the Keelhouse agent workflow in a Codex-style workbench: project and task history on the left, one primary agent conversation, model and context controls in the composer, and contextual outputs on demand. The workspace is fixed to one viewport; the titlebar and composer stay pinned while only genuine content lists scroll.
 
 The contextual inspector starts closed and opens for files, output review, Canvas, preview, or terminal work. At compact widths it becomes a drawer. Pane widths are bounded, resizable, and persisted without letting the central task surface collapse.
@@ -62,7 +85,8 @@ The installed app asks for a working folder and remembers it. If that folder has
 
 The macOS build bundles the renderer, TypeScript runtime, and Rust safety kernel, so it does not need a Vanta checkout. `npm run desktop:dist` uses an available Developer ID certificate by unique hash and leaves a clearly labelled unsigned local build when none exists. For public distribution, first store credentials with `xcrun notarytool store-credentials vanta`, then run `npm run desktop:release`. The release command signs the DMG container, waits for Apple acceptance, staples and validates the ticket, and requires Gatekeeper to report `Notarized Developer ID`. Set `VANTA_DESKTOP_NOTARY_PROFILE` to use a profile name other than `vanta`.
 
-[Download the notarized Vanta v0.9.5 DMG](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg). The release includes its SHA-256 checksum beside the DMG; the exact public artifact is rechecked on a clean hosted Mac for checksum, staple, signature, quarantine, and Gatekeeper acceptance.
+The historical v0.9.5 DMG is not the current Desktop download. Its earlier
+release checks do not certify the current ZIP, future DMG or auto-updater.
 
 ## Voice, sight & desktop control
 
