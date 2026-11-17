@@ -109,6 +109,21 @@ The narrow repair uses existing known-session ownership as draft-custody evidenc
 
 The clean-source signed Desktop 0.1.4 rebuilt from that commit then passed the same actual uncached native journey that failed on `19d68ed5`: exact typed draft, caret and focus; separate recipient attachment custody; original draft/file intact on return; no automatic send; zero renderer errors. Two explicit synthetic setup sends only, no paid output or owner account. The [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md) records the exact artifact hashes and distinguishes this six-step proof from the earlier package's seven core criteria. Notarization, normal-app cutover, visual acceptance and live-owner workflows remain unexecuted.
 
+## Worker cancellation: bound auxiliary status queries
+
+The running worker's footer summaries were separate, unawaited model requests. Their throttle timestamp moved only after a reply, so slow summaries overlapped; stopping the reporter cleared its timer and pill but did not cancel requests already started. An actual `spawnSubagent` → durable checkpoint → abort → inspection fixture reproduced three surviving summary requests after the worker stopped. A separate actual OpenAI adapter/SDK → loopback HTTP reproduction reached six concurrent outstanding requests and zero cancellations. No live credentials, owner profiles, paid inference or tools were used.
+
+The existing reporter now owns one in-flight slot and an abort signal. Stop cancels the pending summary, the auxiliary request has a fixed 30-second deadline using the existing interval constant, and late success/failure cannot update the pill after cancellation or worker-ID reuse. A provider that ignores abort keeps the slot until its promise settles, so timeout cannot start overlapping requests behind it. Immediate title display, disabled mode, no eager request, ordinary throttle and failure hints remain unchanged. No new model, configuration, retry policy or worker authority was introduced.
+
+Executed evidence:
+
+- Four new focused cases failed before repair; all 11 reporter cases pass afterward. Parent reran reporter/progress/spawn: **32 passing** cases.
+- The actual durable-worker abort replay now starts one summary request, observes one cancellation and zero surviving summary requests. Its synthetic provider's rejection is truthfully recorded as a failed checkpoint with the cancellation error, not relabelled as an interrupted outcome; offline inspection changes no checkpoint bytes and continuation stays disallowed.
+- Actual OpenAI adapter/SDK → loopback HTTP: one in-flight request, one observed HTTP abort on stop, zero active requests afterward and no later request or pill update.
+- Separate real-wall-clock deadline replay: one HTTP request aborted after **30,009 ms**, no explicit stop, no summary write, and the independent 45-second safety guard did not fire.
+
+This bounds the status-query lifecycle; it does **not** establish aggregate worker spend, parent-budget inheritance, resumable execution, live-provider billing cancellation/refunds, or the ability to force a non-cooperative provider to stop remote work. The declared/remaining-budget and fresh-authority recovery gates above remain unchanged.
+
 ## Dependency-ordered work remaining
 
 1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
