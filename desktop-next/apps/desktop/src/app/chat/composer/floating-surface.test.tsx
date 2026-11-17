@@ -8,6 +8,7 @@ import { $composerPopout, $composerPopoutGesturesEnabled, setComposerPoppedOut }
 import { FloatingComposerSurface } from './floating-surface'
 import { claimFloatingComposer, pinFloatingComposerCapture } from './floating-target'
 import { getActiveComposer, markActiveComposer } from './focus'
+import { RICH_INPUT_SLOT } from './rich-editor'
 import { ComposerScopeProvider, ComposerSurfaceProvider, MAIN_COMPOSER_SCOPE } from './scope'
 
 function Surface({ id, visible = true, groupId = id }: { id: string; visible?: boolean; groupId?: string }) {
@@ -24,7 +25,7 @@ function Surface({ id, visible = true, groupId = id }: { id: string; visible?: b
             >
               <button>Focus {id}</button>
               <FloatingComposerSurface>
-                <input aria-label={`Draft ${id}`} defaultValue={id} />
+                <input aria-label={`Draft ${id}`} data-slot={RICH_INPUT_SLOT} defaultValue={id} />
               </FloatingComposerSurface>
             </div>
           </ComposerSurfaceProvider>
@@ -104,8 +105,25 @@ it.each([false, true])('keeps pointer-selected ownership through delayed events 
   expect(getActiveComposer()).toBe('b')
 
   fireEvent.pointerOver(screen.getByTestId('pane-a'), { clientX: 500, clientY: 100 })
-  fireEvent.focusIn(screen.getByRole('button', { name: 'Focus a' }))
+  // A stale composer restore is not new intent. Independent controls, unlike
+  // composer editors, keep their own focus and select their recipient below.
+  fireEvent.focusIn(screen.getByLabelText('Draft a'))
   expect(getActiveComposer()).toBe('b')
+})
+
+it.each([false, true])('honors restored independent button focus (floating=%s)', floating => {
+  render(<><Surface id="a" /><Surface id="b" /></>)
+  act(() => {
+    setComposerPoppedOut(floating)
+    claimFloatingComposer('b')
+  })
+  expect(getActiveComposer()).toBe('b')
+
+  const action = screen.getByRole('button', { name: 'Focus a' })
+  act(() => action.focus())
+
+  expect(document.activeElement).toBe(action)
+  expect(getActiveComposer()).toBe('a')
 })
 
 it('hands the floating recipient to a visible tab when its old tab hides or closes', async () => {

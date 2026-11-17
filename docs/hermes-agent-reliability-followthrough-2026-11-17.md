@@ -55,7 +55,15 @@ The repair uses the identified destination's existing owner-scoped draft store o
 
 Parent executed five focused renderer files: **68 passing**, including ten new mounted-editor cases. After extracting the narrow caret guard for the enforced complexity limit, the ten cases passed again and the four affected production files showed no new/worse size findings (16 existing). Renderer and Electron typechecks passed. This applies accessibility's keyboard/focus ownership and cognitive-load reduction: preserve intended input rather than require the person to notice and retype it.
 
-Limits: the harness composes production hooks, the floating portal and real rich editor, with assistant-ui runtime/theme mocked. It is not a whole-ChatView or native cold-launch proof. Two existing floating pointer-selection tests fail identically with unchanged HEAD `focus.ts` substituted at transform time; the failure is tracked separately in DN-22, not hidden or attributed to this repair. No whole-suite-green claim.
+Limits: the harness composes production hooks, the floating portal and real rich editor, with assistant-ui runtime/theme mocked. It is not a whole-ChatView or native cold-launch proof. Two existing floating pointer-selection tests initially failed identically with unchanged HEAD `focus.ts` substituted at transform time. The DN-22 follow-up below supersedes that unresolved-test finding; no whole-suite-green claim.
+
+#### DN-22 follow-up: distinguish editor restoration from deliberate control focus
+
+The two floating-selection failures came from the fixture: it simulated a stale editor restoration by focusing an independent button, and its fake editor lacked the production rich-input slot. Production intentionally lets independent controls keep focus and select their pane, including approval controls. Changing that behavior would hide the test error and regress keyboard ownership.
+
+Only the fixture changed: identify the editor with the existing rich-input slot, send stale editor focus to that editor, and separately assert real `button.focus()` selects its own pane. No production focus behavior changed. Parent reran the two exact composer/typing files: **16 passing**, plus renderer and Electron typechecks. The wider affected renderer group passed **81 cases across nine files**; these counts overlap.
+
+An isolated Electron harness running the actual production floating surface and handlers exercised eight scenario rows across docked/floating modes: layout-only pointer-over preserves the selected pane, independent button focus selects its pane, stale editor focus preserves the selected pane, and keyboard text enters only that pane. No renderer errors were observed. This proves the isolated component/handler path, not the whole app shell, native conversation restoration, or owner acceptance. DN-22 remains open.
 
 ### Inspect configured fallbacks without testing another route
 
@@ -85,7 +93,7 @@ Retention limit: no new count/size/age cleanup policy was invented. Retained wor
 
 1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
 2. Before child continuation or agent-facing inspection: validate expected parent/profile/branch authority, preserve real remaining budgets, reconcile effects and retain review holds. Never restore grants or replay unknown effects.
-3. Run actual packaged cold-launch typing/owner acceptance and diagnose the separately reproduced floating-pointer test gap; do not infer native acceptance from mounted-component tests.
+3. Run actual packaged cold-launch typing/owner acceptance; the isolated floating-pointer fixture gap above is resolved separately, not a substitute for whole-app proof.
 4. Test an exact selected fallback route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
 5. Reproduce adopted-reply/late-tail reconnect behavior before changing production streaming. Existing session identity/no-second-POST protections stay intact.
 
