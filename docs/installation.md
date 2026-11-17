@@ -9,17 +9,18 @@ when changing an installation; do not run two app versions on the same profile.
 
 ## Desktop App
 
-[Download Vanta Desktop v0.1.4 ZIP for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip).
+[Download Vanta Desktop v0.1.4 DMG for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.dmg).
 The normal release replaces Iris downloads. It contains the signed, notarized
 and stapled app with bundled runtime/kernel; no source build or Python setup
-is required. This ZIP supports manual installation and native updating. The
-separate 0.1.4 DMG is not published while its Apple submission is pending;
-the previous 0.1.3 DMG is a distinct older release.
+is required. The same app remains available as a
+[ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip)
+for manual installation and native updating.
 
 1. Verify the download against `SHA256SUMS` on the
    [Desktop release](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4).
-2. Quit Vanta and keep a rollback copy of an existing app. Extract the ZIP and
-   move `Vanta.app` to Applications.
+2. Quit Vanta and keep a rollback copy of an existing app. Open the DMG, drag
+   `Vanta.app` to Applications and eject the image afterward. For the ZIP,
+   extract it and move the app to Applications instead.
 3. Open Vanta normally. No Gatekeeper bypass is required. Configure the chosen
    provider through existing settings if needed; credentials and approval grants
    are not copied from another installation.

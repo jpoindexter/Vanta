@@ -10,7 +10,9 @@
   publish its verified ZIP/manifest/provenance/checksums, and execute the normal
   0.1.3 → 0.1.4 native replacement/relaunch with app/data backups and rollback.
   Installed full payload, publisher, ticket and Gatekeeper match the release.
-- Keep the separately submitted DMG withheld while Apple's decision is pending.
+- Publish the separately signed/notarized/stapled DMG after explicit completed
+  upload/Apple acceptance, exact public download and mounted payload checks.
+  Its copied app passes seven setup/chat/restart criteria in a private install.
   Preserve earlier artifacts, normal CLI selection and CLI/kernel Latest.
 - Exact delivery, hashes and remaining gates:
   [Desktop release notes](docs/releases/desktop-v0.1.4.md).

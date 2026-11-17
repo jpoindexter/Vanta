@@ -33,15 +33,16 @@ Chords are configurable via `~/.vanta/keybindings.json` (zod-validated, fail-sof
 
 ### Current download — 17 November 2026
 
-[Download the signed/notarized Vanta Desktop v0.1.4 ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip)
+[Download the signed/notarized Vanta Desktop v0.1.4 DMG](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.dmg)
 for Apple Silicon macOS. Verify the checksum on the
 [release page](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4),
-quit Vanta, keep a rollback copy, extract the ZIP, move the app to Applications and open
+quit Vanta, keep a rollback copy, drag the app to Applications, eject the image and open
 normally. Runtime and safety kernel are bundled; no source build is required.
 The normal release replaces the separate Iris test downloads.
 
-The separate 0.1.4 DMG is withheld pending its own Apple decision. The ZIP is
-also the native updater artifact. Use **Check for Updates…**
+The same app is available as the ZIP used by the native updater. The published
+DMG's download, mounted payload and copied private install passed seven
+setup/chat/restart criteria. Use **Check for Updates…**
 and approve the exact version after active work is safe. Signed native
 replacement/relaunch from 0.1.3 into 0.1.4 passed with retained history and rollback.
 This is not clean-Mac acceptance or a complete native failure/rollback test.

@@ -176,7 +176,7 @@ fresh private data copies. Read-only process/plist observation saw replacement
 and automatic relaunch; installed full payload, ASAR, signature, ticket and
 Gatekeeper match the public ZIP/manifest. Existing chat history remains visible;
 the separate CLI launcher/selection is unchanged. This does not rerun the whole
-failure matrix. Final evidence and the separately pending DMG are in the
+failure matrix. Final evidence and the separately verified DMG delivery are in the
 [0.1.4 release record](releases/desktop-v0.1.4.md).
 
 The signed DMG passed Apple acceptance, stapling, mounted payload identity,

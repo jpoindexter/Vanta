@@ -6,7 +6,7 @@ import Layout from "@theme/Layout";
 import styles from "./index.module.css";
 
 const desktopRelease =
-  "https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip";
+  "https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.dmg";
 const desktopReleaseNotes =
   "https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4";
 
@@ -138,7 +138,7 @@ export default function Home(): ReactNode {
         <section className={styles.releaseProof} aria-label="Release verification">
           <div className={styles.sectionFrame}>
             <dl>
-              <div><dt>Desktop</dt><dd>v0.1.4</dd><dd className={styles.proofNote}>Notarized ZIP and native updater</dd></div>
+              <div><dt>Desktop</dt><dd>v0.1.4</dd><dd className={styles.proofNote}>Notarized DMG and updater ZIP</dd></div>
               <div><dt>First launch</dt><dd>7 checks</dd><dd className={styles.proofNote}>private packaged replay</dd></div>
               <div><dt>Native update</dt><dd>Verified</dd><dd className={styles.proofNote}>replacement and relaunch</dd></div>
               <div><dt>Notarization</dt><dd>Accepted</dd><dd className={styles.proofNote}>Apple verified</dd></div>
@@ -265,7 +265,7 @@ export default function Home(): ReactNode {
             <p className={styles.kicker}>Start here</p>
             <h2 id="install-title">Give it one real task.</h2>
             <div className={styles.installMethods}>
-              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.1.4 ZIP</a></div>
+              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.1.4 DMG</a></div>
               <div><h3>Terminal</h3><p>Install the operator and kernel from the command line.</p><code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code></div>
               <div><h3>Source</h3><p>Inspect the code, release evidence, and open roadmap.</p><a href={desktopReleaseNotes}>Open the release</a></div>
             </div>

@@ -6,6 +6,7 @@ build, a protected-main merge or a CLI cutover. Global CLI/kernel Latest remains
 `v0.9.8`; the normal CLI retains its separately approved `19d68ed5` pin.
 
 [Release and checksums](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4) ·
+[Download DMG](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.dmg) ·
 [Download ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip) ·
 [Changelog](../../CHANGELOG.md#desktop-v014--2026-11-17)
 
@@ -73,19 +74,38 @@ task. Packaged network/subprocess instrumentation was unavailable; those
 counters are not claimed. Earlier uncached/stale-terminal native proofs remain
 their earlier source identity, not fresh 0.1.4 reruns.
 
-## Installer and remaining gates
+## Signed DMG delivery
 
-The separately signed 0.1.4 DMG is withheld. Apple lists submission
-`811ced47-897b-4b0b-a960-cf5c8cfcb11b` as In Progress after the submit client's
-timeout; no completed upload/acceptance response was returned. Apple's DTS
+The final DMG is published beside the unchanged updater ZIP:
+
+- **202,707,756 bytes**, SHA-256
+  `b01a38302a1b19c3f3ba11b43a5fc9c2ec89681b75a49231fbe19e4ca0bd95a7`.
+- Separate Developer ID signature, Apple acceptance
+  `330dd364-c4b5-4fbe-8235-58f94e66675f`, stapling, Gatekeeper and image checksums
+  passed. Read-only mounted payload matches the exact final notarized app above;
+  its Applications shortcut is valid.
+- GitHub's asset digest and an anonymous download both match the final image.
+  That downloaded image mounted read-only, and its copied app in a new private
+  Applications destination passed publisher/ticket/Gatekeeper and full-payload
+  agreement. The image was ejected.
+- The exact copied app passed all seven first-launch/setup/chat/restart criteria
+  over three hidden, nonfocusable native launches: one explicit canned reply,
+  zero renderer errors, same-chat/draft cold-restart retention, unchanged app
+  fingerprint afterward, and no remaining private app processes/kernel listener.
+  No owner profile, live provider, screenshots or visual acceptance were used in
+  this separate downloaded-installer replay.
+
+The initial submit client's short timeout returned no completed upload response,
+leaving request `811ced47-897b-4b0b-a960-cf5c8cfcb11b` pending. Apple's DTS
 [explains that an interrupted upload can leave a pending request](https://developer.apple.com/forums/thread/847500).
-One controlled attempt using the supported non-accelerated transport is recorded
-separately as `330dd364-c4b5-4fbe-8235-58f94e66675f`; both IDs are retained and
-pending, not a rejection or completed acceptance. Do not start a third attempt
-or advertise the image without an explicit result. No DMG notarization, public
-download or fresh DMG install is claimed.
-The previous 0.1.3 DMG remains separately available; use this release's ZIP or
-native updater for 0.1.4.
+One controlled non-accelerated upload explicitly completed and produced the
+Accepted result above; both IDs and the earlier evidence are retained. No key,
+network security, signature requirement or Gatekeeper protection was weakened.
+The manifest/checksums bind the final image; earlier pending/draft receipts are
+historical, not a claim that an upload timeout means rejection or permits a
+blind retry of an external effect.
+
+## Remaining gates
 
 Native failure/offline/forced-rollback coverage, stored-tail/attachment-offset
 adoption, child continuation/remaining budgets/trustworthy profile-branch
