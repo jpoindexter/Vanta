@@ -89,6 +89,22 @@ const SSE = [
   ``,
 ].join("\n");
 
+it("native search preserves executed calls and structured citations with explicitly selected hosted tools", async () => {
+  let body: Record<string, unknown> = {};
+  const events = [
+    { type: "response.output_item.done", item: { type: "web_search_call", status: "completed" } },
+    { type: "response.output_item.done", item: { type: "message", content: [{ type: "output_text", text: "team summary", annotations: [{ type: "url_citation", title: "Team", url: "https://example.com/team" }] }] } },
+    { type: "response.completed", response: { usage: { input_tokens: 10, output_tokens: 5 } } },
+  ].map((e) => `data: ${JSON.stringify(e)}\n\n`).join("");
+  const p = new CodexProvider({ model: "gpt-5.6-luna", webSearch: true,
+    loadCreds: async () => ({ accessToken: "fixture", accountId: "fixture" }),
+    fetchImpl: (async (_url, init) => { body = JSON.parse(String(init?.body)); return new Response(events); }) as typeof fetch,
+  });
+  const result = await p.complete([{ role: "user", content: "exact company" }], []);
+  expect(body).toMatchObject({ tools: [{ type: "web_search", external_web_access: true }], tool_choice: "required" });
+  expect(result.webSearch).toEqual({ calls: 1, citations: [{ title: "Team", url: "https://example.com/team", snippet: "team summary" }] });
+});
+
 describe("CodexProvider.stream", () => {
   const provider = new CodexProvider({
     model: "gpt-5.5",

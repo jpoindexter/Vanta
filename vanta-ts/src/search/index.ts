@@ -5,6 +5,7 @@ import { BraveProvider } from "./brave.js";
 import { BingProvider } from "./bing.js";
 import { JinaDdgProvider } from "./jina.js";
 import { BraveBrowserProvider } from "./brave-browser.js";
+import { CodexSearchProvider } from "./codex.js";
 import { ExaProvider } from "./exa.js";
 import { FirecrawlProvider } from "./firecrawl.js";
 import { TavilyProvider } from "./tavily.js";
@@ -100,9 +101,10 @@ const KEYED: Record<string, { env: string; make: (value: string, env: NodeJS.Pro
 };
 
 const NAMED_HINT =
-  "auto, firecrawl, tavily, parallel, exa, xai, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg";
+  "auto, firecrawl, tavily, parallel, exa, xai, codex_search, brave_browser, searxng, serpapi, brave, bing, jina_ddg, or ddg";
 
 function resolveNamedProvider(provider: string, env: NodeJS.ProcessEnv): SearchProvider {
+  if (provider === "codex_search") return new CodexSearchProvider(env.VANTA_MODEL?.replace(/^codex\//, ""));
   const keyless = KEYLESS[provider];
   if (keyless) return keyless();
   const keyed = KEYED[provider];

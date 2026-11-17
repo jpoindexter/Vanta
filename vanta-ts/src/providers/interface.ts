@@ -27,6 +27,8 @@ export type CompletionResult = {
   thinking?: string;
   /** Actual provider route that served this call, including fallback selection. */
   servedRoute?: ProviderRoute;
+  /** Native web-search evidence, never reconstructed from generated Markdown. */
+  webSearch?: { calls: number; citations: { title: string; url: string; snippet: string }[] };
 };
 
 /** Real token counts from the provider's response, when it reports them. */

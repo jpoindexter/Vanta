@@ -36,6 +36,8 @@ export type CodexProviderOpts = {
   fetchImpl?: typeof fetch;
   /** Override credential resolution (tests). Defaults to loadCodexCreds. */
   loadCreds?: () => Promise<CodexCreds>;
+  /** Explicit subscription search backend; ordinary agent turns remain unchanged. */
+  webSearch?: boolean;
 };
 
 export class CodexProvider implements LLMProvider {
@@ -44,9 +46,11 @@ export class CodexProvider implements LLMProvider {
   private readonly fetchImpl: typeof fetch;
   private readonly resolveCreds: () => Promise<CodexCreds>;
   private readonly sessionId = randomUUID();
+  private readonly webSearch: boolean;
 
   constructor(opts: CodexProviderOpts) {
     this.model = opts.model;
+    this.webSearch = opts.webSearch ?? false;
     this.ctxWindow = CODEX_CONTEXT[opts.model] ?? 272_000;
     this.fetchImpl = opts.fetchImpl ?? fetch;
     if (opts.loadCreds) {
@@ -77,6 +81,11 @@ export class CodexProvider implements LLMProvider {
   async *stream(messages: Message[], tools: ToolSchema[], config?: CompletionConfig): AsyncIterable<StreamChunk> {
     const creds = await this.resolveCreds();
     const body = buildCodexBody(this.model, messages, tools, config);
+    if (this.webSearch) Object.assign(body, {
+      tools: [{ type: "web_search", external_web_access: true }],
+      tool_choice: "required",
+      include: ["web_search_call.action.sources"],
+    });
     // The raw SSE fetch has no built-in request timeout (unlike the OpenAI SDK adapter), so a
     // stalled stream would hang the run forever — the silent-hang failure mode the long-run
     // stress harness surfaced. Abort on idle: the timer resets on every received chunk and fires

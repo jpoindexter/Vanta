@@ -12,6 +12,7 @@ type SSEState = {
   text: string;
   toolCalls: ToolCall[];
   usage?: { inputTokens: number; outputTokens: number };
+  webSearch: NonNullable<CompletionResult["webSearch"]>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,6 +25,18 @@ function assertCodexEventOk(ev: any): void {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyCodexEvent(ev: any, state: SSEState): string | null {
   assertCodexEventOk(ev);
+  if (ev.type === "response.output_item.done" && ev.item?.type === "web_search_call" && ev.item.status === "completed") {
+    state.webSearch.calls++;
+  }
+  if (ev.type === "response.output_item.done" && ev.item?.type === "message") {
+    for (const block of ev.item.content ?? []) {
+      for (const a of block.annotations ?? []) {
+        if (a.type === "url_citation" && typeof a.title === "string" && typeof a.url === "string") {
+          state.webSearch.citations.push({ title: a.title, url: a.url, snippet: String(block.text ?? "").slice(0, 600) });
+        }
+      }
+    }
+  }
   if (ev.type === "response.output_text.delta" && typeof ev.delta === "string") {
     state.text += ev.delta;
     return ev.delta;
@@ -38,13 +51,14 @@ function applyCodexEvent(ev: any, state: SSEState): string | null {
 }
 
 export async function* drainCodexSSE(body: ReadableStream<Uint8Array>): AsyncGenerator<StreamChunk> {
-  const state: SSEState = { text: "", toolCalls: [] };
+  const state: SSEState = { text: "", toolCalls: [], webSearch: { calls: 0, citations: [] } };
   for await (const ev of parseSSE(body)) {
     const delta = applyCodexEvent(ev, state);
     if (delta !== null) yield { type: "text", delta };
   }
   const { text, toolCalls, usage } = state;
   const result: CompletionResult = { text, toolCalls, finishReason: toolCalls.length ? "tool_calls" : "stop", usage };
+  if (state.webSearch.calls) result.webSearch = state.webSearch;
   yield { type: "done", result };
 }
 

@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { resolveSearchProvider, resolveSearchProviders, backendIdFor } from "./index.js";
 
 describe("search provider resolution", () => {
+  it("subscription search requires explicit selection and leaves auto unchanged", () => {
+    expect(resolveSearchProvider({ VANTA_SEARCH_BACKEND: "codex_search", VANTA_MODEL: "gpt-5.6-luna" }).id).toBe("codex_search");
+    expect(resolveSearchProviders({}).some((p) => p.id === "codex_search")).toBe(false);
+  });
   it("auto uses browser-backed Brave and Bing without DDG-derived providers", () => {
     const providers = resolveSearchProviders({} as NodeJS.ProcessEnv);
     expect(providers.map((p) => p.id)).toEqual(["brave_browser", "bing"]);
