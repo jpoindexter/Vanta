@@ -8,6 +8,7 @@ import {
   setupStatus
 } from './handlers-config'
 import { sessionBranch } from './handlers-branch'
+import { fileAttach } from './handlers-attachments'
 import { connectorsAccounts, connectorsCatalog, connectorsList, connectorsPolicyGet, mcpServersList, mcpServersStatus } from './handlers-connectors'
 import { profilesList } from './handlers-profiles'
 import { projectsProjectSessions, projectsTree } from './handlers-project-tree'
@@ -39,6 +40,7 @@ export const DISPATCH: Readonly<Record<string, Handler>> = {
   'connectors.list': connectorsList,
   'connectors.policy.get': connectorsPolicyGet,
   'config.set': configSet,
+  'file.attach': fileAttach,
   'mcp.servers.list': mcpServersList,
   'mcp.servers.status': mcpServersStatus,
   'model.options': modelOptions,

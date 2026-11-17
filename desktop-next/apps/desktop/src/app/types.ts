@@ -36,7 +36,7 @@ export interface FileAttachResponse {
   path?: string
   // Workspace-relative path used to build ref_text.
   ref_path?: string
-  // Rewritten @file: ref that resolves on the gateway (workspace-relative).
+  // Rewritten context reference: legacy @file: staging or a native local @path.
   ref_text?: string
   // True when bytes/host file were copied into the session workspace.
   uploaded?: boolean

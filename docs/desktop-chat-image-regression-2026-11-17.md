@@ -61,6 +61,12 @@ candidate is held from release pending a supported incident diagnosis.
 
 ## Planning boundary
 
+Later release preparation reproduced a missing native file-staging method in
+the actual signed package. Its bounded local-reference repair and refusal limits
+are recorded in [native file references](desktop-native-file-reference-2026-11-17.md).
+Do not equate this source repair with the original tester's exact incident or
+with unrestricted external-file upload support.
+
 Captured as a narrow defect at the top of the existing defects/hardening list.
 It does not add a third Building lane, consume another Next slot or certify a
 parent Desktop card. Triage may promote this over lower-impact work after a
