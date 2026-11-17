@@ -5,6 +5,7 @@ import { verifyVantaPublisher } from './update-rollback'
 vi.mock('node:child_process', () => ({
   execFile: vi.fn((_file, _args, callback) => callback(null))
 }))
+vi.mock('original-fs', () => ({ default: { promises: { readFile: vi.fn() } } }))
 
 describe('native publisher requirement', () => {
   it('passes a requirement expression, not a filename, to codesign', async () => {

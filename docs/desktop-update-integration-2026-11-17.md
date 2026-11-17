@@ -119,6 +119,25 @@ progress with a generic error. The 0.1.1 target was returned to draft status;
 its immutable tag and artifacts remain preserved. Corrected two-package
 acceptance must still run before the final DMG.
 
+The next signed 0.1.2 attempt passed publisher verification but refused raw
+archive hashing before copying/replacing the app. Under real Electron,
+`node:fs/promises.readFile(app.asar)` treats the archive as a virtual directory;
+the Node-only publisher check could not reveal that boundary. The raw digest now
+uses Electron's built-in `original-fs`, explicitly externalized in the existing
+main bundler. Ordinary file operations and global ASAR handling are unchanged.
+See [Electron's raw archive guidance](https://www.electronjs.org/docs/latest/tutorial/asar-archives#treating-an-asar-archive-as-a-normal-file).
+
+A zero-window real Electron 43.8.1 helper, not `ELECTRON_RUN_AS_NODE`, reproduced
+the exact failure, then retained a publisher-verified private rollback and a
+0600 receipt. Source and backup ASAR hashes both matched the actual signed 0.1.2
+archive. Ordinary archive reads still refused and `process.noAsar` stayed
+unchanged. This is executed backup preservation, not Squirrel replacement.
+An additional zero-window Electron ESM run used the production bundler format,
+externals and `createRequire` banner: the built-in import resolved, the raw hash
+matched and publisher verification passed without a global ASAR toggle.
+The 0.1.2 target was also returned to draft status; no app replacement completed
+and the owner's synthetic unsent text/file remained retained.
+
 ## Not claimed
 
 No native two-package acceptance, new installed version, fresh notarized DMG,

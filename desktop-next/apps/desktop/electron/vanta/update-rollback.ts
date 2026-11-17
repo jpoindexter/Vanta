@@ -1,13 +1,14 @@
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs/promises'
+import originalFs from 'original-fs'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import type { DesktopRelease } from './update-release'
 
 const run = promisify(execFile)
 const REQUIREMENT = '=identifier "studio.theft.vanta-next" and anchor apple generic and certificate leaf[subject.OU] = "5352PXMNV5"'
-const asarDigest = async (app: string) => createHash('sha256').update(await fs.readFile(path.join(app, 'Contents/Resources/app.asar'))).digest('hex')
+const asarDigest = async (app: string) => createHash('sha256').update(await originalFs.promises.readFile(path.join(app, 'Contents/Resources/app.asar'))).digest('hex')
 
 export async function verifyVantaPublisher(app: string): Promise<void> {
   await run('/usr/bin/codesign', ['--verify', '--deep', '--strict', '-R', REQUIREMENT, app])

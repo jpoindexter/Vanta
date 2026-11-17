@@ -68,7 +68,7 @@ export async function bundleElectronMain({ source, out, stamp, dev = false, shel
     platform: 'node',
     target: 'node20',
     alias: sharedAliases(join(source, 'apps/shared')),
-    external: ['electron', 'node-pty', 'get-windows', 'fs'],
+    external: ['electron', 'original-fs', 'node-pty', 'get-windows', 'fs'],
     define,
     logLevel: 'info',
   }
