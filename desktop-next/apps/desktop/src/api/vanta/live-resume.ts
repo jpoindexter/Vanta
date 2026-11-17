@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { fetchPendingApproval } from './approvals'
 import type { ChatClient } from './client-registry'
-import { attachStream } from './client-stream'
+import { attachStream, detachStream } from './client-stream'
 import type { GatewayHub } from './hub'
 import { expectOk, parseBody } from './rpc'
 import { chatResultSchema, openSessionSchema } from './schemas'
@@ -87,6 +87,14 @@ export async function resumeLiveObservation(hub: GatewayHub, client: ChatClient)
   await observer.ready
 }
 
+function installRecoveredTurn(client: ChatClient, requestId: string): void {
+  if (client.turn) return
+  client.turn = { completed: false, controller: new AbortController(), requestId }
+  // A known idle client can still have its previous stream attachment. Do
+  // not relabel that backlog: a fresh attachment captures this proven turn.
+  detachStream(client)
+}
+
 export async function adoptLiveSession(hub: GatewayHub, probe: ChatClient, opened: Opened): Promise<ChatClient> {
   if (opened.live?.result?.sessionId && opened.live.result.sessionId !== opened.id) {
     throw new Error('The recovered result belongs to another conversation.')
@@ -100,7 +108,7 @@ export async function adoptLiveSession(hub: GatewayHub, probe: ChatClient, opene
   client.cwd = live.root
   client.model = opened.modelId ?? client.model
   client.provider = opened.providerId ?? client.provider
-  client.turn ??= { completed: false, controller: new AbortController(), requestId: live.requestId }
+  installRecoveredTurn(client, live.requestId)
   recoveredTurns.set(client, live)
   if (live.result) finishFromChat(hub, client, live.result, true)
   attachStream(hub, client)

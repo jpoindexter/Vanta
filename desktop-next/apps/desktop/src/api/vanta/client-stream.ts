@@ -2,7 +2,46 @@ import type { ChatClient } from './client-registry'
 import type { MappedEvent } from './event-mapper'
 import type { GatewayHub } from './hub'
 import { isFailureStop } from './run-stop'
+import { type SseFrame, sseFrameSchema, typedEventSchema } from './schemas'
 import { completeTurn } from './turn-complete'
+
+interface StreamCursor { requestId?: string }
+
+function ownsFrame(client: ChatClient, frame: SseFrame, cursor: StreamCursor): boolean {
+  const start = frame.turnStarted
+  if (start) cursor.requestId = start.sessionId === client.storedId ? start.requestId : undefined
+  return Boolean(client.turn && cursor.requestId === client.turn.requestId)
+}
+
+function mapFrame(hub: GatewayHub, client: ChatClient, frame: SseFrame): void {
+  for (const event of client.mapper.map(frame)) applyMapped(hub, client, event)
+}
+
+/** Read-only cleanup/accounting has session authority, never turn authority. */
+function applyReadOnlyFrame(hub: GatewayHub, client: ChatClient, frame: SseFrame): boolean {
+  const parsed = typedEventSchema.safeParse(frame.typed)
+  if (!parsed.success) return false
+  const typed = parsed.data
+  if (typed.type === 'approval.resolved') {
+    resolveForeign(hub, client, typed.id)
+    return true
+  }
+  if (typed.type !== 'usage' || typed.sessionId !== client.storedId) return false
+  // One request can report several settled instructions. Keep each report in
+  // SSE order, but never map co-packed stale prose, tools or approval requests.
+  mapFrame(hub, client, { typed })
+  return true
+}
+
+function receiveFrame(hub: GatewayHub, client: ChatClient, raw: unknown, cursor: StreamCursor): void {
+  const parsed = sseFrameSchema.safeParse(raw)
+  if (!parsed.success) return
+  const frame = parsed.data, typed = frame.typed
+  if (typed && typeof typed === 'object' && 'sessionId' in typed && typed.sessionId !== client.storedId) return
+  const owns = ownsFrame(client, frame, cursor)
+  if (applyReadOnlyFrame(hub, client, frame) || !owns) return
+  mapFrame(hub, client, frame)
+}
 
 function applyMapped(hub: GatewayHub, client: ChatClient, event: MappedEvent): void {
   switch (event.kind) {
@@ -57,17 +96,25 @@ export function attachStream(hub: GatewayHub, client: ChatClient): void {
     return
   }
 
-  client.stopStream = hub.transport.openEvents(client.clientId, {
+  // Capture only at attachment: an adopted/reconnected request already has
+  // exact ownership even if its start frame was missed. A reused stream keeps
+  // its observed cursor across HTTP settlement until the next real start.
+  const cursor: StreamCursor = { requestId: client.turn?.requestId }
+  let attached = true
+  const stop = hub.transport.openEvents(client.clientId, {
     onClose: reason => {
+      if (!attached) return
+      attached = false
       client.stopStream = null
       hub.streamClosed(client, reason)
     },
     onFrame: frame => {
-      for (const event of client.mapper.map(frame)) {
-        applyMapped(hub, client, event)
-      }
+      // Gate before mapping: stale usage and tool starts mutate mapper state.
+      // Missing legacy provenance waits for its original HTTP/live readback.
+      if (attached) receiveFrame(hub, client, frame, cursor)
     }
   })
+  client.stopStream = () => { attached = false; stop() }
 }
 
 export function detachStream(client: ChatClient): void {
