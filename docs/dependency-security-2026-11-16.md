@@ -1,5 +1,8 @@
 # Default-branch dependency security repair — 16 November 2026
 
+Review follow-up: [17 November Capacitor native-pin correction](pr87-review-followup-2026-11-17.md).
+The dated results below remain historical; review approval/merge is still required.
+
 This security-only candidate starts from default `main` at `4911ae44`, not from
 the newer Desktop feature stack. It is not a promotion of the unfinished app.
 
