@@ -96,6 +96,9 @@ export function recoveryOf(receipt: RunReceipt | undefined, lastRequest: string)
 /** The descriptor the card reads (`layer: runtime`, a code per reason) plus the recovery the buttons act on. */
 export function failureSurface(chat: ChatResult, lastRequest: string): { partial: boolean; stop: StopDescription; surface: Record<string, unknown> } {
   const partial = Boolean(chat.receipt?.checkpoint?.partialText?.trim())
+  if (chat.receipt?.needsEffectReview === true) {
+    return effectReviewSurface(chat.receipt, lastRequest, partial)
+  }
   const stop = describeStop(chat.stoppedReason, chat.receipt?.failureKind, partial)
 
   return {
@@ -108,6 +111,29 @@ export function failureSurface(chat: ChatResult, lastRequest: string): { partial
       message: stop.message,
       recovery: recoveryOf(chat.receipt, lastRequest),
       retryable: true
+    }
+  }
+}
+
+function effectReviewSurface(receipt: RunReceipt, lastRequest: string, partial: boolean) {
+  const recovery = recoveryOf(receipt, lastRequest)
+  const stop = {
+    code: 'effect_review',
+    headline: 'Review the last action before continuing',
+    message:
+      'Vanta could not confirm whether the last action completed. Expand Used tools above and check the destination app or website. Do not repeat the action until you know the result. Use Edit request to describe what you found and what to do next. Queued work stays paused.'
+  }
+  return {
+    partial,
+    stop,
+    surface: {
+      code: stop.code,
+      layer: 'runtime',
+      recovery: {
+        ...recovery,
+        actions: recovery.actions.filter(action => action === 'edit_request')
+      },
+      retryable: false
     }
   }
 }

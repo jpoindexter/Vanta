@@ -3,7 +3,7 @@ import type { VantaResult } from '@vanta/shared/vanta'
 import { describe, expect, it } from 'vitest'
 
 import { connectedHarness, deferred, flush, healthyTransport, newChat } from './vanta/gateway-fixture'
-import { describeStop, isFailureStop, recoveryOf } from './vanta/run-stop'
+import { describeStop, failureSurface, isFailureStop, recoveryOf } from './vanta/run-stop'
 
 // What the Vanta server answers for a run that stopped early (handler-chat-execution.ts, handler-chat-receipts.ts).
 const ALL = ['retry_failed_step', 'edit_request', 'start_from_checkpoint']
@@ -70,6 +70,33 @@ describe('describeStop', () => {
 })
 
 describe('a run that stopped early', () => {
+  it('explains uncertain effects without exposing replay even if a receipt offers it', () => {
+    const { stop, surface } = failureSurface(
+      {
+        finalText: 'Partial result',
+        stoppedReason: 'blocked',
+        receipt: {
+          status: 'failed',
+          failureKind: 'tool',
+          needsEffectReview: true,
+          actions: ALL,
+          checkpoint: { instruction: 'Handle the action' }
+        }
+      },
+      'Handle the action'
+    )
+    expect(stop.code).toBe('effect_review')
+    expect(stop.message).toContain('check the destination app or website')
+    expect(surface).toMatchObject({
+      code: 'effect_review',
+      retryable: false,
+      recovery: {
+        actions: ['edit_request'],
+        checkpoint: { instruction: 'Handle the action' }
+      }
+    })
+  })
+
   it('ends from the chat response with the reason, the partial output and the saved recovery', async () => {
     const harness = await connectedHarness(healthyTransport().route('POST /api/chat', () => stopped('max_iterations')))
     const completes = watch(harness)

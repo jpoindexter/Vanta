@@ -4992,6 +4992,10 @@ export const deOverrides = {
           'Die Verbindung ist abgebrochen, bevor die Antwort fertig war. Versuchen Sie es erneut, um sie noch einmal zu senden.'
       },
       errorCodes: {
+        effect_review: {
+          title: 'Letzte Aktion vor dem Fortfahren prüfen',
+          body: 'Vanta konnte nicht bestätigen, ob die letzte Aktion abgeschlossen wurde. Klappe die verwendeten Werkzeuge oben auf und prüfe die betreffende App oder Website. Wiederhole die Aktion erst, wenn das Ergebnis feststeht. Bearbeite die Anfrage, um deine Erkenntnisse und die nächsten Schritte zu beschreiben. Eingereihte Aufgaben bleiben pausiert.'
+        },
         auth: {
           title: provider => `${provider} hat Ihre Anmeldung abgelehnt`,
           body: provider =>

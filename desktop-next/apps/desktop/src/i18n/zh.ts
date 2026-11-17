@@ -4426,6 +4426,10 @@ export const zhOverrides = {
         streaming: '回复完成前连接已断开。请重试以重新发送。'
       },
       errorCodes: {
+        effect_review: {
+          title: '继续前请检查上一次操作',
+          body: 'Vanta 无法确认上一次操作是否完成。请展开上方的已用工具，并检查目标应用或网站。确认结果前，请勿重复操作。编辑请求，说明检查结果及下一步操作。队列中的任务将保持暂停。'
+        },
         provider_policy_blocked: {
           title: '账户设置阻止了此模型',
           body: provider => `${provider} 无法按你账户的数据或隐私设置路由此请求。请选择其他模型或切换服务商。`

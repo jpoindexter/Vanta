@@ -2,7 +2,7 @@ import type http from "node:http";
 import type { AgentOutcome } from "../agent.js";
 import { EFFECT_REVIEW_TEXT } from "../agent/effect-review.js";
 import { redactForLog } from "../store/redact-structural.js";
-import type { DesktopRunFailureKind,DesktopRunReceipt,ImageAttachment } from "../types.js";
+import type { DesktopRunFailureKind,DesktopRunReceipt,ImageAttachment,Message } from "../types.js";
 import { buildRunReceipt,classifyDesktopFailure,interrupted,queuedTurnExceptionReason } from "./handler-chat-receipts.js";
 import { ensureDesktopConversation,persistActiveSession,providerRouteStatus } from "./handler-conversation.js";
 import { sendJson } from "./handler-http.js";
@@ -16,6 +16,7 @@ import { retainChatResult } from "./live-session.js";
 export type ChatInput = { instructionText: string; images: ImageAttachment[]; files: string[]; requestId?: string };
 export type ChatExecution = ChatInput & {
   outcome?: AgentOutcome;
+  settledAssistant?: Extract<Message, { role: "assistant" }>;
   state: DesktopState;
   controller: AbortController;
   events: DesktopEvent[];
@@ -83,6 +84,12 @@ function failedReceipt(context: ChatExecution, failure: { wasInterrupted: boolea
     ...(context.outcome?.needsEffectReview ? { status: "failed", failureKind: "tool", needsEffectReview: true, stoppedReason: "blocked" } : {}) });
 }
 
+function retainFailureReply(messages: Message[], terminal: ChatExecution["settledAssistant"], reply: Extract<Message, { role: "assistant" }>): void {
+  // A settlement failure updates only this instruction's already-attached terminal row.
+  if (terminal && messages.includes(terminal)) Object.assign(terminal, reply);
+  else messages.push(reply);
+}
+
 export async function respondChatFailure(context: ChatExecution, error: unknown, res: http.ServerResponse): Promise<void> {
   const { state, controller, events, live, instructionText } = context;
   const wasInterrupted = interrupted(error, controller);
@@ -96,7 +103,7 @@ export async function respondChatFailure(context: ChatExecution, error: unknown,
   const receipt = failedReceipt(context, { wasInterrupted, partial, kind: failureKind });
   if (failureKind === "provider_auth" && !review) receipt.actions = ["edit_request", "start_from_checkpoint"];
   if (live) {
-    live.convo.messages.push({ role: "assistant", content: finalText, desktopRun: receipt });
+    retainFailureReply(live.convo.messages, context.settledAssistant, { role: "assistant", content: finalText, desktopRun: receipt });
     await finishRunCapture(state, receipt, finalText, context.outcome?.usage);
     await persistActiveSession(state);
   }

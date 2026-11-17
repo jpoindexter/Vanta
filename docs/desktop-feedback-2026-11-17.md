@@ -77,6 +77,12 @@ The crop alone does not establish the owner's complete window/split geometry.
 
 ## Remaining delivery gates
 
+Release hold after owner clarification: the reported clipping and slow reset
+are attachment-triggered (files and photos), not just narrow shadow paint.
+The signed local checkpoint package is retained privately as a reproduction
+baseline. Do not publish it as the attachment fix. Trace the actual attachment
+action and recovery before promoting a replacement candidate.
+
 Final source reconciliation, signed/notarized package, extracted-package UI
 proof, the one approved synthetic submission and private receipt readback,
 GitHub push/release readback and installed-copy selection are still pending at

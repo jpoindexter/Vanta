@@ -7,6 +7,7 @@ import { failureSurface, isFailureStop } from './run-stop'
 // recovery metadata must not become runnable controls; the reply still renders.
 const savedFailureSchema = z.object({
   actions: z.array(z.string().max(64)).max(16).default([]),
+  needsEffectReview: z.boolean().optional(),
   checkpoint: z
     .object({
       instruction: z.string().max(1024 * 1024),
@@ -48,6 +49,6 @@ export function savedRunFailure(receipt: unknown) {
 
   return {
     display_kind: 'failed_run',
-    display_metadata: { error: stop.code, error_surface: surface }
+    display_metadata: { error: stop.code === 'effect_review' ? stop.message : stop.code, error_surface: surface }
   }
 }

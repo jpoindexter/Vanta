@@ -27,6 +27,7 @@ export type ErrorSurfaceLayer = (typeof ERROR_SURFACE_LAYERS)[number]
  *  FailoverReason) plus the gateway's own site codes (SESSION_NOT_OWNED,
  *  disk_full, stream_drop). Anything else falls back to the layer copy. */
 export const ERROR_CODE_KEYS = [
+  'effect_review',
   'auth',
   'auth_permanent',
   'billing',
@@ -290,6 +291,7 @@ const SWITCH_PROVIDER_LAYERS: readonly ErrorSurfaceLayer[] = ['auth', 'billing',
 // an unchanged retry is known to reproduce it for the user (too long a
 // conversation, a blocked prompt, a chat another surface owns).
 const CODE_PLANS: Partial<Record<ErrorCodeKey, Partial<ErrorRecoveryPlan>>> = {
+  effect_review: { retry: false },
   SESSION_NOT_OWNED: { retry: false, startNewSession: true },
   content_policy_blocked: { editMessage: true, retry: false },
   context_overflow: { compress: true, retry: false, startNewSession: true },

@@ -75,6 +75,22 @@ it('does not infer a precise reason from an old receipt or its event prose', () 
   expect(last.errorSurface?.code).toBe('unknown')
   expect(last.errorSurface?.headline).toBe('The run stopped before it finished')
 })
+it('retains explicit effect-review guidance after reopening and never invents a retry', () => {
+  const last = resume({
+    ...receipt,
+    needsEffectReview: true,
+    stoppedReason: 'blocked',
+    failureKind: 'tool',
+    actions: ['edit_request']
+  }).messages.at(-1)!
+  expect(last.errorSurface).toMatchObject({
+    code: 'effect_review',
+    retryable: false,
+    recovery: { actions: ['edit_request'], checkpoint }
+  })
+  expect(last.error).toContain('check the destination app or website')
+  expect(last.error).not.toBe('blocked')
+})
 it('keeps only allowlisted receipt fields and never invents missing actions', () => {
   const last = resume({
     ...receipt,

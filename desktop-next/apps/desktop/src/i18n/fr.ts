@@ -5004,6 +5004,10 @@ export const frOverrides = {
         streaming: 'La connexion a été interrompue avant la fin de la réponse. Réessayez pour la renvoyer.'
       },
       errorCodes: {
+        effect_review: {
+          title: 'Vérifiez la dernière action avant de continuer',
+          body: 'Vanta ne peut pas confirmer si la dernière action a abouti. Développez les outils utilisés ci-dessus et vérifiez dans l’application ou le site concerné. Ne répétez pas l’action sans connaître son résultat. Modifiez la demande pour expliquer vos constatations et la suite souhaitée. Les tâches en attente restent suspendues.'
+        },
         auth: {
           title: provider => `${provider} a refusé votre connexion`,
           body: provider =>

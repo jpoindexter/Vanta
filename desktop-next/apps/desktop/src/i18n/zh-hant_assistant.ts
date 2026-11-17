@@ -52,6 +52,10 @@ export const zhHantAssistant = {
         streaming: '回覆完成前連線已中斷。請重試以重新傳送。'
       },
       errorCodes: {
+        effect_review: {
+          title: '繼續前請檢查上一次操作',
+          body: 'Vanta 無法確認上一次操作是否完成。請展開上方的已用工具，並檢查目標應用程式或網站。確認結果前，請勿重複操作。編輯請求，說明檢查結果及下一步操作。佇列中的工作將保持暫停。'
+        },
         provider_policy_blocked: {
           title: '帳戶設定封鎖了此模型',
           body: provider => `${provider} 無法依你帳戶的資料或隱私設定路由此請求。請選擇其他模型或切換服務商。`

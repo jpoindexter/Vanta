@@ -4628,6 +4628,10 @@ export const en: Translations = {
         streaming: 'The connection dropped before the reply finished. Retry to send it again.'
       },
       errorCodes: {
+        effect_review: {
+          title: 'Review the last action before continuing',
+          body: 'Vanta could not confirm whether the last action completed. Expand Used tools above and check the destination app or website. Do not repeat the action until you know the result. Use Edit request to describe what you found and what to do next. Queued work stays paused.'
+        },
         auth: {
           title: provider => `${provider} rejected your sign-in`,
           body: provider =>

@@ -12,7 +12,7 @@ Ordering: open only; building > next > horizon; rock > pebble > sand; compatible
 The 28 convergence outcomes are an acceptance catalog, not 28 simultaneous projects. `roadmap.json` is the only product-development work database.
 
 ## Summary
-- total_cards: 1369
+- total_cards: 1370
 - open_cards: 12
 - Harness: 6 open
 - Operator: 6 open

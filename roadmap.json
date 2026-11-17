@@ -2,6 +2,23 @@
   "updated": "2026-11-17",
   "items": [
     {
+      "id": "DESKTOP-BLOCKED-RECOVERY-GUIDANCE",
+      "track": "Operator",
+      "title": "Explain uncertain-action blocks and retain one failed reply per run",
+      "status": "parked",
+      "size": "S",
+      "tier": "rock",
+      "effort": "low",
+      "lens": "tui",
+      "updated": "2026-11-17",
+      "source": "https://trello.com/c/AKRLbUGC",
+      "after": [],
+      "summary": "Owner screenshot shows duplicate generic blocked cards with Details containing only blocked and no useful recovery guidance. Preserve the explicit effect-review reason in live and saved receipts, explain how to inspect the uncertain action and edit the next request, and prevent exception settlement from appending a second terminal failed reply for the same run.",
+      "done": "An actual candidate displays useful effect-review guidance live and after reopening, offers only server-permitted Edit request and never automatically retries, replays, restarts a checkpoint or resumes queued work for an uncertain effect. A deliberately failed queue settlement leaves exactly one failed receipt for the current instruction while preserving older independent failures, partial output, error handling and paused followers. Record exact package/source identity and narrow executed proof; preserve owner history/drafts and do not claim the screenshot cause from an injected fixture alone.",
+      "parkedReason": "review",
+      "notes": "Captured 2026-11-17 with minimized symptom text only; no private screenshot, contact or resume data uploaded. The existing queue-settlement fixture reproduces duplicate receipt rows on a first pause write failure; the live and saved projection drops or ignores needsEffectReview. Attachment-triggered chat recovery remains separately open (DESKTOP-CHAT-IMAGE-FAILURE-RECOVERY). Parent OP-03 retains its status and WIP limits; this narrow defect adds no third Building lane. Implementation and acceptance evidence: docs/desktop-blocked-recovery-2026-11-17.md. No installed or released completion claimed."
+    },
+    {
       "id": "DESKTOP-PRIVATE-FEEDBACK",
       "track": "Operator",
       "title": "Private Desktop bug and idea reporting with durable delivery receipts",
@@ -55,7 +72,7 @@
     {
       "id": "DESKTOP-CHAT-IMAGE-FAILURE-RECOVERY",
       "track": "Operator",
-      "title": "Recover an existing chat after an image-send failure",
+      "title": "Recover an existing chat after attachment admission or send failure",
       "status": "parked",
       "size": "M",
       "tier": "rock",
@@ -64,7 +81,7 @@
       "updated": "2026-11-17",
       "source": "docs/desktop-chat-image-regression-2026-11-17.md",
       "after": [],
-      "summary": "A tester reports that a failed image send leaves one existing Desktop conversation unusable and refresh does not recover it. Restore the affected conversation without resetting history, discarding unsent work, duplicating messages or affecting other chats. High-priority defect triage; cause, exact build and data-loss extent remain unverified.",
+      "summary": "A tester reports that a failed image send leaves one existing Desktop conversation unusable and refresh does not recover it. Owner clarified the trigger is adding an attachment (file, photo, etc.) followed by a delayed chat reset. Restore the affected conversation without resetting history, discarding unsent work, duplicating messages or affecting other chats. The isolated signed baseline admitted a synthetic file and photo without reproducing the reset; cause, affected build and data-loss extent remain unverified. The shadow-gutter edit is not an attachment-recovery fix.",
       "done": "Reproduce the reported failure in an isolated profile using the identified app build and a consented or synthetic equivalent image. Fix the first demonstrated cause at the attachment/send or session-recovery boundary. In the actual packaged candidate, a failed image send shows a specific recoverable error; a subsequent text message succeeds in the SAME conversation; refresh/reopen and cold restart retain transcript, unsent draft and recoverable attachment state. A supported image succeeds, while unsupported/oversized/corrupt images fail without stranding the chat. Reconcile unknown send outcomes before retry so no message, model run or external effect is duplicated. Verify another chat remains usable. Record exact build and executed evidence; do not infer the incident cause from adjacent tests or reset owner data to reproduce it.",
       "parkedReason": "review",
       "notes": "Reported evidence, not a diagnosis: owner-supplied PDF titled Chat no longer working  Vanta.pdf, message dated 17 November 2026 at 10:08 AM. Report says image sending failed, that one chat stopped working and refresh did not restore it; only one chat is reported affected. Exact app version, image format/size, provider/network error, session identity, refresh behavior and data loss are unknown. Keep the original email/PDF and contact details private; this record contains only the minimized symptom summary. Trello mirror: https://trello.com/c/nm0VTKua . Owner Jason. Captured at the top of Parked — defects and hardening for high-priority triage under the existing Desktop lane; no new Building/Next slot or parent completion. User asked to add a card, not implement or diagnose this incident. Next action: preserve affected-session evidence and establish the smallest reproducible case. No fix or acceptance proof has been run."

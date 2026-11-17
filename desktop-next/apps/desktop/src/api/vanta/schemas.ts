@@ -59,6 +59,7 @@ export const runReceiptSchema = z.looseObject({
   actions: z.array(z.string()).default([]),
   checkpoint: z.looseObject({ instruction: z.string(), partialText: z.string().optional() }).optional(),
   failureKind: z.string().optional(),
+  needsEffectReview: z.boolean().optional(),
   status: z.string().optional()
 })
 

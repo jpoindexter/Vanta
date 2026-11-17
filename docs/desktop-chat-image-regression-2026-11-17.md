@@ -11,6 +11,12 @@ containing a tester's message dated 17 November 2026 at 10:08 AM. The tester
 reports that an image could not be sent, the affected chat then stopped working,
 and refresh did not restore it. Only one chat is reported affected.
 
+Owner clarification later on 17 November: this occurs when trying to add an
+attachment (ordinary file, photo, etc.), followed by a slow chat reset. Broaden
+reproduction beyond image-only sends. The composer-edge screenshot is related
+trigger evidence; the separately measured narrow-pane shadow-gutter change
+does not establish a fix for attachment admission, rendering or recovery.
+
 This establishes the reported symptom and sequence, not causation. The exact
 build, image format/size, provider/network response, session identity, refresh
 operation, persistence state and extent of any data loss are unknown. The
@@ -32,14 +38,31 @@ do not reset owner data or automatically resend an uncertain message/action.
   recoverable attachments.
 - A supported image succeeds; unsupported, oversized and corrupt images show a
   specific recoverable explanation without breaking the conversation.
+- Adding an ordinary file or photo does not trigger a clipped composer,
+  renderer failure, unexpected navigation or delayed reset. Record add-versus-
+  send timing separately and preserve the originating conversation and draft.
 - Unknown send results reconcile before retry; no duplicated messages, model
   runs or external effects occur.
 - Another chat remains usable. Retain actual packaged-build evidence.
+
+## Isolated baseline probe — 17 November
+
+The signed local 0.1.0-test.20261117.1 candidate was launched with a separate
+synthetic profile, project and provider. The actual file and image menu/picker
+paths admitted a Markdown file and a PNG. Saving notices cleared within the
+1.5-second observation window; there were no captured renderer errors or route
+changes. The native picker result alone was supplied by the fixture.
+
+This did not reproduce the reported delayed reset. It does not establish that
+the affected owner's conversation, larger/corrupt files, send failures or cold
+restart work. Shared attachment-restoration/send gating is under investigation;
+do not call the generic shadow-gutter edit an attachment-recovery fix. The local
+candidate is held from release pending a supported incident diagnosis.
 
 ## Planning boundary
 
 Captured as a narrow defect at the top of the existing defects/hardening list.
 It does not add a third Building lane, consume another Next slot or certify a
 parent Desktop card. Triage may promote this over lower-impact work after a
-reproducible case is established. No implementation or runtime check was
-performed for this card-capture request.
+reproducible case is established. Initial capture was planning-only; the later
+isolated probe above does not clear the card.

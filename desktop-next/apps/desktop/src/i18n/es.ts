@@ -4987,6 +4987,10 @@ export const esOverrides = {
         streaming: 'La conexión se cortó antes de que terminara la respuesta. Reinténtalo para enviarla de nuevo.'
       },
       errorCodes: {
+        effect_review: {
+          title: 'Revisa la última acción antes de continuar',
+          body: 'Vanta no pudo confirmar si se completó la última acción. Despliega las herramientas utilizadas arriba y comprueba la aplicación o web de destino. No repitas la acción hasta conocer el resultado. Edita la solicitud para explicar qué encontraste y qué hacer después. El trabajo en cola sigue en pausa.'
+        },
         auth: {
           title: (provider: string) => `${provider} rechazó tu inicio de sesión`,
           body: (provider: string) =>

@@ -21,6 +21,7 @@ type Outcome = Awaited<ReturnType<LiveExecution["live"]["convo"]["send"]>>;
 
 async function executeInstruction(context: LiveExecution, instruction: string, attachments: { images?: ImageAttachment[]; files: string[] }): Promise<Outcome> {
   const { state, live, controller } = context;
+  context.settledAssistant = undefined;
   state._instructionDisplayedText = [];
   await beginRunCapture(state, instruction, attachments.files, live.convo.messages.filter((entry) => entry.role === "user").length);
   if (live.sessionId) await checkpointSessionMessages(live.sessionId, [...live.convo.messages, { role: "user", content: instruction, ...(attachments.images ? { images: attachments.images } : {}) }], process.env);
@@ -41,6 +42,8 @@ async function settleInstruction(context: LiveExecution, instruction: string, ou
   const partialText = [...(state._instructionDisplayedText ?? []), outcome.finalText].filter(text => text.trim()).join("\n\n") || undefined;
   const receipt = buildRunReceipt({ ...receiptStatusForOutcome(outcome), events, instruction, partialText });
   attachDesktopRunReceipt(live.convo, receipt, outcome.finalText);
+  const terminal = live.convo.messages.at(-1);
+  context.settledAssistant = terminal?.role === "assistant" ? terminal : undefined;
   if (outcome.needsEffectReview) await turnQueue(state).pauseForEffectReview(context.activeQueueSessionId);
   await finishRunCapture(state, receipt, outcome.finalText, outcome.usage);
   emitUsage(state, live, outcome.usage);

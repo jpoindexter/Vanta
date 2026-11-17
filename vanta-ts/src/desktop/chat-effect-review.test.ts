@@ -92,6 +92,36 @@ it("retains review-only recovery and reported usage if first queue settlement fa
   expect(reply.result()).toMatchObject({ body: { stoppedReason: "blocked", receipt: { needsEffectReview: true, actions: ["edit_request"] }, usage: { inputTokens: 20, outputTokens: 5 } } });
   expect((await f.state._turnQueue!.list()).items[0]).toMatchObject({ status: "failed", failure: { requiresReview: true } });
   expect(f.send).toHaveBeenCalledOnce();
+  expect(f.state.convo!.messages.filter(message => message.role === "assistant" && message.desktopRun?.status === "failed")).toHaveLength(1);
+  const stored = await loadSession(f.state.sessionId!, { VANTA_HOME: f.home });
+  expect(stored?.messages.filter(message => message.role === "assistant" && message.desktopRun?.status === "failed")).toHaveLength(1);
+  expect(stored?.messages.at(-1)).toMatchObject({ content: reply.result().body.finalText, desktopRun: { needsEffectReview: true, actions: ["edit_request"] } });
+});
+
+it("keeps an earlier identical failed turn when settlement of the current turn fails", async () => {
+  const f = await fixture();
+  await handleChat(f.state, request({ message: "Handle action" }), response().res);
+  const earlier = f.state.convo!.messages.at(-1)!;
+  const earlierReceipt = earlier.role === "assistant" ? earlier.desktopRun : undefined;
+  vi.spyOn(f.state._turnQueue!, "pauseForEffectReview").mockRejectedValueOnce(new Error("private queue write failure"));
+  await handleChat(f.state, request({ message: "Handle action" }), response().res);
+  expect(f.state.convo!.messages).toContain(earlier);
+  expect(earlier.role === "assistant" ? earlier.desktopRun : undefined).toBe(earlierReceipt);
+  expect(f.state.convo!.messages.filter(message => message.role === "assistant" && message.desktopRun?.status === "failed")).toHaveLength(2);
+  expect(f.send).toHaveBeenCalledTimes(2);
+});
+
+it("does not replace the successful terminal row when the next queued instruction throws", async () => {
+  const f = await fixture(false);
+  const send = f.send.getMockImplementation()!;
+  f.send.mockImplementationOnce(send).mockRejectedValueOnce(new Error("private later instruction failure"));
+  await f.state._turnQueue!.enqueue({ instruction: "Followup", target: f.target });
+  await handleChat(f.state, request({ message: "First instruction" }), response().res);
+  const assistants = f.state.convo!.messages.filter(message => message.role === "assistant");
+  expect(assistants).toHaveLength(2);
+  expect(assistants[0]).toMatchObject({ content: "Partial text retained.", desktopRun: { status: "done", actions: [] } });
+  expect(assistants[1]).toMatchObject({ desktopRun: { status: "failed" } });
+  expect(f.send).toHaveBeenCalledTimes(2);
 });
 
 it("refuses cold queue replay when both pause writes failed, even after transcript compaction", async () => {

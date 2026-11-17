@@ -4,6 +4,9 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { en } from '@/i18n/en'
+import { openSessionSchema } from '@/api/vanta/schemas'
+import { toTranscript } from '@/api/vanta/transcript'
+import type { SessionMessage } from '@/types/desktop'
 import { toChatMessages } from '@/lib/chat-messages'
 import { toRuntimeMessage } from '@/lib/chat-runtime'
 
@@ -121,6 +124,44 @@ it('edits the attachment-bearing request after display projection and runtime co
 })
 
 describe('failed run card', () => {
+  it('shows actionable effect-review guidance after reopening and only edits without replay', async () => {
+    const opened = openSessionSchema.parse({
+      id: 'saved',
+      messages: [
+        { role: 'user', content: 'Handle the action' },
+        {
+          role: 'assistant',
+          content: 'Partial result kept.',
+          desktopRun: {
+            status: 'failed',
+            stoppedReason: 'blocked',
+            failureKind: 'tool',
+            needsEffectReview: true,
+            actions: ['edit_request'],
+            checkpoint: { instruction: 'Handle the action' }
+          }
+        }
+      ]
+    })
+    const messages = toChatMessages(toTranscript(opened.messages) as unknown as SessionMessage[])
+    const assistant = toRuntimeMessage(messages.at(-1)!)
+    const onReload = vi.fn(async () => undefined)
+    render(<Harness assistant={assistant} preceding={[toRuntimeMessage(messages[0])]} onReload={onReload} />)
+    expect(await screen.findByText('Review the last action before continuing')).toBeTruthy()
+    expect(screen.getByText(/check the destination app or website/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: copy.retryStep })).toBeNull()
+    expect(screen.queryByRole('button', { name: copy.startFromCheckpoint })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: copy.editRequest }))
+    await waitFor(() => {
+      const editor = document.querySelector(
+        "[data-slot='aui_edit-composer-root'] textarea, [data-slot='aui_edit-composer-root'] [contenteditable='true']"
+      )
+      expect(editor).not.toBeNull()
+      expect(editor && ('value' in editor ? editor.value : editor.textContent)).toBe('Handle the action')
+    })
+    expect(onReload).not.toHaveBeenCalled()
+  })
+
   it('names the reason, keeps the partial output and offers the three saved actions', async () => {
     render(<Harness assistant={stopped({ actions: ALL, checkpoint: { instruction: 'tidy the repo' } })} />)
 
