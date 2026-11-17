@@ -142,13 +142,19 @@ Parent's final three stream/live-resume files pass **35 cases**, including the a
 
 Compatibility limit: a legacy stream that supplies no request-start identity and has no exact request bound at attachment does not stream unbound turn content. Its original HTTP result or identity-validated live readback remains authoritative. This is an intentional unverified-stream fallback, not full legacy streaming parity. It does not authorize a retry, new POST, unknown-effect replay or another profile's work.
 
+### Executed current packaged/native follow-through
+
+Clean `8e903828` was rebuilt as signed Desktop 0.1.4, including the worker cancellation and stream/adoption source repairs. The actual packaged native UI passed the bounded delayed-terminal journey: A settled through HTTP while its original parsed IPC terminal was held; explicit B remained running after releasing the original packets in order; one visible A assistant message and original-runtime request/running readback agreed; actual composer Stop ended B through its own interrupted result. Exactly two explicit chat POSTs/model calls in the successful run, no retry and zero renderer errors. Two prior fixture attempts exposed selector ambiguities, not established product regressions; their three additional loopback calls and receipts are retained. This is main-to-preload parsed-packet delay, not raw HTTP-byte delay. No generated event or renderer-store patch was used. Native known-idle adoption, dropped chunks, stored-reply attachment offsets and whole-card acceptance remain open.
+
+That same package also independently passed the seven first-launch/restart criteria and six-step uncached draft/caret/attachment journey. The signed DMG's mounted payload matches all 19,799 files in the tested app. Exact digests and limitations are in the [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md). The local candidate is not a notarized release or a replacement of the normal app/CLI.
+
 ## Dependency-ordered work remaining
 
 1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
 2. Before child continuation or agent-facing inspection: validate expected parent/profile/branch authority, preserve real remaining budgets, reconcile effects and retain review holds. Never restore grants or replay unknown effects.
 3. Carry the executed packaged uncached-typing repair through notarized normal-app installation, then run installed/live-owner acceptance; neither the six-step native fixture nor the isolated floating-pointer proof certifies the whole desktop.
 4. Test an exact selected fallback route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
-5. Carry the executed original-request late-terminal repair through packaged/native acceptance. The broader dropped-chunk/stored-reply/attachment-offset adoption proof remains open; the bounded known-client adoption controls above do not close it. Existing session identity/no-second-POST protections stay intact.
+5. Carry the executed current-package late-terminal repair through notarized installed acceptance. Native known-idle adoption and the broader dropped-chunk/stored-reply/attachment-offset proof remain open; the bounded controls above do not close them. Existing session identity/no-second-POST protections stay intact.
 
 MCP, child recovery, reconnect, first-use diagnostics and DN-22 now have bounded ordered checklists. Only the new source-scoped cache-accounting defect is closed; no broad card was blanket-closed and no Building/Next lane was added. Owner/live-account/hardware/visual/unfamiliar-person gates remain separate.
 
