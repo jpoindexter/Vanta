@@ -12,7 +12,7 @@ The actual packaged app passed seven core first-launch/restart criteria across t
 
 **Not delivered:** Apple rejects the existing notarization profile with HTTP 401. No replacement key was created or revoked. No new notarized ZIP/DMG, updater release, normal-app installation or live help-site deployment is claimed. The normal installed Desktop remains the previously delivered **0.1.3 / `b2847a8f`**, with its rollback preserved. A signed local candidate is not a notarized public release.
 
-**Cold typing is not yet established at whole-app level:** the attempted held session-open response found the editor already mounted from the owner-scoped cached tail. The harness rejected that proxy instead of calling it a pre-editor typing proof. Its raw nonzero result remains recorded separately from the seven passed core criteria. No cache was cleared to manufacture a result; screenshots and visual acceptance were omitted.
+**Cold typing is not yet established at whole-app level:** the first attempted held session-open response found the editor already mounted from the owner-scoped cached tail. A subsequent fixture used the real API to create a distinct, genuinely uncached conversation, then held its authoritative open/transcript responses before an editor mounted. That reproduction found actual loss of all 19 typed characters on the signed `19d68ed5` candidate. Both raw results remain recorded separately from the seven passed core criteria. The source repair is under focused verification; a rebuilt-package replay is still required. No cache was cleared to manufacture either result; screenshots and visual acceptance were omitted.
 
 ## Published recovery work, not silently integrated work
 

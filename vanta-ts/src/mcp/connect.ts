@@ -10,6 +10,7 @@ import {
 } from "../effects/execute-effect.js";
 import { applyMcpToolPolicy } from "./tool-policy.js";
 import { guardLaunch } from "./package-guard.js";
+import { loadMcpTokenForLaunch, McpStoredTokenExpiredError } from "./auth-store.js";
 
 // Live connection layer for the MCP management panel. Connects to each configured
 // server (best-effort), captures connected/error status + discovered tools, and
@@ -39,9 +40,8 @@ type ConnectOptions = {
 async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.ProcessEnv, root: string): Promise<{ transport: Transport; kind: "stdio" | "http" } | null> {
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
-    const { loadMcpToken } = await import("./auth-store.js");
     // A stored OAuth access token (from the mcp_auth flow) wins over a static one.
-    const stored = await loadMcpToken(name, env);
+    const stored = await loadMcpTokenForLaunch(name, env);
     const token = stored?.access_token ?? resolveToken(name, spec.token, env);
     const headers = Object.fromEntries(Object.entries(spec.headers ?? {}).flatMap(([key, value]) => {
       const resolved = resolveToken(name, value, env);
@@ -58,7 +58,7 @@ async function resolveTransport(name: string, spec: ServerSpec, env: NodeJS.Proc
 
 async function describeConnection(name: string, spec: ServerSpec, opts: ConnectOptions): Promise<string> {
   const authenticated = spec.url
-    ? Boolean((await import("./auth-store.js").then(({ loadMcpToken }) => loadMcpToken(name, opts.env)))?.access_token)
+    ? Boolean((await loadMcpTokenForLaunch(name, opts.env))?.access_token)
     : false;
   return JSON.stringify({ name, command: spec.command, args: spec.args ?? [], url: spec.url, authenticated });
 }
@@ -95,14 +95,30 @@ async function connectWithEffect(name: string, spec: ServerSpec, opts: ConnectOp
     return result;
   });
   if ((connected.outcome === "confirmed" || connected.outcome === "verified") && connected.value) return connected.value;
+  if (connected.operationError instanceof McpStoredTokenExpiredError) {
+    return expiredConnection(name, spec, opts);
+  }
   return failedConnection(name, spec, connected.outcome, connected.operationError);
+}
+
+function expiredConnection(name: string, spec: ServerSpec, opts: ConnectOptions): McpConnection {
+  return {
+    name, transport: spec.url ? "http" : "stdio", status: "needs_auth", auth: "needs_auth",
+    error: new McpStoredTokenExpiredError().message, tools: [], resources: [],
+    source: opts.record?.source, trust: opts.record?.trust,
+  };
 }
 
 /** Connect to one server: initialize + list tools. Errors become a view, never throw. */
 export async function connectServer(name: string, spec: ServerSpec, opts: ConnectOptions): Promise<McpConnection> {
   const root = opts.root ?? process.cwd();
-  if (opts.effectGate) return connectWithEffect(name, spec, opts, root);
-  return (await connectServerOperation(name, spec, opts, root)).value;
+  try {
+    if (opts.effectGate) return await connectWithEffect(name, spec, opts, root);
+    return (await connectServerOperation(name, spec, opts, root)).value;
+  } catch (error) {
+    if (error instanceof McpStoredTokenExpiredError) return expiredConnection(name, spec, opts);
+    throw error;
+  }
 }
 
 /** An error view when the launch names a deny-listed package; checked before anything is resolved or spawned. */
@@ -120,7 +136,10 @@ async function connectServerOperation(
 ): Promise<{ value: McpConnection; acknowledgementId?: string; readbackSha256?: string; verified?: boolean }> {
   const refused = deniedPackageView(name, spec, opts.env, root);
   if (refused) return { value: refused };
-  const resolved = await resolveTransport(name, spec, opts.env, root).catch(() => null);
+  const resolved = await resolveTransport(name, spec, opts.env, root).catch((error: unknown) => {
+    if (error instanceof McpStoredTokenExpiredError) throw error;
+    return null;
+  });
   const transport = resolved?.transport;
   const kind = resolved?.kind ?? (spec.url ? "http" : "stdio");
   if (!transport) return { value: { name, transport: kind, status: "error", error: "no command or url configured", tools: [] } };

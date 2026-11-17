@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PaneGroupContext, PaneVisibleContext } from '@/components/pane-shell/pane-visibility'
 import { clearSessionDraft, stashSessionDraft, takeSessionDraft } from '@/store/composer'
 import { $activeGatewayProfile } from '@/store/profile'
-import { $connection, forgetSessionOwnerHintsForSession, setSessionOwnerHint } from '@/store/session'
+import { $connection, $sessions, forgetSessionOwnerHintsForSession, getSessionOwnerHints, setSessionOwnerHint } from '@/store/session'
 
 import { useKeybinds } from '../../hooks/use-keybinds'
 import { useShowChatBar } from '../chat-surface-state'
@@ -97,6 +97,7 @@ function mount(session = 'restored', loading = true) {
 }
 
 beforeEach(() => {
+  $sessions.set([])
   $connection.set({ connectionId: 'local', mode: 'local' } as never)
   $activeGatewayProfile.set('default')
   markActiveComposer('main')
@@ -105,6 +106,8 @@ beforeEach(() => {
 })
 afterEach(() => {
   cleanup()
+  $sessions.set([])
+  clearSessionDraft('restored', { ...owner, connectionId: 'foreign' })
   for (const session of ['restored', 'replacement', 'unrelated']) {
     clearSessionDraft(session, owner)
     forgetSessionOwnerHintsForSession(session)
@@ -186,6 +189,80 @@ describe('cold restoration typing through the production mount gate and focus ha
     mount()
     press('h')
     expect(takeSessionDraft('restored', owner).text).toBe('')
+  })
+
+  it('retains typing for a listed primary-profile conversation without a persisted owner hint', () => {
+    forgetSessionOwnerHintsForSession('restored')
+    $sessions.set([{ id: 'restored', profile: 'default', title: 'Owned uncached startup typing' }] as never)
+    const view = mount()
+    expect(screen.queryByRole('textbox', { name: 'Message restored' })).toBeNull()
+    for (const key of 'held draft') expect(press(key).defaultPrevented).toBe(true)
+    view.rerender(<MemoryRouter><App loading={false} /></MemoryRouter>)
+    const editor = screen.getByRole('textbox', { name: 'Message restored' })
+    expect(composerPlainText(editor)).toBe('held draft')
+    expect(caretOffsetInEditor(editor)).toBe('held draft'.length)
+    expect(takeSessionDraft('unrelated', owner).text).toBe('keep unrelated draft')
+    expect(getSessionOwnerHints('restored')).toEqual([])
+  })
+
+  it.each([
+    ['removed', []],
+    ['different profile', [{ id: 'restored', profile: 'other' }]],
+    ['different connection', [{ id: 'restored', profile: 'default', connection_id: 'foreign' }]]
+  ])('stops accepting keys when the listed owner is %s before React commits', (_name, rows) => {
+    forgetSessionOwnerHintsForSession('restored')
+    $sessions.set([{ id: 'restored', profile: 'default' }] as never)
+    mount()
+    press('h')
+    $sessions.set(rows as never)
+    press('x')
+    expect(takeSessionDraft('restored', owner).text).toBe('h')
+  })
+
+  it('rejects a genuinely foreign listed route instead of borrowing the active profile', () => {
+    forgetSessionOwnerHintsForSession('restored')
+    $sessions.set([{ id: 'restored', profile: 'default', connection_id: 'foreign' }] as never)
+    mount()
+    press('h')
+    expect(takeSessionDraft('restored', owner).text).toBe('')
+    expect(takeSessionDraft('restored', { ...owner, connectionId: 'foreign' }).text).toBe('')
+  })
+
+  it.each(['local', 'remote'])('does not borrow a same-named foreign %s connection for a bare primary-profile row', mode => {
+    forgetSessionOwnerHintsForSession('restored')
+    $sessions.set([{ id: 'restored', profile: 'default' }] as never)
+    $connection.set({ connectionId: 'foreign', mode, registryScoped: true } as never)
+    mount()
+    press('h')
+    expect(takeSessionDraft('restored', { ...owner, connectionId: 'foreign' }).text).toBe('')
+    expect(takeSessionDraft('restored', owner).text).toBe('')
+  })
+
+  it('does not use a listed profile to bypass ambiguous recorded connection owners', () => {
+    forgetSessionOwnerHintsForSession('restored')
+    setSessionOwnerHint('restored', { ...owner, connectionId: 'foreign-a' })
+    setSessionOwnerHint('restored', { ...owner, connectionId: 'foreign-b' })
+    $sessions.set([{ id: 'restored', profile: 'default' }] as never)
+    mount()
+    press('h')
+    expect(takeSessionDraft('restored', owner).text).toBe('')
+    expect(takeSessionDraft('restored', { ...owner, connectionId: 'foreign-a' }).text).toBe('')
+    expect(takeSessionDraft('restored', { ...owner, connectionId: 'foreign-b' }).text).toBe('')
+  })
+
+  it.each([false, true])('retains listed-owner draft and attachments without stealing selected control focus: %s', control => {
+    forgetSessionOwnerHintsForSession('restored')
+    $sessions.set([{ id: 'restored', profile: 'default' }] as never)
+    const attachments = [{ id: 'reference', kind: 'url' as const, label: 'Keep this attachment' }]
+    stashSessionDraft('restored', 'saved', attachments, owner)
+    const view = render(<MemoryRouter><App control={control} /></MemoryRouter>)
+    for (const key of ' held') press(key)
+    expect(takeSessionDraft('restored', owner)).toEqual({ text: 'saved held', attachments })
+    view.rerender(<MemoryRouter><App control={control} loading={false} /></MemoryRouter>)
+    const editor = screen.getByRole('textbox', { name: 'Message restored' })
+    expect(composerPlainText(editor)).toBe('saved held')
+    expect(document.activeElement).toBe(control ? screen.getByRole('button', { name: 'Keep this control' }) : editor)
+    if (!control) expect(caretOffsetInEditor(editor)).toBe('saved held'.length)
   })
 
   it('does not edit a hidden restoration or a foreign floating recipient', () => {

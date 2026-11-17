@@ -1,7 +1,7 @@
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { z } from "zod";
-import { loadMcpToken } from "./auth-store.js";
+import { isMcpTokenUsable, loadMcpToken } from "./auth-store.js";
 import {
   extractAuthConfig,
   missingDeclaredMcpEnv,
@@ -79,7 +79,7 @@ function connectorAuth(spec: ServerSpec, token: Awaited<ReturnType<typeof loadMc
   const missingEnv = missingDeclaredMcpEnv(env, spec.env);
   if (missingEnv.length) return { auth: "needs_auth" as const, authMode: "environment" as const, missingEnv };
   if (!extractAuthConfig(spec)) return { auth: "not_required" as const, authMode: "none" as const, missingEnv };
-  const usableToken = token?.access_token && (token.expiry_date === undefined || token.expiry_date > Date.now());
+  const usableToken = isMcpTokenUsable(token);
   return { auth: usableToken ? "ready" as const : "needs_auth" as const, authMode: "oauth" as const, missingEnv };
 }
 

@@ -11,7 +11,7 @@ import { checkpointToolTranscript } from "../agent/effect-persistence.js";
 import { runAgentsCommand } from "../cli/agents-cmd.js";
 import { spawnSubagent } from "./spawn.js";
 import { InMemoryToolRegistry } from "../tools/registry.js";
-import type { AgentDeps } from "../agent.js";
+import type { AgentDeps, AgentOutcome } from "../agent.js";
 
 let root: string;
 const children = new Set<ChildProcess>();
@@ -32,8 +32,71 @@ afterEach(async () => {
 const options = () => ({ id: "child-1", root, workerRoot: root, goal: "Research", instruction: "Read only",
   parentSessionId: "parent-1", agentType: "research", model: "offline", declaredMaxIterations: 3 });
 const path = () => join(root, ".vanta", "sidechains", "worker-child-1.json");
+const terminalOutcome = (patch: Partial<AgentOutcome> = {}): AgentOutcome => ({
+  finalText: "Private terminal body not duplicated", iterations: 2, toolIterations: 1, stoppedReason: "blocked",
+  needsEffectReview: true, effectReviewCallIds: ["uncertain-call"], completionState: "needs human",
+  usage: { inputTokens: 17, outputTokens: 4 }, ...patch,
+});
 
 describe("private worker inspection", () => {
+  it("preserves exact terminal recovery evidence through the owner CLI without authorizing continuation", async () => {
+    const store = await startWorkerInspection(options());
+    await store.finish([], terminalOutcome());
+    const before = await readFile(path(), "utf8");
+    const inspected = await inspectWorker(root, "child-1");
+    expect(inspected?.record).toMatchObject({ remainingBudget: "unknown", continuationAllowed: false,
+      terminalEvidence: { iterations: 2, toolIterations: 1, usage: { inputTokens: 17, outputTokens: 4 },
+        needsEffectReview: true, effectReviewCallIds: ["uncertain-call"], completionState: "needs human" } });
+    expect(before).not.toContain("Private terminal body");
+    const logs: string[] = [];
+    expect(await runAgentsCommand(root, ["delegation", "inspect", "child-1"], { env: process.env, log: line => logs.push(line) })).toBe(0);
+    expect(logs.join("\n")).toContain("reported turn iterations 2; tool calls 1");
+    expect(logs.join("\n")).toContain("reported turn tokens input 17; output 4 (not total worker spend)");
+    expect(logs.join("\n")).toContain("effect review required; completion needs human");
+    expect(logs.join("\n")).toContain("review call uncertain-call");
+    expect(await readFile(path(), "utf8")).toBe(before);
+    await store.finish([], undefined, "Later sidechain persistence failed");
+    expect((await inspectWorker(root, "child-1"))?.record).toMatchObject({ phase: "failed",
+      stoppedReason: "blocked", terminalEvidence: inspected!.record.terminalEvidence });
+  });
+
+  it.each([undefined, { inputTokens: 0, outputTokens: 0 }])("keeps absent usage unknown and reported zero distinct: %s", async usage => {
+    const store = await startWorkerInspection(options());
+    await store.finish([], terminalOutcome({ usage, needsEffectReview: false, effectReviewCallIds: [], completionState: "unverified" }));
+    const inspected = (await inspectWorker(root, "child-1"))!;
+    expect(inspected.record.terminalEvidence?.usage).toEqual(usage);
+    expect(inspected.record.terminalEvidence?.needsEffectReview).toBe(false);
+    expect(formatWorkerInspection(inspected)).toContain(usage ? "reported turn tokens input 0; output 0" : "reported turn token usage unknown");
+    expect(formatWorkerInspection(inspected)).toContain("remaining budget unknown");
+  });
+
+  it("reads legacy and unfinished checkpoints without inventing terminal evidence", async () => {
+    const store = await startWorkerInspection(options());
+    await store.checkpoint([{ role: "assistant", content: "Partial" }]);
+    expect((await inspectWorker(root, "child-1"))?.record.terminalEvidence).toBeUndefined();
+    const legacy = JSON.parse(await readFile(path(), "utf8"));
+    legacy.phase = "settled"; legacy.stoppedReason = "done";
+    await writeFile(path(), JSON.stringify(legacy));
+    const inspected = (await inspectWorker(root, "child-1"))!;
+    expect(inspected.record.terminalEvidence).toBeUndefined();
+    expect(formatWorkerInspection(inspected)).not.toContain("reported turn iterations");
+    expect(inspected.record.continuationAllowed).toBe(false);
+  });
+
+  it("rejects malformed terminal evidence before replacement and redacts review IDs", async () => {
+    const store = await startWorkerInspection(options());
+    const before = await readFile(path(), "utf8");
+    for (const patch of [{ iterations: -1 }, { toolIterations: NaN }, { usage: { inputTokens: -1, outputTokens: 0 } },
+      { completionState: "complete" }, { effectReviewCallIds: [1] }]) {
+      await expect(store.finish([], terminalOutcome(patch as Partial<AgentOutcome>))).rejects.toThrow();
+      expect(await readFile(path(), "utf8")).toBe(before);
+    }
+    await store.finish([], terminalOutcome({ effectReviewCallIds: ["Authorization: Bearer synthetic-secret\u001b[31m\ncontrol"] }));
+    const formatted = formatWorkerInspection((await inspectWorker(root, "child-1"))!);
+    expect(formatted).not.toContain("synthetic-secret");
+    expect(formatted).not.toMatch(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/);
+  });
+
   it("durably creates a private start record, checkpoints tool truth, and never registers a normal session", async () => {
     const store = await startWorkerInspection(options());
     expect((await inspectWorker(root, "child-1"))?.record).toMatchObject({ parentSessionId: "parent-1", sequence: 0,

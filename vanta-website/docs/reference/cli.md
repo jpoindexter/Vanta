@@ -71,14 +71,16 @@ Run from the repo with `./run.sh` (alias `./vanta`), or globally as `vanta` afte
 
 ## Source-candidate recovery diagnostics — 2026-11-17
 
-These additions require the current integration source. They are not included
-in the previously delivered Desktop 0.1.3 or the unchanged normal CLI pin.
-Rebuilding source is separate from installing or updating a packaged app.
+These commands are included in the verified `19d68ed5` CLI candidate. The normal
+launcher was switched to that pin with owner approval on 2026-11-17. They are
+not included in the previously delivered Desktop 0.1.3. The terminal-evidence
+extension below requires newer integration source; rebuilding source is separate
+from installing or updating a packaged app.
 
 | Command | Does |
 |---------|------|
 | `vanta doctor --fallbacks` | Reports every configured fallback entry, in order, without inference or subscription credential-store lookup. `configuration-resolved` does not mean authenticated or reachable. Review entries marked unavailable or not checked; exit 1 means at least one needs attention. |
-| `vanta agents delegation inspect <id>` | Reads a new worker's owned private partial checkpoint offline. It does not resume work, replay tools or restore permissions. Historical workers may have no partial checkpoint. |
+| `vanta agents delegation inspect <id>` | Reads a new worker's owned private partial checkpoint offline. Newer integration source also reports saved terminal turn counts, usage and review/completion state when present; these are not aggregate spend or remaining budget. It does not resume work, replay tools or restore permissions. Historical workers may have no partial checkpoint or terminal evidence. |
 
 The inspection command reports remaining budget as unknown and keeps uncertain
 effects under review. Existing delegation `replay`/`follow-up` creates a **new

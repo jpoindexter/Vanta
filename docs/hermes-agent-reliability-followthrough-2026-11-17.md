@@ -26,6 +26,12 @@ Executed checks:
 
 Not established: live OAuth refresh, mounted-server behavior, packaged Desktop UI, or transport-level rejection by direct `connectServer`/`reconnectServer`. The fix reports known expiry; it does not add automatic renewal or prove a working connection.
 
+**Subsequent live-boundary follow-through:** the earlier registry-only limit above was tested rather than inferred away. Against a synthetic loopback MCP endpoint, direct connect/reconnect and startup mounting still transmitted the known-expired stored bearer; mounting even registered a live tool. Five new regression cases failed, including expiry while an approval was pending. The raw RED evidence is preserved.
+
+Registry and launch paths now share the existing expiry rule. The launch-only loader refuses known-expired OAuth before starting an effect, and checks again immediately before creating the transport after approval. Direct connect/reconnect report local-expiry `needs_auth`, not a fabricated server HTTP 401 or a missing-command error. Startup mounting uses the existing auth-pending flow when auth configuration exists and registers no tools. It never substitutes another static credential for known-expired stored OAuth, refreshes automatically, mutates the token, or clears an unknown-effect receipt.
+
+Executed: all **11** new live-boundary cases and the eight-file **91-case** compatibility/safety run pass. A separate actual edited-TypeScript-source loopback run reports zero requests for expired direct/reconnect/mount, unchanged token bytes, zero preflight effect assessments/approvals, and successful future/unknown-expiry/missing-token controls. Post-approval expiry retains unknown-effect custody and a repeat does not execute the operation again. Stdio and static-token behavior remain covered. Counts overlap; they are not unique additional coverage. This proves synthetic source behavior, not owner connectors, real OAuth renewal, real kernel interaction, or installed delivery.
+
 ### Streamed Anthropic cache accounting
 
 Owner: new narrow defect `ANTHROPIC-STREAM-CACHE-USAGE` ([card](https://trello.com/c/45udwYQb)), linked after the existing shipped `HERMES-DELTA-USAGE-ROUTE-LEDGER`. Its source-scoped Done contract is executed and marked shipped; installed delivery remains separate. Do not rewrite the older shipped card's historical acceptance.
@@ -89,6 +95,16 @@ Final focused recovery command covers eight files and **49 passing** cases, incl
 
 Retention limit: no new count/size/age cleanup policy was invented. Retained worktrees consume disk and currently use the existing OS temporary location, which is not an archival backup. Review and preserve useful artifacts before explicit cleanup; do not infer cross-device/file-loss recovery from this proof.
 
+## Follow-through: terminal evidence and genuinely uncached typing
+
+The owner-only worker checkpoint previously retained the stop reason but dropped the reported turn's iteration counts, token usage, review-required flag, review call IDs and completion state. A real offline checkpoint/inspection reproduction demonstrated that loss. The optional, backward-compatible `terminalEvidence` field now selects only those existing outcome fields; it does not duplicate the final answer, invent aggregate spend or remaining budget, grant continuation, or restore an approval. Absent usage remains unknown and explicit zero stays zero. A later persistence error retains earlier terminal evidence.
+
+Parent execution: the worker inspection and retained-worktree files pass **18 cases**, including legacy records, invalid-evidence rejection without replacement, redacted output, unchanged inspection bytes, owned process interruption and retained Git work. An independent source CLI invocation also displayed the exact synthetic terminal evidence without changing the checkpoint. Its offline guard blocked ancillary loader/startup attempts; this is not a claim of zero attempted subprocesses or network operations. No provider or tool operation was allowed.
+
+A separate real packaged reproduction finally reached the missing startup condition: a conversation created through the runtime API, listed in the sidebar, never cached in the renderer, with its actual open/transcript responses held and **no editor mounted**. The keyboard claimed all 19 characters of `uncached held draft`, but the destination editor was empty after loading. The raw failure is retained separately from the earlier warm-cache prerequisite failure and seven successful core packaged criteria. The production route had no saved owner hint; the earlier source fixture always supplied one.
+
+The narrow repair uses existing known-session ownership as draft-custody evidence, rechecks it for each captured key, and does not create owner hints or change RPC routing. Independent review also reproduced a conflicting ambient-connection case; bare-profile fallback now requires the active local primary draft door, while exact scope/hint/tagged routes retain their existing behavior. Parent reran **20 cold-start cases**, and renderer/Electron typechecks passed. The agent's surrounding six-file run passed 87 cases; counts overlap. Exact rebuilt-package acceptance is recorded separately when executed. No whole-app cold-typing success is claimed from mounted-component tests alone.
+
 ## Dependency-ordered work remaining
 
 1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
@@ -101,6 +117,6 @@ MCP, child recovery, reconnect, first-use diagnostics and DN-22 now have bounded
 
 ## Delivery boundary
 
-The normal installed Desktop remains the previously delivered signed/notarized `0.1.3` at `b2847a8f6665a5294d25478dd3cb20ac140a5da6`; the normal CLI pin is unchanged. This document records source work after that package, not a new app installation, release or update. Protected `main`, repository safeguards and GitHub Actions settings are unchanged.
+The normal installed Desktop remains the previously delivered signed/notarized `0.1.3` at `b2847a8f6665a5294d25478dd3cb20ac140a5da6`. With fresh owner approval, the unchanged global CLI launcher now selects verified `19d68ed5`; the former selection and dirty checkout remain preserved, without credential or approval migration. The newer source follow-through is not yet in that pin. See the [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md) for exact isolated launcher and packaged proofs. No new normal-app installation, notarized release or updater delivery is claimed. Protected `main`, repository safeguards and GitHub Actions settings are unchanged.
 
 REA JavaScript analysis was refused by the tool host's approval policy even with filesystem access. No workaround, runtime REA graph or Hopper analysis is claimed. The current work is grounded in inspected source and executed narrow behavior, not an extraction claim.

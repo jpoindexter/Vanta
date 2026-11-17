@@ -3,14 +3,15 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 import { usePaneVisible } from '@/components/pane-shell/pane-visibility'
 import { stashSessionDraft, takeSessionDraft } from '@/store/composer'
 import { captureDraftCustodyOwner } from '@/store/draft-custody-owner'
+import { isActivePrimary } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'
-import { $connection, getSessionOwnerHint } from '@/store/session'
+import { $connection, getSessionOwnerHint, knownSessionOwner, ownerLookupSessionRows } from '@/store/session'
 import { isWatchWindow } from '@/store/windows'
 
 import { $floatingComposerOwner } from '../floating-state'
 import { type ComposerTarget, getVisibleComposerSurfaceId, onComposerFocusRequest } from '../focus'
 import { placeCaretEnd, RICH_INPUT_SLOT } from '../rich-editor'
-import { useComposerScope } from '../scope'
+import { type ComposerScope, useComposerScope } from '../scope'
 
 interface RestoringComposerTypingOptions {
   enabled: boolean
@@ -34,6 +35,28 @@ function restoreCapturedCaret(surfaceId: string): void {
   if (editor.closest<HTMLElement>('[data-composer-owner]')?.dataset.composerOwner === surfaceId) placeCaretEnd(editor)
 }
 
+type DraftOwner = NonNullable<ReturnType<typeof captureDraftCustodyOwner>>
+
+function isPrimaryLocalDraftOwner(owner: DraftOwner): boolean {
+  return owner.connectionId === 'local' && $connection.get()?.mode === 'local' && isActivePrimary()
+}
+
+function hasDraftOwnerEvidence(session: string, scope: ComposerScope, owner: DraftOwner): boolean {
+  if (scope.connectionId && scope.profile) return true
+  if (getSessionOwnerHint(session, owner)) return true
+  const known = knownSessionOwner(ownerLookupSessionRows(), session)
+  // A legacy primary-profile row proves draft custody, not a concrete RPC
+  // route. Never promote this evidence into a persisted session owner hint.
+  if (typeof known === 'string') return known === owner.profile && isPrimaryLocalDraftOwner(owner)
+  return Boolean(known && known.connectionId === owner.connectionId &&
+    (known.targetProfile || known.profile) === owner.profile)
+}
+
+function retainsDraftOwner(session: string, scope: ComposerScope, owner: DraftOwner): boolean {
+  return JSON.stringify(captureDraftCustodyOwner(session, scope)) === JSON.stringify(owner) &&
+    hasDraftOwnerEvidence(session, scope, owner)
+}
+
 /** A loading conversation owns these edits, not a window-wide keyboard queue.
  * Its ordinary draft restore paints them once the editor can actually mount. */
 export function useRestoringComposerTyping(options: RestoringComposerTypingOptions): void {
@@ -41,9 +64,7 @@ export function useRestoringComposerTyping(options: RestoringComposerTypingOptio
   const visible = usePaneVisible()
   const scope = useComposerScope()
   const owner = captureDraftCustodyOwner(sessionKey, scope)
-  const identified = Boolean(owner && sessionKey && (
-    (scope.connectionId && scope.profile) || getSessionOwnerHint(sessionKey, owner)
-  ))
+  const identified = Boolean(owner && sessionKey && hasDraftOwnerEvidence(sessionKey, scope, owner))
   const route = ambientRoute()
   const identity = JSON.stringify([sessionKey, surfaceId, target, owner, route])
   const generation = JSON.stringify([enabled, visible, identity, identified])
@@ -60,7 +81,7 @@ export function useRestoringComposerTyping(options: RestoringComposerTypingOptio
       if (source !== 'unbound-key' || !typeChar || requested !== target || current.current !== generation) return
       if (!ownsSurface(surfaceId, target) || ambientRoute() !== route) return
       // Owner atoms may change before React commits their next render.
-      if (JSON.stringify(captureDraftCustodyOwner(sessionKey, scope)) !== JSON.stringify(owner)) return
+      if (!retainsDraftOwner(sessionKey, scope, owner)) return
       const saved = takeSessionDraft(sessionKey, owner)
       const text = saved.text + leadingSpace + typeChar
       leadingSpace = text.trim() ? '' : text

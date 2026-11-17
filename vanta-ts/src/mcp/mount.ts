@@ -5,7 +5,7 @@ import type { ToolRegistry } from "../tools/registry.js";
 import { resolveMcpTrust } from "../settings/trust-gate.js";
 import { isAuthRequiredError } from "./auth-detect.js";
 import { authPending, type AuthPendingRegistry } from "./auth-pending.js";
-import { loadMcpToken } from "./auth-store.js";
+import { loadMcpTokenForLaunch, McpStoredTokenExpiredError } from "./auth-store.js";
 import {
   readMcpConfig,
   mcpToolToVantaTool,
@@ -63,7 +63,7 @@ async function resolveTransport(opts: TransportOptions): Promise<Transport | nul
   if (spec.url) {
     const { httpTransport, resolveToken } = await import("./http-transport.js");
     // A previously-stored OAuth access token wins over a static config token.
-    const stored = await loadMcpToken(name, env);
+    const stored = await loadMcpTokenForLaunch(name, env);
     const token = stored?.access_token ?? resolveToken(name, spec.token, env);
     const headers = Object.fromEntries(Object.entries(spec.headers ?? {}).flatMap(([key, value]) => {
       const resolved = resolveToken(name, value, env);
@@ -110,7 +110,7 @@ async function confirmMcpTrust(opts: MountServerOptions): Promise<boolean> {
 async function describeMcpLaunch(opts: MountServerOptions): Promise<string> {
   const { name, spec, env } = opts;
   const authenticated = spec.url
-    ? Boolean((await loadMcpToken(name, env))?.access_token)
+    ? Boolean((await loadMcpTokenForLaunch(name, env))?.access_token)
     : false;
   return JSON.stringify({
     command: spec.command,
@@ -205,7 +205,8 @@ function handleMountFailure(opts: {
   const auth = extractAuthConfig(spec);
   if (auth && isAuthRequiredError(err)) {
     pending.mark(name, auth);
-    log(`  · mcp: ${name} needs auth — run mcp_auth("${name}") to authorize`);
+    const reason = err instanceof McpStoredTokenExpiredError ? " (stored OAuth token locally expired)" : "";
+    log(`  · mcp: ${name} needs auth${reason} — run mcp_auth("${name}") to authorize`);
     return;
   }
   log(`  · mcp: ${name} failed — ${(err as Error).message}`);
