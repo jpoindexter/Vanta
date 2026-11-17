@@ -52,6 +52,17 @@ describe("session store", () => {
     expect(loaded?.title).toBe("summarize the readme");
   });
 
+  it("preserves arbitrary persisted tool argument keys and nested JSON values", async () => {
+    const messages: Message[] = [
+      { role: "assistant", content: "", toolCalls: [{ id: "args", name: "inspect_state", arguments: {
+        "extra-key": { enabled: false, note: null }, values: [0, true, "fixture"], empty: {},
+      } }] },
+      { role: "tool", toolCallId: "args", name: "inspect_state", content: "fixture result" },
+    ];
+    await saveSession("arguments", messages, { env: env() });
+    expect((await loadSession("arguments", env()))?.messages).toEqual(messages);
+  });
+
   it("round-trips the optional desktop Schema trace receipt", async () => {
     const messages: Message[] = [...TRANSCRIPT, {
       role: "assistant",
@@ -115,6 +126,16 @@ describe("session store", () => {
     const loaded = await loadSession("model-session", env());
     expect(loaded).toMatchObject({ providerId: "ollama", modelId: "qwen2.5:14b" });
     expect((await listSessions(env()))[0]).toMatchObject({ providerId: "ollama", modelId: "qwen2.5:14b" });
+  });
+
+  it("omits false save metadata and preserves an explicit zero pin order", async () => {
+    await saveSession("metadata-off", TRANSCRIPT, {
+      env: env(), archived: false, trashed: false, pinned: false, pinOrder: 9,
+    });
+    const raw = JSON.parse(await readFile(join(home, "sessions", "metadata-off.json"), "utf8"));
+    for (const key of ["archived", "trashed", "pinned", "pinOrder"]) expect(raw).not.toHaveProperty(key);
+    await saveSession("metadata-on", TRANSCRIPT, { env: env(), pinned: true, pinOrder: 0 });
+    expect(await loadSession("metadata-on", env())).toMatchObject({ pinned: true, pinOrder: 0 });
   });
 
   it("omits projectId when not provided (existing sessions still load)", async () => {

@@ -22,7 +22,7 @@ export type ToolResultLike = { ok: boolean; output: string };
 
 export const PipelineStepSchema = z.object({
   tool: z.string().min(1),
-  args: z.record(z.unknown()).default({}),
+  args: z.record(z.string(), z.unknown()).default({}),
   assignTo: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/).optional(),
 });
 

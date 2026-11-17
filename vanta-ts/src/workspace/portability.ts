@@ -18,7 +18,7 @@ export type WorkspaceBundle = {
 export const BundleSchema = z.object({
   version: z.literal(1),
   exportedAt: z.string(),
-  collections: z.record(z.array(z.record(z.unknown())).transform((rows) => rows.filter((r) => typeof r.id === "string"))),
+  collections: z.record(z.string(), z.array(z.record(z.string(), z.unknown())).transform((rows) => rows.filter((r) => typeof r.id === "string"))),
 });
 
 /** Parse + validate a bundle payload (drops records without a string id). Pure. */

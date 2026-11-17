@@ -131,3 +131,31 @@ Why it failed: the live-region-size invariant isn't only about streaming length 
 **Root cause:** `approveWithEditPolicy` did `await import("./edit-policy.js")` on the approval path. That dynamic import adds an extra async microtask hop; the test advances the loop with a single `await tick()`, which no longer covered "ask emitted." Timing-dependent, so it looked like test pollution (passed once while the module was already warm).
 **What worked:** static `import { … } from "./edit-policy.js"` at the top of `session.ts`. edit-policy only imports a TYPE from session (`import type PermissionOption`), erased at runtime → no runtime cycle. No behavior change; the async hop is gone.
 **Lesson:** don't `await import()` on a latency- or ordering-sensitive path (approval, gate, hot loop) just for code-splitting a tiny pure module — a static import is both faster and deterministic. Reserve dynamic import for genuinely heavy/optional deps (playwright, lora, etc.).
+
+
+## 2026-11-16 — Dependency fixes must preserve consumer and override contexts
+
+Inherited parent overrides for modern Minimatch 11 and legacy Minimatch 3 made
+npm 12's Arborist report valid once/wrappy edges as invalid: it compared unrelated
+inherited matcher rules after semver validation succeeded. Reinstalling or using
+an older tree reporter did not fix that modeling conflict. Version-specific root
+rules for only Minimatch 9/10 avoid the context conflict while retaining legacy
+3/5 APIs; fresh installs, full tree inspection and archive/matcher tests pass.
+Use isolated npm 12.2.2 for this maintenance; its URL-fetch default is none, so
+ci needs command-local --allow-remote=root for the existing integrity-pinned
+Winnow dependency. Do not enable arbitrary remote URLs or change global config.
+
+Docusaurus's open Mermaid range initially selected an unnecessary major update.
+Keep the theme's exact direct caret spec in a nested override selecting Mermaid
+11.16.1 and its KaTeX 0.18.2 child; test resolution through the actual theme entry,
+not an unexported package.json path. Typecheck/build and real browser diagram/math
+rendering pass. Do not suppress active advisories: the remaining sprintf match
+was instead confirmed upstream-withdrawn and triaged with that exact reference.
+See docs/dependency-security-2026-11-16.md for scope, results and merge gates.
+
+The security migration touched a pre-existing oversized session store, so its
+normal commit gate also failed. Extract the unchanged message/session schemas
+and optional save metadata on their existing seams; preserve the public Session
+type and omitted-false/zero-pin-order behavior. Do not disable the size gate.
+The resulting 250-line store and 87-line schema pass size/type checks and 36
+focused session/consumer regressions. This is not whole-app modularization.
