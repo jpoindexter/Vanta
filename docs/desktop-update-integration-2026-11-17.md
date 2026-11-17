@@ -170,8 +170,17 @@ destructive rollback test.
 
 ## Remaining gates
 
+The same normal native path subsequently updated the owner-approved 0.1.3 app
+to published **0.1.4 / d4e72e44**, retaining another exact 0.1.3 app rollback and
+fresh private data copies. Read-only process/plist observation saw replacement
+and automatic relaunch; installed full payload, ASAR, signature, ticket and
+Gatekeeper match the public ZIP/manifest. Existing chat history remains visible;
+the separate CLI launcher/selection is unchanged. This does not rerun the whole
+failure matrix. Final evidence and the separately pending DMG are in the
+[0.1.4 release record](releases/desktop-v0.1.4.md).
+
 The signed DMG passed Apple acceptance, stapling, mounted payload identity,
-public download/hash and private installed first-launch replay after the updater
+public download/hash and private installed first-launch replay for **0.1.3** after the updater
 proof; see the [release record](releases/desktop-v0.1.3.md). A forced native rollback, all offline/native
 failure paths, late asynchronous handoff-error presentation, original tester
 attachment incident, complete accessibility/parity, whole-product security and

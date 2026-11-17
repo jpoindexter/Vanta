@@ -9,27 +9,27 @@ when changing an installation; do not run two app versions on the same profile.
 
 ## Desktop App
 
-[Download Vanta Desktop v0.1.3 DMG for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.3/Vanta-0.1.3-arm64.dmg).
+[Download Vanta Desktop v0.1.4 ZIP for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip).
 The normal release replaces Iris downloads. It contains the signed, notarized
 and stapled app with bundled runtime/kernel; no source build or Python setup
-is required. The same app is also available as a
-[ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.3/Vanta-0.1.3-arm64.zip)
-for manual installation and native updating.
+is required. This ZIP supports manual installation and native updating. The
+separate 0.1.4 DMG is not published while its Apple submission is pending;
+the previous 0.1.3 DMG is a distinct older release.
 
-1. Verify the download against `SHA256SUMS.txt` on the
-   [Desktop release](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.3).
-2. Quit Vanta and keep a rollback copy of an existing app. Open the DMG, drag
-   `Vanta.app` to Applications and eject the image afterward.
+1. Verify the download against `SHA256SUMS` on the
+   [Desktop release](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4).
+2. Quit Vanta and keep a rollback copy of an existing app. Extract the ZIP and
+   move `Vanta.app` to Applications.
 3. Open Vanta normally. No Gatekeeper bypass is required. Configure the chosen
    provider through existing settings if needed; credentials and approval grants
    are not copied from another installation.
 
 Use **Vanta → Check for Updates…** for native update discovery. Installation
 requires exact confirmation and safe work preparation; app rollback is retained.
-Actual signed replacement/relaunch into 0.1.3 passed on the authorized owner's
+Actual signed 0.1.3 → 0.1.4 replacement/relaunch passed on the authorized owner's
 Mac. This is not clean-Mac acceptance or a complete native failure/rollback test.
 Do not use the historical `v0.9.5` DMG as the current download. See the
-[release evidence](releases/desktop-v0.1.3.md),
+[release evidence](releases/desktop-v0.1.4.md),
 [native update record](desktop-update-integration-2026-11-17.md) and
 [Desktop help](desktop-help.md) for setup, recovery and known limits.
 
@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/install.sh |
 
 From a managed runtime, `vanta update` updates the runtime and refreshes dependencies. For a locally modified managed runtime, review or commit your changes before re-running the bootstrap installer; it intentionally refuses to overwrite them.
 
-Desktop 0.1.3 supports **Check for Updates…**. Finish active work and approve
+Desktop 0.1.4 supports **Check for Updates…**. Finish active work and approve
 the exact version before restart. Do not reopen Vanta during replacement;
 the updater relaunches it. Custom-profile/development launches use manual
 installation. Quit and retain rollback before manually replacing an app; never

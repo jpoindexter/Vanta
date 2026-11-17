@@ -21,7 +21,7 @@ Quit Vanta before manually replacing it and keep a rollback copy of the old
 app. Open the installed copy from Applications. Do not run two versions against
 the same profile or delete app data to fix an installation.
 
-The [0.1.3 release record](https://github.com/jpoindexter/Vanta/blob/codex/desktop-feedback-20261117/docs/releases/desktop-v0.1.3.md)
+The [0.1.4 release record](https://github.com/jpoindexter/Vanta/blob/codex/desktop-feedback-20261117/docs/releases/desktop-v0.1.4.md)
 separates signed-package checks, native updating and DMG acceptance. Check that
 record and the installation guide for current download status; a signed ZIP
 alone does not establish the other delivery checks.

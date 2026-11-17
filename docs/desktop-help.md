@@ -13,7 +13,7 @@ Quit Vanta before manually replacing it, and keep a rollback copy of the old
 app. Open the installed copy from Applications. Do not run two versions against
 the same profile or delete your app data to fix an installation.
 
-The 0.1.3 release has [dated release evidence](releases/desktop-v0.1.3.md).
+The 0.1.4 release has [dated release evidence](releases/desktop-v0.1.4.md).
 Native update and DMG delivery are separate acceptance steps; a signed ZIP alone
 does not prove either. Check that page and the installation guide for current
 download and acceptance status.

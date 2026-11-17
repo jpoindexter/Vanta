@@ -1,5 +1,20 @@
 # Changelog
 
+## Desktop v0.1.4 — 2026-11-17
+
+- Deliver the MCP-expiry, late cache-usage, worker-cancellation and stream-owner
+  repairs plus the effect-review fence for derived delegation replay/follow-up.
+  Clean follow-up remains a fresh task; child continuation and recovered
+  budgets/authority are not claimed.
+- Notarize/staple the exact tested app using an existing valid saved profile,
+  publish its verified ZIP/manifest/provenance/checksums, and execute the normal
+  0.1.3 → 0.1.4 native replacement/relaunch with app/data backups and rollback.
+  Installed full payload, publisher, ticket and Gatekeeper match the release.
+- Keep the separately submitted DMG withheld while Apple's decision is pending.
+  Preserve earlier artifacts, normal CLI selection and CLI/kernel Latest.
+- Exact delivery, hashes and remaining gates:
+  [Desktop release notes](docs/releases/desktop-v0.1.4.md).
+
 ## Desktop v0.1.3 — 2026-11-17
 
 - Restore the complete Send/Stop circle without changing the outer composer.
