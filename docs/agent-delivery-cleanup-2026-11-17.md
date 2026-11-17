@@ -33,7 +33,9 @@ The ten-file snapshot passed runtime typecheck, 33 affected provider/search test
 
 Deleted **57 redundant GitHub branch refs** and **one redundant local ref** after recording their exact ref/SHA pairs. Each remote tip was contained in the retained pushed integration history; none was checked out across six inspected Git families or the head/base of an open PR. Remote readback confirmed all 57 names absent and both integration and protected `main` unchanged. The commits remain reachable, and a removed branch can be recreated at its recorded SHA. No force-push, history rewrite, source/worktree deletion, PR closure or merge occurred.
 
-There are **43 remote heads** after preserving five archive refs. Fifteen PRs remain open, including security PR #87 awaiting independent review. Closed PRs are not treated as merged. Unavailable/divergent tips, active worktrees, the common object store, live runtime dependencies, ignored configuration and rollback material remain held separately from branch-ref cleanup.
+At the cleanup checkpoint there were **43 remote heads** after preserving five archive refs, and **15 open PRs**, including security PR #87 awaiting independent review. Closed PRs are not treated as merged. Unavailable/divergent tips, active worktrees, the common object store, live runtime dependencies, ignored configuration and rollback material remain held separately from branch-ref cleanup.
+
+Submitting the current integration stack is separate from merging it. The verified `19d68ed5` baseline is 612 commits ahead of protected `main`, with 7,566 changed files including 786 binary files and seven inherited Rust files. A draft integration PR must disclose this cumulative scope; today's narrow checks do not certify the whole inherited stack. PR #87's two security commits are not ancestors of this integration and remain a separate review. Do not hide that review debt by choosing an already-diverged feature branch as the PR base.
 
 ## Old generated installations
 
