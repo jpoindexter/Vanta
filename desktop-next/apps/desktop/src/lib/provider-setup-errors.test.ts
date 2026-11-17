@@ -3,10 +3,21 @@ import { describe, expect, it } from 'vitest'
 import { isProviderSetupErrorCode, isProviderSetupErrorMessage } from './provider-setup-errors'
 
 describe('isProviderSetupErrorMessage', () => {
+  it('matches the native Vanta missing-key failure before a session exists', () => {
+    expect(
+      isProviderSetupErrorMessage(
+        'OPENAI_API_KEY is not set. Run `vanta setup`, or set it in vanta-ts/.env, or use VANTA_PROVIDER=ollama for local models.'
+      )
+    ).toBe(true)
+    expect(
+      isProviderSetupErrorMessage('Auxiliary warning: OPENAI_API_KEY is not set. Run `vanta setup`.')
+    ).toBe(false)
+  })
+
   it('matches generic missing-provider copy', () => {
-    expect(isProviderSetupErrorMessage('No inference provider configured. Run `vanta model` to choose one.')).toBe(
-      true
-    )
+    expect(
+      isProviderSetupErrorMessage('No inference provider configured. Run `vanta model` to choose one.')
+    ).toBe(true)
     expect(isProviderSetupErrorMessage('No inference provider is configured.')).toBe(true)
     expect(isProviderSetupErrorMessage('No Vanta provider is configured.')).toBe(true)
     expect(isProviderSetupErrorMessage('set an API key (OPENROUTER_API_KEY) in ~/.vanta/.env')).toBe(true)
@@ -61,7 +72,9 @@ describe('isProviderSetupErrorMessage', () => {
 
   it('does not match non-provider runtime failures', () => {
     expect(
-      isProviderSetupErrorMessage('Selected runtime is not available. setup.status reports configured credentials.')
+      isProviderSetupErrorMessage(
+        'Selected runtime is not available. setup.status reports configured credentials.'
+      )
     ).toBe(false)
   })
 

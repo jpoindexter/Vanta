@@ -102,6 +102,13 @@
   outline-offset: 3px;
 }
 
+/* The surface already clips its rounded edge outside the 12px inset. Repeating
+   that radius on the flush inner wrapper cuts the Send/Stop circle's lower-right
+   arc (and hit target). Keep inner overflow containment, without a second curve. */
+:root[data-vanta-theme='vanta'] [data-slot='composer-surface'][data-vp='composer']:not([data-hud-shell] *) > [data-slot='composer-fade'] {
+  border-radius: 0;
+}
+
 
 /* Dropdowns, menus and popovers: one opaque surface with readable rows. Vanta draws them
    at 12px on a 96% fill with backdrop blur, so text behind shows through the list.

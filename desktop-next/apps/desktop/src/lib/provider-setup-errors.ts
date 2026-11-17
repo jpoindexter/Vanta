@@ -8,7 +8,10 @@
 const PROVIDER_SETUP_ERROR_RE =
   /No (?:inference|Vanta|LLM) provider(?: is)? configured|no_provider_configured|set an API key|is set in config\.yaml but no (?:API key|credentials)/i
 
-const SESSION_INFO_CREDENTIAL_WARNING_RE = /^No API key configured for provider '[^']*'\. First message will fail\.$/
+const SESSION_INFO_CREDENTIAL_WARNING_RE =
+  /^No API key configured for provider '[^']*'\. First message will fail\.$/
+// Native Vanta can fail during session creation, before a typed gateway event exists.
+const NATIVE_MISSING_KEY_RE = /^[A-Z][A-Z0-9_]*_API_KEY is not set\. Run `vanta setup`/
 
 /** True when the gateway named this failure itself: preferred over reading the sentence. */
 export function isProviderSetupErrorCode(code: null | string | undefined): boolean {
@@ -22,5 +25,9 @@ export function isProviderSetupErrorMessage(message: null | string | undefined):
     return false
   }
 
-  return PROVIDER_SETUP_ERROR_RE.test(text) || SESSION_INFO_CREDENTIAL_WARNING_RE.test(text)
+  return (
+    PROVIDER_SETUP_ERROR_RE.test(text) ||
+    SESSION_INFO_CREDENTIAL_WARNING_RE.test(text) ||
+    NATIVE_MISSING_KEY_RE.test(text)
+  )
 }

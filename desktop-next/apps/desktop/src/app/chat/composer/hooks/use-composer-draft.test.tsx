@@ -370,6 +370,23 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
 
     vi.stubGlobal('OffscreenCanvas', MockOffscreenCanvas)
 
+    // JSDOM does not decode Image sources. The original PNG admission is a
+    // separate browser decode from the intentionally delayed preview bitmap.
+    const decodedSources = vi.fn()
+    class MockImage {
+      naturalWidth = 1
+      naturalHeight = 1
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      set src(value: string) {
+        if (value) {
+          decodedSources(value)
+          queueMicrotask(() => this.onload?.())
+        }
+      }
+    }
+    vi.stubGlobal('Image', MockImage)
+
     let actions!: ReturnType<typeof useComposerActions>
 
     function PreviewHarness({ activeQueueSessionKey }: { activeQueueSessionKey: string }) {
@@ -402,6 +419,7 @@ describe('useComposerDraft — attachment scope stays coherent with the committe
     await act(async () => {
       await pending
     })
+    expect(decodedSources).toHaveBeenCalledWith(fullResolution)
 
     // The late completion belongs to A and must not leak into active session B.
     expect(mainComposerScope.$attachments.get()).toEqual([])

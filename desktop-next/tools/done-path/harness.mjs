@@ -90,6 +90,15 @@ function sandboxEnv({ box, project, modelUrl, extraEnv = {} }) {
   });
 }
 
+/** Vite clears dist: refuse a renderer-only build before Electron can open a native error dialog. */
+export function assertSourceLaunchReady(root = desktopRoot) {
+  for (const file of ['electron-main.mjs', 'electron-preload.js']) {
+    if (!fs.existsSync(path.join(root, 'dist', file))) {
+      throw new Error(`Missing dist/${file}. Run npm run vanta:build in desktop-next before the source proof.`);
+    }
+  }
+}
+
 /** Launch the built Electron shell on `project`, hidden and unfocused. */
 export async function launchApp({ box, project, modelUrl, extraEnv, width = 1440, height = 900 }) {
   const { _electron } = require("playwright-core");
@@ -97,6 +106,7 @@ export async function launchApp({ box, project, modelUrl, extraEnv, width = 1440
   // VANTA_PACKAGED_APP=/Applications/Vanta.app runs the same steps against the installed, packaged app instead of source
   // Electron. It brings its own runtime and kernel, so the source runtime root is left out of its environment.
   const packaged = process.env.VANTA_PACKAGED_APP?.trim();
+  if (!packaged) assertSourceLaunchReady();
   const env = sandboxEnv({ box, project, modelUrl, extraEnv });
   if (packaged) delete env.VANTA_RUNTIME_ROOT;
   const app = await _electron.launch(

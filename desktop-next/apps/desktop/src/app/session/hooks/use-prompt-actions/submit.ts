@@ -46,12 +46,12 @@ import { routeTargetFromToken, sessionContextDrift } from '../session-context-dr
 import type { CreateBackendSessionForSend } from '../use-session-actions/create-overrides'
 import { resolveSessionOwner, resolveSessionProfile } from '../use-session-actions/utils'
 
+import { reportSessionCreationError, requestMissingProviderSetup } from './session-creation-error'
 import { registerRecoveredRuntime, singleFlightSessionResume, takeRecoveredRuntime } from './single-flight-resume'
 import {
   acquireSubmitInFlight,
   type GatewayRequest,
   inlineErrorMessage,
-  isProviderSetupError,
   isSessionBusyError,
   isSessionNotOwnedError,
   isTargetSessionBusy,
@@ -785,7 +785,7 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
           releaseBusy()
 
           if (targetIsCurrentView()) {
-            notifyError(err, copy.sessionUnavailable)
+            reportSessionCreationError(err, copy)
           }
 
           return false
@@ -1073,9 +1073,7 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
           targetStoredSessionId
         )
 
-        if (targetIsCurrentView() && isProviderSetupError(err)) {
-          requestDesktopOnboarding(copy.providerCredentialRequired)
-
+        if (targetIsCurrentView() && requestMissingProviderSetup(err, copy.providerCredentialRequired)) {
           return false
         }
 

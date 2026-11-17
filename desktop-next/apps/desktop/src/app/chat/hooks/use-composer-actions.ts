@@ -8,13 +8,12 @@ import { useI18n } from '@/i18n'
 import { attachmentPathNeedsUpload } from '@/lib/attachment-upload-policy'
 import { attachmentId, contextPath, pathLabel } from '@/lib/chat-runtime'
 import {
-  type ImageReadResult,
   imageBudgetError,
   imageFromBlob,
-  imageFromDataUrl
+  validateComposerImage
 } from '@/lib/composer-images'
-import { readDesktopFileDataUrlLocalFirst, selectDesktopPaths } from '@/lib/desktop-fs'
-import { downscaleDataUrlForPreview } from '@/lib/image-resize'
+import { attachmentPreviewDataUrl, loadChipImage } from '@/lib/composer-image-admission'
+import { selectDesktopPaths } from '@/lib/desktop-fs'
 import { normalize } from '@/lib/text'
 import {
   addComposerAttachment,
@@ -32,6 +31,7 @@ import { notify, notifyError } from '@/store/notifications'
 import type { ImageDetachResponse } from '../../types'
 import { isImagePath, useAttachmentPickers } from './use-attachment-pickers'
 export { isImagePath } from './use-attachment-pickers'
+export { attachmentPreviewDataUrl } from '@/lib/composer-image-admission'
 
 
 const BLOB_MIME_EXTENSION: Record<string, string> = {
@@ -51,61 +51,10 @@ function blobExtension(blob: Blob): string {
   return BLOB_MIME_EXTENSION[mime] || '.png'
 }
 
-interface LoadedChipImage {
-  preview: Pick<ComposerAttachment, 'previewUrl' | 'thumbnailUrl'>
-  read: ImageReadResult
-}
-
-/**
- * Read an image for a path chip. OS drops and clipboard blobs preview from the in-hand blob so nothing is
- * base64-loaded over IPC (#63682); path-only picks keep the queued IPC thumbnail path and hold only the bounded
- * thumbnail on the chip. Either way the full bytes come back for the request body.
- */
-async function loadChipImage(filePath: string, label: string, previewSource?: Blob | null): Promise<LoadedChipImage> {
-  if (previewSource && previewSource.size > 0) {
-    return { preview: { previewUrl: URL.createObjectURL(previewSource) }, read: await imageFromBlob(previewSource, label) }
-  }
-
-  const { previewUrl, thumbnailUrl } = await queuedAttachmentPreview(filePath)
-
-  return { preview: thumbnailUrl ? { thumbnailUrl } : { previewUrl }, read: imageFromDataUrl(previewUrl, label) }
-}
-
 const isImageBlob = (blob: Blob): boolean => blob.size > 0 && (!blob.type || blob.type.startsWith('image/'))
 
 const blobLabel = (blob: Blob): string =>
   blob instanceof File && blob.name ? blob.name : `pasted-image${blobExtension(blob)}`
-
-/**
- * Read an attachment's thumbnail preview, local disk first. Paperclip picks,
- * clipboard saves, and OS drops always hand us paths on THIS machine — the
- * remote-routed fs facade would 404 them against the gateway and toast a bogus
- * "preview failed" even though the attach itself works (upload reads local
- * bytes too). In-app drags from the remote project tree are the opposite case:
- * the local read fails there, so fall back to the facade (remote fs bridge).
- * In local mode the facade IS the local bridge, so this stays a single read.
- */
-export async function attachmentPreviewDataUrl(filePath: string): Promise<string> {
-  return readDesktopFileDataUrlLocalFirst(filePath)
-}
-
-let attachmentPreviewQueue = Promise.resolve()
-
-async function queuedAttachmentPreview(filePath: string): Promise<{ previewUrl: string; thumbnailUrl?: string }> {
-  const task = attachmentPreviewQueue.then(async () => {
-    const previewUrl = await attachmentPreviewDataUrl(filePath)
-    const thumbnailUrl = previewUrl.startsWith('data:image/') ? await downscaleDataUrlForPreview(previewUrl) : undefined
-
-    return { previewUrl, thumbnailUrl }
-  })
-
-  attachmentPreviewQueue = task.then(
-    () => undefined,
-    () => undefined
-  )
-
-  return task
-}
 
 /**
  * Prefer a cheap object-URL preview when the drop/paste still has a Blob/File
@@ -651,7 +600,7 @@ export function useComposerActions({
       const label = blobLabel(blob)
 
       try {
-        const read = await imageFromBlob(blob, label)
+        const read = await validateComposerImage(await imageFromBlob(blob, label), label)
 
         if (!isCurrent()) {
           return false

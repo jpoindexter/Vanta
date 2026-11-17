@@ -76,6 +76,29 @@ export function imageFromDataUrl(dataUrl: string, label: string, fallbackMime = 
   return imageFromBase64(match[2], match[1] || fallbackMime, label)
 }
 
+/** Composer admission is separate from the thumbnail's intentional decode-failure placeholder. */
+export async function validateComposerImage(read: ImageReadResult, label: string): Promise<ImageReadResult> {
+  // shortcut: Chromium cannot decode every accepted TIFF; retain TIFF's existing validation until a native decoder is available.
+  if (!read.ok || read.image.mime === 'image/tiff') return read
+
+  const decoded = await new Promise<boolean>(resolve => {
+    const image = new Image()
+    const finish = (valid: boolean) => {
+      clearTimeout(timer)
+      image.onload = null
+      image.onerror = null
+      image.src = ''
+      resolve(valid)
+    }
+    const timer = setTimeout(() => finish(false), 8000)
+    image.onload = () => finish(image.naturalWidth > 0 && image.naturalHeight > 0)
+    image.onerror = () => finish(false)
+    image.src = `data:${read.image.mime};base64,${read.image.dataBase64}`
+  })
+
+  return decoded ? read : { error: `${label}: could not read the image.`, ok: false }
+}
+
 const CHUNK = 0x8000
 
 function base64Of(bytes: Uint8Array): string {

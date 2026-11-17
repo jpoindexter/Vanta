@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ComposerAttachment } from '@/store/composer'
 
@@ -11,7 +11,8 @@ import {
   imageMime,
   MAX_IMAGE_BYTES,
   MAX_IMAGES,
-  promptImages
+  promptImages,
+  validateComposerImage
 } from './composer-images'
 
 const PNG_B64 = 'iVBORw0KGgo='
@@ -20,6 +21,46 @@ const chip = (id: string, dataBase64 = PNG_B64): ComposerAttachment => ({
   imageData: { dataBase64, mime: 'image/png' },
   kind: 'image',
   label: id
+})
+
+describe('composer image decode admission', () => {
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
+  const image = { ok: true as const, image: { mime: 'image/png', dataBase64: PNG_B64 } }
+
+  it('accepts decoded dimensions and releases decoder handlers', async () => {
+    let decoder!: { onload: null | (() => void); onerror: null | (() => void); src: string }
+    vi.stubGlobal('Image', class {
+      onload: null | (() => void) = null
+      onerror: null | (() => void) = null
+      naturalWidth = 1
+      naturalHeight = 1
+      src = ''
+      constructor() { decoder = this }
+    })
+    const pending = validateComposerImage(image, 'valid.png')
+    decoder.onload?.()
+    await expect(pending).resolves.toEqual(image)
+    expect(decoder).toMatchObject({ onload: null, onerror: null, src: '' })
+  })
+
+  it('refuses a stalled decoder after a bounded wait and releases it', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('Image', class { src = ''; onload = null; onerror = null })
+    const pending = validateComposerImage(image, 'stalled.png')
+    await vi.advanceTimersByTimeAsync(8000)
+    await expect(pending).resolves.toEqual({ ok: false, error: 'stalled.png: could not read the image.' })
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('retains TIFF compatibility and existing refusals without calling the browser decoder', async () => {
+    const decoder = vi.fn()
+    vi.stubGlobal('Image', decoder)
+    const tiff = { ok: true as const, image: { mime: 'image/tiff', dataBase64: 'SUkqAA==' } }
+    const refused = { ok: false as const, error: 'existing size refusal' }
+    await expect(validateComposerImage(tiff, 'valid.tiff')).resolves.toEqual(tiff)
+    await expect(validateComposerImage(refused, 'large.png')).resolves.toEqual(refused)
+    expect(decoder).not.toHaveBeenCalled()
+  })
 })
 
 describe('composer images', () => {

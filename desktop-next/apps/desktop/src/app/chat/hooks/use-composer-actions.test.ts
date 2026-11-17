@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { $composerAttachments, type ComposerAttachment, updateComposerAttachment } from '@/store/composer'
 import { $notifications } from '@/store/notifications'
@@ -23,6 +23,17 @@ import {
 // through the upload pipeline (OS drop — absolute local path a remote gateway
 // can't read, plus image bytes for vision).
 const lastError = (): string => $notifications.get().at(-1)?.message ?? ''
+
+// Browser image decoding is the platform boundary; fixture reads below are not real image files.
+beforeEach(() => {
+  vi.stubGlobal('Image', class {
+    onload: null | (() => void) = null
+    onerror: null | (() => void) = null
+    naturalWidth = 1
+    naturalHeight = 1
+    set src(value: string) { if (value) queueMicrotask(() => this.onload?.()) }
+  })
+})
 
 const osDrop = (path: string): DroppedFile => ({ file: new File(['x'], path.split('/').pop() || 'f'), path })
 const inAppRef = (path: string, extra: Partial<DroppedFile> = {}): DroppedFile => ({ path, ...extra })
@@ -506,6 +517,35 @@ describe('attachImagePath thumbnail separation', () => {
     $composerAttachments.set([])
     $notifications.set([])
     $connection.set(null)
+  })
+
+  it('refuses a corrupt picked PNG without dropping an existing attachment', async () => {
+    const original: ComposerAttachment = { id: 'existing', kind: 'file', label: 'brief.md', path: 'brief.md' }
+    $composerAttachments.set([original])
+    window.desktopBridge = { readFileDataUrl: vi.fn(async () => 'data:image/png;base64,bm90IGEgcG5n') } as unknown as Window['desktopBridge']
+    vi.stubGlobal('Image', class {
+      onerror: null | (() => void) = null
+      set src(value: string) { if (value) queueMicrotask(() => this.onerror?.()) }
+    })
+    const { result } = renderHook(() => useComposerActions({ activeSessionId: null, currentCwd: '', requestGateway: vi.fn() }))
+
+    await act(async () => { await result.current.attachImagePath('/tmp/corrupt.png') })
+
+    expect($composerAttachments.get()).toEqual([original])
+    expect(lastError()).toContain('could not read the image')
+  })
+
+  it('refuses a corrupt pasted JPEG before adding it to the draft', async () => {
+    vi.stubGlobal('Image', class {
+      onerror: null | (() => void) = null
+      set src(value: string) { if (value) queueMicrotask(() => this.onerror?.()) }
+    })
+    const { result } = renderHook(() => useComposerActions({ activeSessionId: null, currentCwd: '', requestGateway: vi.fn() }))
+
+    await act(async () => { await result.current.attachImageBlob(new File(['not a jpeg'], 'corrupt.jpg', { type: 'image/jpeg' })) })
+
+    expect($composerAttachments.get()).toEqual([])
+    expect(lastError()).toContain('could not read the image')
   })
 
   it('does not resurrect an attachment removed while its queued resize is in flight', async () => {

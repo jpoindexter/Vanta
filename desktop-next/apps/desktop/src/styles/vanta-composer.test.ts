@@ -52,4 +52,8 @@ describe('approved composer presentation contract', () => {
     expect(composer).toContain('color: var(--theme-background-seed)')
     expect(composer).toContain(":is(:disabled, [aria-disabled='true'])")
   })
+
+  it('leaves rounded clipping to the outer surface, not the inset controls wrapper', () => {
+    expect(skin).toMatch(/\[data-slot='composer-surface'\]\[data-vp='composer'\]:not\(\[data-hud-shell\] \*\)\s*>\s*\[data-slot='composer-fade'\]\s*\{\s*border-radius: 0;/)
+  })
 })
