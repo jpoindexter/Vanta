@@ -45,6 +45,8 @@ Not established: a live paid Anthropic request, vendor billing reconciliation, o
 
 ## Executed source follow-ons
 
+Published at [`a26f07b4`](https://github.com/jpoindexter/Vanta/commit/a26f07b418f3419430e1c43e151413041625230e), with an exact remote SHA match and clean checkout. Parent reran the final 49-case recovery proof, 28-case fallback proof, runtime/renderer/Electron typechecks and the post-extraction ten-case typing proof. The production website build, secret scan, staged-size baseline (no new/worse findings) and five architecture boundaries passed. A private 33-file recovery archive was read back and compared byte-for-byte before committing. No protected-main merge or installed runtime change occurred.
+
 ### Keep typing while an existing conversation restores
 
 Owners: `UX-04` and DN-22's existing continuity backlog. The composed production keyboard handler claimed a printable key while the conversation's composer was gated off, then lost that key. The initial mounted-editor regression failed with empty text instead of `h`; restoring the text also exposed a caret-at-zero issue in a detached portal mount.
@@ -81,7 +83,7 @@ Retention limit: no new count/size/age cleanup policy was invented. Retained wor
 
 ## Dependency-ordered work remaining
 
-1. Review/checkpoint follow-ons and keep installed package delivery separate from source acceptance. Production website documentation build passes; publishing help is a separate deployment.
+1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
 2. Before child continuation or agent-facing inspection: validate expected parent/profile/branch authority, preserve real remaining budgets, reconcile effects and retain review holds. Never restore grants or replay unknown effects.
 3. Run actual packaged cold-launch typing/owner acceptance and diagnose the separately reproduced floating-pointer test gap; do not infer native acceptance from mounted-component tests.
 4. Test an exact selected fallback route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
