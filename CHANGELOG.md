@@ -1,5 +1,23 @@
 # Changelog
 
+## Desktop v0.1.3 — 2026-11-17
+
+- Restore the complete Send/Stop circle without changing the outer composer.
+- Reject unreadable PNG/JPEG input before custody admission and retain valid
+  drafts/files across restart and chat switching.
+- Recover model setup after a missing-key rejection; retained requests require
+  explicit restoration and sending, never automatic resubmission.
+- Deliver explicit signed native updating with integrity/publisher verification,
+  draft/runtime readiness and retained rollback. Actual two-package replacement
+  and relaunch into 0.1.3 passed on the owner's authorized Mac.
+- Publish a signed/notarized/stapled drag-to-Applications DMG containing the
+  same app as the ZIP. Its public download, mounted identity and installed
+  setup/chat/restart replay passed; no separate source toolchain is required.
+- Fix native publisher-expression syntax and Electron raw ASAR hashing. Preserve
+  withdrawn 0.1.1/0.1.2 candidate artifacts and their failed acceptance evidence.
+- Package identity, delivery gates and remaining limits:
+  [Desktop release notes](docs/releases/desktop-v0.1.3.md).
+
 ## Desktop v0.1.0 — 2026-11-17
 
 - Publish one normal Apple silicon Desktop release, superseding the separate

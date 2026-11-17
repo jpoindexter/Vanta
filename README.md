@@ -1,6 +1,6 @@
 # Vanta
 
-[![Desktop release](https://img.shields.io/badge/desktop-v0.1.0-555)](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-111111.svg)](https://docs.vanta.theft.studio) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Desktop release](https://img.shields.io/badge/desktop-v0.1.3-555)](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.3) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Docs](https://img.shields.io/badge/docs-vanta.theft.studio-111111.svg)](https://docs.vanta.theft.studio) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **Broad capability. Trusted continuity. Verified follow-through.**
 
@@ -31,21 +31,22 @@ older public-release interface or a claim of completed ambient-agent behavior.*
 
 ## Start here
 
-- **[Download Vanta Desktop v0.1.0 for macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip)** — the normal signed, notarized Apple silicon app, not a separate Iris build. Check the release checksum before installing.
-- **[Read the Desktop release notes](docs/releases/desktop-v0.1.0.md)** — private feedback, useful blocked-state guidance and guarded project-file references. External/remote file ingestion, automatic updating and whole-product acceptance remain open. CLI/kernel release history remains separate.
+- **[Download Vanta Desktop v0.1.3 DMG for macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.3/Vanta-0.1.3-arm64.dmg)** — normal signed/notarized Apple silicon app; not a separate Iris build. Verify the release checksum, quit Vanta and drag the app to Applications.
+- **[Read the Desktop release notes](docs/releases/desktop-v0.1.3.md)** — native update/relaunch, recoverable setup and composer/attachment corrections. Full native failure/rollback, original tester incident, accessibility and whole-product acceptance remain open. CLI/kernel history stays separate.
 - **[Read the docs](https://docs.vanta.theft.studio/)** — setup, safety model, agents, memory, MCP, messaging, and the live roadmap.
 - **[Follow the roadmap](ROADMAP.md)** — canonical status lives in `roadmap.json`; generated views and local implementation evidence have separate publication boundaries. Paid growth and unfamiliar-person testing remain deferred. No paid participants, recruiting, research platforms, Actions, hosting, outreach, or new service spend are authorized.
 
 ## Desktop delivery and development history
 
 **Current public Desktop — November 17:** normal
-[Vanta Desktop v0.1.0](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0)
-replaces the separate Iris test downloads. The final signed/notarized ZIP passed
-the scoped interactive checks recorded in its [release notes](docs/releases/desktop-v0.1.0.md).
-The owner subsequently installed that exact release with retained rollback and
-visible history/readiness checks; see the [installation receipt](docs/desktop-v0.1.0-install-2026-11-17.md).
-The [installer audit](docs/desktop-installer-hermes-audit-2026-11-17.md) tracks
-the still-missing current DMG, first-run acceptance and native auto-updater.
+[Vanta Desktop v0.1.3](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.3)
+provides the signed/notarized DMG and the same app as an updater ZIP. Actual
+owner-authorized native replacement/relaunch retained history and the unsent
+test draft/file. The downloaded-DMG payload passed seven private first-launch
+behavioral checks with one explicit canned model request and zero renderer errors.
+[Release evidence and remaining gates](docs/releases/desktop-v0.1.3.md) keep
+native rollback execution, clean-Mac, original tester and full-product acceptance
+separate. [Desktop help](docs/desktop-help.md) covers setup and recovery.
 The dated development and
 local-delivery records below are historical evidence, not the current download.
 

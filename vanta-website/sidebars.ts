@@ -7,7 +7,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Getting started',
       collapsed: false,
-      items: ['intro', 'use-cases', 'why-vanta', 'quickstart', 'setup', 'configuration', 'examples'],
+      items: ['intro', 'use-cases', 'why-vanta', 'quickstart', 'desktop-help', 'setup', 'configuration', 'examples'],
     },
     {
       type: 'category',

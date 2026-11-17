@@ -6,6 +6,9 @@ sidebar_position: 8
 
 # TUI & desktop
 
+For the packaged Mac app, start with [Desktop help](./desktop-help.md):
+installation, model setup, draft recovery, attachments, updates and feedback.
+
 ## The terminal UI
 
 The default interactive surface is a React + Ink terminal UI with inline rendering and committed scrollback, so the terminal owns history (native selection, scroll, and copy).
@@ -30,17 +33,18 @@ Chords are configurable via `~/.vanta/keybindings.json` (zod-validated, fail-sof
 
 ### Current download — 17 November 2026
 
-[Download the signed/notarized Vanta Desktop v0.1.0 ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip)
+[Download the signed/notarized Vanta Desktop v0.1.3 DMG](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.3/Vanta-0.1.3-arm64.dmg)
 for Apple Silicon macOS. Verify the checksum on the
-[release page](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0),
-quit Vanta, keep a rollback copy, extract the app into Applications and open
+[release page](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.3),
+quit Vanta, keep a rollback copy, drag the app into Applications and open
 normally. Runtime and safety kernel are bundled; no source build is required.
 The normal release replaces the separate Iris test downloads.
 
-The current release has no published DMG and its native auto-updater is not
-configured. DMG delivery, recoverable first-launch setup and safe updates are
-tracked separately; an owner-machine upgrade is not clean-Mac acceptance.
-The [release notes](https://github.com/jpoindexter/Vanta/blob/codex/desktop-feedback-20261117/docs/releases/desktop-v0.1.0.md)
+The same app remains available as an updater ZIP. Use **Check for Updates…**
+and approve the exact version after active work is safe. Signed native
+replacement/relaunch into 0.1.3 passed with retained draft/file and rollback.
+This is not clean-Mac acceptance or a complete native failure/rollback test.
+The [release notes](https://github.com/jpoindexter/Vanta/blob/codex/desktop-feedback-20261117/docs/releases/desktop-v0.1.3.md)
 state exactly which packaged checks ran and which gaps remain. CLI/kernel
 release numbering and updating remain separate from Desktop.
 

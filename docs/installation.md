@@ -9,27 +9,29 @@ when changing an installation; do not run two app versions on the same profile.
 
 ## Desktop App
 
-[Download Vanta Desktop v0.1.0 for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.0/Vanta-0.1.0-arm64.zip).
-The normal release replaces the separate Iris test downloads. It is a ZIP
-containing a Developer ID signed, Apple-notarized and stapled `Vanta.app` with
-its bundled runtime and kernel; no source checkout/build is required.
+[Download Vanta Desktop v0.1.3 DMG for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.3/Vanta-0.1.3-arm64.dmg).
+The normal release replaces Iris downloads. It contains the signed, notarized
+and stapled app with bundled runtime/kernel; no source build or Python setup
+is required. The same app is also available as a
+[ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.3/Vanta-0.1.3-arm64.zip)
+for manual installation and native updating.
 
-1. Verify the ZIP against `SHA256SUMS.txt` on the
-   [Desktop release](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.0).
-2. Quit any running Vanta. Keep a rollback copy of an existing app, extract the
-   ZIP and move `Vanta.app` into Applications.
+1. Verify the download against `SHA256SUMS.txt` on the
+   [Desktop release](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.3).
+2. Quit Vanta and keep a rollback copy of an existing app. Open the DMG, drag
+   `Vanta.app` to Applications and eject the image afterward.
 3. Open Vanta normally. No Gatekeeper bypass is required. Configure the chosen
    provider through existing settings if needed; credentials and approval grants
    are not copied from another installation.
 
-This release has **no published DMG or enabled automatic updater**. Do not use
-the older `v0.9.5` DMG as the current Desktop download. Current package identity,
-checksums and remaining boundaries are in the
-[release notes](releases/desktop-v0.1.0.md). The owner's verified upgrade and
-rollback are recorded in the [installation receipt](desktop-v0.1.0-install-2026-11-17.md).
-The [installer comparison and delivery cards](desktop-installer-hermes-audit-2026-11-17.md)
-separate DMG delivery, first-run setup and safe updating; none is implied by
-the historical managed-runtime installer.
+Use **Vanta → Check for Updates…** for native update discovery. Installation
+requires exact confirmation and safe work preparation; app rollback is retained.
+Actual signed replacement/relaunch into 0.1.3 passed on the authorized owner's
+Mac. This is not clean-Mac acceptance or a complete native failure/rollback test.
+Do not use the historical `v0.9.5` DMG as the current download. See the
+[release evidence](releases/desktop-v0.1.3.md),
+[native update record](desktop-update-integration-2026-11-17.md) and
+[Desktop help](desktop-help.md) for setup, recovery and known limits.
 
 ## Managed Runtime
 
@@ -59,10 +61,10 @@ curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/install.sh |
 
 From a managed runtime, `vanta update` updates the runtime and refreshes dependencies. For a locally modified managed runtime, review or commit your changes before re-running the bootstrap installer; it intentionally refuses to overwrite them.
 
-For the installed Desktop, download the explicitly versioned Desktop release,
-quit the app and retain a rollback copy before replacing it. `vanta update`
-updates the CLI/runtime; it does not establish a Desktop app update. Automatic
-Desktop updating remains unconfigured in v0.1.0. Ordinary users do not need to
-build the app from source.
+Desktop 0.1.3 supports **Check for Updates…**. Finish active work and approve
+the exact version before restart. Do not reopen Vanta during replacement;
+the updater relaunches it. Custom-profile/development launches use manual
+installation. Quit and retain rollback before manually replacing an app; never
+delete your profile to update. `vanta update` updates CLI/runtime, not Desktop.
 
 The source-checkout installer remains the correct choice when contributing or making local code changes.

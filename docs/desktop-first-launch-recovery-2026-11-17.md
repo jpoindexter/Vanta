@@ -86,6 +86,47 @@ Successful private evidence run: `vanta-first-launch-ZDis0k`, isolated profile
 `vanta-first-launch-XLDZv5`. These are private temporary evidence, not release
 assets or owner data.
 
+## 0.1.3 behavioral replay
+
+The signed 0.1.3 candidate at source
+`b2847a8f6665a5294d25478dd3cb20ac140a5da6` passed the same seven behavioral
+checkpoints over three private launches. Its package declared clean source,
+source digest `7f1cbee0cae5902e67eee755ecea3ad4a46cd639b610828fae29fea51e5181cb`,
+and ASAR digest
+`41d95a82d7a2c121b0ee99daf11fccb58eec6b188d38274718d297031d40cdde`.
+The ASAR digest was unchanged after the run.
+
+1. Missing credentials open the existing provider picker.
+2. Choosing a provider later survives quit/relaunch.
+3. The exact unsent draft survives that restart.
+4. An explicit Send reopens the required provider setup.
+5. A stopped local endpoint preserves its entered address and recovers after
+   explicit retry.
+6. **Restore without sending** restores the original request with zero model
+   requests; a subsequent explicit Enter produces exactly one response.
+7. A configured cold restart retains the conversation and another unsent draft
+   without reopening setup.
+
+Observed network paths were `/api/tags`, `/api/tags`, then exactly one
+`/v1/chat/completions`; renderer errors were empty. Every test window was hidden
+and nonfocusable on each launch, including any newly created windows. The app
+closed normally, and no process referencing its private profile remained.
+Private receipt: `vanta-first-launch-SIQY0G/result.json`; private profile:
+`vanta-donepath-AuamBt`.
+
+**No 0.1.3 screenshots were captured.** Only the two success screenshot calls
+were disabled in memory because hidden-window capture had stalled in a separate
+lane. All model, draft, restoration, restart and error assertions remained.
+This is behavioral evidence, not fresh visual, camera, microphone, accessibility
+or owner-profile acceptance. The replay did not access camera/microphone or
+exercise their permission flows. A prior input-contaminated 0.1.2 attempt was
+retained separately and excluded; the successful runs are not merged with it.
+
+Apple notarization, native updating and the final installer are independently
+recorded in the [0.1.3 release evidence](releases/desktop-v0.1.3.md). Their pending
+or completed status must come from those executed delivery checks, not this
+first-launch receipt.
+
 ## Not established yet
 
 The corrected path passed in the exact new signed isolated installed copy.

@@ -1,6 +1,6 @@
 # Desktop update integration — 17 November 2026
 
-Source checkpoint, not yet signed-update acceptance or a new release. The owner
+Source and native acceptance record. The owner
 prioritized attachment recovery, the clipped Send/Stop control, first launch and
 the native updater **before** producing the final DMG. No card is closed by
 this document.
@@ -138,8 +138,42 @@ matched and publisher verification passed without a global ASAR toggle.
 The 0.1.2 target was also returned to draft status; no app replacement completed
 and the owner's synthetic unsent text/file remained retained.
 
-## Not claimed
+## Successful native replacement and relaunch
 
-No native two-package acceptance, new installed version, fresh notarized DMG,
-original tester incident closure, whole-product security clearance, or live
-provider/account/microphone acceptance at this source checkpoint.
+The owner authorized a normal-profile update after idle verification and private
+app/data backups. The signed/notarized `0.1.0-local.20261117.update3` seed and
+normal `0.1.3` target both contain source `b2847a8f`. Fresh exact-release approval,
+download integrity, publisher check, renderer/custody/runtime preparation and a
+mode0600 rollback receipt passed. The first staging attempt was interrupted by
+the computer-use observer reopening the old bundle: LaunchServices identified
+that observer as the new process's launcher, and Squirrel correctly refused an
+app-still-running replacement. No shutdown or security guard was weakened.
+
+On explicit retry, no computer-use/app-state call was made during installation.
+ShipIt recorded successful replacement at 14:55:50 local time and successful
+automatic launch at 14:55:54. Only then was native UI observation resumed.
+The installed version is `0.1.3`; its ASAR SHA-256 is
+`41d95a82d7a2c121b0ee99daf11fccb58eec6b188d38274718d297031d40cdde`.
+Its full app fingerprint matches the exact notarized target:
+`85516a24e84ea57fd80f1f76353879ec616366760745026f1ea26cd009030797`.
+Signature, stapling and Gatekeeper passed again on the installed app. The UI
+showed the retained history, synthetic unsent draft/file, ready runtime and
+Version & updates `v0.1.3`. The Send circle was visibly intact. The observer's
+later cleanup was interrupted by concurrent UI changes; no conversation was
+deleted or rewritten. Retention was established before that interaction.
+
+The native rollback contains the previous signed seed and a receipt bound to
+the expected new source/version/archive hash. Older normal-app and data backups
+remain retained; no credentials or approval grants were migrated. A prepared
+rollback was not automatically restored, and this successful update is not a
+destructive rollback test.
+
+## Remaining gates
+
+The signed DMG passed Apple acceptance, stapling, mounted payload identity,
+public download/hash and private installed first-launch replay after the updater
+proof; see the [release record](releases/desktop-v0.1.3.md). A forced native rollback, all offline/native
+failure paths, late asynchronous handoff-error presentation, original tester
+attachment incident, complete accessibility/parity, whole-product security and
+live provider/account/microphone acceptance are not established here. Relevant
+source-level failure tests are not substitutes for those native paths.
