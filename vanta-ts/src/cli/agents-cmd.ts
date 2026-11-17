@@ -105,11 +105,21 @@ async function handleDelegationControl(root: string, args: string[], env: NodeJS
   if (!id || (action !== "replay" && action !== "follow-up")) return usage(log);
   const node = await findDelegationNode(root, id);
   if (!node) { log(`delegation not found: ${id}`); return 1; }
-  const instruction = action === "replay" ? node.childPrompt : `Follow up on ${node.childPrompt}: ${detail.join(" ") || "review the result"}`;
+  const { delegationReviewReason } = await import("../subagent/delegation-review.js");
+  const review = await delegationReviewReason(root, node);
+  if (review) {
+    log(`Delegation needs review: ${review}. Run vanta agents delegation inspect ${id}. Nothing was queued; no permissions or budget restored.`);
+    return 1;
+  }
+  const instruction = {
+    replay: node.childPrompt,
+    "follow-up": `Follow up on ${node.childPrompt}: ${detail.join(" ") || "review the result"}`,
+  }[action];
   const assigned = assignTask(await readTasks(env), `delegation-${id}-${Date.now().toString(36)}`, "delegate", instruction);
   if (!assigned.ok) { log(assigned.error); return 1; }
   await appendTask(assigned.value, env);
   log(`queued ${action} ${assigned.value.id} · raw ${node.rawSidechain}`);
+  log("Fresh task only; no stored transcript, remaining budget, or prior approvals restored.");
   return 0;
 }
 

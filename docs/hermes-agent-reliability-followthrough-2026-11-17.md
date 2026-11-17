@@ -148,6 +148,16 @@ Clean `8e903828` was rebuilt as signed Desktop 0.1.4, including the worker cance
 
 That same package also independently passed the seven first-launch/restart criteria and six-step uncached draft/caret/attachment journey. The signed DMG's mounted payload matches all 19,799 files in the tested app. Exact digests and limitations are in the [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md). The local candidate is not a notarized release or a replacement of the normal app/CLI.
 
+## Derived-task recovery fence
+
+The actual CLI command handler reproduced both `delegation replay` and `follow-up` appending an assigned task even when the matching private checkpoint explicitly required effect review. The commands used only the summary receipt. The normal team runner can consume such a task as a fresh worker, so uncertainty provenance was lost at queue admission; the reproduction did not claim that an external effect had already been repeated.
+
+Before queueing derived work, the existing command now reads the bounded project-owned checkpoint, checks its recorded parent against the receipt and holds unfinished, invalid or uncertain work. It reuses typed effect-review, unanswered-call and mutator-classification helpers. An answered legacy mutator without a disposition remains uncertain; historical `started` markers with explicit safe settlement do not cause a blanket hold. Read-only and explicitly unstarted controls stay usable. Missing checkpoints retain only coherent legacy `pass`/`done` compatibility. Neither `continuationAllowed:false` alone nor another child's queue-wide hold is treated as exact-child effect evidence.
+
+The two original command regressions failed before repair. Independent review found the missing-disposition false clear, which also failed a narrow regression before correction. Actual compiled CLI entrypoint proof then rejected uncertain replay and follow-up with zero task appends; clean follow-up appended one fresh task. All three runs had zero guarded network/subprocess/synchronous-protected-read attempts, unchanged checkpoint bytes and unchanged normal launcher/selection. This proves admission, not execution of the queued worker. The successful path explicitly restores no transcript, remaining budget or previous approvals. Agent-facing profile/branch authority and genuinely budget-preserving continuation remain open; the current host context does not provide trustworthy profile/branch identity.
+
+The final three focused CLI/recovery/inspection files pass **38 cases**, including corrupt/unfinished/conflicting-parent holds, legacy contradictory receipts and safe settled/read-only/pending controls; runtime typecheck passes. These are narrow source and command-entrypoint results, not installed-app or budgeted-worker-continuation acceptance.
+
 ## Dependency-ordered work remaining
 
 1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.

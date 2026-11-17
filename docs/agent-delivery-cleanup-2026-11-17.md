@@ -2,6 +2,8 @@
 
 ## Current delivery boundary
 
+Newer derived-task admission source is recorded in the [reliability evidence](hermes-agent-reliability-followthrough-2026-11-17.md#derived-task-recovery-fence). Its compiled CLI entrypoint proof is separate from the signed `8e903828` package below; a new exact-source build is required before claiming that guard is in a delivered app.
+
 The current signed local Desktop candidate uses clean [`8e903828`](https://github.com/jpoindexter/Vanta/commit/8e90382835913180a853227cd303038fb03ef3cc). It includes the bounded worker-status cancellation repair [`795c3293`](https://github.com/jpoindexter/Vanta/commit/795c329365485498a98f3f7a76d28e333eee705c) and original-request stream/adoption repair [`6c33ae0a`](https://github.com/jpoindexter/Vanta/commit/6c33ae0a97614ff4858c239bf53c9c1f2ef46b6c), recorded in the [reliability evidence](hermes-agent-reliability-followthrough-2026-11-17.md). The existing global CLI launcher selects an independent runtime built from the earlier verified [`19d68ed5`](https://github.com/jpoindexter/Vanta/commit/19d68ed5f145cbcdf82596ee3683dc00e339384d), after fresh owner approval. Its previous selection is retained for guarded rollback; the previous checkout, uncommitted files and running processes remain untouched. No credentials or approvals were migrated, and that exact-pin approval was not reused to select a newer runtime.
 
 ### Current exact-build verification: 0.1.4 / 8e903828
@@ -70,6 +72,12 @@ Before retirement, the actual installed 0.1.3 app opened in a separate native te
 Four older generated rollback app payloads were permanently retired, retaining their receipts and pushed source commits. The current app, its verified private rollback, the two newest native rollback copies and the signed 0.1.4 candidate were kept. The old source checkout and live/rollback runtime configuration were not deleted. An exact SHA-256/size-matched local 0.1.0 ZIP was also removed; its public GitHub asset remains downloadable. The older app binaries are not promised byte-identical recovery from source alone.
 
 Post-action checks confirmed the four payloads and ZIP absent, receipts intact and protected app hashes unchanged. The immediate disk measurement showed no free-space increase; allocated file size is not a measured reclaimed-space claim. No snapshot, backup root, owner profile, credentials, database or unrelated project was removed.
+
+### Additional owner-requested obsolete-build cleanup
+
+A separate reviewed batch retired **20 exact generated payloads**, representing **7.29 GiB allocated**: five obsolete test/previous-release ZIPs, redundant extracted apps and rebuildable packaging staging. The installed 0.1.3 app first opened in an isolated native profile with zero renderer errors and the running owner's process unchanged. Immediately before removal, exact paths, tracked-source absence, live/open-file/launcher references and unchanged fingerprints were checked; retained recovery archives and protected apps/source/launcher settings were verified afterward. Each removed path has a private receipt; reports, logs, source/worktrees, runtime selection, the current signed candidate and rollback copies remain. One dirty-provenance test ZIP was held rather than retired. The three Iris archives remain locally and match GitHub **draft** asset metadata, not public-download availability.
+
+Some disposable old test archives were permanently removed; their signed binary bytes are not promised reproducible from source alone. Retired duplicate apps remain recoverable from kept archives or exact rollback copies. macOS reported about 225 GiB available afterward, but its free-space increase greatly exceeded this batch's allocation and must not be attributed to these removals alone. No Time Machine or system snapshot was deleted and no backup/repository root was removed. The pending three-file agent-recovery change was backed up and byte-verified before cleanup and remained unchanged throughout it.
 
 ## Evidence and remaining work
 

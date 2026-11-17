@@ -84,9 +84,17 @@ from installing or updating a packaged app.
 
 The inspection command reports remaining budget as unknown and keeps uncertain
 effects under review. Existing delegation `replay`/`follow-up` creates a **new
-task**, not continuation from the saved checkpoint. Never use it to retry an
-external action whose outcome is unknown. Keep any retained worktree and branch
-until its files and results have been reviewed.
+task**, not continuation from the saved checkpoint. Newer integration source
+checks that checkpoint before queueing derived work: unfinished or invalid
+records, conflicting recorded parents and unresolved effects require review
+and append no task. A paired legacy mutator result without an effect disposition
+is not a safe settlement. A checkpoint-absent legacy receipt must consistently
+report `pass` and `done`; this compatibility path is not proof of recovered
+authority. Clean queued work explicitly restores no transcript, remaining
+budget or previous approvals. This admission repair is not yet in the normal
+`19d68ed5` CLI pin. Never use derived work to retry an external action whose
+outcome is unknown. Keep any retained worktree and branch until its files and
+results have been reviewed.
 
 For a connector shown as `auth needs_auth`, review its authentication through
 the normal connection/setup flow, then test it explicitly. A saved successful
