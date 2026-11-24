@@ -27,6 +27,9 @@ export type AgentDeps = {
   usageAgent?: string;
   /** Stable task or goal id for per-call resource attribution. */
   usageTaskId?: string;
+  /** Host-owned provider accounting only; never registers a chat, checkpoints a
+   * normal session, changes effect identity, or grants recovery authority. */
+  providerUsage?: { root: string; sessionId: string; agent: string; taskId?: string };
   /** Ask the human to approve a gated action. `toolName` lets the host key an
    * allowlist ("always allow this tool"); omitted by tool-internal callers. */
   requestApproval: (action: string, reason: string, toolName?: string, detail?: ApprovalDetail) => Promise<boolean>;

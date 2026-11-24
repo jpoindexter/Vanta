@@ -218,6 +218,47 @@ branch authorization, resumable execution, or installed delivery. The full
 remaining budget stays unknown, `continuationAllowed:false` remains enforced,
 and effect-review holds and fresh-task admission behavior are unchanged.
 
+## Worker completion accounting — 24 November
+
+The actual `spawnSubagent` read-only fixture reproduced two completed provider
+steps with reported usage but no child route-ledger rows. Child dependencies
+had neither a normal session ID nor a usage label, so shared accounting skipped
+them. Setting an action/session ID solely to fix telemetry would also trigger
+normal-session transcript checkpointing; that shortcut was not used.
+
+A separate host-owned `providerUsage` identity now attributes shared-loop
+completions to the full child ID without changing action/session identity,
+approval callbacks or permission mode. Inspected workers use the host-supplied
+parent project for accounting even when execution uses a retained worker root.
+Anonymous workers use one generated UUID. Existing parent rows stay unchanged;
+actual served route, fallback depth and reported cache tokens remain recorded.
+
+The two original cases failed before repair. The final eight-file affected
+group passed **57 cases**, including five worker controls; runtime typecheck,
+strict changed-file size and all five architecture boundaries passed. The
+worker fixture executes its actual conversation/loop, read-only tool, checkpoint
+and ledger writes with synthetic provider/kernel stand-ins. Tool context keeps
+its original absent session ID, and no normal chat is registered. A thrown
+local-provider failure retains null resource-token values and a failure class,
+not a successful route row. Anonymous workers and successful missing resource
+usage are also covered. An independent read-only review found no blocking
+regression; its separate three-file eleven-case run overlaps these checks.
+
+Limits: these are logical shared-loop completion rows, not every physical
+provider attempt, auxiliary status/compaction usage or complete worker spend.
+Writes remain best-effort telemetry, not a failure-atomic budget store. Existing
+resource capture applies only to local or selected-profile-matching routes;
+its missing token values remain null. The older successful route-ledger helper
+still defaults missing usage to zero. That zero is **not** evidence of known
+consumption or remaining budget. No inherited cap, continuation, live billing,
+installed package or normal CLI cutover is claimed.
+
+The independently investigated [host provenance boundary](worker-recovery-authority-boundary-2026-11-24.md)
+identifies the next dependency: expected parent/profile/conversation-branch and
+worktree identity must come from a host-private custody index, not a short ID
+or checkpoint labels. That document is an implementation plan, not an executed
+authorization mechanism or permission to edit protected kernel policy.
+
 ## Dependency-ordered work remaining (updated 24 November)
 
 1. Preserve the executed Desktop 0.1.4 delivery boundary. The normal CLI still selects 19d68ed5; choosing a newer pin requires its own exact candidate proof and fresh cutover authority. The later reporting repair needs separate package/delivery qualification. Production website documentation build is not live help-site publication.

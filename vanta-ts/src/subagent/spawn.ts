@@ -103,7 +103,8 @@ function blockedOutcome(finalText: string): AgentOutcome {
 
 async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   const { deps: runDeps, getRecentCalls, getToolNames } = withProgressCapture(opts.deps);
-  const deps = runDeps;
+  const id = opts.inspection?.id ?? randomUUID();
+  const deps = { ...runDeps, providerUsage: { root: opts.inspection?.root ?? runDeps.root, sessionId: id, agent: "subagent", taskId: id } };
   const now = (opts.now ?? new Date()).toISOString();
   const started = Date.now();
   const dataDir = join(deps.root, ".vanta");
@@ -118,7 +119,7 @@ async function runWorker(opts: WorkerOpts): Promise<AgentOutcome> {
   await inspection?.checkpoint([...convo.messages, { role: "user", content: opts.instruction }]);
   // Live footer pill: shows immediately (title), then a ~30s-throttled side-query
   // names the file/symbol in flight. Sub-30s workers stop before billing one.
-  const stopProgress = startProgressReporter({ id: opts.inspection?.id ?? randomUUID(), goal: opts.goal, provider: deps.provider, getRecentCalls });
+  const stopProgress = startProgressReporter({ id, goal: opts.goal, provider: deps.provider, getRecentCalls });
   try {
     const outcome = await convo.send(opts.instruction, undefined, opts.signal);
     await inspection?.finish(convo.messages, outcome);
