@@ -6,6 +6,31 @@ Make existing agent/MCP behavior truthful and recoverable before adding another 
 
 This follows the [pinned Hermes review](hermes-delivery-priorities-2026-11-17.md) at `27e389359263b7294e2788fee048953fc34b82d1`, not a claim to have reviewed every Hermes commit or installed its runtime. No Hermes application source or assets were copied into Vanta.
 
+## Current status — 24 November 2026
+
+Desktop **0.1.4 / d4e72e44** is publicly released and installed. A fresh read of
+the installed app's version and GitHub release metadata confirms 0.1.4 and a
+non-draft, non-prerelease release targeting that commit. This readback does not
+repeat native acceptance; the exact earlier executed installation, notarization
+and package proofs remain in the [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md).
+Normal CLI remains the separately approved **19d68ed5** pin, not the bundled
+Desktop CLI or latest integration source. Historical receipts below retain
+their original build identity; their then-current 0.1.3/401/draft limits are
+not the present delivery state.
+
+The newer [private reporting and native Open logs repair](desktop-support-reporting-2026-11-24.md)
+is published source at `3043277a`, not part of installed/public 0.1.4. It does
+not establish the external tester's PDF incident cause or successful pathless
+PDF ingestion.
+
+Current remaining agent boundary: interrupted-child inspection and derived-task
+admission are executed; queued-worker continuation is not. Do not add a resume
+path until the supported host supplies trustworthy parent/profile/branch
+identity and real remaining-budget accounting. Fresh-task admission must not
+be relabelled as restored execution. No inherited approval or unknown effect
+may be replayed. MCP/cache source proofs below do not establish live OAuth
+renewal or paid-provider billing reconciliation.
+
 ## Executed source repairs
 
 Both repairs were independently reviewed and published at [`206efac6`](https://github.com/jpoindexter/Vanta/commit/206efac60c4b9a69eb260627063c055ced0408b6); the remote branch SHA matched exactly. The commit passed the secret, staged-size and five architecture gates. A shared two-use cache-field helper removed the converter complexity violation without bypassing the gate; its five affected Anthropic files then passed 33 cases and runtime typecheck passed again.
@@ -162,18 +187,25 @@ The final three focused CLI/recovery/inspection files pass **38 cases**, includi
 
 Exact build follow-through: clean source `d4e72e44` was Developer ID signed as Desktop 0.1.4, and its actual bundled CLI independently passed those three admission outcomes with unchanged checkpoints and normal selection. Electron did not load the instrumentation preload, so no packaged network/subprocess/protected-read counter claim is made. The package passed seven native onboarding/restart criteria with one loopback reply and zero renderer errors. Signed ZIP/DMG, checksums and path-free provenance are uploaded as a GitHub **draft**; authenticated DMG readback matches the local digest. The [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md) records exact hashes. Apple authentication still returns HTTP 401; no normal-app replacement, new global CLI selection, stable update or notarized/public release is claimed.
 
-## Dependency-ordered work remaining
+## Dependency-ordered work remaining (updated 24 November)
 
-1. Deliver the verified follow-ons through the supported pinned CLI and packaged app, with separate exact-build acceptance. Production website documentation build passes; publishing help is a separate deployment.
+1. Preserve the executed Desktop 0.1.4 delivery boundary. The normal CLI still selects 19d68ed5; choosing a newer pin requires its own exact candidate proof and fresh cutover authority. The later reporting repair needs separate package/delivery qualification. Production website documentation build is not live help-site publication.
 2. Before child continuation or agent-facing inspection: validate expected parent/profile/branch authority, preserve real remaining budgets, reconcile effects and retain review holds. Never restore grants or replay unknown effects.
-3. Carry the executed packaged uncached-typing repair through notarized normal-app installation, then run installed/live-owner acceptance; neither the six-step native fixture nor the isolated floating-pointer proof certifies the whole desktop.
+3. The uncached-typing repair is included in the notarized normal Desktop 0.1.4 delivery. Broader installed/live-owner acceptance remains separate; neither the six-step native fixture nor the isolated floating-pointer proof certifies the whole desktop.
 4. Test an exact selected fallback route only with explicit live-probe authority. Never let successful fallback mask a broken entry or claim a static check proves inference.
-5. Carry the executed current-package late-terminal repair through notarized installed acceptance. Native known-idle adoption and the broader dropped-chunk/stored-reply/attachment-offset proof remain open; the bounded controls above do not close them. Existing session identity/no-second-POST protections stay intact.
+5. The late-terminal repair is included in the notarized normal Desktop 0.1.4 delivery. Native known-idle adoption and the broader dropped-chunk/stored-reply/attachment-offset proof remain open; the bounded controls above do not close them. Existing session identity/no-second-POST protections stay intact.
 
 MCP, child recovery, reconnect, first-use diagnostics and DN-22 now have bounded ordered checklists. Only the new source-scoped cache-accounting defect is closed; no broad card was blanket-closed and no Building/Next lane was added. Owner/live-account/hardware/visual/unfamiliar-person gates remain separate.
 
 ## Delivery boundary
 
-The normal installed Desktop remains the previously delivered signed/notarized `0.1.3` at `b2847a8f6665a5294d25478dd3cb20ac140a5da6`. With fresh owner approval, the unchanged global CLI launcher now selects verified `19d68ed5`; the former selection and dirty checkout remain preserved, without credential or approval migration. The newer source follow-through is not yet in that pin. See the [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md) for exact isolated launcher and packaged proofs. No new normal-app installation, notarized release or updater delivery is claimed. Protected `main`, repository safeguards and GitHub Actions settings are unchanged.
+The normal installed/public Desktop is signed/notarized **0.1.4 / d4e72e44**.
+The unchanged global CLI launcher separately selects approved **19d68ed5**;
+the former selection and dirty checkout remain preserved, without credential
+or approval migration. Later source follow-through is not silently promoted
+into that pin. See the [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md)
+for exact installation, updater and package evidence. The 24 November reporting
+source has not received a new package, installation or release. Protected
+`main`, repository safeguards and GitHub Actions settings are unchanged.
 
 REA JavaScript analysis was refused by the tool host's approval policy even with filesystem access. No workaround, runtime REA graph or Hopper analysis is claimed. The current work is grounded in inspected source and executed narrow behavior, not an extraction claim.
