@@ -26,7 +26,8 @@ PDF ingestion.
 Current remaining agent boundary: interrupted-child inspection and derived-task
 admission are executed; queued-worker continuation is not. Do not add a resume
 path until the supported host supplies trustworthy parent/profile/branch
-identity and real remaining-budget accounting. Fresh-task admission must not
+identity and full remaining-budget accounting. The durable iteration reservation
+below preserves one prerequisite, not the aggregate budget. Fresh-task admission must not
 be relabelled as restored execution. No inherited approval or unknown effect
 may be replayed. MCP/cache source proofs below do not establish live OAuth
 renewal or paid-provider billing reconciliation.
@@ -186,6 +187,36 @@ The two original command regressions failed before repair. Independent review fo
 The final three focused CLI/recovery/inspection files pass **38 cases**, including corrupt/unfinished/conflicting-parent holds, legacy contradictory receipts and safe settled/read-only/pending controls; runtime typecheck passes. These are narrow source and command-entrypoint results, not installed-app or budgeted-worker-continuation acceptance.
 
 Exact build follow-through: clean source `d4e72e44` was Developer ID signed as Desktop 0.1.4, and its actual bundled CLI independently passed those three admission outcomes with unchanged checkpoints and normal selection. Electron did not load the instrumentation preload, so no packaged network/subprocess/protected-read counter claim is made. The package passed seven native onboarding/restart criteria with one loopback reply and zero renderer errors. Signed ZIP/DMG, checksums and path-free provenance are uploaded as a GitHub **draft**; authenticated DMG readback matches the local digest. The [delivery checkpoint](agent-delivery-cleanup-2026-11-17.md) records exact hashes. Apple authentication still returns HTTP 401; no normal-app replacement, new global CLI selection, stable update or notarized/public release is claimed.
+
+## Durable iteration reservation — 24 November
+
+Owner: `DELEGATION-LIVE-STEERING-BUDGET`; original status, acceptance and
+dependencies remain unchanged. The existing two-process read-only crash proof
+reproduced a missing loop position: after interruption, only the original cap
+survived. A normal terminal result is not available after a killed process.
+
+The existing awaited child checkpoint now reserves the loop iteration before
+provider preparation. Its optional counter is validated against the declared
+cap, cannot decrease, and survives tool-only and terminal checkpoints. A failed
+reservation write stops before the next provider call. Legacy records without
+the counter remain unknown; no count is inferred from transcript length.
+
+Five regression assertions failed before the repair. The final six-file
+worker/loop/cancellation/derived-task group passed **57 cases**, and runtime
+typecheck passed. The maintained production `spawnSubagent` crash fixture
+checks the reservation before each synthetic provider invocation, kills two
+owned workers separately (read-only result and text-only nudge), then runs the
+actual inspection CLI handler in fresh processes. Both report two reserved
+iterations and one remaining from the declared cap of three; checkpoint,
+custody and call-ledger bytes remain unchanged. A separate actual worker stops
+before its second provider call when checkpoint evidence has changed.
+
+This is a conservative loop allowance: preparation failure does not refund a
+reservation. It is **not** provider-request accounting (retries, compaction and
+auxiliary calls can differ), aggregate token/cost/time inheritance, profile or
+branch authorization, resumable execution, or installed delivery. The full
+remaining budget stays unknown, `continuationAllowed:false` remains enforced,
+and effect-review holds and fresh-task admission behavior are unchanged.
 
 ## Dependency-ordered work remaining (updated 24 November)
 

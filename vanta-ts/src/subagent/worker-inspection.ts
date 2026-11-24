@@ -24,11 +24,13 @@ const RecordSchema = z.object({
   root: z.string().min(1), workerRoot: z.string().min(1), goal: z.string(), instruction: z.string(),
   agentType: z.string(), model: z.string(), createdAt: z.string(), updatedAt: z.string(),
   declaredMaxIterations: z.number().int().positive(), remainingBudget: z.literal("unknown"),
+  iterationsReserved: z.number().int().nonnegative().optional(),
   continuationAllowed: z.literal(false), phase: z.enum(["partial", "settled", "failed"]),
   sequence: z.number().int().nonnegative(), messages: SessionSchema.shape.messages,
   stoppedReason: z.string().optional(), error: z.string().optional(),
   terminalEvidence: TerminalEvidenceSchema.optional(),
-}).strict();
+}).strict().refine(record => record.iterationsReserved === undefined || record.iterationsReserved <= record.declaredMaxIterations,
+  "Worker iteration reservation exceeds declared limit");
 export type WorkerInspectionRecord = z.infer<typeof RecordSchema>;
 export type WorkerInspectionIdentity = {
   id: string; root: string; workerRoot: string; custodyId?: string; parentSessionId?: string;
@@ -36,6 +38,18 @@ export type WorkerInspectionIdentity = {
 type StartOptions = WorkerInspectionIdentity & {
   goal: string; instruction: string; agentType: string; model: string; declaredMaxIterations: number;
 };
+type InspectionUpdate = {
+  phase: WorkerInspectionRecord["phase"]; outcome?: AgentOutcome; error?: string; iterationsReserved?: number;
+};
+
+function updatedRecord(record: WorkerInspectionRecord, messages: Message[], patch: InspectionUpdate): WorkerInspectionRecord {
+  const { outcome, error } = patch;
+  const iterationsReserved = patch.iterationsReserved ?? record.iterationsReserved;
+  if (iterationsReserved !== undefined && iterationsReserved < (record.iterationsReserved ?? 0))
+    throw new Error("Worker iteration reservation cannot decrease");
+  return { ...record, messages, phase: patch.phase, iterationsReserved, sequence: record.sequence + 1, updatedAt: new Date().toISOString(),
+    ...(outcome ? { stoppedReason: outcome.stoppedReason, terminalEvidence: terminalEvidence(outcome) } : {}), ...(error ? { error } : {}) };
+}
 
 function terminalEvidence({ iterations, toolIterations, usage, needsEffectReview, effectReviewCallIds, completionState }: AgentOutcome): TerminalEvidence {
   return { iterations, toolIterations, usage, needsEffectReview, effectReviewCallIds, completionState };
@@ -83,7 +97,7 @@ function decode(raw: string, root: string, id: string): WorkerInspectionRecord {
 
 /** Private partial transcript only. Not a resumable session or an approval store. */
 export async function startWorkerInspection(options: StartOptions): Promise<{
-  checkpoint: (messages: Message[]) => Promise<void>;
+  checkpoint: (messages: Message[], iterationsReserved?: number) => Promise<void>;
   finish: (messages: Message[], outcome?: AgentOutcome, error?: string) => Promise<void>;
 }> {
   const root = await realpath(options.root);
@@ -109,14 +123,13 @@ export async function startWorkerInspection(options: StartOptions): Promise<{
     record = next;
   };
   await save(record);
-  const update = async (messages: Message[], phase: WorkerInspectionRecord["phase"], outcome?: AgentOutcome, error?: string): Promise<void> => {
+  const update = async (messages: Message[], patch: InspectionUpdate): Promise<void> => {
     // Select reported turn evidence only: not an aggregate budget, replay state, or approval grant.
-    await save({ ...record, messages, phase, sequence: record.sequence + 1, updatedAt: new Date().toISOString(),
-      ...(outcome ? { stoppedReason: outcome.stoppedReason, terminalEvidence: terminalEvidence(outcome) } : {}), ...(error ? { error } : {}) });
+    await save(updatedRecord(record, messages, patch));
   };
   return {
-    checkpoint: messages => update(messages, "partial"),
-    finish: (messages, outcome, error) => update(messages, error ? "failed" : "settled", outcome, error),
+    checkpoint: (messages, iterationsReserved) => update(messages, { phase: "partial", iterationsReserved }),
+    finish: (messages, outcome, error) => update(messages, { phase: error ? "failed" : "settled", outcome, error }),
   };
 }
 
@@ -155,6 +168,8 @@ export function formatWorkerInspection(result: NonNullable<Awaited<ReturnType<ty
     `checkpoint ${record.sequence} · ${record.updatedAt} · model ${record.model}`,
     `last stop ${record.stoppedReason ?? "not recorded; worker may have been interrupted"}`,
     `declared iteration limit ${record.declaredMaxIterations}; remaining budget unknown`,
+    record.iterationsReserved === undefined ? "reserved iterations unknown" :
+      `reserved iterations ${record.iterationsReserved}; iteration allowance remaining ${record.declaredMaxIterations - record.iterationsReserved} (not provider-request or token/cost accounting)`,
     `observed transcript tool calls ${calls.length} (not a consumed-budget count)`,
     ...formatTerminalEvidence(record.terminalEvidence),
     `queue-wide custody review ${custodyReview === null ? "not applicable" : custodyReview ? "required" : "not held"}`,

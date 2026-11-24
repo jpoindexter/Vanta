@@ -33,6 +33,7 @@ if (mode === "inspect") {
       await appendFile(join(root, "calls.jsonl"), "model\n");
       const checkpoint = await inspectWorker(root, id);
       if (!checkpoint || !checkpoint.record.messages.some(message => message.role === "user")) throw new Error("Initial checkpoint missing before provider");
+      if (checkpoint.record.iterationsReserved !== calls) throw new Error("Loop reservation missing before provider");
       if (calls === 1) return mode === "worker-text"
         ? { text: "", toolCalls: [], finishReason: "stop" }
         : { text: "Research in progress", toolCalls: [{ id: "read-once", name: "read_file", arguments: {} }], finishReason: "tool_calls" };

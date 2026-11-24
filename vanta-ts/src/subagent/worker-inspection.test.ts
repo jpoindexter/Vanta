@@ -232,20 +232,24 @@ it.each(["worker", "worker-text"] as const)("inspects %s partial work in a fresh
   expect(calls.trim().split("\n")).toEqual(mode === "worker" ? ["model", "tool", "model"] : ["model", "model"]);
   const ledgerPath = join(root, ".vanta", "async-delegate.jsonl");
   const ledger = await readFile(ledgerPath, "utf8");
+  const checkpointPath = join(root, ".vanta", "sidechains", "worker-restart-child.json");
+  const checkpoint = await readFile(checkpointPath, "utf8");
   const inspector = fixture("inspect");
   const cold = await message(inspector);
   if (inspector.exitCode === null) await once(inspector, "exit");
   expect(inspector.exitCode).toBe(0);
   expect(cold).toMatchObject({ code: 0, inspection: { custodyReview: true, record: {
     id: "restart-child", custodyId: "restart-child", parentSessionId: "fixture-parent", phase: "partial",
-    declaredMaxIterations: 3, remainingBudget: "unknown", continuationAllowed: false,
+    declaredMaxIterations: 3, iterationsReserved: 2, remainingBudget: "unknown", continuationAllowed: false,
   } } });
   const recovered = cold.inspection.record.messages as Array<{ role: string; content: string }>;
   expect(mode === "worker" ? recovered.some(row => row.role === "tool" && row.content === "Synthetic partial research")
     : recovered.some(row => row.role === "user" && row.content.startsWith("You returned nothing"))).toBe(true);
   expect(cold.logs.join("\n")).toContain("custody review required");
+  expect(cold.logs.join("\n")).toContain("reserved iterations 2; iteration allowance remaining 1");
   expect(await readFile(join(root, "calls.jsonl"), "utf8")).toBe(calls);
   expect(await readFile(ledgerPath, "utf8")).toBe(ledger);
+  expect(await readFile(checkpointPath, "utf8")).toBe(checkpoint);
   expect(readAsyncQueue(ledger).review).toBe(true);
   await expect(readdir(join(root, "home", "sessions"))).rejects.toMatchObject({ code: "ENOENT" });
 });

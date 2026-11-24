@@ -20,8 +20,9 @@ export type AgentDeps = {
   /** Current conversation/session id, when the host has one. */
   sessionId?: string;
   /** Awaited private worker transcript checkpoint; failure stops the child for review.
-   * Not a resumable-session registration or permission grant. */
-  checkpointWorker?: (messages: Message[]) => Promise<void>;
+   * The optional loop reservation is monotonic and is saved before its step.
+   * Not provider-call accounting, resumable-session registration or a permission grant. */
+  checkpointWorker?: (messages: Message[], iterationsReserved?: number) => Promise<void>;
   /** Surface label persisted with per-call route usage (interactive/gateway/subagent/etc.). */
   usageAgent?: string;
   /** Stable task or goal id for per-call resource attribution. */

@@ -187,7 +187,7 @@ async function runTurnIterations(runtime: TurnRuntime): Promise<AgentOutcome> {
     if (effectiveSignal?.aborted) return terminalOutcome({ messages, deps, state, iter: iter - 1, reason: "interrupted", text: "Interrupted." });
     // Includes text-only contract/continuation nudges from the prior iteration.
     // Normal sessions retain their existing persistence behavior.
-    await deps.checkpointWorker?.(messages);
+    await deps.checkpointWorker?.(messages, iter);
     const { schemas, prefetched, completion } = await completeTurnIteration(runtime, iter);
     if (completion.ok) {
       recordUsage(state, completion.result);
