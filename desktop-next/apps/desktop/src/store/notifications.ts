@@ -3,6 +3,8 @@ import { atom } from 'nanostores'
 import { translateNow } from '@/i18n'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { isTimeoutError } from '@/lib/with-timeout'
+import { recordSupportFailure } from '@/lib/support-diagnostics'
+import { requestFeedback } from '@/store/feedback'
 import { type ErrorToastCategory, recordFriction } from '@/store/desktop-metrics'
 import { isLocalBackendSlotWaitTimeout, requestPoolLimitsSettings } from '@/store/pool-limits'
 import { requestBackendRestart, requestRoute } from '@/store/recovery-requests'
@@ -321,6 +323,8 @@ export function notifyError(
       ? 'timeout'
       : readable.category
 
+  recordSupportFailure('desktop', category)
+
   return showNotification(
     {
       action: poolSlotTimeout
@@ -334,7 +338,8 @@ export function notifyError(
       kind: 'error',
       title: fallback,
       message: poolSlotTimeout ? translateNow('desktop.poolSlotTimeoutBody') : readable.message,
-      detail: poolSlotTimeout ? readable.message : readable.detail
+      detail: poolSlotTimeout ? readable.message : readable.detail,
+      secondaryAction: { label: translateNow('feedback.title'), onClick: requestFeedback }
     },
     category
   )

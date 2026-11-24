@@ -58,11 +58,14 @@ import { errorCardText } from '@/lib/error-surface-copy'
 import { triggerHaptic } from '@/lib/haptics'
 import { KeyRound, RefreshCwIcon, XIcon } from '@/lib/icons'
 import { extractPreviewTargets } from '@/lib/preview-targets'
+import { recordSupportFailure } from '@/lib/support-diagnostics'
 import { useEnterAnimation } from '@/lib/use-enter-animation'
 import { cn } from '@/lib/utils'
 import { DESKTOP_BUTTON_ACTIONS, recordAction } from '@/store/desktop-metrics'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { notifyError } from '@/store/notifications'
+import { requestFeedback } from '@/store/feedback'
+import { $desktopVersion } from '@/store/updates'
 import { startManualProviderOAuth } from '@/store/onboarding'
 import { $activeGatewayProfile, normalizeProfileKey, requestFreshSession } from '@/store/profile'
 import { sessionApprovalRequest } from '@/store/prompts'
@@ -838,10 +841,19 @@ const ErrorRecoveryActions: FC = () => {
     [ownerProfile]
   )
 
-  const openLogs = useCallback(
-    () => openLocalDir(root => root, copy.errorOpenLogsFailed),
-    [copy.errorOpenLogsFailed, openLocalDir]
-  )
+  const openLogs = useCallback(async () => {
+    // The native Vanta shell owns desktop.log, not the legacy gateway's profile logsRoot.
+    if (window.desktopBridge?.vanta && window.desktopBridge.revealLogs) {
+      try {
+        const result = await window.desktopBridge.revealLogs()
+        if (!result.ok) throw new Error(result.error || copy.errorOpenLogsFailed)
+      } catch (error) {
+        notifyError(error, copy.errorOpenLogsFailed)
+      }
+      return
+    }
+    await openLocalDir(root => root, copy.errorOpenLogsFailed)
+  }, [copy.errorOpenLogsFailed, openLocalDir])
 
   const openVantaFolder = useCallback(
     () => openLocalDir(root => root.replace(/[\\/]+logs[\\/]*$/, ''), copy.errorOpenVantaFolderFailed),
@@ -851,6 +863,7 @@ const ErrorRecoveryActions: FC = () => {
   const diagnosticsText = useCallback(
     () =>
       formatErrorDiagnostics({
+        appVersion: $desktopVersion.get()?.appVersion,
         errorText,
         model: model || undefined,
         surface
@@ -869,6 +882,7 @@ const ErrorRecoveryActions: FC = () => {
   }, [])
 
   const localFolders = Boolean(window.desktopBridge?.logsRoot)
+  const localLogs = localFolders || Boolean(window.desktopBridge?.vanta && window.desktopBridge.revealLogs)
   // The provider's own reset moment (429 Retry-After / resets_at), so the user knows WHEN
   // Retry will work instead of guessing (#98852). Informational only: no automatic retry.
   const limitReset = formatLimitReset(surface?.resetsAt)
@@ -958,7 +972,7 @@ const ErrorRecoveryActions: FC = () => {
       )}
       {plan.retry && surface?.resetsAt !== undefined && <ScheduledRetryAction resetsAt={surface.resetsAt} />}
       {plan.switchProvider && inRouter && <SwitchProviderAction label={copy.errorSwitchProvider} />}
-      {localFolders && (
+      {localLogs && (
         <button className="aui-error-action" onClick={() => void openLogs()} type="button">
           {remoteConnection ? copy.errorOpenDesktopLogs : copy.errorOpenLogs}
         </button>
@@ -969,6 +983,12 @@ const ErrorRecoveryActions: FC = () => {
         label={copy.errorCopyDiagnostics}
         text={diagnosticsText}
       />
+      <button className="aui-error-action" type="button" onClick={() => {
+        recordSupportFailure('chat', surface?.code)
+        requestFeedback()
+      }}>
+        {t.feedback.title}
+      </button>
     </div>
   )
 }

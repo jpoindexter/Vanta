@@ -1,4 +1,7 @@
+import { enSupportFeedback, localizedSupportFeedback } from './feedback-support';
+
 export const enFeedback = {
+  ...enSupportFeedback,
   title: "Send feedback",
   notice:
     "Send privately to Jason at jason@theft.studio. Only the report below is shared. Chats, files, screenshots and logs are not collected. Don’t include passwords or secrets. Your draft stays on this device until you send it.",
@@ -34,6 +37,7 @@ export const localizedFeedback: Record<
   FeedbackCopy
 > = {
   fr: {
+    ...localizedSupportFeedback.fr,
     title: "Envoyer un avis",
     notice:
       "Envoyez ce rapport en privé à Jason : jason@theft.studio. Seul le rapport ci-dessous est partagé. Aucun chat, fichier, capture ou journal n’est collecté. N’incluez aucun secret. Le brouillon reste sur cet appareil avant l’envoi.",
@@ -62,6 +66,7 @@ export const localizedFeedback: Record<
     sending: "Envoi…",
   },
   de: {
+    ...localizedSupportFeedback.de,
     title: "Feedback senden",
     notice:
       "Privat an Jason unter jason@theft.studio senden. Nur der folgende Bericht wird geteilt. Chats, Dateien, Screenshots und Protokolle werden nicht erfasst. Keine Passwörter oder Geheimnisse einfügen. Der Entwurf bleibt bis zum Senden auf diesem Gerät.",
@@ -91,6 +96,7 @@ export const localizedFeedback: Record<
     sending: "Wird gesendet…",
   },
   es: {
+    ...localizedSupportFeedback.es,
     title: "Enviar comentarios",
     notice:
       "Envío privado a Jason en jason@theft.studio. Solo se comparte el informe de abajo. No se recopilan chats, archivos, capturas ni registros. No incluyas contraseñas ni secretos. El borrador permanece en este dispositivo hasta enviarlo.",
@@ -120,6 +126,7 @@ export const localizedFeedback: Record<
     sending: "Enviando…",
   },
   ja: {
+    ...localizedSupportFeedback.ja,
     title: "フィードバックを送信",
     notice:
       "Jason（jason@theft.studio）に非公開で送信します。共有されるのは下のレポートだけです。チャット、ファイル、画像、ログは収集しません。パスワードや秘密情報を含めないでください。送信まで下書きはこの端末に残ります。",
@@ -148,6 +155,7 @@ export const localizedFeedback: Record<
     sending: "送信中…",
   },
   zh: {
+    ...localizedSupportFeedback.zh,
     title: "发送反馈",
     notice:
       "私密发送至 Jason：jason@theft.studio。仅分享下方报告，不收集聊天、文件、截图或日志。请勿填写密码或秘密信息。发送前草稿保留在此设备上。",
@@ -173,6 +181,7 @@ export const localizedFeedback: Record<
     sending: "正在发送…",
   },
   "zh-hant": {
+    ...localizedSupportFeedback['zh-hant'],
     title: "傳送意見",
     notice:
       "私密傳送至 Jason：jason@theft.studio。僅分享下方報告，不收集聊天、檔案、截圖或紀錄。請勿填寫密碼或機密資訊。傳送前草稿保留在此裝置上。",
@@ -198,6 +207,7 @@ export const localizedFeedback: Record<
     sending: "正在傳送…",
   },
   ar: {
+    ...localizedSupportFeedback.ar,
     title: "إرسال ملاحظات",
     notice:
       "إرسال خاص إلى Jason على jason@theft.studio. تتم مشاركة التقرير أدناه فقط. لا نجمع المحادثات أو الملفات أو الصور أو السجلات. لا تكتب كلمات مرور أو أسرارًا. تبقى المسودة على هذا الجهاز حتى ترسلها.",
@@ -227,6 +237,7 @@ export const localizedFeedback: Record<
     sending: "جارٍ الإرسال…",
   },
   ru: {
+    ...localizedSupportFeedback.ru,
     title: "Отправить отзыв",
     notice:
       "Приватно отправить Джейсону: jason@theft.studio. Передаётся только отчёт ниже. Чаты, файлы, снимки и журналы не собираются. Не указывайте пароли и секреты. До отправки черновик остаётся на этом устройстве.",

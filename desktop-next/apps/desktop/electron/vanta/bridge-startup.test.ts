@@ -15,7 +15,7 @@ const env = (): BridgeEnv => ({
 });
 
 describe("startup capability boundary", () => {
-  it.each(["desktopPluginsRoot", "getRemoteDisplayReason"])(
+  it.each(["desktopPluginsRoot", "getRemoteDisplayReason", "logsRoot"])(
     "does not advertise unavailable optional %s",
     (member) => {
       expect(buildDesktopBridge(env())).not.toHaveProperty(member);

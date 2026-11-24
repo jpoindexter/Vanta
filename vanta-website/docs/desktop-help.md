@@ -115,6 +115,14 @@ macOS verification or delete your profile to get past the error.
 
 ## Get help or report a bug
 
+Source candidate update (24 November; not yet in the installed 0.1.4 release):
+error cards and failure notices can open the same feedback form. **Add diagnostic
+details** adds optional build facts and recent content-free failure codes to
+the editable context. Review it before sending. **Save report** saves the exact
+preview as local JSON without sending it. **Clear saved failure codes** does
+not erase text you already added to a report. These are candidate features,
+not a claim that the current download contains them.
+
 Choose **Help → Vanta Docs** for documentation or **Help → Send feedback…**
 for a private bug report or idea. Describe what you expected, what happened and
 the shortest steps to reproduce it. Review the exact report before choosing

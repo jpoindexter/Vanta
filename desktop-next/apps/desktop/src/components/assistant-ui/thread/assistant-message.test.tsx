@@ -233,6 +233,21 @@ describe('stopped reply marker', () => {
 })
 
 describe('ownership refusal recovery (#106217)', () => {
+  it('opens the actual Desktop log through the native capability without calling the legacy profile stub', async () => {
+    const previous = window.desktopBridge
+    const revealLogs = vi.fn(async () => ({ ok: true, path: '/synthetic/logs/desktop.log' }))
+    const logsRoot = vi.fn(async () => { throw new Error('unsupported: logsRoot') })
+    window.desktopBridge = { vanta: {}, revealLogs, logsRoot } as unknown as typeof window.desktopBridge
+    try {
+      render(<Harness assistant={ownershipRefusalMessage()} />)
+      fireEvent.click(await screen.findByRole('button', { name: 'Open logs' }))
+      await waitFor(() => expect(revealLogs).toHaveBeenCalledOnce())
+      expect(logsRoot).not.toHaveBeenCalled()
+    } finally {
+      window.desktopBridge = previous
+    }
+  })
+
   it('offers Start new session and suppresses Retry for live-owner refusals', async () => {
     render(<Harness assistant={ownershipRefusalMessage()} />)
 

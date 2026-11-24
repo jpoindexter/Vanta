@@ -15,6 +15,7 @@ import {
 import { attachmentPreviewDataUrl, loadChipImage } from '@/lib/composer-image-admission'
 import { selectDesktopPaths } from '@/lib/desktop-fs'
 import { normalize } from '@/lib/text'
+import { recordSupportFailure } from '@/lib/support-diagnostics'
 import {
   addComposerAttachment,
   type ComposerAttachment,
@@ -27,6 +28,7 @@ import {
   updateComposerAttachment
 } from '@/store/composer'
 import { notify, notifyError } from '@/store/notifications'
+import { requestFeedback } from '@/store/feedback'
 
 import type { ImageDetachResponse } from '../../types'
 import { isImagePath, useAttachmentPickers } from './use-attachment-pickers'
@@ -821,16 +823,18 @@ export function useComposerActions({
           continue
         }
 
+        recordSupportFailure('attachment', filePath ? 'attachment_failed' : 'attachment_path_unavailable')
         lastFailure = `Could not attach ${file.name || 'file'}`
       }
 
       if (!attached && lastFailure) {
-        notify({ kind: 'warning', title: copy.dropFiles, message: lastFailure })
+        notify({ kind: 'warning', title: copy.dropFiles, message: lastFailure,
+          action: { label: t.feedback.title, onClick: requestFeedback } })
       }
 
       return attached
     },
-    [attachContextFilePath, attachContextFolderPath, attachImageBlob, attachImagePath, copy.dropFiles]
+    [attachContextFilePath, attachContextFolderPath, attachImageBlob, attachImagePath, copy.dropFiles, t.feedback.title]
   )
 
   const removeAttachment = useCallback(

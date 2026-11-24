@@ -6,6 +6,7 @@ import {
 } from "@vanta/shared/feedback";
 
 import type { DesktopVersionInfo } from "@/global";
+import { recentSupportFailures } from './support-diagnostics';
 
 const KEY = "desktop:feedback-draft:v1";
 export const blankFeedback = (): FeedbackDraft => ({
@@ -51,6 +52,18 @@ export function feedbackText(
   const facts = draft.includeFacts ? feedbackFacts(version) : null;
   if (facts) lines.push("", JSON.stringify(facts, null, 2));
   return lines.join("\n").trim();
+}
+
+/** Explicitly added to editable context; the receiver/retry contract stays unchanged. */
+export function feedbackDiagnosticContext(version: DesktopVersionInfo | null): string {
+  return JSON.stringify({
+    diagnostics: {
+      generatedAt: new Date().toISOString(),
+      facts: feedbackFacts(version),
+      commit: version?.commit && /^[a-f\d]{7,64}$/i.test(version.commit) ? version.commit : null,
+      failures: recentSupportFailures().slice(-6)
+    }
+  }, null, 2);
 }
 
 export function prepareFeedback(

@@ -161,7 +161,7 @@ export function buildImplemented(env: BridgeEnv): Record<string, unknown> {
 export function buildDesktopBridge(env: BridgeEnv): Record<string, unknown> {
   // Optional startup probes must be absent until this shell implements them.
   return mergeSurface(
-    stubsFrom({ ...SURFACE_MANIFEST, desktopPluginsRoot: 'omit', getRemoteDisplayReason: 'omit' }),
+    stubsFrom({ ...SURFACE_MANIFEST, desktopPluginsRoot: 'omit', getRemoteDisplayReason: 'omit', logsRoot: 'omit' }),
     buildImplemented(env)
   )
 }
