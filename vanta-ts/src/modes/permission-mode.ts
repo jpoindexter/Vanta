@@ -24,5 +24,5 @@ export function envForPermissionMode(mode: PermissionMode): NodeJS.ProcessEnv {
 }
 
 export function acceptsEditsWithoutKernel(mode: PermissionMode, toolName: string): boolean {
-  return mode === "acceptEdits" && ACCEPT_EDITS_TOOLS.has(toolName);
+  return (mode === "acceptEdits" || mode === "auto") && ACCEPT_EDITS_TOOLS.has(toolName);
 }

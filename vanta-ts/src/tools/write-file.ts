@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { z } from "zod";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
@@ -8,6 +8,10 @@ import { isGitHooksPath, gitHooksWarning } from "./git-hooks-guard.js";
 import { beginDiagnosticDelta } from "../lsp/diagnostic-note.js";
 import { computeDiff } from "../util/diff.js";
 import { globalFileCheckpointStore } from "../sessions/file-checkpoint.js";
+import { projectControlPlaneConfirmation } from "./project-security-path.js";
+import { assertWriteParent, captureWriteTarget, commitFileWrite, type FileWriteTarget } from "./file-write-target.js";
+import { ordinaryOverwriteConfirmation, requestOrdinaryOverwrite } from "./write-file-overwrite.js";
+import { delegatedWriteDenial } from "./delegated-write-guard.js";
 
 const Args = z.object({ path: z.string().min(1), content: z.string() });
 
@@ -29,19 +33,10 @@ async function confirmDangerousPath(
   for (const g of guards) {
     if (!g.hit) continue;
     if (!(await ctx.requestApproval(g.warning, g.reason, "write_file"))) {
-      return { ok: false, output: `write to ${path} denied — ${g.noun} left unchanged` };
+      return { ok: false, output: `write to ${path} denied — ${g.noun} left unchanged`, effectDisposition: "denied" };
     }
   }
   return null;
-}
-
-async function exists(p: string): Promise<boolean> {
-  try {
-    await access(p);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 // CODE-SIZE-GATE in the agent loop: a TS/TSX write that breaks the size limits
@@ -61,34 +56,53 @@ async function sizeNoteFor(displayPath: string, abs: string, content: string): P
 }
 
 /** ACTION-PROOF: re-read the file and confirm the write landed. */
-async function verifyWrite(abs: string, content: string): Promise<string> {
-  try {
-    const after = await readFile(abs, "utf8");
-    return after === content
-      ? ` · verified ${after.split("\n").length} lines, ${Buffer.byteLength(after)} bytes on disk`
-      : ` · ⚠ on-disk content differs from what was written`;
-  } catch (e) {
-    return ` · ⚠ could not re-read to verify: ${(e as Error).message.split("\n")[0]}`;
-  }
+function verifyWrite(
+  abs: string,
+  content: string,
+  verified: boolean,
+): { note: string; status: "unverified" | "verified"; evidence: string } {
+  return verified
+    ? {
+        note: ` · verified ${content.split("\n").length} lines, ${Buffer.byteLength(content)} bytes on disk`,
+        status: "verified",
+        evidence: `readback matched ${Buffer.byteLength(content)} bytes at ${abs}`,
+      }
+    : {
+        note: " · ⚠ on-disk content differs from what was written",
+        status: "unverified",
+        evidence: `readback mismatch at ${abs}`,
+      };
 }
 
 /** Write the file then report: byte count + ACTION-PROOF re-read + CODE-SIZE-GATE note. */
-async function writeAndReport(o: { abs: string; displayPath: string; content: string; isExisting: boolean; oldContent: string }): Promise<ToolResult> {
+async function writeAndReport(o: { abs: string; displayPath: string; content: string; target: FileWriteTarget; ctx: ToolContext }): Promise<ToolResult> {
   try {
-    const finishDiag = await beginDiagnosticDelta(o.abs, o.isExisting); // diagnostic baseline (opt-in)
+    const isExisting = o.target.previous !== null;
+    const oldContent = o.target.previous?.toString("utf8") ?? "";
+    const finishDiag = await beginDiagnosticDelta(o.abs, isExisting); // diagnostic baseline (opt-in)
+    const earlyDenial = delegatedWriteDenial(o.ctx);
+    if (earlyDenial) return earlyDenial;
+    assertWriteParent(o.target);
     await mkdir(dirname(o.abs), { recursive: true });
-    globalFileCheckpointStore.save({
+    const finalDenial = delegatedWriteDenial(o.ctx);
+    if (finalDenial) return finalDenial;
+    const verified = commitFileWrite(o.target, o.content, () => globalFileCheckpointStore.save({
       path: o.displayPath,
       absPath: o.abs,
-      content: o.isExisting ? o.oldContent : null,
-    });
-    await writeFile(o.abs, o.content, "utf8");
-    const kind = o.isExisting ? "overwritten" : "new file";
-    const diff = computeDiff(o.oldContent, o.content);
-    const proof = await verifyWrite(o.abs, o.content);
+      content: isExisting ? oldContent : null,
+    }));
+    const kind = isExisting ? "overwritten" : "new file";
+    const diff = computeDiff(oldContent, o.content);
+    const proof = verifyWrite(o.abs, o.content, verified);
     const sizeNote = await sizeNoteFor(o.displayPath, o.abs, o.content);
     const diagNote = await finishDiag();
-    return { ok: true, output: `wrote ${Buffer.byteLength(o.content)} bytes to ${o.displayPath} (${kind})${proof}${sizeNote}${diagNote}`, diff: diff.length ? diff : undefined };
+    return {
+      ok: true,
+      output: `wrote ${Buffer.byteLength(o.content)} bytes to ${o.displayPath} (${kind})${proof.note}${sizeNote}${diagNote}`,
+      diff: diff.length ? diff : undefined,
+      effectDisposition: "confirmed",
+      verification: { status: proof.status, evidence: proof.evidence },
+    };
   } catch (err) {
     return { ok: false, output: `could not write ${o.displayPath}: ${(err as Error).message}` };
   }
@@ -136,24 +150,29 @@ export const writeFileTool: Tool = {
     const r = await resolveWritablePathAsk(path, ctx.root, process.env, ctx.requestApproval);
     if (!r.ok) return { ok: false, output: r.error };
     const abs = r.abs;
+    let target: FileWriteTarget;
+    try { target = captureWriteTarget(abs, ctx.delegatedWritePath); }
+    catch (error) { return { ok: false, output: `could not prepare ${path}: ${(error as Error).message}`, effectDisposition: "denied" }; }
+
+    const controlPlane = projectControlPlaneConfirmation({ abs, root: ctx.root, displayPath: path, content });
+    if (controlPlane && !(await ctx.requestApproval(
+      controlPlane.action,
+      controlPlane.reason,
+      "write_file",
+      controlPlane.detail,
+    ))) {
+      return { ok: false, output: `write to ${path} denied — project control-plane state left unchanged`, effectDisposition: "denied" };
+    }
+
+    const overwrite = ordinaryOverwriteConfirmation({ path, root: ctx.root, target, content, controlPlane: Boolean(controlPlane) });
+    if (overwrite?.ok === false) return { ok: false, output: overwrite.error, effectDisposition: "denied" };
 
     const dangerous = await confirmDangerousPath(path, abs, ctx);
     if (dangerous) return dangerous;
 
-    const isExisting = await exists(abs);
-    let oldContent = "";
-    if (isExisting) {
-      try { oldContent = await readFile(abs, "utf8"); } catch { /* leave as "" on read error */ }
-      const approved = await ctx.requestApproval(
-        `Overwrite existing file ${path}`,
-        "file already exists — overwriting is destructive",
-        "write_file",
-      );
-      if (!approved) {
-        return { ok: false, output: `write to ${path} denied — file left unchanged` };
-      }
-    }
+    const denied = await requestOrdinaryOverwrite(overwrite, ctx, path);
+    if (denied) return denied;
 
-    return writeAndReport({ abs, displayPath: path, content, isExisting, oldContent });
+    return writeAndReport({ abs, displayPath: path, content, target, ctx });
   },
 };

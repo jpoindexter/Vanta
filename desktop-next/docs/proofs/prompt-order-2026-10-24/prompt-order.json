@@ -1,0 +1,33 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-k8fmfq",
+  "checks": [
+    "Visible local reply 1",
+    "Visible local reply 2",
+    "Visible local reply 3",
+    "Visible local reply 4",
+    "Transcript preserves submission order",
+    "Navigation previews match transcript order",
+    "Model receives each prompt once in submission order",
+    "Durable session preserves the same order",
+    "No renderer errors"
+  ],
+  "users": [
+    "Timeline 1:",
+    "Timeline 2:",
+    "Timeline 3:",
+    "Timeline 4:"
+  ],
+  "rail": [
+    "Timeline 1:",
+    "Timeline 2:",
+    "Timeline 3:",
+    "Timeline 4:"
+  ],
+  "requests": [
+    "Timeline 1:",
+    "Timeline 2:",
+    "Timeline 3:",
+    "Timeline 4:"
+  ],
+  "rendererErrors": []
+}

@@ -1,7 +1,7 @@
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   appendMcpReceipt,
   readMcpReceipts,
@@ -45,6 +45,19 @@ describe("project MCP connector registry", () => {
     ]);
   });
 
+  it("does not advertise stale probe tools after config narrows to explicit-empty", async () => {
+    await recordMcpProbe(root, "local", {
+      ok: true,
+      tools: ["read", "write"],
+      resources: [],
+    });
+    await writeFile(join(root, ".mcp.json"), JSON.stringify({
+      mcpServers: { local: { command: "node", args: ["server.js"], tools: [] } },
+    }));
+
+    expect((await readMcpRegistry(root, env))[0]?.tools).toEqual([]);
+  });
+
   it("uses the shared settings and trust stores for operator changes", async () => {
     await setMcpConnectorEnabled(root, "local", false);
     await setMcpConnectorTrust(root, "local", false);
@@ -62,6 +75,41 @@ describe("project MCP connector registry", () => {
     const remote = (await readMcpRegistry(root, env))[1];
     expect(remote).toMatchObject({ auth: "ready", trust: "trusted", health: "needs_setup" });
     expect(JSON.stringify(remote)).not.toContain("private-access-token");
+  });
+
+  const now = 1_800_000_000_000;
+  it.each([
+    { label: "missing token", stored: false, access: false, expiry: undefined, auth: "needs_auth" },
+    { label: "missing access token", stored: true, access: false, expiry: now + 1, auth: "needs_auth" },
+    { label: "expired token", stored: true, access: true, expiry: 1, auth: "needs_auth" },
+    { label: "zero expiry", stored: true, access: true, expiry: 0, auth: "needs_auth" },
+    { label: "expiry at current time", stored: true, access: true, expiry: now, auth: "needs_auth" },
+    { label: "future expiry", stored: true, access: true, expiry: now + 1, auth: "ready" },
+    { label: "unknown expiry", stored: true, access: true, expiry: undefined, auth: "ready" },
+  ])("derives OAuth readiness from $label despite a healthy prior probe", async ({ stored, access, expiry, auth }) => {
+    await setMcpConnectorTrust(root, "remote", true);
+    await recordMcpProbe(root, "remote", { ok: true, tools: ["read"], resources: [] });
+    const tokenPath = join(home, "mcp-auth-tokens.json");
+    if (stored) await saveMcpToken("remote", {
+      access_token: access ? "synthetic-private-access-token" : undefined,
+      refresh_token: "synthetic-private-refresh-token",
+      expiry_date: expiry,
+    }, env);
+    const before = stored ? await readFile(tokenPath, "utf8") : null;
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    const fetch = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Registry reads must stay offline"));
+    try {
+      const remote = (await readMcpRegistry(root, env))[1];
+      expect(remote).toMatchObject({ auth, health: auth === "ready" ? "ready" : "needs_setup" });
+      expect(JSON.stringify(remote)).not.toContain("synthetic-private-");
+      expect(await readMcpReceipts(root)).toEqual([]);
+      expect(fetch).not.toHaveBeenCalled();
+      if (stored) expect(await readFile(tokenPath, "utf8")).toBe(before);
+      else await expect(readFile(tokenPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    } finally {
+      clock.mockRestore();
+      fetch.mockRestore();
+    }
   });
 
   it("writes mode-safe credential-free lifecycle receipts", async () => {

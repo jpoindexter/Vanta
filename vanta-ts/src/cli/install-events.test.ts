@@ -74,11 +74,54 @@ describe("staged install events", () => {
     expect((await readEvents(events)).map((event) => event.event)).toEqual(["Manifest", "Log", "StageStarted", "StageFailed", "StageRetry", "StageStarted", "StageCompleted", "InstallCompleted"]);
     expect(await readFile(log, "utf8")).toContain("mock prebuilt ready");
   });
+
+  it("repairs a partial node_modules directory before launching the real CLI", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-run-partial-deps-")); dirs.push(dir);
+    const sourceRoot = join(process.cwd(), "..");
+    const npmLog = join(dir, "npm.log");
+    await mkdir(join(dir, "scripts"), { recursive: true });
+    await mkdir(join(dir, "target", "debug"), { recursive: true });
+    await mkdir(join(dir, "vanta-ts", "node_modules", "tsx"), { recursive: true });
+    await mkdir(join(dir, "fake-bin"), { recursive: true });
+    await copyFile(join(sourceRoot, "run.sh"), join(dir, "run.sh"));
+    await copyFile(join(sourceRoot, "scripts", "install-events.sh"), join(dir, "scripts", "install-events.sh"));
+    await copyFile(join(sourceRoot, "scripts", "setup-lib.sh"), join(dir, "scripts", "setup-lib.sh"));
+    await writeFile(join(dir, "vanta-ts", "package.json"), "{}\n", "utf8");
+    await writeFile(join(dir, "vanta-ts", "node_modules", "tsx", "package.json"), "{}\n", "utf8");
+    await writeFile(join(dir, "target", "debug", "vanta-kernel"), "#!/bin/sh\nexit 0\n", "utf8");
+    await writeFile(join(dir, "fake-bin", "node"), '#!/bin/sh\n[ "$1" = -p ] && { echo 22; exit 0; }\nprintf "node %s\\n" "$*"\n', "utf8");
+    await writeFile(join(dir, "fake-bin", "npm"), `#!/bin/sh
+echo "$*" >> "$NPM_LOG"
+for package in ink react tsx; do
+  mkdir -p "node_modules/$package"
+  printf '{}\\n' > "node_modules/$package/package.json"
+done
+`, "utf8");
+    await Promise.all([
+      "run.sh",
+      "target/debug/vanta-kernel",
+      "fake-bin/node",
+      "fake-bin/npm",
+    ].map((path) => chmod(join(dir, path), 0o755)));
+
+    const { stdout } = await exec(join(dir, "run.sh"), ["--help"], { env: {
+      ...process.env,
+      PATH: `${join(dir, "fake-bin")}:${process.env.PATH}`,
+      VANTA_HOME: join(dir, "home"),
+      VANTA_INSTALL_NONINTERACTIVE: "1",
+      VANTA_INSTALL_QUIET: "1",
+      NPM_LOG: npmLog,
+    } });
+
+    expect(await readFile(npmLog, "utf8")).toContain("install --omit=dev");
+    expect(stdout).toContain("node --import tsx src/cli.ts --help");
+  });
 });
 
 const SETUP_FIXTURE = `
 vanta_use_vendored_node() { :; }
 vanta_node_ready() { return 0; }
+vanta_agent_deps_ready() { return 0; }
 vanta_ensure_node() { return 0; }
 vanta_fetch_prebuilt_kernel() {
   repo="$1"

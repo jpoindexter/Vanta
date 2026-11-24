@@ -1,0 +1,22 @@
+| exit path | VANTA_KERNEL_EPHEMERAL | procs before | runtime alive | kernel alive | survivors |
+|---|---|---|---|---|---|
+| SIGTERM | unset | 3 | false | true | 1 |
+| SIGINT | unset | 2 | false | true | 1 |
+| SIGHUP | unset | 2 | false | true | 1 |
+| SIGKILL | unset | 2 | false | true | 1 |
+| parent-death | unset | 3 | true | true | 2 |
+| SIGTERM | 1 | 2 | false | false | 0 |
+| SIGINT | 1 | 2 | false | false | 0 |
+| SIGHUP | 1 | 2 | false | true | 1 |
+| SIGKILL | 1 | 2 | false | true | 1 |
+| parent-death | 1 | 3 | true | true | 2 |
+  SIGTERM/unset: 70338(ppid 1) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  SIGINT/unset: 70769(ppid 1) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  SIGHUP/unset: 71160(ppid 1) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  SIGKILL/unset: 71579(ppid 1) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  parent-death/unset: 71754(ppid 1) ~/.hermes/node/bin/node --import file:///private/
+  parent-death/unset: 72037(ppid 71754) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  SIGHUP/1: 73634(ppid 1) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  SIGKILL/1: 74295(ppid 1) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ
+  parent-death/1: 74488(ppid 1) ~/.hermes/node/bin/node --import file:///private/
+  parent-death/1: 74774(ppid 74488) /private/tmp/claude-501/-Users-jasonpoindexter-Documents-GitHub--activ

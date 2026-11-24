@@ -1,11 +1,15 @@
 import { z } from "zod";
 import { resolveProvider } from "../providers/index.js";
 import type { LLMProvider } from "../providers/interface.js";
-import { hasGoogleAuth, runGoogleAuth } from "../google/auth.js";
+import { hasGoogleAuth, hasGoogleClient, runGoogleAuth } from "../google/auth.js";
 import { readMcpConfig, mountMcpServers, type McpConfig, type MountResult } from "../mcp/mount.js";
 import { InMemoryToolRegistry } from "../tools/registry.js";
 import type { ToolRegistry } from "../tools/registry.js";
 import { select } from "../term/select.js";
+import { createTelegramFetch, parseTelegramFallbackIps } from "../net/ipv4-fetch.js";
+import { createKernelClient } from "../kernel/client.js";
+import { resolvePermissionMode } from "../modes/permission-mode.js";
+import type { EffectGateContext } from "../effects/execute-effect.js";
 
 export type ProbeResult = { ok: boolean; detail: string };
 
@@ -59,6 +63,7 @@ type GoogleStepOpts = {
   env: NodeJS.ProcessEnv;
   select?: typeof select;
   runAuth?: typeof runGoogleAuth;
+  hasClient?: typeof hasGoogleClient;
   hasAuth?: typeof hasGoogleAuth;
   log?: (line: string) => void;
 };
@@ -67,9 +72,9 @@ export async function runGoogleStep(opts: GoogleStepOpts): Promise<ProbeResult> 
   const log = opts.log ?? console.log;
   const before = await probeGoogleAuth(opts.env, opts.hasAuth);
   if (before.ok) return before;
-  if (!opts.env.VANTA_GOOGLE_CLIENT_ID || !opts.env.VANTA_GOOGLE_CLIENT_SECRET) return before;
+  if (!(await (opts.hasClient ?? hasGoogleClient)(opts.env))) return before;
   const pick = await (opts.select ?? select)(
-    "Authorize Gmail/Calendar/Drive?",
+    "Authorize Gmail? (Calendar and Drive are granted separately)",
     ["Authorize Google", "Skip for now"],
   );
   if (pick !== 0) return before;
@@ -87,15 +92,43 @@ type McpProbeOpts = {
   env: NodeJS.ProcessEnv;
   cwd: string;
   readConfig?: (env: NodeJS.ProcessEnv, cwd: string) => Promise<McpConfig>;
-  mount?: (registry: ToolRegistry, env: NodeJS.ProcessEnv, log: (msg: string) => void) => Promise<MountResult>;
+  mount?: (
+    registry: ToolRegistry,
+    env: NodeJS.ProcessEnv,
+    log: (msg: string) => void,
+    opts: { cwd: string; effectGate: EffectGateContext },
+  ) => Promise<MountResult>;
+  effectGate?: EffectGateContext;
+  select?: typeof select;
 };
+
+function mcpProbeGate(opts: McpProbeOpts): EffectGateContext {
+  const choose = opts.select ?? select;
+  return {
+    kernel: createKernelClient(opts.env.VANTA_KERNEL_URL ?? "http://127.0.0.1:7788", opts.cwd),
+    approval: {
+      request: async (request) => (await choose(
+        `${request.action}\n${request.reason}`,
+        ["Allow once", "Deny"],
+      )) === 0,
+    },
+    projectRoot: opts.cwd,
+    sessionId: `setup-mcp-probe-${process.pid}-${Date.now()}`,
+    permissionMode: resolvePermissionMode(opts.env),
+  };
+}
 
 export async function probeMcp(opts: McpProbeOpts): Promise<ProbeResult> {
   const cfg = await (opts.readConfig ?? readMcpConfig)(opts.env, opts.cwd);
   const names = Object.keys(cfg.servers);
   if (!names.length) return { ok: false, detail: "no MCP servers configured" };
   try {
-    const mounted = await (opts.mount ?? mountMcpServers)(new InMemoryToolRegistry(), opts.env, () => {});
+    const mounted = await (opts.mount ?? mountMcpServers)(
+      new InMemoryToolRegistry(),
+      opts.env,
+      () => {},
+      { cwd: opts.cwd, effectGate: opts.effectGate ?? mcpProbeGate(opts) },
+    );
     mounted.dispose();
     return {
       ok: mounted.servers.length > 0,
@@ -115,13 +148,14 @@ type FetchLike = (url: string, init?: RequestInit) => Promise<{ json: () => Prom
 
 export async function probeMessaging(
   env: NodeJS.ProcessEnv,
-  fetchFn: FetchLike = fetch,
+  fetchFn?: FetchLike,
 ): Promise<ProbeResult> {
   const token = env.VANTA_TELEGRAM_TOKEN?.trim();
   if (!token) return { ok: false, detail: "no messaging platform configured" };
   try {
     const apiBase = (env.VANTA_TELEGRAM_API_BASE?.trim() || "https://api.telegram.org").replace(/\/$/, "");
-    const raw = await (await fetchFn(`${apiBase}/bot${token}/getMe`)).json();
+    const transport = fetchFn ?? createTelegramFetch({ fallbackIps: parseTelegramFallbackIps(env.VANTA_TELEGRAM_FALLBACK_IPS) });
+    const raw = await (await transport(`${apiBase}/bot${token}/getMe`)).json();
     const parsed = TelegramGetMeSchema.safeParse(raw);
     if (!parsed.success || !parsed.data.ok) return { ok: false, detail: "Telegram token rejected" };
     const name = parsed.data.result?.username ?? "bot";

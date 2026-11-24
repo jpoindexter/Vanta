@@ -1,0 +1,66 @@
+.control-button {
+  min-height: var(--control-height-compact);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  color: var(--text);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--type-control);
+}
+
+.control-button:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--surface-selected);
+}
+
+.control-button.tone-primary {
+  border-color: var(--ok);
+}
+
+.control-button.tone-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.control-button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.control-field {
+  width: 100%;
+  min-height: var(--control-height-compact);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--type-control);
+}
+
+.inline-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--type-metadata);
+  line-height: 1.5;
+}
+
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+}
+
+.loading-indicator .loader {
+  width: 20px;
+  height: 20px;
+}

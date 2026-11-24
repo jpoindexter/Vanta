@@ -57,8 +57,9 @@ fn handle(stream: &mut TcpStream, state: &app::State, token: &str) -> Result<(),
         json(
             stream,
             &format!(
-                "{{\"status\":\"ready\",\"root\":\"{}\"}}",
-                app::esc(&state.root.display().to_string())
+                "{{\"status\":\"ready\",\"root\":\"{}\",\"scope_id\":{}}}",
+                app::esc(&state.root.display().to_string()),
+                state.scope_id.as_ref().map(|id| format!("\"{id}\"")).unwrap_or_else(|| "null".into())
             ),
         )
     } else if head.starts_with("GET /api/approvals") {

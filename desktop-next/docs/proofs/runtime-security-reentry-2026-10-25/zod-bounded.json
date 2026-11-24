@@ -1,0 +1,16 @@
+[
+  {
+    "label": "runtime root Zod3.25.76",
+    "rejected": true,
+    "elementParses": 8,
+    "inputLength": 8,
+    "max": 1
+  },
+  {
+    "label": "Zod4.6.7 compatibility zod/v3 export",
+    "rejected": true,
+    "elementParses": 8,
+    "inputLength": 8,
+    "max": 1
+  }
+]

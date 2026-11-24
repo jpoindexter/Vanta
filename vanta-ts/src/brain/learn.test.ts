@@ -76,7 +76,7 @@ describe("learnFromTranscript", () => {
       { region: "user_model", content: "loses track when steps are too big — keep steps tiny", entry_type: "pattern", confidence: 0.8 },
       { region: "identity", content: "tiny explicit steps land well with this user", entry_type: "insight" },
     ]);
-    const learned = await learnFromTranscript({ provider: fakeProvider(reply), transcript });
+    const learned = await learnFromTranscript({ provider: fakeProvider(reply), transcript, completionState: "verified" });
     expect(learned).toHaveLength(2);
     const entries = await loadEntries();
     expect(entries).toHaveLength(2);
@@ -89,8 +89,8 @@ describe("learnFromTranscript", () => {
 
   it("re-learning the same memory strengthens it instead of duplicating", async () => {
     const reply = JSON.stringify([{ region: "user_model", content: "prefers terse bullet answers" }]);
-    await learnFromTranscript({ provider: fakeProvider(reply), transcript });
-    await learnFromTranscript({ provider: fakeProvider(reply), transcript });
+    await learnFromTranscript({ provider: fakeProvider(reply), transcript, completionState: "verified" });
+    await learnFromTranscript({ provider: fakeProvider(reply), transcript, completionState: "verified" });
     const entries = await loadEntries();
     expect(entries).toHaveLength(1);
     expect(entries[0]!.strength).toBeCloseTo(0.6); // upsert bump
@@ -111,9 +111,27 @@ describe("learnFromTranscript", () => {
     const reply = JSON.stringify([
       { region: "episodic", content: "chose ollama over openai for the default backend to stay local", entry_type: "decision", confidence: 0.9 },
     ]);
-    const learned = await learnFromTranscript({ provider: fakeProvider(reply), transcript });
+    const learned = await learnFromTranscript({ provider: fakeProvider(reply), transcript, completionState: "verified" });
     expect(learned).toHaveLength(1);
     const [stored] = await loadEntries();
     expect(stored?.entryType).toBe("decision");
+  });
+
+  it("does not persist accomplishment-shaped memory from an unverified turn", async () => {
+    const reply = JSON.stringify([
+      { region: "semantic", content: "solved the production bug", entry_type: "fact" },
+      { region: "user_model", content: "prefers one concrete next step", entry_type: "preference" },
+      { region: "semantic", content: "the user lives in Madrid", entry_type: "fact" },
+    ]);
+    const learned = await learnFromTranscript({
+      provider: fakeProvider(reply),
+      transcript,
+      completionState: "unverified",
+    });
+    expect(learned).toEqual(["prefers one concrete next step", "the user lives in Madrid"]);
+    expect((await loadEntries()).map((entry) => entry.content)).toEqual([
+      "prefers one concrete next step",
+      "the user lives in Madrid",
+    ]);
   });
 });

@@ -6,9 +6,9 @@ import Layout from "@theme/Layout";
 import styles from "./index.module.css";
 
 const desktopRelease =
-  "https://github.com/jpoindexter/Vanta/releases/download/v0.9.4/Vanta-0.9.4-arm64.dmg";
+  "https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.dmg";
 const desktopReleaseNotes =
-  "https://github.com/jpoindexter/Vanta/releases/tag/v0.9.4";
+  "https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4";
 
 const screens = [
   {
@@ -112,7 +112,7 @@ export default function Home(): ReactNode {
             <h1>Vanta</h1>
             <p>Local AI operator / 001</p>
           </div>
-          <a className={styles.heroAction} href={desktopRelease}>Download desktop v0.9.4</a>
+          <a className={styles.heroAction} href={desktopRelease}>Download desktop v0.1.4</a>
         </header>
 
         <section className={styles.intro} aria-labelledby="intro-title">
@@ -124,7 +124,7 @@ export default function Home(): ReactNode {
                 <p>Give Vanta an outcome. It plans, uses tools, remembers context, and keeps standing work moving while a separate Rust kernel checks every action.</p>
                 <div className={styles.primaryActions}>
                   <a className={styles.primaryAction} href={desktopRelease}>Download for macOS</a>
-                  <a className={styles.textAction} href={desktopReleaseNotes}>Release notes and screenshots</a>
+                  <a className={styles.textAction} href={desktopReleaseNotes}>Release notes and verification</a>
                 </div>
                 <div className={styles.terminalInstall} aria-label="Terminal install command">
                   <span aria-hidden="true">$</span>
@@ -138,9 +138,9 @@ export default function Home(): ReactNode {
         <section className={styles.releaseProof} aria-label="Release verification">
           <div className={styles.sectionFrame}>
             <dl>
-              <div><dt>Release</dt><dd>v0.9.4</dd><dd className={styles.proofNote}>current desktop build</dd></div>
-              <div><dt>Visual gates</dt><dd>36</dd><dd className={styles.proofNote}>Ghost system checks</dd></div>
-              <div><dt>Startup gate</dt><dd>10 sec</dd><dd className={styles.proofNote}>packaged-app ceiling</dd></div>
+              <div><dt>Desktop</dt><dd>v0.1.4</dd><dd className={styles.proofNote}>Notarized DMG and updater ZIP</dd></div>
+              <div><dt>First launch</dt><dd>7 checks</dd><dd className={styles.proofNote}>private packaged replay</dd></div>
+              <div><dt>Native update</dt><dd>Verified</dd><dd className={styles.proofNote}>replacement and relaunch</dd></div>
               <div><dt>Notarization</dt><dd>Accepted</dd><dd className={styles.proofNote}>Apple verified</dd></div>
             </dl>
           </div>
@@ -265,7 +265,7 @@ export default function Home(): ReactNode {
             <p className={styles.kicker}>Start here</p>
             <h2 id="install-title">Give it one real task.</h2>
             <div className={styles.installMethods}>
-              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.9.4 DMG</a></div>
+              <div><h3>Desktop</h3><p>Signed, notarized, and stapled for Apple silicon.</p><a href={desktopRelease}>Download v0.1.4 DMG</a></div>
               <div><h3>Terminal</h3><p>Install the operator and kernel from the command line.</p><code>curl -fsSL https://vanta.theft.studio/install.sh | bash</code></div>
               <div><h3>Source</h3><p>Inspect the code, release evidence, and open roadmap.</p><a href={desktopReleaseNotes}>Open the release</a></div>
             </div>

@@ -6,7 +6,7 @@ import { preprocessContextRefs } from "../context/ref-preprocess.js";
 import { PICKER_KINDS, type OverlayKind } from "./overlays.js";
 import type { KernelClient } from "../kernel/client.js";
 import type { Action } from "./reducer.js";
-import { isTelegramSetupQuestion } from "../repl/setup-cmd.js";
+import { isTelegramSetupQuestion, mentionsTelegramSetup } from "../repl/setup-cmd.js";
 
 // The composer submit router for the v2 UI. One place decides what a submitted
 // line means: slash command, !/# prefix, or a plain message (with @-file content
@@ -47,7 +47,9 @@ export function useSubmit(deps: SubmitDeps): (text: string) => void {
   return (text: string): void => {
     if (text === "?") return deps.openOverlay("help");
     if (isSlashLine(text)) return routeSlash(text, deps);
+    // Only an unambiguous instruction opens the wizard — doing so EXITS the TUI.
     if (isTelegramSetupQuestion(text)) return deps.runSlash("/setup telegram");
+    if (mentionsTelegramSetup(text)) note("  Tip: run /setup telegram to inspect Telegram, or use `vanta setup messaging telegram` in a shell to enter a token.");
     if (maybeRunShortcut(text, { safety: deps.safety, repoRoot: deps.repoRoot, note })) return;
     void submitMessage(text, deps, note);
   };

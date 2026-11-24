@@ -1,0 +1,22 @@
+{
+  "id": "1791920969017",
+  "action": "Raise agent:designer budget to 0.5 USD",
+  "reason": "From 0.1 USD; 0.10 USD spent so far.",
+  "toolName": "company.budget",
+  "request": {
+    "kind": "generic",
+    "title": "Permission request",
+    "subject": "Raise agent:designer budget to 0.5 USD",
+    "reason": "From 0.1 USD; 0.10 USD spent so far.",
+    "toolName": "company.budget",
+    "fresh": true,
+    "canRemember": false,
+    "sections": [
+      {
+        "label": "Action",
+        "value": "Raise agent:designer budget to 0.5 USD",
+        "tone": "code"
+      }
+    ]
+  }
+}

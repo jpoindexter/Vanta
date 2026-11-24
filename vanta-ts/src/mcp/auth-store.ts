@@ -20,7 +20,7 @@ const McpTokenSchema = z
   })
   .passthrough();
 
-const StoreSchema = z.record(McpTokenSchema);
+const StoreSchema = z.record(z.string(), McpTokenSchema);
 
 export type McpToken = z.infer<typeof McpTokenSchema>;
 export type McpTokenStore = z.infer<typeof StoreSchema>;
@@ -50,6 +50,27 @@ export async function loadAllMcpTokens(env: NodeJS.ProcessEnv): Promise<McpToken
 export async function loadMcpToken(server: string, env: NodeJS.ProcessEnv): Promise<McpToken | null> {
   const store = await loadAllMcpTokens(env);
   return store[server] ?? null;
+}
+
+/** Unknown expiry remains compatible with legacy stored tokens. */
+export function isMcpTokenUsable(token: McpToken | null | undefined, now = Date.now()): boolean {
+  return Boolean(token?.access_token && (token.expiry_date === undefined || token.expiry_date > now));
+}
+
+export class McpStoredTokenExpiredError extends Error {
+  constructor() {
+    super("Stored MCP OAuth access token is locally expired; authorization is required before connecting.");
+    this.name = "McpStoredTokenExpiredError";
+  }
+}
+
+/** Fresh launch guard: never substitute a static credential for known-expired OAuth. */
+export async function loadMcpTokenForLaunch(server: string, env: NodeJS.ProcessEnv): Promise<McpToken | null> {
+  const token = await loadMcpToken(server, env);
+  if (token?.access_token && token.expiry_date !== undefined && !isMcpTokenUsable(token)) {
+    throw new McpStoredTokenExpiredError();
+  }
+  return token;
 }
 
 /** Persist one server's token, merging into the existing store. 0600 — secret. */

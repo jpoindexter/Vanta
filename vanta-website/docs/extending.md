@@ -6,7 +6,9 @@ sidebar_position: 2
 
 # Extending Vanta
 
-Vanta follows a ports-and-adapters shape throughout — you swap or add an implementation without touching the agent loop. Everything you add stays kernel-gated.
+Vanta follows a ports-and-adapters shape throughout. New effectful adapters must
+enter the trusted action gateway; adding a port or registering a tool does not
+by itself prove mediation.
 
 ## Add a tool
 
@@ -59,7 +61,8 @@ Implement `SearchProvider` (`id` + `search(query, config)`) in `search/<name>.ts
 Vanta speaks MCP both ways:
 
 - **As a client** — list servers in `.mcp.json` (project) or `~/.vanta/mcp.json` (user); their tools mount as kernel-gated Vanta tools. Or mount one at runtime with the `mount_mcp` tool.
-- **As a server** — `vanta mcp serve` exposes a bounded, read-only allowlist of Vanta tools to other MCP clients; every call is still gated by `assess()`.
+- **As a server** — `vanta mcp serve` exposes a bounded, read-only allowlist of
+  Vanta tools to other MCP clients; this server path invokes `assess()`.
 
 ## Plugins
 
@@ -70,4 +73,6 @@ The opt-in plugin framework loads in-process plugins from `~/.vanta/plugins/<nam
 - ESM only, `.js` import extensions, Node 22, run via `tsx` (no build step).
 - Size gate: files ≤ 300 lines, functions ≤ 50, ≤ 4 params, cyclomatic ≤ 10 — enforced on TS writes.
 - `tsc --noEmit` must be clean; co-located `*.test.ts` (vitest).
-- **Rule Zero:** no deletes, overwrites, out-of-scope writes, or secret handling without explicit approval — enforced by the kernel on every call.
+- **Rule Zero target:** no deletes, overwrites, out-of-scope writes, or secret
+  handling without exact authority. New extensions must not create a secondary
+  effect path.

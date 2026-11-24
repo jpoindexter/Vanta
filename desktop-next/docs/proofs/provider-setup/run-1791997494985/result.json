@@ -1,0 +1,137 @@
+{
+  "sandbox": "(removed)",
+  "steps": [
+    {
+      "id": "a",
+      "title": "first run, no provider: the provider picker is shown and the server has none",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "serverStatus": "500: OPENAI_API_KEY is not set. Run `vanta setup`, or set it in vanta-ts/.env, or use VANTA_PROVIDER=ollama for local models.",
+        "envFile": "absent"
+      }
+    },
+    {
+      "id": "b",
+      "title": "Ollama not running: the app says so and saves nothing",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "message": "Ollama is not answering at http://localhost:11434. Start it, then connect again.",
+        "envFile": "absent"
+      }
+    },
+    {
+      "id": "c",
+      "title": "Ollama running: connects, the picker closes, a chat is answered",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "provider": "ollama",
+        "model": "qwen2.5:14b",
+        "envKeys": [
+          "VANTA_PROVIDER",
+          "VANTA_MODEL"
+        ]
+      }
+    },
+    {
+      "id": "d",
+      "title": "Settings > Providers: a fake API key is saved server-side; the server config reflects it",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "status": {
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile"
+        },
+        "setupGroq": {
+          "keyConfigured": true,
+          "hasKeyValueField": false
+        },
+        "envKeys": [
+          "VANTA_PROVIDER",
+          "VANTA_MODEL",
+          "GROQ_API_KEY"
+        ],
+        "envMode": "600",
+        "verifiedAgainstEndpoint": [
+          {
+            "key": "A",
+            "status": 200
+          }
+        ]
+      }
+    },
+    {
+      "id": "e",
+      "title": "chat works with the saved key",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "modelCalls": [
+          {
+            "key": "A",
+            "status": 200,
+            "lastUser": "first question"
+          }
+        ]
+      }
+    },
+    {
+      "id": "f",
+      "title": "key revoked mid-task: the reconnect card shows, not the generic stop sentence",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "cardShown": true,
+        "genericStopSentence": false,
+        "statusAfter": "ok"
+      }
+    },
+    {
+      "id": "g",
+      "title": "a new key resumes the saved request",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "modelCalls": [
+          {
+            "key": "A",
+            "status": 200,
+            "lastUser": "first question"
+          },
+          {
+            "key": "A",
+            "status": 401,
+            "lastUser": "summarize the brief"
+          },
+          {
+            "key": "B",
+            "status": 200,
+            "lastUser": "summarize the brief"
+          }
+        ]
+      }
+    },
+    {
+      "id": "h",
+      "title": "no key reached the page, the app log or storage; the only file holding one is the project .env",
+      "status": "PASS",
+      "ms": 0,
+      "detail": {
+        "inPageOrStorage": 0,
+        "inAppLog": 0,
+        "filesHoldingAKey": [
+          "project/alpha/.vanta/.env"
+        ],
+        "envMode": "600"
+      }
+    }
+  ],
+  "consoleErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ],
+  "pass": true
+}

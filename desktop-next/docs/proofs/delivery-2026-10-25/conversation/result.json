@@ -1,0 +1,40 @@
+{
+  "checks": [
+    "Titlebar retains the native 44px drag region",
+    "Resting icon controls have transparent boundaries",
+    "Advanced window controls are not duplicated on the bar",
+    "changes stays directly reachable",
+    "terminal stays directly reachable",
+    "browser stays directly reachable",
+    "files stays directly reachable",
+    "More has a visible keyboard focus ring",
+    "settings is reachable in the keyboard-opened More menu",
+    "layout is reachable in the keyboard-opened More menu",
+    "flip-panes is reachable in the keyboard-opened More menu",
+    "right-sidebar is reachable in the keyboard-opened More menu",
+    "hud is reachable in the keyboard-opened More menu",
+    "Project actions remain accessible",
+    "Transcript retains its bounded reading column",
+    "User messages remain visually distinct",
+    "Reply preserves list and code formatting",
+    "Assistant copy still copies the actual reply",
+    "Real sandbox tool activity remains visible",
+    "Tool details still expand",
+    "Tool details still collapse",
+    "Exact-action approval retains all three choices: Allow once / Always allow shell commands / Reject; Reject ended the turn",
+    "new-chat fits the narrow titlebar",
+    "more fits the narrow titlebar",
+    "terminal fits the narrow titlebar",
+    "Dark theme uses the real stored preference"
+  ],
+  "shots": [
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan/01-titlebar-menu.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan/02-transcript-light.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan/03-tool-activity.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan/04-after-rejected-approval.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan/04-narrow.png",
+    "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan/05-dark.png"
+  ],
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-eJnXan",
+  "rendererErrors": []
+}

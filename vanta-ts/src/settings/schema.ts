@@ -18,7 +18,7 @@ export const SettingsSchema = z.object({
   /** Tool names always blocked. */
   blockedTools: z.array(z.string()).optional(),
   /** VANTA_* env overrides applied on top of .env. Non-secret only. */
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   /** Disable individual EF gates. */
   gates: z.object({
     antiSlop: z.boolean().optional(),
@@ -46,7 +46,7 @@ export const SettingsSchema = z.object({
   }).optional(),
   /** Desktop project-scoped action approval mode. */
   desktop: z.object({
-    accessMode: z.enum(["ask", "approve", "full"]).optional(),
+    accessMode: z.enum(["ask", "approve", "plan", "auto", "full"]).optional(),
   }).optional(),
   /** UI preferences. VANTA-SETTINGS-UX folds in the display/UX toggles
    *  (spinnerVerbs/messageTimestamps/timestampStyle/effortIndicator/

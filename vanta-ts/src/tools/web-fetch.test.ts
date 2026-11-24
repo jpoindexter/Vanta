@@ -180,6 +180,11 @@ describe("webFetchTool failed-URL memo", () => {
     const res = await webFetchTool.execute({ url: "https://cf-blocked.example/" }, fakeCtx);
     expect(res.ok).toBe(false);
     expect(res.output).toMatch(/blocked.*Cloudflare|Cloudflare.*blocked/i);
+    expect(res.output).toContain("mcp_scrapling_get");
+    expect(res.output).toContain("mcp_scrapling_stealthy_fetch");
+    expect(res.output.indexOf("mcp_scrapling_get")).toBeLessThan(
+      res.output.indexOf("mcp_scrapling_stealthy_fetch"),
+    );
   });
 
   it("lets a different URL through after one failed", async () => {

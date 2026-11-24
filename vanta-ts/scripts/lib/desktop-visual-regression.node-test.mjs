@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readdir } from "node:fs/promises";
+import { arch, platform } from "node:os";
+import { resolve } from "node:path";
 import { PNG } from "pngjs";
-import { comparePng } from "./desktop-visual-regression.mjs";
+import { comparePng, expectedVisualBaselineNames, VISUAL_SURFACES } from "./desktop-visual-regression.mjs";
 
 function image(changed = false) {
   const png = new PNG({ width: 4, height: 4 });
@@ -42,4 +45,11 @@ test("the default visual tolerance still rejects changes beyond hosted-runner no
   assert.equal(result.passed, false);
   assert.equal(result.mismatchPixels, 120);
   assert.match(result.reason, /1\.200%/);
+});
+
+test("the supported visual route matrix has no missing or orphaned baselines", async () => {
+  assert.deepEqual(VISUAL_SURFACES, [...VISUAL_SURFACES].sort());
+  const root = resolve("scripts", "fixtures", "desktop-visual-baselines", `${platform()}-${arch()}`);
+  const actual = (await readdir(root)).filter((name) => name.endsWith(".png")).sort();
+  assert.deepEqual(actual, expectedVisualBaselineNames());
 });

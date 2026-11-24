@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   parseEmailMessage,
   stripQuotedReply,
@@ -15,6 +15,17 @@ import {
   type OutboundEmail,
 } from "./email.js";
 import type { InboundMessage, OutboundMessage } from "./base.js";
+
+vi.mock("imapflow", () => ({
+  ImapFlow: class {
+    async connect() { throw new Error("synthetic IMAP unavailable"); }
+  },
+}));
+vi.mock("nodemailer", () => ({
+  createTransport: () => ({
+    sendMail: async () => { throw new Error("synthetic SMTP unavailable"); },
+  }),
+}));
 
 /** A raw email as the injected IMAP transport yields it. */
 function raw(over: Partial<RawEmail> = {}): RawEmail {
@@ -269,7 +280,7 @@ describe("EmailAdapter (injected transport — no real IMAP/SMTP)", () => {
     expect(sent[0]?.body).toBe("cleanbody");
   });
 
-  it("never throws when the send fails", async () => {
+  it("propagates send failure to the effect gateway", async () => {
     const transport: EmailTransport = {
       fetchInbox: async () => [],
       sendMail: async () => {
@@ -277,7 +288,7 @@ describe("EmailAdapter (injected transport — no real IMAP/SMTP)", () => {
       },
     };
     const adapter = new EmailAdapter({ transport });
-    await expect(adapter.send({ chatId: "bob@x.com", text: "x" })).resolves.toBeUndefined();
+    await expect(adapter.send({ chatId: "bob@x.com", text: "x" })).rejects.toThrow("smtp down");
   });
 
   it("connect/disconnect are no-ops (the transport owns its sessions)", async () => {
@@ -289,22 +300,20 @@ describe("EmailAdapter (injected transport — no real IMAP/SMTP)", () => {
 });
 
 describe("imapSmtpTransport (the wire — built from EmailConfig, deps dynamic-imported)", () => {
-  // These run WITHOUT imapflow/nodemailer installed: the dynamic import inside each
-  // transport method rejects, the errors-as-values catch returns the empty result. This
-  // proves (a) the module + transport load without the deps and (b) failures never throw.
+  // Both dynamic client boundaries are mocked: no DNS, socket or mailbox access.
   const transport = imapSmtpTransport(build(fullEnv()));
 
-  it("fetchInbox returns [] (never throws) when imapflow is unavailable", async () => {
+  it("fetchInbox returns [] when the IMAP client cannot connect", async () => {
     await expect(transport.fetchInbox()).resolves.toEqual([]);
   });
 
-  it("sendMail resolves (never throws) when nodemailer is unavailable", async () => {
-    await expect(transport.sendMail({ to: "a@x.com", subject: "Re: hi", body: "b" })).resolves.toBeUndefined();
+  it("sendMail rejects when the SMTP client fails", async () => {
+    await expect(transport.sendMail({ to: "a@x.com", subject: "Re: hi", body: "b" })).rejects.toThrow("synthetic SMTP unavailable");
   });
 
-  it("is a valid EmailTransport the adapter can drive end-to-end (live deps absent → empty poll)", async () => {
+  it("keeps polling tolerant but propagates outbound failure through the adapter", async () => {
     const adapter = new EmailAdapter({ transport });
     await expect(adapter.poll()).resolves.toEqual([]);
-    await expect(adapter.send({ chatId: "a@x.com", text: "hi" })).resolves.toBeUndefined();
+    await expect(adapter.send({ chatId: "a@x.com", text: "hi" })).rejects.toThrow("synthetic SMTP unavailable");
   });
 });

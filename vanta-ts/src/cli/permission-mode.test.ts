@@ -23,6 +23,14 @@ describe("parsePermissionModeFlags", () => {
     expect(parsed.env.VANTA_AUTO_MODE).toBe("0");
   });
 
+  it("supports plan as a read-only operating mode", () => {
+    const parsed = parsePermissionModeFlags(["--permission-mode=plan", "run", "inspect"], {});
+    expect(parsed.rest).toEqual(["run", "inspect"]);
+    expect(parsed.env.VANTA_OPERATING_MODE).toBe("plan");
+    expect(parsed.env.VANTA_PERMISSION_MODE).toBe("default");
+    expect(parsed.env.VANTA_AUTO_MODE).toBe("0");
+  });
+
   it("preserves unknown modes for command usage handling", () => {
     const parsed = parsePermissionModeFlags(["--permission-mode", "yolo", "run"], {});
     expect(parsed.rest).toEqual(["run"]);

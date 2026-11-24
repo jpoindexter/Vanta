@@ -1,5 +1,6 @@
 import { WORDMARK } from "./wordmark.js";
 import type { Entry, ToolEntry } from "./types.js";
+import { quietToolRows } from "./quiet-tool-group.js";
 
 // Estimate the physical row count that committed (<Static>) content occupies, so
 // app.tsx can size the bottom-pin spacer (pinned-region.tsx). Mirrors
@@ -41,7 +42,12 @@ export function estimateEntryRows(entry: Entry, cols: number): number {
     case "tool":
       return toolRows(entry);
     case "toolGroup":
-      return 1 /*marginTop*/ + entry.tools.reduce((n, tl) => n + toolRows(tl), 0);
+      return 1 /*marginTop*/ + quietToolRows(entry.tools).reduce(
+        (rows, row) => rows + (row.kind === "tool" ? toolRows(row.tool) : 1),
+        0,
+      );
+    case "turnSummary":
+      return 4 /* marginTop + heading + verification + next */ + (entry.changed.length > 0 ? 1 : 0) + (entry.checked > 0 ? 1 : 0);
   }
 }
 

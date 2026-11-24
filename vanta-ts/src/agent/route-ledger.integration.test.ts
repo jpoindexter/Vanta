@@ -50,6 +50,7 @@ describe("served-route ledger production path", () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]).toMatchObject({ provider: "codex", model: "gpt-5.5", billingStatus: "included", fallbackDepth: 1, costUsd: 0 });
     expect(rows[1]).toMatchObject({ provider: "openai", model: "gpt-4o", billingStatus: "estimated", fallbackDepth: 0 });
+    expect(rows.map((row) => row.purpose)).toEqual(["main", "main"]);
     expect(summarizeRouteUsage(rows)).toMatchObject({ apiCalls: 2, inputTokens: 150, outputTokens: 30, cacheTokens: 10, reasoningTokens: 5 });
   });
 

@@ -1,0 +1,22 @@
+| exit path | VANTA_KERNEL_EPHEMERAL | procs before | runtime alive | kernel alive | survivors |
+|---|---|---|---|---|---|
+| SIGTERM | default | 3 | false | false | 0 |
+| SIGINT | default | 3 | false | false | 0 |
+| SIGHUP | default | 3 | false | false | 0 |
+| SIGKILL | default | 3 | false | false | 0 |
+| parent-death | default | 4 | false | false | 0 |
+| SIGTERM | 0 | 2 | false | true | 1 |
+| SIGINT | 0 | 2 | false | true | 1 |
+| SIGHUP | 0 | 2 | false | true | 1 |
+| SIGKILL | 0 | 2 | false | true | 1 |
+| parent-death | 0 | 3 | false | true | 1 |
+| SIGTERM | 1 | 3 | false | false | 0 |
+| SIGINT | 1 | 3 | false | false | 0 |
+| SIGHUP | 1 | 3 | false | false | 0 |
+| SIGKILL | 1 | 3 | false | false | 0 |
+| parent-death | 1 | 4 | false | false | 0 |
+  SIGTERM/0: 31090(ppid 1) ~/Documents/GitHub/docs/Vanta-kernel-closeout-202
+  SIGINT/0: 31468(ppid 1) ~/Documents/GitHub/docs/Vanta-kernel-closeout-202
+  SIGHUP/0: 31849(ppid 1) ~/Documents/GitHub/docs/Vanta-kernel-closeout-202
+  SIGKILL/0: 32204(ppid 1) ~/Documents/GitHub/docs/Vanta-kernel-closeout-202
+  parent-death/0: 32591(ppid 1) ~/Documents/GitHub/docs/Vanta-kernel-closeout-202

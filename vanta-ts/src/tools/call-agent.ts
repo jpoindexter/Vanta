@@ -1,8 +1,7 @@
+import { gitExecFile } from "../git/process.js";
 import { z } from "zod";
-import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { promisify } from "node:util";
 import {
   buildAgentInvocation,
   runExternalAgent,
@@ -18,8 +17,8 @@ import { resolveBoxCredential, type BoxCredential } from "../agents/autonomous-c
 import { extractEditedPath, parseClaudeStreamLine } from "../agents/claude-stream.js";
 import { recordAgentEdit } from "../agents/attribution-store.js";
 import type { Tool, ToolContext, ToolResult } from "./types.js";
+import { effectGateFromToolContext } from "../effects/gate-context.js";
 
-const execFileAsync = promisify(execFile);
 
 /** Build the boxed autonomous invocation: the agent runs `--dangerously-skip-permissions` inside a
  *  Docker container scoped to the project (rw) + its auth (ro). The mount-set is the boundary —
@@ -42,7 +41,7 @@ const CODING_TIMEOUT_MS = 600_000; // a build takes longer than a Q&A — 10 min
 
 async function originRemoteUrl(root: string): Promise<string | undefined> {
   try {
-    const { stdout } = await execFileAsync("git", ["config", "--get", "remote.origin.url"], { cwd: root, timeout: 2000 });
+    const { stdout } = await gitExecFile("git", ["config", "--get", "remote.origin.url"], { cwd: root, timeout: 2000 });
     return stdout.trim() || undefined;
   } catch { return undefined; }
 }
@@ -79,7 +78,13 @@ async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.P
     if (ev.progress && ev.progress !== last) { last = ev.progress; ctx.onProgress?.(`⋯ claude: ${ev.progress}`); }
     if (ev.result !== undefined) { result = ev.result; isError = ev.isError === true; }
   };
-  const res = await runExternalAgent(inv, { cwd: ctx.root, env, onChunk, timeoutMs: CODING_TIMEOUT_MS });
+  const res = await runExternalAgent(inv, {
+    cwd: ctx.root,
+    env,
+    onChunk,
+    timeoutMs: CODING_TIMEOUT_MS,
+    effectGate: effectGateFromToolContext(ctx),
+  });
   await recordStreamEdits(ctx, agent, edited);
   if (res.notInstalled) return { ok: false, output: "claude CLI not found on PATH." };
   if (!result) return { ok: false, output: `claude build did not finish: ${(res.stderr || res.stdout).trim().slice(0, 500) || `exit ${res.code ?? "?"}`}` };
@@ -90,7 +95,11 @@ async function runCodingClaude(ctx: ToolContext, inv: Invocation, env?: NodeJS.P
  * everything else streams text output. Split out to keep execute under the complexity gate. */
 async function runResolved(ctx: ToolContext, agent: string, inv: Invocation, coding?: boolean): Promise<ToolResult> {
   if (coding && agent === "claude") return runCodingClaude(ctx, inv);
-  return formatResult(agent, await runExternalAgent(inv, { cwd: ctx.root, onChunk: ctx.onProgress }));
+  return formatResult(agent, await runExternalAgent(inv, {
+    cwd: ctx.root,
+    onChunk: ctx.onProgress,
+    effectGate: effectGateFromToolContext(ctx),
+  }));
 }
 
 /** Resolve → approve (showing the exact mount boundary) → run the boxed agent, streaming progress. */

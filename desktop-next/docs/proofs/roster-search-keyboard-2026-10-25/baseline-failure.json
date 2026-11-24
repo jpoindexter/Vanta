@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Cmd+B hides history search",
+    "Cmd+Shift+F reveals the hidden sidebar",
+    "Revealing the sidebar hands keyboard focus to search",
+    "Typing remains in history search",
+    "The unsent chat draft is unchanged",
+    "Arrow Down reaches a matching chat after reveal",
+    "Search survives a second collapse with its query selected",
+    "Cmd+L returns to the original draft",
+    "The agent roster replaces chat history"
+  ],
+  "state": {
+    "focus": "<div aria-describedby=\"_r_5d_\" aria-label=\"Message Vanta\" autocapitalize=\"off\" autocorrect=\"on\" class=\"min-h-(--composer-input-min-height) max-h-(--composer-input-max-height) cursor-text overflow-y-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] bg-transparent pb-1 pr-1 pt-1 leading-normal text-foreground outline-none disabled:cursor-not-allowed **:data-ref-text:cursor-default pl-3 w-full\" contenteditable=\"true\" data-placeholder=\"Ask Vanta to do something\" data-slot=\"composer-rich-",
+    "body": "Collapsed history chat\nalpha\nDone\nChats\nBots\nBOTS\nVanta\nCollapsed history chat\nCopy\nEdit\n11:57\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-lMynZV/project/alpha\nUnsent collapsed-sidebar draft continued\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nScheduled jobs\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n4\nSmart\nv0.0.0",
+    "drafts": [
+      {
+        "visible": true,
+        "text": "Unsent collapsed-sidebar draft continued"
+      }
+    ]
+  },
+  "errors": []
+}

@@ -1,0 +1,52 @@
+{
+  "root": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-7n3hxV",
+  "checks": [
+    "Local reply arrives",
+    "Cmd+K Escape preserves the chat and unsent draft",
+    "Enter reaches the clear button by Tab",
+    "Enter Clear returns focus to search",
+    "Enter subsequent typing stays in search",
+    "Enter never changes the chat draft or route",
+    "Space reaches the clear button by Tab",
+    "Space Clear returns focus to search",
+    "Space subsequent typing stays in search",
+    "Space never changes the chat draft or route",
+    "pointer Clear returns focus to search",
+    "pointer subsequent typing stays in search",
+    "pointer never changes the chat draft or route",
+    "Navigation does not submit or retry",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "palette-escape",
+      "focus": "Message Vanta",
+      "search": "",
+      "draft": "Unsent alpha draft",
+      "route": "#/20261024-072304-30122163-9c4c-4dc9-b5f0-e35a391dd58b"
+    },
+    {
+      "name": "after-Enter",
+      "focus": "Search chats",
+      "search": "Other",
+      "draft": "Unsent alpha draft",
+      "route": "#/20261024-072304-30122163-9c4c-4dc9-b5f0-e35a391dd58b"
+    },
+    {
+      "name": "after-Space",
+      "focus": "Search chats",
+      "search": "Other",
+      "draft": "Unsent alpha draft",
+      "route": "#/20261024-072304-30122163-9c4c-4dc9-b5f0-e35a391dd58b"
+    },
+    {
+      "name": "after-pointer",
+      "focus": "Search chats",
+      "search": "Other",
+      "draft": "Unsent alpha draft",
+      "route": "#/20261024-072304-30122163-9c4c-4dc9-b5f0-e35a391dd58b"
+    }
+  ],
+  "modelRequests": 1,
+  "rendererErrors": []
+}

@@ -1,4 +1,5 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { resolveVantaHome } from "../store/home.js";
@@ -11,8 +12,14 @@ export { SettingsSchema, type Settings } from "./schema.js";
 // Non-secret config (permissions, allowed tools, ui prefs).
 // Merges three scopes; local wins. The schema lives in `schema.js`.
 
-async function readJson(path: string): Promise<unknown> {
-  try { return JSON.parse(await readFile(path, "utf8")); } catch { return {}; }
+async function readJson(path: string): Promise<Settings> {
+  try {
+    // Unknown preferences are ignored, never the recognized policy beside them.
+    return SettingsSchema.strip().parse(JSON.parse(await readFile(path, "utf8")));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return {};
+    throw new Error(`Settings need recovery at ${path}. Inspect and restore valid settings before retrying; nothing was written.`);
+  }
 }
 
 function userSettingsPath(env?: NodeJS.ProcessEnv): string {
@@ -25,6 +32,12 @@ function projectSettingsPath(projectRoot: string): string {
 
 function localSettingsPath(projectRoot: string): string {
   return join(projectRoot, ".vanta", "settings.local.json");
+}
+
+/** Legacy cache location, retained for diagnostics; policy is read from source. */
+export function settingsCachePath(projectRoot: string, env?: NodeJS.ProcessEnv): string {
+  const project = createHash("sha256").update(projectRoot).digest("hex").slice(0, 20);
+  return join(resolveVantaHome(env), "cache", "settings", `${project}.json`);
 }
 
 function deepMerge(base: Record<string, unknown>, over: Record<string, unknown>): Record<string, unknown> {
@@ -41,23 +54,30 @@ function deepMerge(base: Record<string, unknown>, over: Record<string, unknown>)
 
 /**
  * Load and merge settings from all three scopes.
- * Invalid entries are silently dropped (Zod safeParse).
+ * Missing scopes are empty; corrupt or invalid scopes stop policy loading.
  */
 export async function loadSettings(
   projectRoot: string,
   env?: NodeJS.ProcessEnv,
 ): Promise<Settings> {
+  const sources = [
+    userSettingsPath(env),
+    projectSettingsPath(projectRoot),
+    localSettingsPath(projectRoot),
+  ];
+  // A metadata cache is not authority to drop restrictions in these three files.
   const [user, project, local] = await Promise.all([
-    readJson(userSettingsPath(env)),
-    readJson(projectSettingsPath(projectRoot)),
-    readJson(localSettingsPath(projectRoot)),
+    readJson(sources[0]!),
+    readJson(sources[1]!),
+    readJson(sources[2]!),
   ]);
   const merged = deepMerge(
     deepMerge(user as Record<string, unknown>, project as Record<string, unknown>),
     local as Record<string, unknown>,
   );
   const parsed = SettingsSchema.safeParse(merged);
-  return parsed.success ? parsed.data : {};
+  if (!parsed.success) throw new Error("Merged settings need recovery; nothing was written.");
+  return parsed.data;
 }
 
 /** Write to one settings scope. */
@@ -65,6 +85,10 @@ export async function writeSettings(
   path: string,
   settings: Settings,
 ): Promise<void> {
+  await readJson(path);
+  if (!SettingsSchema.strip().safeParse(settings).success) {
+    throw new Error(`Settings change for ${path} is invalid; nothing was written.`);
+  }
   await mkdir(join(path, ".."), { recursive: true });
   await writeFile(path, JSON.stringify(settings, null, 2) + "\n", "utf8");
 }

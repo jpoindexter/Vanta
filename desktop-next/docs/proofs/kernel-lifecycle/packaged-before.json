@@ -1,0 +1,66 @@
+{
+  "app": "<scratch>/before-pkg/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+  "results": [
+    {
+      "exitPath": "quit",
+      "appPath": "<scratch>/before-pkg/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel": 1
+      },
+      "runningTotal": 6,
+      "pidFileWritten": false,
+      "pidFilesWhileRunning": [],
+      "pidFilesAfter": [],
+      "pidFileGoneAfter": true,
+      "afterSeconds": 12.3,
+      "after": {
+        "kernel": 1
+      },
+      "afterTotal": 1
+    },
+    {
+      "exitPath": "sigterm",
+      "appPath": "<scratch>/before-pkg/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel": 1
+      },
+      "runningTotal": 6,
+      "pidFileWritten": false,
+      "pidFilesWhileRunning": [],
+      "pidFilesAfter": [],
+      "pidFileGoneAfter": true,
+      "afterSeconds": 12.3,
+      "after": {
+        "kernel": 1
+      },
+      "afterTotal": 1
+    },
+    {
+      "exitPath": "sigkill",
+      "appPath": "<scratch>/before-pkg/desktop-next/apps/desktop/release/mac-arm64/Vanta Next.app",
+      "running": {
+        "electron-main": 1,
+        "electron-helper": 3,
+        "runtime": 1,
+        "kernel": 1
+      },
+      "runningTotal": 6,
+      "pidFileWritten": false,
+      "pidFilesWhileRunning": [],
+      "pidFilesAfter": [],
+      "pidFileGoneAfter": true,
+      "afterSeconds": 12.1,
+      "after": {
+        "runtime": 1,
+        "kernel": 1
+      },
+      "afterTotal": 2
+    }
+  ]
+}

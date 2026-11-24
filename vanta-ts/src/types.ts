@@ -35,7 +35,9 @@ export type DesktopSchemaTrace = {
   transitions: DesktopSchemaTransitionTrace[];
 };
 export type DesktopRunReceipt = {
+  needsEffectReview?: boolean;
   status: "done" | "failed" | "interrupted";
+  stoppedReason?: import("./agent/agent-types.js").StoppedReason;
   failureKind?: DesktopRunFailureKind;
   events: { label: string; ok?: boolean }[];
   actions: ("retry_failed_step" | "edit_request" | "start_from_checkpoint")[];
@@ -44,7 +46,7 @@ export type DesktopRunReceipt = {
   schemaTrace?: DesktopSchemaTrace;
 };
 
-export type EffectDisposition = "none" | "confirmed" | "unknown";
+export type EffectDisposition = import("./work-items/contract.js").ReceiptDisposition;
 
 export type ImageCaptureReceipt = {
   source: "macos-screencapture";

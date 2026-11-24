@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // Mock the heavy steps so the orchestration is testable without prompts/IO.
-vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn(() => "/nonexistent/.env"), askLine: vi.fn(async () => ""), setEnv: vi.fn(async () => {}) }));
+vi.mock("./setup.js", () => ({ runSetup: vi.fn(async () => true), envPath: vi.fn((root: string) => join(root, "vanta-ts", ".env")), askLine: vi.fn(async () => ""), setEnv: vi.fn(async () => {}) }));
 vi.mock("./setup-messaging.js", () => ({ runMessagingSetup: vi.fn(async () => true) }));
 // the capability step dynamic-imports these — stub them so runFullSetup tests do
 // no real brew/pane IO (the logic itself is covered in setup/capabilities.test.ts)
@@ -25,13 +28,15 @@ vi.mock("./setup/assistant.js", () => ({
 }));
 
 import { runFullSetup, isYes, box, wizardBanner, sectionHeader, configLocation, summaryText } from "./setup-full.js";
-import { runSetup, askLine } from "./setup.js";
+import { runSetup, askLine, envPath } from "./setup.js";
 import { runMessagingSetup } from "./setup-messaging.js";
 import { writeRegion } from "./brain/store.js";
 import { select } from "./term/select.js";
 import { probeProvider, runGoogleStep, probeMcp, probeMessaging } from "./setup/assistant.js";
+import { gatherCapabilities } from "./repl/health-cmd.js";
 
 const mRunSetup = vi.mocked(runSetup);
+const mEnvPath = vi.mocked(envPath);
 const mMsg = vi.mocked(runMessagingSetup);
 const mWrite = vi.mocked(writeRegion);
 const mSelect = vi.mocked(select);
@@ -40,10 +45,12 @@ const mProbeProvider = vi.mocked(probeProvider);
 const mGoogle = vi.mocked(runGoogleStep);
 const mMcp = vi.mocked(probeMcp);
 const mProbeMessaging = vi.mocked(probeMessaging);
+const mGatherCapabilities = vi.mocked(gatherCapabilities);
 const mkEnv = (o: Record<string, string>) => o as NodeJS.ProcessEnv;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mEnvPath.mockReturnValue("/nonexistent/.env");
   mRunSetup.mockResolvedValue(true);
   mSelect.mockResolvedValue(1); // default: "Skip" messaging
   mAsk.mockResolvedValue("");
@@ -101,6 +108,39 @@ describe("runFullSetup", () => {
     expect(mGoogle).toHaveBeenCalledWith(expect.objectContaining({ env }));
     expect(mMcp).toHaveBeenCalledWith(expect.objectContaining({ env, cwd: "/repo" }));
     expect(mProbeMessaging).toHaveBeenCalledWith(env);
+  });
+
+  it("uses the provider selected during setup in the same process", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "vanta-setup-refresh-"));
+    const path = join(dir, ".env");
+    const previousProvider = process.env.VANTA_PROVIDER;
+    const previousModel = process.env.VANTA_MODEL;
+    try {
+      await writeFile(path, "VANTA_PROVIDER=codex\nVANTA_MODEL=gpt-5.6-luna\n", "utf8");
+      mEnvPath.mockReturnValue(path);
+      const env = mkEnv({ VANTA_PROVIDER: "openai", VANTA_MODEL: "gpt-5.6-sol", KEEP: "yes" });
+
+      await runFullSetup("/repo", env);
+
+      expect(env).toMatchObject({
+        VANTA_PROVIDER: "codex",
+        VANTA_MODEL: "gpt-5.6-luna",
+        KEEP: "yes",
+      });
+      expect(mGoogle).toHaveBeenCalledWith(expect.objectContaining({
+        env: expect.objectContaining({ VANTA_PROVIDER: "codex", VANTA_MODEL: "gpt-5.6-luna" }),
+      }));
+      expect(mGatherCapabilities).toHaveBeenCalledWith(expect.objectContaining({
+        VANTA_PROVIDER: "codex",
+        VANTA_MODEL: "gpt-5.6-luna",
+      }));
+    } finally {
+      if (previousProvider === undefined) delete process.env.VANTA_PROVIDER;
+      else process.env.VANTA_PROVIDER = previousProvider;
+      if (previousModel === undefined) delete process.env.VANTA_MODEL;
+      else process.env.VANTA_MODEL = previousModel;
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 
   it("treats messaging Esc/skip (≠0) as 'skip' — no messaging launched", async () => {

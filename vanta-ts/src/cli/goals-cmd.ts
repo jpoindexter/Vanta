@@ -14,6 +14,7 @@ import {
 } from "../goals/sentinel.js";
 import { formatGoalLedger } from "../repl/goal-ledger.js";
 import type { Goal } from "../types.js";
+import { readWorkItemProjection } from "../work-items/read-model.js";
 
 type GoalsDeps = {
   dataDir?: string;
@@ -27,8 +28,14 @@ export async function runGoalsCommand(root: string, deps: GoalsDeps = {}): Promi
   const dataDir = deps.dataDir ?? join(root, ".vanta");
   if (deps.rest?.[0] === "sentinel") return runSentinelCommand(dataDir, deps.rest.slice(1), deps.log ?? console.log, deps.sentinelNotify);
   const getGoals = deps.getGoals ?? await liveGoalReader(root);
-  const [goals, graph] = await Promise.all([getGoals(), readGoalDeps(dataDir)]);
-  (deps.log ?? console.log)(formatGoalLedger(goals, graph.edges));
+  const [goals, graph, work] = await Promise.all([
+    getGoals(),
+    readGoalDeps(dataDir),
+    readWorkItemProjection(root),
+  ]);
+  const log = deps.log ?? console.log;
+  log(formatGoalLedger(goals, graph.edges, work.items));
+  if (work.invalidRows > 0) log(`goal work evidence degraded · ${work.invalidRows} invalid canonical row(s)`);
   return 0;
 }
 

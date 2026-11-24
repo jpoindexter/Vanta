@@ -1,0 +1,739 @@
+[
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-4",
+        "title": "Fix the checkout buttons [block]",
+        "status": "assigned",
+        "workerId": "researcher",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:07:32.000Z",
+        "updatedAt": "2026-10-13T11:17:14.000Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "researcher",
+      "status": "idle",
+      "currentTicketId": null,
+      "lastHeartbeat": "2026-10-13T19:49:28.184Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6lp708-000025-r0029",
+        "at": "2026-10-13T11:31:47.000Z",
+        "source": "company",
+        "kind": "run.started",
+        "actor": "researcher",
+        "summary": "researcher started T-4: Fix the checkout buttons [block]",
+        "refs": {
+          "ticketId": "T-4",
+          "workerId": "researcher"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-4",
+        "title": "Fix the checkout buttons [block]",
+        "status": "in_progress",
+        "workerId": "researcher",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:07:32.000Z",
+        "updatedAt": "2026-10-13T19:49:28.281Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "researcher",
+      "status": "working",
+      "currentTicketId": "T-4",
+      "lastHeartbeat": "2026-10-13T19:49:28.281Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6lxie0-000026-r0030",
+        "at": "2026-10-13T11:38:15.000Z",
+        "source": "company",
+        "kind": "run.finished",
+        "actor": "researcher",
+        "summary": "researcher failed on T-4: need the brand colour for the checkout buttons",
+        "refs": {
+          "ticketId": "T-4",
+          "workerId": "researcher"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-4",
+        "title": "Fix the checkout buttons [block]",
+        "status": "blocked",
+        "workerId": "researcher",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": "run failed: need the brand colour for the checkout buttons",
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:07:32.000Z",
+        "updatedAt": "2026-10-13T19:49:28.284Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "researcher",
+      "status": "failed",
+      "currentTicketId": "T-4",
+      "lastHeartbeat": "2026-10-13T19:49:28.284Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6m7wm8-000027-r0031",
+        "at": "2026-10-13T11:46:20.000Z",
+        "source": "company",
+        "kind": "ticket.created",
+        "actor": "owner",
+        "summary": "created T-5: Audit the onboarding emails",
+        "refs": {
+          "ticketId": "T-5"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-5",
+        "title": "Audit the onboarding emails",
+        "status": "open",
+        "workerId": null,
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "ticket",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:44:43.000Z",
+        "updatedAt": "2026-10-13T11:44:43.000Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6miaug-000028-r0032",
+        "at": "2026-10-13T11:54:25.000Z",
+        "source": "company",
+        "kind": "ticket.created",
+        "actor": "owner",
+        "summary": "created T-6: Polish the empty states",
+        "refs": {
+          "ticketId": "T-6"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-6",
+        "title": "Polish the empty states",
+        "status": "open",
+        "workerId": null,
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "ticket",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:52:48.000Z",
+        "updatedAt": "2026-10-13T11:52:48.000Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6murx4-000029-r0033",
+        "at": "2026-10-13T12:04:07.000Z",
+        "source": "company",
+        "kind": "ticket.assigned",
+        "actor": "owner",
+        "summary": "assigned T-6 to designer",
+        "refs": {
+          "ticketId": "T-6",
+          "workerId": "designer"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-6",
+        "title": "Polish the empty states",
+        "status": "assigned",
+        "workerId": "designer",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:52:48.000Z",
+        "updatedAt": "2026-10-13T12:02:30.000Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "designer",
+      "status": "idle",
+      "currentTicketId": null,
+      "lastHeartbeat": "2026-10-13T19:49:28.255Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6nbeoo-000030-r0035",
+        "at": "2026-10-13T12:17:03.000Z",
+        "source": "company",
+        "kind": "run.started",
+        "actor": "designer",
+        "summary": "designer started T-6: Polish the empty states",
+        "refs": {
+          "ticketId": "T-6",
+          "workerId": "designer"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-6",
+        "title": "Polish the empty states",
+        "status": "in_progress",
+        "workerId": "designer",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:52:48.000Z",
+        "updatedAt": "2026-10-13T19:49:28.298Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "designer",
+      "status": "working",
+      "currentTicketId": "T-6",
+      "lastHeartbeat": "2026-10-13T19:49:28.298Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6nlsww-000031-r0036",
+        "at": "2026-10-13T12:25:08.000Z",
+        "source": "company",
+        "kind": "work_product.recorded",
+        "actor": "designer",
+        "summary": "product-wp-4 recorded for T-6",
+        "refs": {
+          "ticketId": "T-6",
+          "workerId": "designer",
+          "workProductId": "product-wp-4"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "budget.alert",
+      "scope": "agent:designer",
+      "level": "exceeded",
+      "spentUsd": 0.1,
+      "limitUsd": 0.1
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6nu4ao-000032-r0037",
+        "at": "2026-10-13T12:31:36.000Z",
+        "source": "company",
+        "kind": "budget.alert",
+        "actor": "system",
+        "summary": "agent:designer is exceeded: 0.10 of 0.10 USD",
+        "refs": {
+          "scope": "agent:designer"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6o0cu0-000033-r0038",
+        "at": "2026-10-13T12:36:27.000Z",
+        "source": "company",
+        "kind": "run.finished",
+        "actor": "designer",
+        "summary": "designer finished T-6",
+        "refs": {
+          "ticketId": "T-6",
+          "workerId": "designer"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6o2fog-000034-r0039",
+        "at": "2026-10-13T12:38:04.000Z",
+        "source": "company",
+        "kind": "ticket.closed",
+        "actor": "designer",
+        "summary": "T-6 closed",
+        "refs": {
+          "ticketId": "T-6",
+          "workerId": "designer"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-6",
+        "title": "Polish the empty states",
+        "status": "done",
+        "workerId": "designer",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": "finished T-6",
+        "pendingReviews": 0,
+        "workProductCount": 1,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T11:52:48.000Z",
+        "updatedAt": "2026-10-13T19:49:28.302Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "designer",
+      "status": "idle",
+      "currentTicketId": null,
+      "lastHeartbeat": "2026-10-13T19:49:28.302Z",
+      "costUsd": 0.1
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6oar28-000035-r0040",
+        "at": "2026-10-13T12:44:32.000Z",
+        "source": "company",
+        "kind": "ticket.created",
+        "actor": "owner",
+        "summary": "created T-7: Rebuild the search index [hold]",
+        "refs": {
+          "ticketId": "T-7"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-7",
+        "title": "Rebuild the search index [hold]",
+        "status": "open",
+        "workerId": null,
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "ticket",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T12:42:55.000Z",
+        "updatedAt": "2026-10-13T12:42:55.000Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6opazc-000036-r0041",
+        "at": "2026-10-13T12:55:51.000Z",
+        "source": "company",
+        "kind": "ticket.assigned",
+        "actor": "owner",
+        "summary": "assigned T-7 to analyst",
+        "refs": {
+          "ticketId": "T-7",
+          "workerId": "analyst"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-7",
+        "title": "Rebuild the search index [hold]",
+        "status": "assigned",
+        "workerId": "analyst",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T12:42:55.000Z",
+        "updatedAt": "2026-10-13T12:54:14.000Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "analyst",
+      "status": "idle",
+      "currentTicketId": null,
+      "lastHeartbeat": "2026-10-13T19:49:28.164Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6p5xqw-000037-r0043",
+        "at": "2026-10-13T13:08:47.000Z",
+        "source": "company",
+        "kind": "run.started",
+        "actor": "analyst",
+        "summary": "analyst started T-7: Rebuild the search index [hold]",
+        "refs": {
+          "ticketId": "T-7",
+          "workerId": "analyst"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-7",
+        "title": "Rebuild the search index [hold]",
+        "status": "in_progress",
+        "workerId": "analyst",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 0,
+        "workProductCount": 0,
+        "commentCount": 0,
+        "createdAt": "2026-10-13T12:42:55.000Z",
+        "updatedAt": "2026-10-13T19:49:28.307Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "analyst",
+      "status": "working",
+      "currentTicketId": "T-7",
+      "lastHeartbeat": "2026-10-13T19:49:28.307Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6pkho0-000038-r0044",
+        "at": "2026-10-13T13:20:06.000Z",
+        "source": "company",
+        "kind": "ticket.commented",
+        "actor": "owner",
+        "summary": "commented on T-3",
+        "refs": {
+          "ticketId": "T-3"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "ticket.updated",
+      "ticket": {
+        "id": "T-3",
+        "title": "Write the launch plan",
+        "status": "in_review",
+        "workerId": "engineer",
+        "projectId": null,
+        "goalId": null,
+        "parentId": null,
+        "labels": [],
+        "inbox": "unread",
+        "source": "both",
+        "blocker": null,
+        "result": null,
+        "pendingReviews": 1,
+        "workProductCount": 1,
+        "commentCount": 2,
+        "createdAt": "2026-10-13T10:17:25.000Z",
+        "updatedAt": "2026-10-13T19:49:28.267Z"
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "activity.appended",
+      "entry": {
+        "id": "a-mv6puvw8-000039-r0045",
+        "at": "2026-10-13T13:28:11.000Z",
+        "source": "company",
+        "kind": "worker.paused",
+        "actor": "owner",
+        "summary": "paused support: on leave until Monday",
+        "refs": {
+          "workerId": "support"
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "worker.status",
+      "workerId": "support",
+      "status": "paused",
+      "currentTicketId": null,
+      "lastHeartbeat": "2026-10-13T13:26:34.000Z",
+      "costUsd": 0
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "approval.request",
+      "approval": {
+        "id": "1791920968999",
+        "action": "Hire copywriter (Copywriter) on openai",
+        "reason": "Adds a worker that can run tickets with budget 1.5 USD.",
+        "toolName": "company.hire",
+        "request": {
+          "kind": "generic",
+          "title": "Permission request",
+          "subject": "Hire copywriter (Copywriter) on openai",
+          "reason": "Adds a worker that can run tickets with budget 1.5 USD.",
+          "toolName": "company.hire",
+          "fresh": true,
+          "canRemember": false,
+          "sections": [
+            {
+              "label": "Action",
+              "value": "Hire copywriter (Copywriter) on openai",
+              "tone": "code"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "approval.resolved",
+      "id": "1791920968999"
+    }
+  },
+  {
+    "label": "",
+    "typed": {
+      "type": "approval.request",
+      "approval": {
+        "id": "1791920969017",
+        "action": "Raise agent:designer budget to 0.5 USD",
+        "reason": "From 0.1 USD; 0.10 USD spent so far.",
+        "toolName": "company.budget",
+        "request": {
+          "kind": "generic",
+          "title": "Permission request",
+          "subject": "Raise agent:designer budget to 0.5 USD",
+          "reason": "From 0.1 USD; 0.10 USD spent so far.",
+          "toolName": "company.budget",
+          "fresh": true,
+          "canRemember": false,
+          "sections": [
+            {
+              "label": "Action",
+              "value": "Raise agent:designer budget to 0.5 USD",
+              "tone": "code"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

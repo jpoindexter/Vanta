@@ -32,7 +32,8 @@ const optionsSchema = z
     width: z.number().int().positive().optional(),
     height: z.number().int().positive().optional(),
     /** Wall-clock epoch (ms) the recording started, deterministic in tests. */
-    now: z.function().returns(z.number()).optional(),
+    now: z.custom<() => number>((value) => typeof value === "function")
+      .transform((clock) => z.function({ output: z.number() }).implement(clock)).optional(),
   })
   .strict();
 

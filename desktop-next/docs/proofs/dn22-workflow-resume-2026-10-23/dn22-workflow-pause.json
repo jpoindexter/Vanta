@@ -1,0 +1,211 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-teOOs7",
+  "checks": [
+    "The actual workflow tool reaches its first executing action",
+    "The workflow was requested by the local model from chat",
+    "The real run is active before Pause",
+    "Past work retains the earlier completed turn",
+    "The active turn is absent from the completed-run API",
+    "The active workflow has no misleading Past work row",
+    "Workflow rows have no card outline",
+    "Workflow summary and actions fit the narrow window",
+    "Pause is reachable by keyboard",
+    "The pending request is shown without claiming Paused",
+    "The real executor stops at the next checkpoint",
+    "The first action completed once and the second never ran",
+    "The paused state exposes the server's recovery action",
+    "Existing Refresh lists the chat only after its final receipt",
+    "Resume reaches a real successful terminal result",
+    "Confirmed first effect is not replayed",
+    "The missing second effect executes exactly once",
+    "Done no longer offers Resume",
+    "Resume does not ask the model to reconstruct the graph"
+  ],
+  "run": {
+    "runId": "dn22-live-pause",
+    "graphId": "prepare-next-week-review",
+    "status": "paused",
+    "revision": 3,
+    "updatedAt": "2026-10-23T21:18:16.349Z",
+    "nodes": [
+      {
+        "id": "wait",
+        "type": "action",
+        "status": "ok",
+        "attempts": 1
+      }
+    ],
+    "timeline": [
+      {
+        "at": "2026-10-23T21:17:57.907Z",
+        "kind": "control",
+        "label": "pause at revision 0",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:16.345Z",
+        "kind": "side_effect",
+        "label": "wait ok",
+        "nodeId": "wait",
+        "replay": "never_by_default"
+      },
+      {
+        "at": "2026-10-23T21:18:16.348Z",
+        "kind": "decision",
+        "label": "wait → write (next)",
+        "nodeId": "wait",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:16.348Z",
+        "kind": "stop",
+        "label": "paused: operator pause requested",
+        "replay": "recorded"
+      }
+    ],
+    "artifacts": [],
+    "budget": {
+      "usedUsd": 0,
+      "usedTokens": 0,
+      "noProgressSteps": 0
+    },
+    "terminal": {
+      "state": "paused",
+      "reason": "operator pause requested",
+      "recoveryAction": "Retry from this safe checkpoint when ready.",
+      "at": "2026-10-23T21:18:16.348Z"
+    },
+    "controls": [
+      "retry"
+    ],
+    "replayPolicy": "Recorded decisions may be inspected; model calls and side effects are never replayed by default."
+  },
+  "resumed": {
+    "runId": "dn22-live-pause",
+    "graphId": "prepare-next-week-review",
+    "status": "done",
+    "revision": 7,
+    "updatedAt": "2026-10-23T21:18:18.277Z",
+    "nodes": [
+      {
+        "id": "wait",
+        "type": "action",
+        "status": "ok",
+        "attempts": 1
+      },
+      {
+        "id": "write",
+        "type": "action",
+        "status": "ok",
+        "attempts": 1
+      }
+    ],
+    "timeline": [
+      {
+        "at": "2026-10-23T21:17:57.907Z",
+        "kind": "control",
+        "label": "pause at revision 0",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:16.345Z",
+        "kind": "side_effect",
+        "label": "wait ok",
+        "nodeId": "wait",
+        "replay": "never_by_default"
+      },
+      {
+        "at": "2026-10-23T21:18:16.348Z",
+        "kind": "decision",
+        "label": "wait → write (next)",
+        "nodeId": "wait",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:18.209Z",
+        "kind": "control",
+        "label": "retry at revision 3",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:18.217Z",
+        "kind": "decision",
+        "label": "wait → write (next)",
+        "nodeId": "wait",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:18.274Z",
+        "kind": "side_effect",
+        "label": "write ok",
+        "nodeId": "write",
+        "replay": "never_by_default"
+      },
+      {
+        "at": "2026-10-23T21:18:18.276Z",
+        "kind": "decision",
+        "label": "write → stop (terminal)",
+        "nodeId": "write",
+        "replay": "recorded"
+      },
+      {
+        "at": "2026-10-23T21:18:18.276Z",
+        "kind": "stop",
+        "label": "succeeded: all success evidence satisfied",
+        "replay": "recorded"
+      }
+    ],
+    "artifacts": [],
+    "budget": {
+      "usedUsd": 0,
+      "usedTokens": 0,
+      "noProgressSteps": 0
+    },
+    "terminal": {
+      "state": "succeeded",
+      "reason": "all success evidence satisfied",
+      "at": "2026-10-23T21:18:18.276Z"
+    },
+    "controls": [],
+    "replayPolicy": "Recorded decisions may be inspected; model calls and side effects are never replayed by default."
+  },
+  "modelRequests": [
+    {
+      "at": 1792790275501,
+      "stream": true,
+      "toolCall": null,
+      "prompt": "Earlier finished request",
+      "promptLength": 24,
+      "hasImage": false,
+      "toolResult": "",
+      "lastRole": "user",
+      "messageCount": 2
+    },
+    {
+      "at": 1792790276079,
+      "stream": true,
+      "toolCall": "compose_workflow",
+      "prompt": "Run this private checkpoint check [[call compose_workflow {\"spec\":{\"id\":\"prepare-next-week-review\",\"title\":\"Prepare next week review\",\"start\":\"wait\",\"nodes\":[{\"",
+      "promptLength": 562,
+      "hasImage": false,
+      "toolResult": "",
+      "lastRole": "user",
+      "messageCount": 4
+    },
+    {
+      "at": 1792790296436,
+      "stream": true,
+      "toolCall": null,
+      "prompt": "Run this private checkpoint check [[call compose_workflow {\"spec\":{\"id\":\"prepare-next-week-review\",\"title\":\"Prepare next week review\",\"start\":\"wait\",\"nodes\":[{\"",
+      "promptLength": 562,
+      "hasImage": false,
+      "toolResult": "{\n  \"ok\": false,\n  \"status\": \"paused\",\n  \"terminalState\": \"paused\",\n  \"reason\": \"operator pause requested\",\n  \"recoveryAction\": \"Retry from this safe checkpoint when ready.\",\n  \"transcript\": [\n    {\n ",
+      "lastRole": "tool",
+      "messageCount": 6
+    }
+  ],
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

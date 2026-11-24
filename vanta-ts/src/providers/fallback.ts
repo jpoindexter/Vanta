@@ -163,6 +163,13 @@ export class FallbackChain implements LLMProvider {
   }
 }
 
+/** Configured order, including repeated entries; shared with static diagnostics. */
+export function configuredFallbackProviderIds(env: NodeJS.ProcessEnv): string[] {
+  return (env.VANTA_FALLBACK_PROVIDERS ?? "").split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /**
  * Build a fallback chain from the primary provider and the environment.
  *
@@ -175,13 +182,7 @@ export function buildFallbackChain(
   primary: LLMProvider,
   env: NodeJS.ProcessEnv,
 ): LLMProvider {
-  const raw = env.VANTA_FALLBACK_PROVIDERS;
-  if (!raw?.trim()) return primary;
-
-  const ids = raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const ids = configuredFallbackProviderIds(env);
   if (ids.length === 0) return primary;
 
   const fallbacks: LLMProvider[] = [];

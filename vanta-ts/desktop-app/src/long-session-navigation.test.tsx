@@ -16,12 +16,19 @@ describe("desktop long-session navigation", () => {
     expect(markers.at(-1)).toEqual({ index: 499, label: "Prompt 500" });
   });
 
-  it("renders accessible prompt jumps and only renders Latest while detached", () => {
+  it("renders a focusable preview for every prompt marker", () => {
     const markers = renderToStaticMarkup(<PromptMarkers messages={[{ role: "user", content: "Review the roadmap" }]} onJump={() => undefined} />);
     expect(markers).toContain('aria-label="Session prompts"');
     expect(markers).toContain('aria-label="Jump to prompt: Review the roadmap"');
+    expect(markers).toContain('aria-describedby="prompt-marker-preview-0"');
+    expect(markers).toContain('id="prompt-marker-preview-0"');
+    expect(markers).toContain('role="tooltip"');
+    expect(markers).toContain("Prompt 1 of 1");
+    expect(markers).toContain("Review the roadmap");
+  });
+
+  it("only renders Latest while detached", () => {
     expect(renderToStaticMarkup(<LatestButton visible={false} streaming={false} onClick={() => undefined} />)).toBe("");
     expect(renderToStaticMarkup(<LatestButton visible streaming onClick={() => undefined} />)).toContain("New messages");
   });
 });
-

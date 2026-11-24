@@ -1,0 +1,153 @@
+{
+  "checks": [
+    "Bravo local reply arrives",
+    "Alpha split receives its local reply",
+    "Two real chats are visible side by side",
+    "Find searches the focused Bravo chat",
+    "Escape returns to Bravo's own draft",
+    "Bravo's unsent text is retained",
+    "Find searches the focused Alpha chat",
+    "Escape returns to Alpha's own draft",
+    "Alpha's unsent text is retained",
+    "Switching panes keeps Find open",
+    "Switching panes keeps the query"
+  ],
+  "states": [
+    {
+      "name": "find-Bravo",
+      "focus": "Find in page",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nSplitpane Alpha\nnow\nSplitpane Bravo\nn"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-s60NzM/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnny081-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnny081-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-s60NzM/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Bravo\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "find-Alpha",
+      "focus": "Find in page",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nSplitpane Alpha\nnow\nSplitpane Bravo\nn"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-s60NzM/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnny081-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnny081-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-s60NzM/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Alpha\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    },
+    {
+      "name": "switch-while-open",
+      "focus": "Message Vanta",
+      "groups": [
+        {
+          "id": "grp-sessions",
+          "text": "Chats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nSplitpane Alpha\nnow\nSplitpane Bravo\nn"
+        },
+        {
+          "id": "grp-main",
+          "text": "Splitpane Bravo\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+        },
+        {
+          "id": "grp-main",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-s60NzM/project/alpha\nUnsent Bravo draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "g-mvnny081-13",
+          "text": "Splitpane Alpha\nSplitpane Alpha\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up "
+        },
+        {
+          "id": "g-mvnny081-13",
+          "text": "main\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-s60NzM/project/alpha\nUnsent Alpha draft\n\nEnter to send · Shift Enter for a new line"
+        },
+        {
+          "id": "grp-review",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-files",
+          "text": "VANTA"
+        },
+        {
+          "id": "grp-terminal",
+          "text": "Terminal"
+        }
+      ],
+      "roots": [
+        "Splitpane Bravo\nCopy\nEdit\n11:06\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/"
+      ],
+      "drafts": [
+        "Unsent Bravo draft",
+        "Unsent Alpha draft"
+      ]
+    }
+  ],
+  "errors": []
+}

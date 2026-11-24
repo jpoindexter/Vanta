@@ -6,7 +6,11 @@ sidebar_position: 1
 
 # Tools
 
-Vanta ships **139 built-in tools** (142 registered, including the factory-built `mount_mcp`, `tool_search`, and `mcp_auth`). Every tool call is gated by the kernel before it runs. The model sees a per-turn scoped subset of the catalog; `tool_search` is always reachable to pull in the rest on demand.
+Vanta ships a large built-in catalog. Consequential tools and the checked
+secondary hosts enter one default-deny effect gateway before the Rust kernel;
+missing policy or journal state fails closed. The versioned inventory defines
+the executed coverage boundary. The model sees a per-turn scoped subset of the
+catalog; `tool_search` can pull in the rest on demand.
 
 ## By category
 
@@ -16,7 +20,7 @@ Vanta ships **139 built-in tools** (142 registered, including the factory-built 
 `write_file` writes freely in-repo and only into a configured writable zone out-of-repo; it runs the size gate on every TS write and reports violations so the agent self-corrects.
 
 ### Web & search
-`web_search` (automatic managed-provider routing with Brave-browser/Bing keyless fallback) · `web_fetch` (readable-content extraction) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed). DuckDuckGo adapters are explicit legacy options because they frequently bot-block agents.
+`web_search` (automatic managed-provider routing with Brave-browser/Bing keyless fallback) · `web_fetch` (readable-content extraction) · optional guarded Scrapling MCP fallback (`get` → browser `fetch` → `stealthy_fetch`) · `rss_read` · `reddit_read` · `cookie_import` (kernel-gated credential store, never echoed). DuckDuckGo adapters are explicit legacy options because they frequently bot-block agents.
 
 ### Browser, vision & voice
 `screenshot` · `browser_navigate` · `browser_extract` · `browser_act` (navigate/click/type/press/scroll with an approval-gated, masked dry-run preview for irreversible controls) · `describe_image` · `compare_vision` · `look_at_screen` · `look_at_camera` · `watch_video` · `transcribe` (audio → text) · `speak` (text → speech). `look_at_screen` gives the agent an explicit kernel-gated view of the current display; `/look` and the Desktop capture control add operator-selected area/window/display images to the next turn. Vision and voice route through a dedicated model when configured (`VANTA_VISION_MODEL`), so a text-only main model still has eyes and ears. See [Sight & screen context](./sight.md).
@@ -31,14 +35,17 @@ Large tool outputs are optionally compressed before they hit the context window 
 `delegate` (scoped subagent) · cron scheduler · background team workers · A2A message bus.
 
 ### Operator systems
-`world` · `money` · `radar` · `team` · `life_search` · `self_repair` · reach tools — see [Operator systems](./operator-systems.md).
+`world` · `money` · `radar` · `team` · `life_search` · `job_profile_scan` (bounded user-authored local job/profile recall; no intermediate transcript) · `self_repair` · reach tools — see [Operator systems](./operator-systems.md).
 
 ### Memory & learning
 `brain` (remember/recall) · `recall` · `write_skill` · `roadmap_add` / `roadmap_move` · `clarify` · `inspect_state`.
 
 ## How a tool is gated
 
-Each tool exposes a `describeForSafety(args)` that returns only the safety-relevant string (path or command). The kernel classifies it; the loop executes only on `allow`. See [the agent loop](./agent-loop.md).
+Each consequential tool exposes a stable safety description. The shared gateway
+binds its effect kind, target, payload hash, scope, and operation ID before the
+kernel classifies it, then persists a content-free settlement receipt. See [the
+agent loop](./agent-loop.md).
 
 ## Adding your own
 

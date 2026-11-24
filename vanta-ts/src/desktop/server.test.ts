@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyCompanionCors, approvalDecision, eventLabel, type DesktopState, type PendingApproval } from "./server.js";
+import { applyCompanionCors, type DesktopState, type PendingApproval } from "./server.js";
+import { approvalDecision, eventLabel } from "./handlers.js";
 
 const args = {};
 
@@ -60,7 +61,14 @@ describe("desktop server module exports", () => {
     const mod = await import("./server.js");
     expect(typeof mod.createDesktopServer).toBe("function");
     expect(typeof mod.serveDesktop).toBe("function");
-    expect(typeof mod.eventLabel).toBe("function");
+  });
+
+  it("keeps the agent and tool modules out of its static import graph", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const source = await readFile(new URL("./server.ts", import.meta.url), "utf8");
+    const heavyValueImport = /^import (?!type)[^;]*from "\.{1,2}\/(desktop\/)?(handlers|server-routes|routes)\.js"/m;
+    expect(source).not.toMatch(heavyValueImport);
+    expect(source).not.toMatch(/^import (?!type)[^;]*from "\.\.\/(public-api|companion)\/routes\.js"/m);
   });
 });
 

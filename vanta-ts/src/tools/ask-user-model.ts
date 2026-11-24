@@ -10,18 +10,19 @@ import { z } from "zod";
 const MAX_QUESTIONS = 4;
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 4;
-const MAX_HEADER_LEN = 12;
+export const ASK_USER_MAX_HEADER_LEN = 12;
 
 const OptionSchema = z.object({
   label: z.string().min(1, "option.label must be non-empty"),
   description: z.string().min(1, "option.description must be non-empty"),
+  preview: z.string().max(4_000, "option.preview must be ≤4000 chars").optional(),
 });
 
 const QuestionSchema = z.object({
   header: z
     .string()
     .min(1, "header must be non-empty")
-    .max(MAX_HEADER_LEN, `header must be ≤${MAX_HEADER_LEN} chars`),
+    .max(ASK_USER_MAX_HEADER_LEN, `header must be ≤${ASK_USER_MAX_HEADER_LEN} chars`),
   question: z.string().min(1, "question must be non-empty"),
   options: z
     .array(OptionSchema)
@@ -29,6 +30,8 @@ const QuestionSchema = z.object({
     .max(MAX_OPTIONS, `each question needs ${MIN_OPTIONS}-${MAX_OPTIONS} options`),
   /** When true the operator may pick any number of options (else exactly one). */
   multiSelect: z.boolean().optional(),
+  /** Add an operator-authored answer after the model-proposed options. */
+  allowOther: z.boolean().optional(),
 });
 
 export const AskQuestionSchema = z.object({
@@ -43,6 +46,7 @@ export type AskQuestion = z.infer<typeof QuestionSchema>;
 
 /** One question's resolved answer: the chosen option label(s). */
 export type ResolvedSelection = { header: string; selected: string[] };
+export type AskUserResponse = ResolvedSelection[] | null;
 
 export type ValidateInputResult =
   | { ok: true; questions: AskQuestion[] }
@@ -63,9 +67,53 @@ function controlStrip(text: string): string {
   return text.replace(CONTROL_RE, " ").replace(/\s+/g, " ").trim();
 }
 
+/** Compact a model-generated display label without dropping its question. */
+function compactHeader(text: string): string {
+  const clean = controlStrip(text);
+  if (clean.length <= ASK_USER_MAX_HEADER_LEN) return clean;
+  const prefix = clean.slice(0, ASK_USER_MAX_HEADER_LEN + 1);
+  const wordBoundary = prefix.lastIndexOf(" ");
+  return wordBoundary >= 4
+    ? prefix.slice(0, wordBoundary)
+    : clean.slice(0, ASK_USER_MAX_HEADER_LEN);
+}
+
+/** Keep compacted headers unique because answer maps are keyed by header. */
+function uniqueHeader(base: string, used: Set<string>): string {
+  let candidate = base;
+  for (let index = 2; used.has(candidate.toLowerCase()); index += 1) {
+    const suffix = ` ${index}`;
+    candidate = `${base.slice(0, ASK_USER_MAX_HEADER_LEN - suffix.length).trimEnd()}${suffix}`;
+  }
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+/**
+ * Repair the one cosmetic constraint models commonly miss before strict
+ * validation. Structural mistakes still fail with the normal actionable error.
+ */
+function repairQuestionHeaders(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const input = raw as Record<string, unknown>;
+  if (!Array.isArray(input.questions)) return raw;
+  const used = new Set<string>();
+  const questions = input.questions.map((question) => {
+    if (!question || typeof question !== "object" || Array.isArray(question)) return question;
+    const item = question as Record<string, unknown>;
+    if (typeof item.header !== "string") return question;
+    return { ...item, header: uniqueHeader(compactHeader(item.header), used) };
+  });
+  return { ...input, questions };
+}
+
 /** Sanitize one option's model-supplied text. Pure. */
 function cleanOption(o: AskOption): AskOption {
-  return { label: controlStrip(o.label), description: controlStrip(o.description) };
+  return {
+    label: controlStrip(o.label),
+    description: controlStrip(o.description),
+    ...(o.preview === undefined ? {} : { preview: controlStrip(o.preview) }),
+  };
 }
 
 /** Sanitize one question's model-supplied text. Pure. */
@@ -75,6 +123,7 @@ function cleanQuestion(q: AskQuestion): AskQuestion {
     question: controlStrip(q.question),
     options: q.options.map(cleanOption),
     ...(q.multiSelect === undefined ? {} : { multiSelect: q.multiSelect }),
+    ...(q.allowOther === undefined ? {} : { allowOther: q.allowOther }),
   };
 }
 
@@ -84,7 +133,7 @@ function cleanQuestion(q: AskQuestion): AskQuestion {
  * Pure.
  */
 export function validateAskInput(raw: unknown): ValidateInputResult {
-  const parsed = AskQuestionSchema.safeParse(raw);
+  const parsed = AskQuestionSchema.safeParse(repairQuestionHeaders(raw));
   if (!parsed.success) {
     const first = parsed.error.issues[0];
     const where = first?.path.length ? `${first.path.join(".")}: ` : "";
@@ -106,6 +155,11 @@ function renderQuestion(q: AskQuestion, index: number): string {
 export function formatAskPrompt(questions: AskQuestion[]): string {
   const body = questions.map(renderQuestion).join("\n\n");
   return `${body}\n\n(Await the user's selection before proceeding.)`;
+}
+
+/** Format a live host's resolved selections into a compact tool result. */
+export function formatAskResponse(selections: ResolvedSelection[]): string {
+  return selections.map((selection) => `[${selection.header}] ${selection.selected.join(", ")}`).join("\n");
 }
 
 /** Coerce one raw answer (a 1-based number or an option label) to a label. Pure. */

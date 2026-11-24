@@ -22,18 +22,45 @@ describe("formatHealth", () => {
 });
 
 describe("googleCap", () => {
-  const home = "/tmp/nonexistent-vanta-home"; // no google-tokens.json there
-
-  it("no OAuth client → points at the client-id setup", () => {
-    const c = googleCap({} as NodeJS.ProcessEnv, home);
+  it("no OAuth client → points at the supported client-file setup", async () => {
+    const c = await googleCap({} as NodeJS.ProcessEnv, {
+      hasClient: async () => false,
+      hasAuth: async () => false,
+    });
     expect(c.ok).toBe(false);
-    expect(c.fix).toContain("VANTA_GOOGLE_CLIENT_ID");
+    expect(c.fix).toContain("vanta auth google gmail --client");
   });
 
-  it("creds present but no token → points at vanta auth google", () => {
-    const c = googleCap({ VANTA_GOOGLE_CLIENT_ID: "x", VANTA_GOOGLE_CLIENT_SECRET: "y" } as unknown as NodeJS.ProcessEnv, home);
+  it("stored client but no grants → points at each independent service", async () => {
+    const c = await googleCap({} as NodeJS.ProcessEnv, {
+      hasClient: async () => true,
+      hasAuth: async () => false,
+    });
     expect(c.ok).toBe(false);
-    expect(c.fix).toBe("run: vanta auth google");
+    expect(c.detail).toBe("not authorized");
+    expect(c.fix).toContain("vanta auth google gmail");
+    expect(c.fix).toContain("vanta auth google calendar");
+    expect(c.fix).toContain("vanta auth google drive");
+  });
+
+  it("reports partial grants without collapsing them into one Google claim", async () => {
+    const c = await googleCap({} as NodeJS.ProcessEnv, {
+      hasClient: async () => true,
+      hasAuth: async (_env, service) => service === "gmail",
+    });
+    expect(c.ok).toBe(false);
+    expect(c.detail).toBe("gmail authorized; calendar/drive not authorized");
+    expect(c.fix).not.toContain("vanta auth google gmail");
+    expect(c.fix).toContain("vanta auth google calendar");
+  });
+
+  it("is ready only when all three independent grants exist", async () => {
+    const c = await googleCap({} as NodeJS.ProcessEnv, {
+      hasClient: async () => true,
+      hasAuth: async () => true,
+    });
+    expect(c).toMatchObject({ ok: true, detail: "gmail/calendar/drive authorized" });
+    expect(c.fix).toBeUndefined();
   });
 });
 

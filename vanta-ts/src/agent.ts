@@ -10,9 +10,11 @@ import { join } from "node:path";
 import { recordNeedsHumanOutcome } from "./operator/needs-human.js";
 import { recordDocReferences } from "./context/router-health.js";
 import { recordWorkOutcome } from "./maintenance/budget.js";
+import { recordTurnReceipt } from "./work-items/turn-receipt.js";
 
 export type { AgentDeps, StreamEvent, AgentOutcome, StoppedReason, Conversation } from "./agent/agent-types.js";
-import type { AgentDeps, AgentOutcome } from "./agent/agent-types.js";
+import type { AgentDeps, AgentOutcome, Conversation } from "./agent/agent-types.js";
+import { recordConversationReview, seedConversationReview } from "./agent/effect-review.js";
 
 async function recordTurnMaintenance(deps: AgentDeps, userText: string, outcome: AgentOutcome, startedAt: number): Promise<void> {
   if (!deps.sessionId && !deps.usageAgent) return;
@@ -30,6 +32,20 @@ async function recordTurnMaintenance(deps: AgentDeps, userText: string, outcome:
   if (budget?.alerted) deps.onEvent?.({ type: "note", text: "Maintenance work is dominating delivery. Review the needs-human queue." });
   await recordDocReferences(dataDir, `${userText}\n${outcome.finalText}`, source).catch(() => []);
   await recordNeedsHumanOutcome(dataDir, { instruction: userText, outcome, source }).catch(() => null);
+}
+
+async function recordAgentTurnReceipt(deps: AgentDeps, outcome: AgentOutcome): Promise<void> {
+  if (!deps.sessionId && !deps.usageAgent) return;
+  const host = deps.usageAgent === "one-shot" ? "cli" : deps.usageAgent ?? "agent";
+  await recordTurnReceipt({
+    root: deps.root,
+    sessionId: deps.sessionId,
+    host,
+    goalId: deps.usageTaskId,
+    completionState: outcome.completionState,
+    disposition: outcome.needsEffectReview ? "unknown" : undefined,
+    reviewCallIds: outcome.effectReviewCallIds,
+  });
 }
 
 /**
@@ -51,14 +67,17 @@ export function createConversation(
     sessionId: deps.sessionId,
     safety: deps.safety,
     requestApproval: deps.requestApproval,
+    requestQuestion: deps.requestQuestion,
     permissionMode: deps.permissionMode,
   };
-  return {
+  const conversation: Conversation = {
     messages,
     send: async (userText: string, images?: ImageAttachment[], signal?: AbortSignal): Promise<AgentOutcome> => {
       const startedAt = Date.now();
       await persistCompaction(messages, deps);
       const outcome = await runTurn({ messages, ctx, deps, userText, images, signal });
+      recordConversationReview(conversation, outcome);
+      await recordAgentTurnReceipt(deps, outcome);
       await recordTurnMaintenance(deps, userText, outcome, startedAt);
       return outcome;
     },
@@ -70,6 +89,8 @@ export function createConversation(
       deps.sessionMemory = text;
     },
   };
+  seedConversationReview(conversation);
+  return conversation;
 }
 
 /** One-shot: a fresh conversation with a single user turn. */

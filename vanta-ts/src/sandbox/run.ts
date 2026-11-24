@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, relative, resolve } from "node:path";
 import { DANGEROUS_DIRS, canonicalPath, expandHome, isDangerousPath, resolveWritableZones } from "../tools/writable-zones.js";
+import { projectSandboxDeniedPaths } from "../tools/project-security-path.js";
 import {
   buildBwrapArgs,
   buildSeatbeltProfile,
@@ -101,14 +102,25 @@ export async function maybeSandbox(a: MaybeSandboxArgs): Promise<MaybeSandboxRes
   }
   const root = resolve(a.root);
   const zones = writableZonesFor(a.env, a.additionalWritableDirs);
-  const opts = { net: netAllowed(a.env) };
+  const protectedPaths = projectSandboxDeniedPaths(root);
+  const opts = {
+    net: netAllowed(a.env),
+    deniedPaths: protectedPaths.map((entry) => entry.path),
+  };
   const argv = [a.baseCmd, ...a.baseArgs];
 
   if (backend === "bwrap") {
     // bwrap errors on a --tmpfs target that doesn't exist, so mask only the
     // dangerous dirs actually present on this host (drops macOS-only /System etc.).
     const maskDirs = DANGEROUS_DIRS.map((p) => resolve(expandHome(p))).filter(existsSync);
-    const bwrapArgs = buildBwrapArgs(root, zones, opts, maskDirs);
+    const bwrapArgs = buildBwrapArgs(
+      root,
+      zones,
+      opts,
+      maskDirs,
+      protectedPaths.filter((entry) => entry.directory).map((entry) => entry.path),
+      protectedPaths.filter((entry) => !entry.directory).map((entry) => entry.path),
+    );
     return wrapCommand("bwrap", bwrapArgs, argv);
   }
 

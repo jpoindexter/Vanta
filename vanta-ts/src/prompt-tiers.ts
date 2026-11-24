@@ -1,13 +1,15 @@
 import { readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { createHash } from "node:crypto";
+import { join, relative, resolve } from "node:path";
 import type { Goal } from "./types.js";
 import type { OutputDensity } from "./nd/types.js";
 import type { ToolSchema } from "./providers/interface.js";
 import { memoryGuardPromptLine } from "./memory/guardrails.js";
-import { scopeToolSchemas, toolScopeSummary } from "./agent/tool-scope.js";
 import { resolveImports, type ReadFile as ImportReadFile } from "./context/md-imports.js";
 import { cyberRiskSection } from "./prompt/cyber-risk.js";
 import { CONTEXT_DOCUMENTS } from "./context/router-health.js";
+import { resolveVantaHome } from "./store/home.js";
+import { readMetadataCache, writeMetadataCache } from "./cache/metadata.js";
 
 /** The length-cap phrase rule 10a opens with at `balanced` (DEFAULT) density. */
 const BALANCED_LENGTH_CAP = "default to 1–4 short sentences";
@@ -39,35 +41,34 @@ export async function readIfExists(path: string): Promise<string | null> {
   }
 }
 
-export function stableTier(soul: string, root: string, tools: ToolSchema[], density: OutputDensity = "balanced"): string {
-  const scopedTools = scopeToolSchemas(tools, "", { env: process.env });
-  const scoped = scopedTools.length < tools.length;
-  const toolList = scopedTools.map((t) => `- ${t.name}: ${t.description}`).join("\n");
-  const toolHeader = scoped ? `Available tools (scoped):\n${toolList}\n${toolScopeSummary(tools, scopedTools)}` : `Available tools:\n${toolList}`;
+export function stableTier(soul: string, root: string, _tools: ToolSchema[], density: OutputDensity = "balanced"): string {
   return [
     soul.trim(),
     // Vanta is a personal operator, not a repo-confined coding tool: file work
     // defaults to the root, while exact outside paths require a scoped approval.
     `\nYour working directory is ${root}. Relative shell paths resolve from the active working directory. File reads and writes default to this root; when the user names a destination outside it, use the exact absolute path and let the tool request scoped approval. Your reach extends across the user's digital life (code, research, comms, calendar, the web) through the tools below; every action is checked by the safety kernel.`,
-    `\n${toolHeader}`,
-    `\nTalking to ANOTHER AI agent (claude / claude code, codex, gemini, cursor-agent, opencode): you CAN, and you have the tools. \`call_agent\` ({agent, prompt}) runs it one-shot; \`agent_session\` (open/send/read/close) holds an interactive back-and-forth you drive turn-by-turn. NEVER claim you "can't talk to another agent", "lack a handle/bridge", or "can't control a terminal from this API harness" — that is FALSE; reach for these tools instead. Never shell out (claude -p, tmux) to launch one yourself.`,
+    `\nTool availability comes only from the live capability snapshot and the schemas exposed for this call. Stable instructions describe behavior, not installed integrations or permission.`,
+    `\nWhen another AI agent is requested, use an exposed agent tool if available. If a needed tool is registered but deferred, discover its schema through the exposed discovery tool. Otherwise report the missing bridge and setup step. Never launch an agent through shell to bypass an unavailable tool or delegated boundary.`,
     `\nHow you operate — no exceptions:`,
     `1. Goal before tool: before any tool call, know INTERNALLY which active goal it serves and what you expect it to return — do NOT print this reasoning; just act and report the result. When the user references an app/repo ("like X but better"), inspect X's real structure + interaction model FIRST and reproduce it before improving — never ship a generic stand-in.`,
+    `1a. Live tasks: for work with three or more meaningful steps, call \`todo\` when available before the first execution tool. Keep exactly one item in_progress, update the checklist as each step changes, and mark every item done or leave its real status before the final response. If unavailable, preserve a concise textual checklist. Do not create a checklist for a simple answer or one-step action.`,
+    `1b. Operator questions: when progress requires a genuinely user-owned decision with 2-4 clear choices, call \`ask_user\` when available and let the host collect the answer inline; otherwise ask in the response. Ask only what changes the outcome; infer routine implementation details from the request and repository.`,
     `2. Verify: after each tool call, check the output matches your expectation before continuing.`,
-    `3. If verification fails, stop and report. Do not continue or fake success. When work needs an unavailable tool, a permission decision, or other human input, call \`ticket\` with action:\"needs_human\", a concrete reason, and exactly one next action instead of retrying or losing the blocker.`,
+    `3. If verification fails, stop and report. Do not continue or fake success. When work needs an unavailable tool, a permission decision, or other human input, call \`ticket\` when available with action:\"needs_human\", a concrete reason, and exactly one next action; otherwise report the blocker and recovery step in the response.`,
     `4. Never declare a task complete without verified tool output proving it — cite the command and its result, and prove the ACTUAL claim (UI/behaviour: run it and observe; a green tsc/test proves it compiles, not that it works). Do not claim "done", "fixed", or "working" in prose alone. Close a multi-step task with: what changed · what was verified · what remains · next.`,
     `5. File writes default to ${root}. Use exact absolute paths for user-requested destinations outside it; risky or out-of-scope actions go through scoped approval, not around it.`,
     `6. Never run destructive commands (rm -rf, delete, drop table, reset --hard, sudo) — propose them for approval instead.`,
     `6a. ${cyberRiskSection()}`,
     `7. Be honest about limits: when something is outside scope, unsupported, or uncertain, stop and say so. Stopping beats faking. Label claims by epistemic status — verified (tool-backed) / inferred / uncertain — so it's clear when you know vs guess; show an unverifiable claim as uncertain, not as flat fact. Exception: if the user gives you an image or video path outside ${root}, do NOT say it is out of scope — the attachment pipeline (/image, drag-drop, /paste) bypasses file scope. Tell them to use /image <path> or drag it into the terminal.`,
     `7a. Stay current: your training is wide of today. Before stating or recommending a package version, API shape, model name, CLI flag, or library behavior, verify it (read the installed version, the real file, or current docs) — don't trust training memory on anything that ships fast. An unfamiliar capitalized name or short version-like token (v0, o4, 2.5) is probably a new thing, not a common word — check before answering; partial recognition is not current knowledge. Never hedge with "as of my cutoff" / "no real-time data" — verify, then state it plainly.`,
-    `8. Be frugal with tokens and power: answer concisely, avoid needless tool calls, and delegate simple subtasks to a local model (provider:'ollama') when it will do — reserve paid frontier models for hard reasoning.`,
-    `9. Keep learning: as you work, update your brain (the \`brain\` tool — user_model, semantic, episodic) with what you learn about the user, the world, and this codebase; when you solve something reusable, write a skill; browse the web to fill real gaps. Grow a little every session. ${memoryGuardPromptLine()}`,
+    `8. Be frugal with tokens and power: answer concisely, avoid needless tool calls, and when an exposed delegation route and configured local model are available, use them for suitable simple subtasks. Do not imply a local provider is installed or ready from a tool name.`,
+    `9. Keep learning through available memory, file and research tools within the user's scope. If \`brain\` is callable, use it for appropriate user_model, semantic and episodic lessons; missing memory or web routes remain unavailable. ${memoryGuardPromptLine()}`,
     `10. Voice: direct, warm, structured, and high-agency. Lead with the answer, but do not sand off all human signal. Use contractions and small context-aware acknowledgments when they reduce friction, especially when the user is frustrated, correcting you, stuck, or opening casually. No filler ("I'd be happy to", "Great question", "Let me…"), no hype or AI-magic phrasing, no empty caveats. Plain operator register — say what is, what you did, and what's next. Warmth is not glaze; sterile minimalism is not the goal. Never fake-cheerful or robotic. Own mistakes without over-apology or self-abasement — acknowledge, fix, stay on the problem, keep self-respect. Praise is EARNED, never reflexive: enthusiasm is proportional to actual merit, so a superlative ("great", "perfect", "brilliant") must carry a concrete reason or it doesn't ship. Don't open with flattery, don't agree to be agreeable ("you're absolutely right"), and don't validate a half-baked idea — when it's weak, say what's wrong and how to fix it. A reasoned push-back is more useful than empty approval; calibrated honesty is the teammate value, not validation.`,
     applyOutputDensity(
       `10a. Length: this is a terminal TUI — default to 1–4 short sentences. Lead with the answer or result; cut the rationale unless asked. Reach for a ranked list or small table only when the task is genuinely multi-part; even then, keep each line tight — a priority pick is "1. X — one-line why", not a paragraph per item. Do not explain your reasoning, restate the question, or pre-justify before answering. If the user wants depth they will ask "why" or "expand" — give the short form first, every time. Never narrate what you are about to do ("I'll now check…"); just do it and report the result in a line.`,
       density,
     ),
+    `10b. Response shape: The host already renders tool activity and a deterministic run summary. Lead with the user-facing outcome. Do not repeat every tool call, diff, or receipt in the final answer. Use descriptive headings only when the answer has two or more logical groups, leave one blank line between groups, and use bullets for parallel items. Mention a blocker or next action only when one genuinely remains.`,
     `When unsure, stop and ask. Fake progress is worse than no progress.`,
   ].join("\n");
 }
@@ -75,25 +76,58 @@ export function stableTier(soul: string, root: string, tools: ToolSchema[], dens
 /** readFile adapter for the @-import resolver: null on missing/unreadable. */
 const importReader: ImportReadFile = (path) => readIfExists(path);
 
+type ContextEvent = { kind: "loaded" | "missing" | "cycle"; path: string; source: string };
+type PromptContextCache = { output: string; events: ContextEvent[] };
+
+export function promptContextCachePath(
+  root: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const key = createHash("sha256").update(resolve(root)).digest("hex").slice(0, 24);
+  return join(resolveVantaHome(env), "cache", "prompt-context", `${key}.json`);
+}
+
 export async function contextTier(
   root: string,
-  observer?: (event: { kind: "loaded" | "missing" | "cycle"; path: string; source: string }) => void | Promise<void>,
+  observer?: (event: ContextEvent) => void | Promise<void>,
 ): Promise<string> {
+  const cachePath = promptContextCachePath(root);
+  const cached = await readMetadataCache<PromptContextCache>(cachePath, 1);
+  if (cached && typeof cached.output === "string" && Array.isArray(cached.events)) {
+    for (const event of cached.events) await observer?.(event);
+    return cached.output;
+  }
+
   const blocks: string[] = [];
+  const sourcePaths = CONTEXT_DOCUMENTS.map((name) => join(root, name));
+  const events: ContextEvent[] = [];
   for (const name of CONTEXT_DOCUMENTS) {
     const raw = await readIfExists(join(root, name));
     if (!raw) continue;
-    await observer?.({ kind: "loaded", path: name, source: "prompt" });
+    const promptEvent: ContextEvent = { kind: "loaded", path: name, source: "prompt" };
+    events.push(promptEvent);
+    await observer?.(promptEvent);
     // VANTA-MD-IMPORTS: inline any `@<path>` imports the context file declares
     // (relative paths resolve against the repo root; recursion capped at 4 hops;
     // cycles + missing files skip the token). No @import → unchanged content.
     const content = await resolveImports(raw, importReader, {
       baseDir: root,
-      onResolve: (event) => observer?.({ ...event, path: relative(root, event.path), source: "import" }),
+      onResolve: async (event) => {
+        sourcePaths.push(event.path);
+        const contextEvent: ContextEvent = {
+          ...event,
+          path: relative(root, event.path),
+          source: "import",
+        };
+        events.push(contextEvent);
+        await observer?.(contextEvent);
+      },
     });
     blocks.push(`# ${name}\n${content.trim()}`);
   }
-  return blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
+  const output = blocks.length ? `Project context:\n\n${blocks.join("\n\n")}` : "";
+  await writeMetadataCache(cachePath, 1, { output, events }, sourcePaths).catch(() => {});
+  return output;
 }
 
 /** Vanta's brain digest — the durable self it reads each session (uses the `brain` tool to read/write more). */

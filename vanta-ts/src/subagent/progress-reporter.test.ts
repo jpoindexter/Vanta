@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { runProgressTick, startProgressReporter } from "./progress-reporter.js";
 import { progressStore } from "./progress-store.js";
 import { SUMMARY_INTERVAL_MS, type RecentCall } from "./progress.js";
-import type { CompletionResult, LLMProvider } from "../providers/interface.js";
+import type { CompletionConfig, CompletionResult, LLMProvider } from "../providers/interface.js";
 
 class ReplyProvider implements LLMProvider {
   constructor(private readonly reply: string) {}
@@ -24,6 +24,22 @@ const editCall: RecentCall[] = [{ name: "edit_file", args: { path: "src/auth.ts"
 beforeEach(() => {
   for (const p of progressStore().snapshot()) progressStore().clear(p.id);
 });
+afterEach(() => { vi.useRealTimers(); });
+
+function pendingProvider() {
+  const signals: Array<AbortSignal | undefined> = [];
+  let resolve!: (value: CompletionResult) => void;
+  let reject!: (error: Error) => void;
+  const provider: LLMProvider = {
+    modelId: () => "synthetic-pending", contextWindow: () => 8192,
+    complete: vi.fn((_messages, _tools, config?: CompletionConfig) => {
+      signals.push(config?.signal);
+      return new Promise<CompletionResult>((yes, no) => { resolve = yes; reject = no; });
+    }),
+  };
+  return { provider, signals, reply: () => resolve({ text: "Reading old fixture", toolCalls: [], finishReason: "stop" }),
+    fail: () => reject(new Error("synthetic failure")) };
+}
 
 describe("runProgressTick", () => {
   it("writes a formatted summary from the side-query reply", async () => {
@@ -81,6 +97,52 @@ describe("runProgressTick", () => {
 });
 
 describe("startProgressReporter", () => {
+  it("keeps one request in flight until it settles and aborts it on stop", async () => {
+    vi.useFakeTimers();
+    const pending = pendingProvider();
+    const stop = startProgressReporter({ id: "pending", goal: "fixture", provider: pending.provider, getRecentCalls: () => [], intervalMs: 10, env: {} });
+    expect(pending.provider.complete).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(30);
+    expect(pending.provider.complete).toHaveBeenCalledOnce();
+    stop();
+    expect(pending.signals[0]?.aborted).toBe(true);
+    pending.reply();
+    await vi.advanceTimersByTimeAsync(30);
+    expect(pending.provider.complete).toHaveBeenCalledOnce();
+    expect(progressStore().snapshot()).toEqual([]);
+  });
+
+  it.each(["reply", "fail"] as const)("ignores a late %s after stop even when the worker id is reused", async settle => {
+    vi.useFakeTimers();
+    const pending = pendingProvider();
+    const stop = startProgressReporter({ id: "reused", goal: "old", provider: pending.provider, getRecentCalls: () => editCall, intervalMs: 10, env: {} });
+    await vi.advanceTimersByTimeAsync(10);
+    stop();
+    progressStore().register("reused", "new worker");
+    pending[settle]();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(progressStore().snapshot()).toEqual([{ id: "reused", title: "new worker", summary: null, updatedAt: null }]);
+  });
+
+  it("bounds the request lifetime independently of the injected schedule interval", async () => {
+    vi.useFakeTimers();
+    const pending = pendingProvider();
+    const stop = startProgressReporter({ id: "deadline", goal: "fixture", provider: pending.provider, getRecentCalls: () => editCall, intervalMs: 10, env: {} });
+    await vi.advanceTimersByTimeAsync(10);
+    expect(pending.signals[0]?.aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(SUMMARY_INTERVAL_MS - 1);
+    expect(pending.signals[0]?.aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(pending.signals[0]?.aborted).toBe(true);
+    expect(pending.provider.complete).toHaveBeenCalledOnce();
+    // A provider that ignores cancellation must not release the single-flight slot.
+    await vi.advanceTimersByTimeAsync(SUMMARY_INTERVAL_MS);
+    expect(pending.provider.complete).toHaveBeenCalledOnce();
+    pending.reply(); await vi.advanceTimersByTimeAsync(0);
+    expect(progressStore().snapshot()[0]?.summary).toBeNull();
+    stop();
+  });
+
   it("registers the worker immediately and clears it on stop", () => {
     const stop = startProgressReporter({
       id: "r1", goal: "do a thing", provider: new ReplyProvider("Doing a thing"),

@@ -120,7 +120,7 @@ export function buildToolsUpdates(selection: ToolsSelection, current: string[] =
 
 /** Read the persisted blockedTools list (local scope wins). */
 async function readBlocked(repoRoot: string): Promise<string[]> {
-  const settings = await loadSettings(repoRoot, process.env).catch(() => ({}) as Settings);
+  const settings = await loadSettings(repoRoot, process.env);
   return settings.blockedTools ?? [];
 }
 
@@ -153,7 +153,7 @@ async function promptProviders(): Promise<ProviderSelection> {
 
 /** Persist the settings patch (merged into the local scope) + env writes. */
 async function persistTools(repoRoot: string, updates: ToolsUpdates): Promise<void> {
-  const local = await loadSettings(repoRoot, process.env).catch(() => ({}) as Settings);
+  const local = await loadSettings(repoRoot, process.env);
   await writeSettings(localSettingsPath(repoRoot), { ...local, blockedTools: updates.settings.blockedTools });
   const envWrites = Object.fromEntries(Object.entries(updates.env).filter(([, v]) => v !== ""));
   if (Object.keys(envWrites).length) await setEnv(repoRoot, envWrites);

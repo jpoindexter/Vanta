@@ -1,0 +1,33 @@
+{
+  "checks": [
+    "Shift+Tab reaches the document's Edit control",
+    "Cmd+W closes the focused document pane"
+  ],
+  "states": [
+    {
+      "name": "before-close",
+      "focus": "<button class=\"flex items-center gap-1 text-meta font-bold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground\" type=\"button\" data-state=\"instant-open\" data-slot=\"tooltip-trigger\" aria-describedby=\"radix-_r_6k_\" data-radix-popper-side=\"bottom\" data-radix-popper-align=\"center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"tabler-icon tabler-icon-pencil size-3\"><path d=\"M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4\"><",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:22\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Se6RfI/project/alpha\nUnsent pane-dismissal draft\n\nEnter to send · Shift Enter for a new line\n\nbrief.md\nPREVIEW\nSOURCE\nEdit\nLocal brief\n\nNo operator data.\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n0\nSmart\nv0.0.0\nEdit (e)",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    },
+    {
+      "name": "failure",
+      "focus": "<body>\n    <div id=\"root\" class=\"scrollbar-dt\"><div class=\"group/sidebar-wrapper flex w-full has-data-[variant=inset]:bg-sidebar h-screen min-h-0 flex-col bg-background\" data-slot=\"sidebar-wrapper\" style=\"--sidebar-width: 100%; --sidebar-width-icon: 3rem;\"><div class=\"contents\" style=\"--titlebar-controls-left: 98px; --titlebar-controls-top: 10px; --titlebar-controls-width: calc(1 * var(--titlebar-control-size)); --titlebar-controls-y-nudge: calc(var(--spacing) * 0.9); --titlebar-tools-right: 0.75rem; --titlebar-tools-width: calc(5 * var(--titlebar-control-size)); --shell-preview-toolbar-gap: c",
+      "focusedVisible": true,
+      "body": "Pane dismissal navigation\nalpha\nDone\nChats\nBots\nNew session\n⌘N\nHome\nSchedules\nConnections\nSkills & tools\nOutputs\nCompany\nPINNED\nShift-click a chat to pin\nCHATS\nPane dismissal navigation\nnow\nPane dismissal navigation\nCopy\nEdit\n12:22\n\nScripted turn finished.\n\n1s\nCopy\nRetry\n\nScripted turn finished.\n\nResponse complete\n\nScroll to bottom\nWaking up …\nmain\n/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-Se6RfI/project/alpha\nUnsent pane-dismissal draft\nDone Path\nAsk each time\n\nEnter to send · Shift Enter for a new line\n\nalpha\nbrief.md\ndeploy-notes.md\nproduction-plan.md\nREADME.md\nTerminal\n\nEvery command asks for approval first, in the chat you are looking at.\n\nBackend\nready\nalpha\nAgents\nCron\n~1.4k/1M\n[░░░░░░░░░░] ~0%\nFocused for\n0\n:\n0\n2\nSmart\nv0.0.0",
+      "drafts": [
+        {
+          "visible": true,
+          "text": "Unsent pane-dismissal draft"
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

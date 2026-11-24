@@ -73,20 +73,20 @@ export function parsePublicApiAllowedOrigins(raw: string | undefined): Set<strin
 
 function applyPublicApiCors(req: http.IncomingMessage, res: http.ServerResponse, allowed: ReadonlySet<string>): boolean {
   const origin = req.headers.origin; if (typeof origin !== "string" || !allowed.has(origin)) return false;
+  // `allowed` contains only operator-configured, exact HTTPS origins validated above.
+  // nosemgrep: javascript.express.security.cors-misconfiguration.cors-misconfiguration
   res.setHeader("access-control-allow-origin", origin); res.setHeader("vary", "origin");
   res.setHeader("access-control-allow-headers", "authorization, content-type, x-session-id"); res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS"); return true;
 }
 
 async function handleStreamingInput(state: DesktopState, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  state._streamTextDeltas = true;
   try {
     await handleChat(state, req, res);
-    pushTerminalEvent(state, true);
+    if (res.statusCode < 400) pushTerminalEvent(state, true);
   } catch (error) {
     pushTerminalEvent(state, false);
     throw error;
   }
-  finally { state._streamTextDeltas = false; }
 }
 
 function publicFrame(sessionId: string, event: { label: string; ok?: boolean; delta?: string }) {

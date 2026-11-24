@@ -1,0 +1,29 @@
+{
+  "artifact": {
+    "path": "/Applications/ChatGPT.app/Contents/Resources/app.asar",
+    "sha256": "130145706a912db74e4d260ad7538f10f1e05e88af955f9afba42cdf01e64606",
+    "packageName": "openai-codex-electron",
+    "packageVersion": "26.1021.31345",
+    "product": "Codex",
+    "note": "Bundle installed at ChatGPT.app path identifies itself as Codex. Not separate ChatGPT-product evidence."
+  },
+  "coverage": {
+    "inventoriedCssFiles": 375,
+    "parsedCssFiles": 375,
+    "parseFailures": 0,
+    "declarationCount": 51442,
+    "selectorCount": 22491,
+    "atRuleCount": 3466,
+    "customPropertyDeclarationCount": 8851,
+    "stateBearingSelectorCount": 2346,
+    "curatedCoreCssFiles": 41,
+    "broadSupplementCssFiles": 334,
+    "verifiedResourceHashes": 375,
+    "verifiedSourceOffsets": 77399,
+    "runtimeComputed": "not observed",
+    "offsets": "Zero-based UTF-16 code units in exact original CSS entry"
+  },
+  "failures": [],
+  "allCssPrivateReferenceSha256": "706c613610271c64114a7e0b8b8305479d7c90a73cd13f2d881d073fe83ba994",
+  "declarationSyntaxVerified": true
+}

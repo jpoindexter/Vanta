@@ -67,10 +67,16 @@ describe("readClaudeCodeAuth from the credentials file", () => {
     expect(auth).toEqual({ token: "sk-ant-oat01-x", expiresAt: 42 });
   });
 
-  it("the creds file beats the keychain when both exist", async () => {
-    await writeFile(join(dir, ".credentials.json"), blob("file-token", 42));
+  it("the creds file beats the keychain when both exist and file is still valid", async () => {
+    await writeFile(join(dir, ".credentials.json"), blob("file-token", 9_999_999_999_999));
     const auth = readClaudeCodeAuth({ CLAUDE_CONFIG_DIR: dir } as NodeJS.ProcessEnv, () => blob("kc-token", 99));
-    expect(auth).toEqual({ token: "file-token", expiresAt: 42 });
+    expect(auth).toEqual({ token: "file-token", expiresAt: 9_999_999_999_999 });
+  });
+
+  it("uses refreshed keychain credentials when the legacy creds file is expired", async () => {
+    await writeFile(join(dir, ".credentials.json"), blob("expired-file", 1));
+    const auth = readClaudeCodeAuth({ CLAUDE_CONFIG_DIR: dir } as NodeJS.ProcessEnv, () => blob("kc-token", 9_999_999_999_999));
+    expect(auth).toEqual({ token: "kc-token", expiresAt: 9_999_999_999_999 });
   });
 
   it("resolveClaudeCodeToken throws actionable errors", () => {

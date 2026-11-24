@@ -88,5 +88,8 @@ export async function resolveTelegramSetupStatus(
 }
 
 export function renderTelegramSetupStatus(value: TelegramSetupStatus): string {
-  return [value.title, value.detail, `${value.action.label}: ${value.action.command}`].join("\n");
+  const shellHint = value.action.id === "configure"
+    ? "Token entry runs from the shell command above; this Vanta session stays open."
+    : "";
+  return [value.title, value.detail, `${value.action.label}: ${value.action.command}`, shellHint].filter(Boolean).join("\n");
 }

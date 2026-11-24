@@ -1,0 +1,25 @@
+{
+  "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-XfE3MF",
+  "checks": [
+    "Sidebar pane is named Chats",
+    "Search uses chat language",
+    "Schedule heading is sentence case, not all caps",
+    "Acme site registered in the isolated backend",
+    "Beta notes registered in the isolated backend",
+    "Home exposes both registered project chips",
+    "Project picker exposes both projects",
+    "Chosen project is reflected by the picker",
+    "Submission moved the actual runtime to Beta notes",
+    "Bottom status names the new project",
+    "Original instruction reached the new chat"
+  ],
+  "project": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-desktop-XfE3MF/project/beta-notes",
+  "rendererErrors": [
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet",
+    "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+    "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+  ]
+}

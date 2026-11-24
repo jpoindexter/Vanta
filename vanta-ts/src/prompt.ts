@@ -6,6 +6,8 @@ import { readStack } from "./task-stack/store.js";
 import { taskStackSummary } from "./task-stack/summary.js";
 import { platformHint } from "./gateway/platforms/hints.js";
 import { formatPromptPreset, type PromptPreset } from "./prompt/presets.js";
+import { capabilitySnapshot, formatCapabilitySnapshot } from "./agent/capability-snapshot.js";
+import { scopeToolSchemas } from "./agent/tool-scope.js";
 import {
   readIfExists,
   stableTier,
@@ -105,7 +107,7 @@ export const PROMPT_TIERS: PromptTier[] = [
   {
     id: "volatile",
     render: ({ opts }) =>
-      volatileTier(opts.goals, opts.now, {
+      [volatileTier(opts.goals, opts.now, {
         memory: opts.memory,
         moimNote: opts.moimNote,
         projectId: opts.projectId,
@@ -113,7 +115,7 @@ export const PROMPT_TIERS: PromptTier[] = [
         ralphContinuity: opts.ralphContinuity,
         // Field first, then the env the gateway sets; unknown id → undefined → no line.
         platformHint: platformHint(opts.gatewayPlatform ?? process.env.VANTA_GATEWAY_PLATFORM),
-      }),
+      }), formatCapabilitySnapshot(capabilitySnapshot(opts.tools, scopeToolSchemas(opts.tools, "", { env: process.env })))].join("\n\n"),
   },
 ];
 
@@ -142,19 +144,6 @@ export function executiveFunctionTier(prefs?: NdPreferences): string {
     points: "Use a single practical estimate when asked, and surface an explicit checkpoint for longer work.",
     off: "Do not add time estimates or elapsed-time nudges unless the user asks.",
   }[prefs.timeSupport];
-  const stateSupport: string[] = [];
-  if (prefs.capacity === "low") {
-    stateSupport.push("- Capacity is low: preserve safety and the requested function, reduce polish, and leave one clear re-entry point.");
-  } else if (prefs.capacity === "high") {
-    stateSupport.push("- Capacity is high: keep momentum, but retain checkpoints and stop conditions instead of expanding scope silently.");
-  }
-  if (prefs.memoryLoad === "high") {
-    stateSupport.push("- Memory load is high: externalize the outcome, current step, known evidence, blockers, next step, and definition of done.");
-  }
-  if (prefs.activation === "stuck" || prefs.motivation === "low") {
-    stateSupport.push("- Activation support is on: start one small reversible action and add at most one truthful interest, novelty, challenge, or feedback bridge; never invent urgency.");
-  }
-
   return [
     "Executive-function operating contract (built-in automatic support, never diagnosis):",
     "- Apply this contract automatically on every task. It is core Vanta behavior, not a skill the operator must discover or invoke.",
@@ -173,8 +162,17 @@ export function executiveFunctionTier(prefs?: NdPreferences): string {
     `- ${density}`,
     `- ${sensory}`,
     `- ${time}`,
-    ...stateSupport,
+    ...executiveStateSupport(prefs),
   ].join("\n");
+}
+
+function executiveStateSupport(prefs: NdPreferences): string[] {
+  const rows: string[] = [];
+  if (prefs.capacity === "low") rows.push("- Capacity is low: preserve safety and the requested function, reduce polish, and leave one clear re-entry point.");
+  else if (prefs.capacity === "high") rows.push("- Capacity is high: keep momentum, but retain checkpoints and stop conditions instead of expanding scope silently.");
+  if (prefs.memoryLoad === "high") rows.push("- Memory load is high: externalize the outcome, current step, known evidence, blockers, next step, and definition of done.");
+  if (prefs.activation === "stuck" || prefs.motivation === "low") rows.push("- Activation support is on: start one small reversible action and add at most one truthful interest, novelty, challenge, or feedback bridge; never invent urgency.");
+  return rows;
 }
 
 /** Build the system prompt by rendering the ordered PROMPT_TIERS registry. */

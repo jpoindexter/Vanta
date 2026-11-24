@@ -20,7 +20,7 @@ export type ContextDeps = {
   root: string;
   summarize?: Summarizer;
   onAutoCompact?: (dropped: number, summary: string) => void;
-  onCompacting?: (active: boolean) => void;
+  onCompacting?: (active: boolean, progress?: number) => void;
   activeGoalText?: string;
   /** The live session scratchpad, re-injected on compaction. */
   sessionMemory?: string;
@@ -117,12 +117,19 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
   if (!deps.summarize) return;
   let compacting = false;
   try {
-    const r = await compactConversation(messages, deps.provider.contextWindow(), deps.summarize, {
+    const summarize: Summarizer = async (middle) => {
+      deps.onCompacting?.(true, 25);
+      const summary = await deps.summarize!(middle);
+      deps.onCompacting?.(true, 75);
+      return summary;
+    };
+    const r = await compactConversation(messages, deps.provider.contextWindow(), summarize, {
       thresholdPct: resolveCompactThresholdPct(process.env),
-      onPreCompact: (middle) => {
+      onPreCompact: async (middle) => {
         compacting = true;
-        deps.onCompacting?.(true);
-        return preCompact(deps, middle);
+        deps.onCompacting?.(true, 0);
+        await preCompact(deps, middle);
+        deps.onCompacting?.(true, 20);
       },
     });
     if (r.compacted) {
@@ -132,13 +139,15 @@ export async function persistCompaction(messages: Message[], deps: ContextDeps):
         workingMemory: deps.workingMemory,
         env: process.env,
       });
+      deps.onCompacting?.(true, 90);
       messages.splice(0, messages.length, ...withRestore(r.messages, restore));
       deps.onAutoCompact?.(r.dropped, r.summary);
       await fireHooks(join(deps.root, ".vanta"), "PostCompact", { trigger: "auto", dropped: r.dropped, summary: r.summary }, { cwd: deps.root, matcherValue: "auto", promptProvider: deps.provider });
+      deps.onCompacting?.(true, 100);
     }
   } catch { /* compaction is best-effort — a failure must never block the turn */ }
   finally {
-    if (compacting) deps.onCompacting?.(false);
+    if (compacting) deps.onCompacting?.(false, 0);
   }
 }
 
@@ -165,13 +174,16 @@ function withRestore(messages: Message[], restore: string): Message[] {
 function buildTrackedSummarizer(deps: ContextDeps): Summarizer | undefined {
   return deps.summarize && deps.onAutoCompact
     ? async (mid: Message[]) => {
-        deps.onCompacting?.(true);
+        deps.onCompacting?.(true, 0);
         try {
+          deps.onCompacting?.(true, 25);
           const s = await deps.summarize!(mid);
+          deps.onCompacting?.(true, 85);
           deps.onAutoCompact!(mid.length, s);
+          deps.onCompacting?.(true, 100);
           return s;
         } finally {
-          deps.onCompacting?.(false);
+          deps.onCompacting?.(false, 0);
         }
       }
     : deps.summarize;

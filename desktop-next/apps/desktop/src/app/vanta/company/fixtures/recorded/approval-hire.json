@@ -1,0 +1,22 @@
+{
+  "id": "1791920968999",
+  "action": "Hire copywriter (Copywriter) on openai",
+  "reason": "Adds a worker that can run tickets with budget 1.5 USD.",
+  "toolName": "company.hire",
+  "request": {
+    "kind": "generic",
+    "title": "Permission request",
+    "subject": "Hire copywriter (Copywriter) on openai",
+    "reason": "Adds a worker that can run tickets with budget 1.5 USD.",
+    "toolName": "company.hire",
+    "fresh": true,
+    "canRemember": false,
+    "sections": [
+      {
+        "label": "Action",
+        "value": "Hire copywriter (Copywriter) on openai",
+        "tone": "code"
+      }
+    ]
+  }
+}

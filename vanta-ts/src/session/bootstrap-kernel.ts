@@ -1,6 +1,7 @@
 import { createKernelClient, type KernelClient } from "../kernel/client.js";
 import { ensureKernel } from "../kernel-launcher.js";
 import { kernelBinaryPath } from "../kernel/path.js";
+import { validateSettingsBeforeEffects } from "./settings-preflight.js";
 
 type BootstrapKernelDeps = {
   configuredUrl?: string;
@@ -14,6 +15,7 @@ export async function bootstrapKernel(
   repoRoot: string,
   deps: BootstrapKernelDeps = {},
 ): Promise<KernelClient> {
+  await validateSettingsBeforeEffects(repoRoot);
   const configuredUrl = deps.configuredUrl
     ?? process.env.VANTA_KERNEL_URL
     ?? "http://127.0.0.1:7788";

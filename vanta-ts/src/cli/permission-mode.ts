@@ -1,4 +1,4 @@
-import { envForPermissionMode, parsePermissionMode } from "../modes/permission-mode.js";
+import { envForOperatingMode, parseOperatingMode } from "../modes/operating-mode.js";
 
 export type PermissionModeParse = {
   rest: string[];
@@ -7,8 +7,8 @@ export type PermissionModeParse = {
 };
 
 function envForMode(mode: string | undefined): NodeJS.ProcessEnv {
-  const parsed = parsePermissionMode(mode);
-  return parsed ? envForPermissionMode(parsed) : {};
+  const parsed = parseOperatingMode(mode);
+  return parsed ? envForOperatingMode(parsed) : {};
 }
 
 export function parsePermissionModeFlags(args: string[], baseEnv: NodeJS.ProcessEnv): PermissionModeParse {

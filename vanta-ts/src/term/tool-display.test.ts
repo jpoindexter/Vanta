@@ -52,6 +52,13 @@ describe("toolDisplay", () => {
     expect(d.icon).toBeTruthy();
   });
 
+  it("renders local document reads as file activity", () => {
+    expect(toolDisplay("document_read", { path: "research/brief.docx" }))
+      .toMatchObject({ verb: "read document", detail: "research/brief.docx" });
+    expect(toolDisplay("pdf_read", { path: "research/audit.pdf" }))
+      .toMatchObject({ verb: "read PDF", detail: "research/audit.pdf" });
+  });
+
   it("renders look_at_screen WITHOUT any temp path detail", () => {
     const d = toolDisplay("look_at_screen", {});
     expect(d.verb).toMatch(/screen/i);

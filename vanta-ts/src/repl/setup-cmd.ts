@@ -8,7 +8,7 @@ type SetupCommandDeps = {
   status?: (env: NodeJS.ProcessEnv, dataDir: string) => Promise<TelegramSetupStatus>;
 };
 
-export { isTelegramSetupQuestion } from "../setup/telegram-intent.js";
+export { isTelegramSetupQuestion, mentionsTelegramSetup } from "../setup/telegram-intent.js";
 
 function telegramAccess(env: NodeJS.ProcessEnv): string {
   return env.VANTA_TELEGRAM_ALLOW?.trim()
@@ -24,9 +24,16 @@ export function renderSetupHub(ctx: ReplCtx): string {
     "  Setup",
     `  Model      ${ctx.setup.provider.modelId()} · /model`,
     `  Telegram   ${telegram} · /setup telegram`,
-    "  Voice      /setup tts",
+    "  Dictation  /voice setup (local input)",
+    "  Speech     /setup tts (optional spoken replies)",
     "  MCP        /mcp",
   ].join("\n");
+}
+
+async function setupVoiceSection(section: string, rest: string[], ctx: ReplCtx) {
+  if (section === "tts") return { output: "  Opening voice setup…", setupHandoff: { section: "tts" as const } };
+  const { voice } = await import("./voice-cmd.js");
+  return voice(rest.join(" ") || "setup", ctx);
 }
 
 export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
@@ -44,17 +51,14 @@ export function createSetupCommand(deps: SetupCommandDeps = {}): SlashHandler {
     if (section === "messaging" || section === "telegram") {
       const resolveStatus = deps.status ?? ((env, dataDir) => resolveTelegramSetupStatus(env, dataDir, { probe: deps.probe }));
       const output = renderTelegramSetupStatus(await resolveStatus(ctx.env, ctx.dataDir)).split("\n").map((line) => `  ${line}`).join("\n");
-      if (rest[0]?.toLowerCase() === "status") return { output };
-      return { output, setupHandoff: { section: "messaging", platformId: "telegram" } };
+      return { output };
     }
 
-    if (section === "tts" || section === "voice") {
-      return { output: "  Opening voice setup…", setupHandoff: { section: "tts" } };
-    }
+    if (["voice", "tts"].includes(section)) return setupVoiceSection(section, rest, ctx);
 
     if (section === "mcp") return { output: "  Open MCP connections with /mcp." };
 
-    return { output: "  usage: /setup [model|messaging|telegram|tts|mcp]" };
+    return { output: "  usage: /setup [model|messaging|telegram|voice|tts|mcp]" };
   };
 }
 

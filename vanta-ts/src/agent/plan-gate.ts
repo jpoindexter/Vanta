@@ -4,10 +4,11 @@
  * this list is blocked, so adding a new write tool doesn't silently bypass the gate.
  */
 export const PLAN_MODE_ALLOWED_TOOLS = new Set([
+  "apple_mail_audit",
   "read_file",
-  "edit_file",      // read-path is safe; write-path is blocked by this gate upstream
   "grep_files",
   "glob_files",
+  "job_profile_scan",
   "recall",
   "web_search",
   "web_fetch",
@@ -24,6 +25,7 @@ export const PLAN_MODE_ALLOWED_TOOLS = new Set([
   "compare_vision",
   "watch_video",
   "tool_search",
+  "session_search",
   "graph_query",
   "bg_list",
   "bg_status",

@@ -2,6 +2,8 @@ import { loadEntries } from "../brain/entries.js";
 import { resolveBrain } from "../brain/interface.js";
 import type { LLMProvider } from "../providers/interface.js";
 import type { Message } from "../types.js";
+import { canPersistMemoryClaim } from "../work-items/memory-policy.js";
+import type { WorkItemState } from "../work-items/contract.js";
 
 // Opt-in memory extraction. This is separate from brain/learn: it stores only
 // plain durable fact strings, tags them as auto-extracted, and never throws.
@@ -19,6 +21,7 @@ Return [] when there is nothing durable.`;
 
 export type MemoryExtractorContext = {
   provider: LLMProvider;
+  completionState?: WorkItemState;
   env?: NodeJS.ProcessEnv;
   now?: Date;
 };
@@ -106,6 +109,7 @@ export async function runMemoryExtractor(
     const storedFacts = (await loadEntries(env)).map((e) => e.content);
     let stored = 0;
     for (const fact of parsed) {
+      if (!canPersistMemoryClaim(fact, ctx.completionState)) continue;
       if (isDuplicate(fact, storedFacts)) continue;
       await resolveBrain().remember({
         region: "semantic",

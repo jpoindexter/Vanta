@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+  <title>Vanta · Composer design proposal</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --white: #fff; --ink: #202024; --grey-50: #f7f7f8; --grey-100: #efeff1;
+      --grey-200: #e2e2e5; --grey-600: #66666a; --blue: #2c67c5;
+      --night: #161616; --night-panel: #1c1c1d; --night-raised: #212122;
+      --night-ink: #ececee; --night-muted: #a1a1a5; --night-line: #2e2e32;
+      --night-hover: #232325; --night-blue: #3a83f7;
+      --page: var(--grey-50); --surface: var(--white); --raised: var(--white);
+      --text: var(--ink); --muted: var(--grey-600); --line: var(--grey-200);
+      --hover: var(--grey-100); --focus: var(--blue); --action: var(--ink); --on-action: var(--white);
+      --shadow-ink: 32 32 36;
+      --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem;
+      --space-6: 1.5rem; --space-8: 2rem; --space-12: 3rem;
+      --composer-width: 45rem; --composer-radius: 1.375rem; --control-size: 2rem;
+      --composer-shadow: 0 0 0 1px rgb(var(--shadow-ink) / .06), 0 2px 8px rgb(var(--shadow-ink) / .04), 0 4px 40px rgb(var(--shadow-ink) / .03);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      font-size: 16px;
+    }
+    [data-theme="dark"] {
+      color-scheme: dark; --page: var(--night); --surface: var(--night-panel); --raised: var(--night-raised);
+      --text: var(--night-ink); --muted: var(--night-muted); --line: var(--night-line);
+      --hover: var(--night-hover); --focus: var(--night-blue); --action: #f4f4f5; --on-action: var(--night);
+      --shadow-ink: 236 236 238;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--text); font-size: .875rem; line-height: 1.25rem; }
+    button, textarea, select { font: inherit; color: inherit; }
+    button, select { cursor: pointer; }
+    button { border: 0; }
+    button:focus-visible, select:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 2px solid var(--focus); outline-offset: 2px;
+    }
+    button:disabled { cursor: not-allowed; color: var(--muted); opacity: .45; }
+    .sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    [hidden] { display: none !important; }
+    svg { inline-size: 1.125rem; block-size: 1.125rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .review { max-inline-size: 68rem; margin-inline: auto; padding: var(--space-8) var(--space-6); }
+    .review-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-6); }
+    h1 { margin: 0; font-size: 1rem; line-height: 1.5rem; font-weight: 600; }
+    .badge, .muted { color: var(--muted); }
+    .review-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-6); margin-block: var(--space-6); }
+    .review-toolbar label { display: inline-flex; align-items: center; gap: var(--space-2); }
+    .review-toolbar select { min-block-size: var(--control-size); border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); padding: var(--space-1) var(--space-2); }
+    .review-toolbar input { accent-color: var(--focus); inline-size: 1rem; block-size: 1rem; margin: 0; }
+    .review-action { min-block-size: var(--control-size); padding-inline: var(--space-2); border-radius: .5rem; background: transparent; color: var(--muted); }
+    .stage { background: var(--surface); border: 1px solid var(--line); border-radius: 1rem; padding: var(--space-12) var(--space-6); }
+    .reference { max-inline-size: var(--composer-width); margin: 0 auto var(--space-8); }
+    .reference h2 { margin: 0 0 var(--space-2); font-size: 1.25rem; line-height: 1.75rem; font-weight: 500; letter-spacing: -.02em; }
+    .reference p { margin: 0; max-inline-size: 60ch; color: var(--muted); }
+    .composer { max-inline-size: var(--composer-width); margin-inline: auto; padding: var(--space-3); border: 1px solid transparent; border-radius: var(--composer-radius); background: var(--surface); box-shadow: var(--composer-shadow); }
+    .composer:has(textarea:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
+    textarea { display: block; inline-size: 100%; min-block-size: 2.75rem; max-block-size: 12.5rem; padding: 0 var(--space-1); resize: none; border: 0; background: transparent; line-height: 1.25rem; caret-color: var(--text); }
+    textarea::placeholder { color: var(--muted); opacity: 1; }
+    textarea:focus-visible { outline: none; }
+    textarea:disabled { opacity: .55; cursor: not-allowed; }
+    .attachments { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-end: var(--space-2); }
+    .attachment { display: inline-flex; align-items: center; gap: var(--space-2); max-inline-size: 100%; background: var(--page); border: 1px solid var(--line); border-radius: .75rem; padding: var(--space-1) var(--space-2); }
+    .attachment-name { min-inline-size: 0; overflow-wrap: anywhere; }
+    .attachment-name small { display: block; color: var(--muted); font-size: .75rem; line-height: 1rem; }
+    .footer { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); margin-block-start: var(--space-2); }
+    .control { display: inline-flex; justify-content: center; align-items: center; gap: var(--space-2); min-block-size: var(--control-size); border-radius: .5rem; background: transparent; padding: var(--space-1) var(--space-2); color: var(--muted); white-space: nowrap; }
+    .icon-control { inline-size: var(--control-size); padding: 0; }
+    .footer-spacer { flex: 1; }
+    .control svg.chevron { inline-size: .75rem; block-size: .75rem; }
+    .send { border-radius: 50%; color: var(--on-action); background: var(--action); }
+    .send:disabled { background: var(--hover); color: var(--muted); opacity: 1; }
+    .send:not(:disabled):active { transform: scale(.96); }
+    .popover-wrap { position: relative; }
+    .popover { position: absolute; inset-block-end: calc(100% + var(--space-2)); inset-inline-end: 0; z-index: 1; inline-size: min(16rem, 70vw); padding: var(--space-3); border: 1px solid var(--line); border-radius: .75rem; background: var(--raised); box-shadow: 0 4px 16px rgb(0 0 0 / .051); }
+    .popover p { margin: 0; color: var(--muted); }
+    .hint-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); max-inline-size: var(--composer-width); margin: var(--space-3) auto 0; color: var(--muted); font-size: .75rem; line-height: 1.125rem; }
+    #feedback { min-block-size: 1.25rem; max-inline-size: var(--composer-width); margin: var(--space-4) auto 0; color: var(--muted); }
+    .basis { margin-block-start: var(--space-6); color: var(--muted); font-size: .75rem; line-height: 1.125rem; }
+    .basis summary { cursor: pointer; inline-size: fit-content; padding-block: var(--space-1); }
+    .basis p { max-inline-size: 88ch; margin-block: var(--space-2); }
+    .tokens { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-2) var(--space-6); margin-block: var(--space-3); }
+    .tokens div { display: grid; gap: var(--space-1); }
+    .tokens dt { color: var(--text); font-weight: 500; }
+    .tokens dd { margin: 0; }
+    @media (hover: hover) and (pointer: fine) {
+      .control:not(:disabled):hover, .review-action:hover { background: var(--hover); color: var(--text); }
+      .send:not(:disabled):hover { background: var(--action); color: var(--on-action); opacity: .86; }
+    }
+    @media (max-width: 35rem) {
+      .review { padding: var(--space-4); }
+      .stage { padding: var(--space-8) var(--space-3); }
+      .access-label { display: none; }
+      .footer { gap: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; transform: none !important; } }
+    @media (forced-colors: active) {
+      .composer, .attachment, .stage, .popover { border-color: CanvasText; box-shadow: none; }
+      .control { border: 1px solid ButtonText; }
+      .control:disabled { border-color: GrayText; color: GrayText; }
+      .composer:has(textarea:focus-visible), button:focus-visible, select:focus-visible, summary:focus-visible, input:focus-visible { outline-color: Highlight; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="sr-only" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="m6 11 6-6 6 6M12 5v14"/></symbol>
+    <symbol id="chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6l8-3Z"/><path d="M12 8v5m0 3h.01"/></symbol>
+    <symbol id="document" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="close" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+    <symbol id="microphone" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol>
+  </svg>
+  <main class="review">
+    <header class="review-header"><h1>Vanta / Composer</h1><span class="badge">Design proposal — not installed</span></header>
+    <div class="review-toolbar" role="group" aria-label="Design review controls">
+      <label>Context <select id="context"><option value="home">New chat</option><option value="chat">Conversation</option></select></label>
+      <label>Appearance <select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+      <label><input id="disabled" type="checkbox"> Preview unavailable state</label>
+      <button class="review-action" id="reset" type="button">Reset preview</button>
+    </div>
+    <section class="stage" aria-labelledby="surface-title">
+      <div class="reference"><h2 id="surface-title">What’s on your mind?</h2><p id="context-copy">The same typing surface, from your first message onward.</p></div>
+      <div class="composer" aria-label="Composer design proposal">
+        <div class="attachments" id="attachments" hidden>
+          <div class="attachment"><svg aria-hidden="true"><use href="#document"/></svg><span class="attachment-name">Research brief.pdf<small>Sample attachment · preview only</small></span><button class="control icon-control" id="remove" type="button" aria-label="Remove sample attachment"><svg aria-hidden="true"><use href="#close"/></svg></button></div>
+        </div>
+        <label class="sr-only" for="draft">Message to Vanta — local design preview only</label>
+        <textarea id="draft" rows="2" placeholder="Ask Vanta to do something…" aria-describedby="preview-note shortcut"></textarea>
+        <div class="footer" role="group" aria-label="Composer controls">
+          <button class="control icon-control" id="attach" type="button" aria-label="Add sample attachment — preview only" aria-pressed="false" title="Add sample attachment"><svg aria-hidden="true"><use href="#plus"/></svg></button>
+          <div class="popover-wrap">
+            <button class="control" id="access" type="button" aria-expanded="false" aria-controls="access-note"><svg aria-hidden="true"><use href="#shield"/></svg><span class="access-label">Ask first</span></button>
+            <div class="popover" id="access-note" hidden><p>Permission-control appearance only. This proposal does not change approval rules or computer access.</p></div>
+          </div>
+          <span class="footer-spacer"></span>
+          <div class="popover-wrap">
+            <button class="control" id="model" type="button" aria-expanded="false" aria-controls="model-note">Selected model<svg class="chevron" aria-hidden="true"><use href="#chevron"/></svg></button>
+            <div class="popover" id="model-note" hidden><p>Model-control appearance only. Your actual model selection and provider setup remain unchanged.</p></div>
+          </div>
+          <div class="popover-wrap">
+            <button class="control icon-control" id="voice" type="button" aria-label="Voice input appearance — no microphone access" aria-expanded="false" aria-controls="voice-note"><svg aria-hidden="true"><use href="#microphone"/></svg></button>
+            <div class="popover" id="voice-note" hidden><p>Voice-control appearance only. No microphone is accessed and no audio is recorded.</p></div>
+          </div>
+          <button class="control icon-control send" id="send" type="button" disabled aria-label="Preview send state — nothing will be sent" title="Preview send state"><svg aria-hidden="true"><use href="#arrow"/></svg></button>
+        </div>
+      </div>
+      <div class="hint-row"><span id="shortcut">Enter previews send · Shift+Enter for a new line</span><span id="preview-note">No network, files, microphone or model access</span></div>
+      <p id="feedback" role="status" aria-live="polite">Type or add a sample attachment to review the ready state.</p>
+    </section>
+    <footer class="basis">
+      <details><summary>Proposed decisions and source basis</summary>
+        <dl class="tokens">
+          <div><dt>One surface contract</dt><dd>22px radius; 12px inset; 8px input-to-controls gap; 720px preview cap. Placement and Home column width are separate decisions.</dd></div>
+          <div><dt>One control contract</dt><dd>32px minimum controls; 18px icons; 14px/20px system UI text. Quiet resting buttons; ink-filled circular action.</dd></div>
+          <div><dt>Vanta, not a new palette</dt><dd>Light #fff / #202024 / #f7f7f8; focus #2c67c5. Dark #161616 / #ececee / #1c1c1d; focus #3a83f7. Accent stays in focus and selection.</dd></div>
+          <div><dt>Restrained depth and focus</dt><dd>Hairline 6%; near 0 2px 8px at 4%; ambient 0 4px 40px at 3%. A single 2px focus cue on the current keyboard target.</dd></div>
+        </dl>
+        <p>Basis: current Vanta <code>themes/presets.ts</code>, <code>styles/vanta.css</code>, <code>styles/vanta-composer.css</code> and <code>styles/vanta-chat.css</code>; bounded Codex reference dossier dated 2026-10-25. Values are static source declarations, not live Codex measurements. Dark raised composer fill is a proposed elevation choice using Vanta’s existing card seed.</p>
+        <p>This is one isolated HTML proposal. No Codex implementation/assets, application changes, installation, delivery acceptance or visual sign-off. Nothing typed here is saved or sent. Parent browser checks cover 19 local interactions/layout assertions and light/dark/narrow captures; full contrast, browser zoom, assistive technology and owner acceptance remain unverified.</p>
+      </details>
+    </footer>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const draft = $('draft'), attachment = $('attachments'), send = $('send');
+    const controls = ['attach', 'remove', 'access', 'model', 'voice'];
+    const feedback = message => { $('feedback').textContent = message; };
+    const closeNotes = () => ['access', 'model', 'voice'].forEach(id => { $(id + '-note').hidden = true; $(id).setAttribute('aria-expanded', 'false'); });
+    function refresh() {
+      const unavailable = $('disabled').checked;
+      draft.disabled = unavailable;
+      controls.forEach(id => { $(id).disabled = unavailable; });
+      send.disabled = unavailable || (!draft.value.trim() && attachment.hidden);
+      draft.style.height = 'auto';
+      draft.style.height = Math.min(200, Math.max(44, draft.scrollHeight)) + 'px';
+      if (unavailable) closeNotes();
+    }
+    function setAttachment(visible) {
+      attachment.hidden = !visible;
+      $('attach').setAttribute('aria-pressed', String(visible));
+      refresh();
+    }
+    function previewSend() {
+      if (!send.disabled) feedback('Ready-state interaction previewed. Nothing was sent; your draft is unchanged.');
+    }
+    draft.addEventListener('input', refresh);
+    draft.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); previewSend(); }
+    });
+    send.addEventListener('click', previewSend);
+    $('attach').addEventListener('click', () => {
+      setAttachment(attachment.hidden);
+      feedback(attachment.hidden ? 'Sample attachment removed. Nothing was saved.' : 'Sample attachment shown. No file was opened or uploaded.');
+    });
+    $('remove').addEventListener('click', () => { setAttachment(false); $('attach').focus(); feedback('Sample attachment removed.'); });
+    $('disabled').addEventListener('change', () => { refresh(); feedback($('disabled').checked ? 'Unavailable appearance only. Draft retained; no operation is running.' : 'Composer available for local preview.'); });
+    $('theme').addEventListener('change', event => { document.documentElement.dataset.theme = event.target.value; });
+    $('context').addEventListener('change', event => {
+      const home = event.target.value === 'home';
+      $('surface-title').textContent = home ? 'What’s on your mind?' : 'Continue the conversation';
+      $('context-copy').textContent = home ? 'The same typing surface, from your first message onward.' : 'Same composer, spacing and controls. No sample conversation or agent activity.';
+    });
+    ['access', 'model', 'voice'].forEach(id => $(id).addEventListener('click', () => {
+      const open = $(id + '-note').hidden; closeNotes();
+      $(id + '-note').hidden = !open; $(id).setAttribute('aria-expanded', String(open));
+    }));
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      const open = ['access', 'model', 'voice'].find(id => !$(id + '-note').hidden);
+      if (open) { closeNotes(); $(open).focus(); }
+    });
+    document.addEventListener('click', event => { if (!event.target.closest('.popover-wrap')) closeNotes(); });
+    $('reset').addEventListener('click', () => {
+      draft.value = ''; $('disabled').checked = false; setAttachment(false); closeNotes();
+      feedback('Preview reset. Nothing was saved or sent.'); draft.focus();
+    });
+    refresh();
+  </script>
+</body>
+</html>

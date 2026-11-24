@@ -4,6 +4,7 @@ import type { LLMProvider } from "../providers/interface.js";
 import type { ToolContext } from "./types.js";
 import type { Frame, VisionWatchDeps, WatchState } from "../vision/watch.js";
 import { sendChatTool } from "./send-chat.js";
+import { executeToolEffect } from "../effects/tool-effect-gateway.js";
 
 // Live substrate for the vision watch. The PURE detection + orchestration live in
 // `vision/watch.ts`; this wires the real effects — a macOS screencapture frame, a
@@ -92,9 +93,14 @@ async function alertViaGateway(
   target: { platform: string; chatId: string },
   description: string,
 ): Promise<boolean> {
-  const res = await sendChatTool.execute(
+  const res = await executeToolEffect(
+    "send_chat",
     { platform: target.platform, chatId: target.chatId, text: `👁 Vision watch: ${description}` },
-    ctx,
+    sendChatTool,
+    {
+      ...ctx,
+      effectCallId: ctx.effectCallId ? `${ctx.effectCallId}:vision-alert` : undefined,
+    },
   );
   return res.ok;
 }

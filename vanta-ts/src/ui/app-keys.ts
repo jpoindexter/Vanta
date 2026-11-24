@@ -35,6 +35,8 @@ export function ctxSnapshot(setup: RunSetup, convo: Conversation | null, state?:
 type GlobalKey = { ctrl?: boolean; escape?: boolean; tab?: boolean; shift?: boolean; leftArrow?: boolean; rightArrow?: boolean; upArrow?: boolean; downArrow?: boolean };
 type GlobalKeyDeps = {
   busy: boolean; pending: Pending | null; overlayOpen: boolean;
+  /** A component such as the structured question picker exclusively owns stdin. */
+  inputModal?: boolean;
   abort: () => void; exit: () => void; cycle: () => void;
   focus: FocusTarget; focusTargets: FocusTargetSpec[]; setFocus: (target: FocusTarget) => void;
   quickOpenOpen: boolean; openQuickOpen: () => void;
@@ -42,6 +44,7 @@ type GlobalKeyDeps = {
   messageActionsOpen: boolean; openMessageActions: () => void;
   backgroundResponseAvailable: boolean; toggleBackgroundResponse: () => void;
   traceOpen?: boolean; toggleTrace?: () => void;
+  voiceActive?: boolean; toggleDictation?: () => void; cancelDictation?: () => void;
   /** Set only while a teammate tree is live; cycles focus between agents. */
   cycleAgent?: (dir: 1 | -1) => void;
   /** Transcript text selection owns Shift+arrows / Ctrl+C only while useful. */
@@ -57,7 +60,7 @@ type GlobalKeyDeps = {
 
 export function useGlobalKeys(deps: GlobalKeyDeps): void {
   const [chordPending, setChordPending] = useState<string | null>(null);
-  useInput((input, key) => handleGlobalKey(input, key, { ...deps, chordPending, setChordPending }));
+  useInput((input, key) => handleGlobalKey(input, key, { ...deps, chordPending, setChordPending }), { isActive: !deps.inputModal });
 }
 
 /** KEYBINDING-CUSTOMIZATION — load the resolved bindings once (defaults until
@@ -76,6 +79,7 @@ export function useKeybindings(): KeyBinding[] {
 // before). Custom chords in ~/.vanta/keybindings.json therefore take effect on
 // the live TUI. Focus keys (tab/shift-tab) stay in handleFocusKey.
 export function handleGlobalKey(input: string, key: GlobalKey, d: GlobalKeyDeps): void {
+  if (d.voiceActive && (key.escape || (key.ctrl && input === "c"))) { d.cancelDictation?.(); return; }
   if (d.transcriptSelectionKey?.(input, key)) return;
   const chord = eventToChord(input, key as GlobalKey & { alt?: boolean; meta?: boolean; upArrow?: boolean; downArrow?: boolean });
   const resolved = resolveGlobalAction(chord, d);
@@ -117,6 +121,7 @@ function noteChordState(pending: string | null, message: string, d: GlobalKeyDep
 // this a table holds dispatchGlobalAction flat (one lookup, not a guard chain).
 const notBlocked = (d: GlobalKeyDeps): boolean => !d.quickOpenOpen && !d.globalSearchOpen && !d.messageActionsOpen && !d.traceOpen && !d.pending && !d.overlayOpen;
 const GLOBAL_HANDLERS: Record<string, { guard: (d: GlobalKeyDeps) => boolean; run: (d: GlobalKeyDeps) => void }> = {
+  [GLOBAL_ACTIONS.dictation]: { guard: (d) => notBlocked(d) && !d.busy && d.focus === "composer", run: (d) => d.toggleDictation?.() },
   [GLOBAL_ACTIONS.exitOrAbort]: { guard: () => true, run: (d) => void (d.busy ? d.abort() : d.exit()) },
   [GLOBAL_ACTIONS.quickOpen]: { guard: notBlocked, run: (d) => d.openQuickOpen() },
   [GLOBAL_ACTIONS.globalSearch]: { guard: notBlocked, run: (d) => d.openGlobalSearch() },
@@ -143,9 +148,19 @@ export function useFocusFallback(focus: FocusTarget, targets: FocusTargetSpec[],
 }
 
 export function buildFocusTargets(pending: Pending | null, overlay: OverlayView | null, promptSuggestions = false): FocusTargetSpec[] {
-  if (pending) return ["approval-allow", ...(pending.fresh ? [] : ["approval-always"]), "approval-deny", "approval-never"].map((id) => ({ id: id as FocusTarget }));
-  if (overlay) return [{ id: overlay.kind === "list" ? "overlay-list" : "overlay-close" }];
+  if (pending) return [
+    ...(pending.canContinueTask && !pending.fresh ? ["approval-task"] : []),
+    ...(!pending.canContinueTask || pending.fresh ? ["approval-allow"] : []),
+    ...(pending.fresh ? [] : ["approval-always"]),
+    "approval-deny",
+    "approval-never",
+  ].map((id) => ({ id: id as FocusTarget }));
+  if (overlay) return [{ id: overlayFocusTarget(overlay) }];
   return promptSuggestions ? [{ id: "composer" }, { id: "prompt-suggestions" }] : [{ id: "composer" }];
+}
+
+function overlayFocusTarget(overlay: OverlayView): FocusTarget {
+  return overlay.kind === "list" || overlay.kind === "modelPick" ? "overlay-list" : "overlay-close";
 }
 
 export function useSkillMatches(): SlashMatch[] {

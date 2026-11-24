@@ -4,8 +4,10 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolveVantaHome, skillsDir } from "../store/home.js";
 import { shellHooksPath } from "../hooks/shell-hooks.js";
 import { listSkills } from "./store.js";
+import { listBundledSkills } from "./library.js";
 import { compileTriggers, compileTriggersForClaude, mergeVantaHooks, mergeClaudeSettings } from "./triggers.js";
 import { compileTriggersForCodex, mergeAgentsMd } from "./triggers-codex.js";
+import type { Skill } from "./types.js";
 
 // SKILL-TRIGGERS — the disk upserters. The single side-effecting layer: read all
 // skills' triggers, compile them, and idempotently UPSERT the generated hooks into
@@ -26,15 +28,30 @@ async function readJson(path: string): Promise<Record<string, unknown>> {
   }
 }
 
+export function mergeAvailableSkills(bundled: Skill[], user: Skill[]): Skill[] {
+  const byName = new Map<string, Skill>();
+  for (const skill of bundled) byName.set(skill.meta.name.toLowerCase(), skill);
+  for (const skill of user) byName.set(skill.meta.name.toLowerCase(), skill);
+  return [...byName.values()].sort((a, b) => a.meta.name.localeCompare(b.meta.name));
+}
+
+async function availableSkills(env: NodeJS.ProcessEnv, sources?: string[]): Promise<Skill[]> {
+  const [bundled, user] = await Promise.all([
+    listBundledSkills({ env, sources }).catch(() => []),
+    listSkills(env).catch(() => []),
+  ]);
+  return mergeAvailableSkills(bundled, user);
+}
+
 /**
  * Compile every skill's triggers and upsert them into ~/.vanta/hooks.json.
  * Idempotent (regenerates the generated entries, preserves hand-written hooks).
  * Returns the count written + which events were touched.
  */
-export async function syncSkillTriggers(opts: { env?: NodeJS.ProcessEnv } = {}): Promise<{ written: number; events: string[] }> {
+export async function syncSkillTriggers(opts: { env?: NodeJS.ProcessEnv; sources?: string[] } = {}): Promise<{ written: number; events: string[] }> {
   const env = opts.env ?? process.env;
   const bin = vantaBinPath();
-  const skills = await listSkills(env).catch(() => []);
+  const skills = await availableSkills(env, opts.sources);
   const compiled = skills.flatMap((s) => compileTriggers(s, bin));
   const home = resolveVantaHome(env);
   const path = shellHooksPath(home);
@@ -52,10 +69,10 @@ export async function syncSkillTriggers(opts: { env?: NodeJS.ProcessEnv } = {}):
  * Opt-in: upsert the Claude-Code-compatible trigger hooks into ~/.claude/settings.json
  * (Stop + UserPromptSubmit only). Preserves the user's existing Claude hooks.
  */
-export async function syncSkillTriggersForClaude(opts: { env?: NodeJS.ProcessEnv } = {}): Promise<{ written: number }> {
+export async function syncSkillTriggersForClaude(opts: { env?: NodeJS.ProcessEnv; sources?: string[] } = {}): Promise<{ written: number }> {
   const env = opts.env ?? process.env;
   const bin = vantaBinPath();
-  const skills = await listSkills(env).catch(() => []);
+  const skills = await availableSkills(env, opts.sources);
   const compiled = skills.flatMap((s) => compileTriggersForClaude(s, bin));
   const dir = join(homedir(), ".claude");
   const path = join(dir, "settings.json");
@@ -78,9 +95,9 @@ async function readText(path: string): Promise<string> {
  * the Codex equivalent of the Claude settings sync. Codex has no event hooks, so routing is a
  * standing instruction it reads each session. Idempotent; preserves the rest of the file.
  */
-export async function syncSkillTriggersForCodex(opts: { env?: NodeJS.ProcessEnv; path?: string } = {}): Promise<{ written: number; path: string }> {
+export async function syncSkillTriggersForCodex(opts: { env?: NodeJS.ProcessEnv; path?: string; sources?: string[] } = {}): Promise<{ written: number; path: string }> {
   const env = opts.env ?? process.env;
-  const skills = await listSkills(env).catch(() => []);
+  const skills = await availableSkills(env, opts.sources);
   const lines = skills.map((s) => compileTriggersForCodex(s)).filter((l): l is string => l !== null);
   const path = opts.path ?? join(homedir(), ".codex", "AGENTS.md");
   const merged = mergeAgentsMd(await readText(path), lines);

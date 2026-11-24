@@ -8,6 +8,8 @@ import {
   loadNdProfile,
   saveNdProfile,
   saveNdPreferences,
+  saveNdSupport,
+  effectiveNdSupport,
   getOutputDensity,
   invalidateNdConfig,
   ndEngineEnabled,
@@ -20,6 +22,7 @@ import {
   defaultNdProfile,
   setGateEnabled,
   setNdPreference,
+  defaultNdSupport,
 } from "./engine.js";
 
 async function tempHome(): Promise<{ env: NodeJS.ProcessEnv; dir: string }> {
@@ -168,7 +171,47 @@ describe("nd profile — preferences", () => {
       expect(raw).toHaveProperty("prefs");
       expect(raw.prefs.outputDensity).toBe("balanced");
       expect(raw.prefs.capacity).toBe("auto");
+      expect(raw.support.capacity.cognitive).toBe("unknown");
     } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("defaults multidimensional capacity to unknown and preserves accessibility controls", async () => {
+    const { env, dir } = await tempHome();
+    try {
+      const support = (await loadNdProfile(env)).support;
+      expect(support.capacity).toEqual({
+        cognitive: "unknown", attentional: "unknown", sensory: "unknown", social: "unknown",
+        emotional: "unknown", physical: "unknown", time: "unknown",
+      });
+      expect(support.interaction).toEqual({ reducedMotion: true, streaming: false, autoScroll: false });
+      expect(support.refusals).toEqual({ global: false, patterns: [] });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("expires transient capacity to unknown while preserving quiet hours and refusal", async () => {
+    const { env, dir } = await tempHome();
+    try {
+      const support = defaultNdSupport();
+      await saveNdSupport({
+        ...support,
+        capacity: { ...support.capacity, attentional: "low" },
+        transient: { setAt: "2026-08-02T12:00:00.000Z", reviewAt: "2026-08-02T13:00:00.000Z", expiresAt: "2026-08-02T14:00:00.000Z" },
+        quietHours: { enabled: true, start: "22:00", end: "08:00" },
+        interruptionBudget: { daily: 2 },
+        refusals: { global: true, patterns: ["today-recommendation"] },
+      }, env);
+      const effective = await effectiveNdSupport(env, new Date("2026-08-02T15:00:00.000Z"));
+      expect(effective.capacity.attentional).toBe("unknown");
+      expect(effective.transient.expired).toBe(true);
+      expect(effective.quietHours.enabled).toBe(true);
+      expect(effective.refusals.global).toBe(true);
+      expect((await loadNdProfile(env)).gates).toEqual(defaultNdConfig());
+    } finally {
+      invalidateNdConfig();
       await rm(dir, { recursive: true, force: true });
     }
   });

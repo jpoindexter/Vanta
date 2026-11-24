@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "roadmapId": "UX-03",
+  "roadmapState": "shipped",
+  "checkpointState": "local-validation-passed",
+  "branch": "codex/desktop-project-switch-and-bulk-20260802",
+  "baselineSha": "9d72e5c26e278e2fc2a9de0c05cc3811a59ef7f4",
+  "executedAt": "2026-08-02",
+  "platform": "Darwin",
+  "command": "npm run desktop:continuity:proof",
+  "continuity": {
+    "electronLaunches": 3,
+    "capturedProjectFile": "brief.md",
+    "recommendationsShown": 1,
+    "primaryChoices": 3,
+    "processRestartReentry": true,
+    "preparedReadExecutions": 1,
+    "duplicateExecutions": 0,
+    "transientCapacityExpiredToUnknown": true,
+    "sessionRefusalResetOnRestart": true,
+    "persistentRefusalScopesTested": ["pattern", "global"],
+    "snoozeAndSkipSettled": true,
+    "sourceUnchanged": true,
+    "runs": 3,
+    "approvals": 1,
+    "receipts": 3,
+    "legacySources": 5
+  },
+  "accessibility": {
+    "surface": "continuity Today",
+    "seriousAxeViolations": 0,
+    "reducedMotion": true,
+    "nonColorMeaning": true,
+    "concretePreview": true
+  },
+  "trustLedger": {
+    "productionSources": 14,
+    "effectKinds": 24,
+    "missingSources": 0,
+    "staleSources": 0,
+    "mutationTestsPassed": 2
+  },
+  "validation": {
+    "runtimeTypecheck": "passed",
+    "rendererTypecheck": "passed",
+    "fullTypeScript": {
+      "filesPassed": 1511,
+      "testsPassed": 13933,
+      "testsSkipped": 3,
+      "exit": 0,
+      "timeoutMs": 60000
+    },
+    "rust": { "passed": 70, "failed": 0, "exit": 0 },
+    "websiteProductionBuild": "passed",
+    "semgrepPayloadFindings": 0,
+    "gitleaksPayloadFindings": 0,
+    "dependencyAudit": {
+      "exit": 1,
+      "high": 5,
+      "chains": ["adm-zip", "sharp"],
+      "fixAvailable": false,
+      "dependencyFilesChanged": false
+    },
+    "protectedPathsChanged": 0,
+    "whitespaceErrors": 0
+  },
+  "roadmapDispositions": {
+    "TRUST-04": "next-after-TRUST-02",
+    "TRUST-01": "next-after-TRUST-02",
+    "OP-01": "next-after-TRUST-04",
+    "GROW-01": "deferred-paid-evidence"
+  },
+  "limits": [
+    "This receipt covers the local read-only UX-03 continuity wedge on the source Electron path.",
+    "It does not claim packaged distribution, another operating system, or consequential external effects.",
+    "TRUST-04, TRUST-01, and OP-01 remain open in roadmap dependency order.",
+    "Paid co-design, live accounts, GitHub Actions, merge, release, publication, and deployment are deferred or out of scope."
+  ]
+}

@@ -75,11 +75,15 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("read_file");
     expect(prompt).toContain("/tmp/vanta");
     expect(prompt).toContain("Never declare a task complete without verified");
+    expect(prompt).toContain("Live tasks: for work with three or more meaningful steps");
+    expect(prompt).toContain("Keep exactly one item in_progress");
+    expect(prompt).toContain("Operator questions:");
+    expect(prompt).toContain("call `ask_user`");
   });
 
   it("summarizes a large tool catalog instead of listing every tool in the stable prompt", async () => {
     const manyTools = [
-      "tool_search", "clarify", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
+      "tool_search", "clarify", "ask_user", "brain", "recall", "inspect_state", "read_file", "grep_files", "glob_files",
       "web_search", "web_fetch", "git_status", "git_diff", "edit_file", "write_file", "lsp_diagnostics",
       "gmail_send", "calendar_create", "browser_act", "money", "radar", "roadmap_move",
     ].map((name) => ({ name, description: `${name} tool`, parameters: {} }));
@@ -92,7 +96,9 @@ describe("buildSystemPrompt", () => {
     });
     expect(prompt).toContain("Available tools (scoped)");
     expect(prompt).toContain("tool_search");
-    expect(prompt).not.toContain("gmail_send");
+    expect(prompt).toContain("Registered but deferred:");
+    expect(prompt).toContain("gmail_send");
+    expect(splitStableVolatile(prompt).stable).not.toContain("gmail_send");
   });
 
   it("defaults to the balanced length cap (no outputDensity) and scales it when minimal", async () => {
@@ -419,7 +425,8 @@ describe("splitStableVolatile", () => {
     const { stable, volatile } = splitStableVolatile(prompt);
     expect(volatile).toContain("Active goals:");
     expect(volatile).toContain("Session started:");
-    expect(stable).toContain("read_file"); // tools are in the stable part
+    expect(volatile).toContain("read_file"); // the live catalog is isolated from stable rules
+    expect(stable).not.toContain("Read a file");
     expect(stable).not.toContain("Session started:");
   });
 

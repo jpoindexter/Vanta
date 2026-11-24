@@ -14,6 +14,7 @@ import { PluginPanelRegistry } from "./panels.js";
 import { launchPluginWorker, type PluginWorkerHandle, type PluginWorkerScheduler } from "./worker.js";
 import { createPluginLlmLane, type PluginLlmLane } from "./llm.js";
 import { resolveRoutedProvider } from "../routing/model-router.js";
+import type { EffectGateContext } from "../effects/execute-effect.js";
 
 type Source = "bundled" | "user" | "project";
 
@@ -98,6 +99,7 @@ export async function loadEnabledPlugins(opts: {
   panels?: PluginPanelRegistry;
   workerSchedule?: PluginWorkerScheduler;
   pluginLlmFactory?: (plugin: string) => PluginLlmLane;
+  effectGate?: EffectGateContext;
 }): Promise<PluginLoadResult> {
   const enabled = new Set(opts.settings.plugins?.enabled ?? []);
   const panels = opts.panels ?? new PluginPanelRegistry();
@@ -128,6 +130,7 @@ type LoadOneOptions = {
   granted: import("./capabilities.js").PluginCapability[];
   workerSchedule?: PluginWorkerScheduler;
   pluginLlmFactory?: (plugin: string) => PluginLlmLane;
+  effectGate?: EffectGateContext;
 };
 type LoadedOne = { diagnostic: PluginDiagnostic; monitors: DisarmHandle[]; worker?: PluginWorkerHandle };
 
@@ -159,6 +162,7 @@ async function loadWorkerPlugin(candidate: PluginCandidate, opts: LoadOneOptions
   const worker = await launchPluginWorker({
     manifest: candidate.manifest, pluginDir: candidate.dir, vantaHome: resolveVantaHome(opts.env),
     granted: opts.granted, panels: opts.panels, log, schedule: opts.workerSchedule,
+    effectGate: opts.effectGate,
   });
   const monitors = armMonitors(candidate.manifest, opts.monitorDeps ?? defaultMonitorDeps(log));
   log(`  · plugin: loaded ${candidate.manifest.name} worker (pid ${worker.pid}, ${worker.granted.length} capability grant(s))`);

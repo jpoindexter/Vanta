@@ -1,0 +1,20 @@
+
+--- runtime started 2026-10-14T19:14:29.663Z (pid 73480) ---
+vanta desktop — http://127.0.0.1:7790/#boundary=e2680b47ccb4f294335eb7aa3065c668928353a16a4f85a8598dfdbd1ad1b044
+
+--- runtime exited 2026-10-14T19:14:34.989Z (code 0, signal null) ---
+
+--- runtime started 2026-10-14T19:14:38.750Z (pid 74223) ---
+vanta desktop — http://127.0.0.1:7790/#boundary=7ca073b87509f34d3cf7368a8666c0a45d7f9e24284bcbdb4a4875a5f9216204
+
+--- runtime exited 2026-10-14T19:14:44.218Z (code 0, signal null) ---
+
+--- runtime started 2026-10-14T19:14:47.879Z (pid 74770) ---
+vanta desktop — http://127.0.0.1:7790/#boundary=6bd303bce2a36c8e0aea23dab9619be0e7a502359c8c29c4d1bbd5dcb2b0ca38
+
+--- runtime exited 2026-10-14T19:15:00.082Z (code null, signal SIGTERM) ---
+
+--- runtime started 2026-10-14T19:15:00.269Z (pid 75764) ---
+vanta desktop — http://127.0.0.1:7790/#boundary=459c4a62e770b40ba842b0312aa9782ac26316da2bcfec38f13a74d346528f34
+
+--- runtime exited 2026-10-14T19:16:14.275Z (code 0, signal null) ---

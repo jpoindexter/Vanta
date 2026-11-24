@@ -39,6 +39,60 @@ describe("corpus compiler", () => {
     expect(result.sources[0]?.chunks[0]?.embedding).toEqual([1, 0]);
   });
 
+  it("converts supported office documents before corpus compilation", async () => {
+    const source = join(root, "documents");
+    await mkdir(source);
+    await writeFile(join(source, "brief.docx"), "fake docx bytes");
+    await writeFile(join(source, "diagram.png"), "not a supported document");
+    const calls: string[] = [];
+
+    const result = await ingestCorpus(source, {
+      env,
+      embedder: async () => null,
+      documentConverter: async (_bytes, extension) => {
+        calls.push(extension);
+        return "# Vanta brief\nLocal document knowledge.";
+      },
+    });
+
+    expect(calls).toEqual([".docx"]);
+    expect(result).toMatchObject({ imported: 1, skipped: 1 });
+    expect(result.sources[0]?.relativePath).toBe("brief.docx");
+    expect(result.sources[0]?.chunks[0]?.text).toContain("Local document knowledge");
+  });
+
+  it("ingests a real RTF through the local AnyDoc boundary", async () => {
+    const file = join(root, "brief.rtf");
+    await writeFile(file, "{\\rtf1\\ansi\\deff0 Vanta corpus document}");
+
+    const result = await ingestCorpus(file, { env, embedder: async () => null });
+
+    expect(result.imported).toBe(1);
+    expect(result.sources[0]?.chunks[0]?.text).toContain("Vanta corpus document");
+  });
+
+  it("bounds native document conversion concurrency for folders", async () => {
+    const source = join(root, "documents");
+    await mkdir(source);
+    for (const name of ["a.docx", "b.docx", "c.docx"]) await writeFile(join(source, name), name);
+    let active = 0;
+    let maxActive = 0;
+
+    await ingestCorpus(source, {
+      env,
+      embedder: async () => null,
+      documentConverter: async () => {
+        active += 1;
+        maxActive = Math.max(maxActive, active);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        active -= 1;
+        return "Vanta bounded document";
+      },
+    });
+
+    expect(maxActive).toBe(2);
+  });
+
   it("guards URL ingest and retains the canonical source URL and date", async () => {
     let fetched = false;
     const sourceUrl = "https://example.com/atlas";

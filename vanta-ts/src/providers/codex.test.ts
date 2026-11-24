@@ -132,6 +132,28 @@ describe("CodexProvider.stream", () => {
     expect(requestBody).not.toHaveProperty("max_output_tokens");
   });
 
+  it("sends the selected reasoning effort and fast service tier", async () => {
+    let requestBody: Record<string, unknown> = {};
+    const p = new CodexProvider({
+      model: "gpt-5.6-sol",
+      loadCreds: async () => ({ accessToken: "tok", accountId: "acc" }),
+      fetchImpl: (async (_url, init) => {
+        requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+        return new Response(SSE, { status: 200, headers: { "content-type": "text/event-stream" } });
+      }) as typeof fetch,
+    });
+
+    await p.complete([{ role: "user", content: "deep answer" }], [], {
+      effortLevel: "ultra",
+      serviceTier: "fast",
+    });
+
+    expect(requestBody).toMatchObject({
+      reasoning: { effort: "ultra" },
+      service_tier: "fast",
+    });
+  });
+
   it("throws an actionable error on a non-OK response", async () => {
     const p = new CodexProvider({
       model: "gpt-5.5",

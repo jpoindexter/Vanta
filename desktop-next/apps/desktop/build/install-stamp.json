@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "commit": "6e7b83a2f1c093e992a8d838ed77ea320fbd8e51",
+  "branch": "main",
+  "builtAt": "2026-10-13T13:12:50.859Z",
+  "dirty": false,
+  "source": "local",
+  "commitDate": null,
+  "baseVersion": null,
+  "displayVersion": null,
+  "distance": null,
+  "payload": "bootstrap",
+  "distribution": "desktop-app",
+  "updateMechanism": "self",
+  "tag": null
+}

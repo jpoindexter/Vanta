@@ -68,3 +68,35 @@ Run from the repo with `./run.sh` (alias `./vanta`), or globally as `vanta` afte
 | `vanta mcp receipts` | Show recent credential-free connector lifecycle receipts |
 
 > Counts and exact flags evolve; `vanta help` is the live source of truth.
+
+## Source-candidate recovery diagnostics — 2026-11-17
+
+These commands are included in the verified `19d68ed5` CLI candidate. The normal
+launcher was switched to that pin with owner approval on 2026-11-17. They are
+not included in the previously delivered Desktop 0.1.3. The terminal-evidence
+extension below requires newer integration source; rebuilding source is separate
+from installing or updating a packaged app.
+
+| Command | Does |
+|---------|------|
+| `vanta doctor --fallbacks` | Reports every configured fallback entry, in order, without inference or subscription credential-store lookup. `configuration-resolved` does not mean authenticated or reachable. Review entries marked unavailable or not checked; exit 1 means at least one needs attention. |
+| `vanta agents delegation inspect <id>` | Reads a new worker's owned private partial checkpoint offline. Newer integration source also reports saved terminal turn counts, usage and review/completion state when present; these are not aggregate spend or remaining budget. It does not resume work, replay tools or restore permissions. Historical workers may have no partial checkpoint or terminal evidence. |
+
+The inspection command reports remaining budget as unknown and keeps uncertain
+effects under review. Existing delegation `replay`/`follow-up` creates a **new
+task**, not continuation from the saved checkpoint. Newer integration source
+checks that checkpoint before queueing derived work: unfinished or invalid
+records, conflicting recorded parents and unresolved effects require review
+and append no task. A paired legacy mutator result without an effect disposition
+is not a safe settlement. A checkpoint-absent legacy receipt must consistently
+report `pass` and `done`; this compatibility path is not proof of recovered
+authority. Clean queued work explicitly restores no transcript, remaining
+budget or previous approvals. This admission repair is not yet in the normal
+`19d68ed5` CLI pin. Never use derived work to retry an external action whose
+outcome is unknown. Keep any retained worktree and branch until its files and
+results have been reviewed.
+
+For a connector shown as `auth needs_auth`, review its authentication through
+the normal connection/setup flow, then test it explicitly. A saved successful
+probe does not override a token's known expiration; unknown expiration does not
+prove a working connection. Diagnostics do not silently launch interactive OAuth.

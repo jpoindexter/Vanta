@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vanta · Chat and Code</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<a class="skip" href="#content">Skip to workspace</a>
+<div class="app" id="app">
+ <aside class="sidebar" aria-label="Vanta navigation">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">V</span><strong>Vanta</strong><button class="icon-btn" data-action="sidebar" aria-label="Toggle sidebar">◧</button></div>
+  <div class="mode-switch" role="group" aria-label="Work mode"><button data-mode="chat">Chat</button><button data-mode="code">⌘ &nbsp;Code</button></div>
+  <button class="nav new" data-action="new"><span>＋</span>New conversation<kbd>⌘N</kbd></button>
+  <button class="nav" data-action="search"><span data-icon="search"></span>Search<kbd>⌘K</kbd></button>
+  <nav class="primary" aria-label="Primary"><button class="nav" data-view="today"><span data-icon="home"></span>Today<span class="count" id="needs-count">1</span></button><button class="nav" data-view="automations"><span data-icon="clock"></span>Automations</button><button class="nav" data-view="library"><span data-icon="library"></span>Library</button></nav>
+  <div class="project-heading"><span>Projects</span><button class="icon-btn" data-action="project" aria-label="Project options">＋</button></div>
+  <nav id="projects" aria-label="Projects and conversations"></nav>
+  <div class="sidebar-bottom"><button class="nav" data-view="connections"><span data-icon="link"></span>Connections</button><button class="nav" data-action="more"><span>···</span>More</button><button class="account" data-view="settings"><span class="avatar">J</span><span>Personal workspace<small>On this Mac</small></span><span data-icon="settings"></span></button></div>
+ </aside>
+ <div class="workspace">
+  <header class="titlebar"><button class="icon-btn mobile-menu" data-action="sidebar" aria-label="Open navigation">☰</button><div class="title-wrap"><strong id="title">A better Vanta desktop</strong><span id="project-label" class="muted">Vanta</span></div><span class="status" id="run-status">Unverified</span><div class="pane-buttons" role="group" aria-label="Workspace panels"><button data-panel="overview" aria-label="Task context" data-icon="panel"></button><button data-panel="terminal" aria-label="Terminal" data-icon="terminal"></button><button data-panel="changes" aria-label="Changes" data-icon="diff"></button><button data-panel="browser" aria-label="Browser preview" data-icon="globe"></button><button data-panel="files" aria-label="Files" data-icon="folder"></button></div><button class="icon-btn" data-action="view-options" aria-label="View options">···</button></header>
+  <div class="prototype-note"><span>Interactive prototype · sample data</span><button data-action="guide">Try the walkthrough</button></div>
+  <div id="connection-banner" hidden class="connection-banner" role="status"></div>
+  <div class="body"><main id="content" tabindex="-1"></main><aside id="inspector" class="inspector" aria-label="Task workbench"></aside></div>
+  <footer class="runtime"><button data-action="runtime"><span class="dot"></span><span id="connection-text">Local runtime · simulated</span></button><span id="footer-context">Vanta Engine · no live connection</span><button data-action="network" id="network-toggle">Test offline</button></footer>
+ </div>
+</div>
+<dialog id="dialog"><div id="dialog-body"></div></dialog><div id="announcement" class="sr" role="status" aria-live="polite"></div><div class="toast" id="toast" role="status" hidden></div>
+<script src="app.js"></script>
+</body></html>

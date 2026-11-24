@@ -1,3 +1,4 @@
+import { gitExecFile } from "../git/process.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
@@ -17,7 +18,7 @@ type UpdateResult = {
 };
 
 async function git(args: string[], cwd: string): Promise<string> {
-  const { stdout } = await run("git", args, { cwd });
+  const { stdout } = await gitExecFile("git", args, { cwd });
   return stdout.trim();
 }
 

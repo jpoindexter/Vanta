@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Cpu, Gauge, HardDrive, ListTree, Play, RefreshCw, RotateCcw, Server, ShieldCheck, Square, X } from "lucide-react";
+import { Activity, ChevronDown, HardDrive, Play, RefreshCw, RotateCcw, Square, X } from "lucide-react";
 import type { DesktopRuntime, ProviderRouteStatus, RuntimeAction, RuntimeHostSnapshot, RuntimeUsageSummary } from "./types.js";
 import { RuntimeProfilesPanel } from "./runtime-profiles.js";
 import { ModelDownloadsPanel } from "./model-downloads.js";
-
 export type ModelRuntimePhase = "loading" | "ready" | "error";
 
 export function RuntimeStrip(props: { runtime: DesktopRuntime; agentModel?: string; agentProvider?: string; agentRoute?: ProviderRouteStatus; phase: ModelRuntimePhase; onSelect: (hostId: string) => Promise<void>; onAction: (hostId: string, action: RuntimeAction) => Promise<void> }) {
@@ -14,7 +13,6 @@ export function RuntimeStrip(props: { runtime: DesktopRuntime; agentModel?: stri
   const trigger = useRef<HTMLButtonElement>(null);
   const selected = selectedRuntime(props.runtime);
   useRuntimeDismiss(open, setOpen, root, trigger);
-
   async function select(hostId: string) {
     setPending(hostId);
     setError("");
@@ -22,7 +20,6 @@ export function RuntimeStrip(props: { runtime: DesktopRuntime; agentModel?: stri
     catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); }
     finally { setPending(""); }
   }
-
   async function act(action: RuntimeAction) {
     if (!selected) return;
     setPending(action); setError("");
@@ -30,10 +27,8 @@ export function RuntimeStrip(props: { runtime: DesktopRuntime; agentModel?: stri
     catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); }
     finally { setPending(""); }
   }
-
   return <div className="runtime-strip" data-runtime-strip ref={root}>
-    <button
-      ref={trigger}
+    <button ref={trigger}
       className="runtime-strip-trigger"
       type="button"
       aria-expanded={open}
@@ -60,7 +55,6 @@ export function RuntimeStrip(props: { runtime: DesktopRuntime; agentModel?: stri
     /> : null}
   </div>;
 }
-
 function useRuntimeDismiss(
   open: boolean,
   setOpen: (open: boolean) => void,
@@ -85,25 +79,34 @@ function useRuntimeDismiss(
     };
   }, [open, root, setOpen, trigger]);
 }
-
 export function RuntimeSummary(props: { runtime?: RuntimeHostSnapshot; agentModel?: string; agentProvider?: string; phase: ModelRuntimePhase }) {
-  const runtime = props.runtime;
-  const agent = agentModelPresentation(props.phase, props.agentModel, props.agentProvider);
-  if (!runtime) return <>
-    <ScopeValue className="runtime-agent-model" label="Agent model" value={agent.value} state={agent.state} icon={<Cpu size={13} />} />
-    <ScopeValue className="runtime-host" label="Local runtime" value="Unavailable" state="unavailable" icon={<Server size={13} />} />
-  </>;
-  const pressure = pressurePercent(runtime);
+  const summary = runtimeSummaryPresentation(props.phase, props.agentModel, props.runtime);
   return <>
-    <ScopeValue className="runtime-agent-model" label="Agent model" value={agent.value} state={agent.state} icon={<Cpu size={13} />} />
-    <ScopeValue className="runtime-host" label="Local runtime" value={localRuntimeValue(runtime)} state={localRuntimeState(runtime)} icon={<><i className={`runtime-state state-${runtime.status}`} /><Server size={13} /></>} />
-    <span className="runtime-model"><Cpu size={13} />{runtime.engine.model ?? "Inactive"}</span>
-    <span className="runtime-engine">{runtime.engine.id ?? "engine idle"}</span>
-    <span className="runtime-pressure" aria-label={`Memory pressure ${pressure}%`}><Gauge size={13} /><meter min="0" max="100" value={pressure} />{pressure}%</span>
-    <span className="runtime-throughput">{formatThroughput(runtime.resources.throughputPerSecond)}</span>
-    <span className="runtime-queue"><ListTree size={13} />{runtime.queueDepth}</span>
-    <span className={`runtime-trust trust-${runtime.kernel}`}><ShieldCheck size={13} />{runtime.kernel === "ready" ? "gated" : "ungated"}</span>
+    <ScopeValue className="runtime-health" label="Task system" value={summary.label} state={summary.state} icon={<><i className={`runtime-state state-${summary.state}`} /><Activity size={13} /></>} />
+    <span className="runtime-guidance">{summary.guidance}</span>
+    <span className="runtime-disclosure">Runtime details</span>
   </>;
+}
+export function runtimeSummaryPresentation(
+  phase: ModelRuntimePhase,
+  agentModel: string | undefined,
+  runtime: RuntimeHostSnapshot | undefined,
+): { label: string; guidance: string; state: "ready" | "checking" | "attention" | "stale" } {
+  if (phase === "loading") return { label: "Checking", guidance: "Connecting to the selected model.", state: "checking" };
+  if (phase === "error") return { label: "Model needed", guidance: "Open details to repair the model connection.", state: "attention" };
+  if (!agentModel?.trim()) return { label: "Model needed", guidance: "Open details to repair the model connection.", state: "attention" };
+  if (!runtime) return { label: "Agent ready", guidance: "Optional local runtime details are unavailable.", state: "ready" };
+  if (runtime.stale) return { label: "Status may be stale", guidance: "Open details to refresh runtime evidence.", state: "stale" };
+  if (runtimeNeedsAttention(runtime)) {
+    return { label: "Needs attention", guidance: "Open details before starting consequential work.", state: "attention" };
+  }
+  if (runtime.status === "starting" || runtime.status === "stopping") return { label: "Changing runtime", guidance: "Wait for the runtime transition to settle.", state: "checking" };
+  return { label: "Ready", guidance: "Model and safety boundary are available.", state: "ready" };
+}
+function runtimeNeedsAttention(runtime: RuntimeHostSnapshot): boolean {
+  if (runtime.kernel !== "ready") return true;
+  if (runtime.transport !== "reachable") return true;
+  return ["offline", "auth_required", "failed", "degraded"].includes(runtime.status);
 }
 
 export function RuntimeDetail(props: {

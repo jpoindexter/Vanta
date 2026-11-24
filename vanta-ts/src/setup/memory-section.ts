@@ -74,6 +74,12 @@ export const MEMORY_BACKEND_CHOICES: MemoryBackendChoice[] = [
     env: { [MEMORY_BACKEND_KEY]: "memanto", VANTA_MEMANTO_URL: "http://localhost:8000" },
     note: "Local-first; point VANTA_MEMANTO_URL at your instance (default http://localhost:8000).",
   },
+  {
+    label: "MSA — extreme long-context memory on an external NVIDIA runtime",
+    value: "msa",
+    env: { [MEMORY_BACKEND_KEY]: "msa" },
+    note: "Set VANTA_MSA_URL to the HTTPS service endpoint; Vanta remains TypeScript/Rust.",
+  },
 ];
 
 /** The secret env var mem0 collects via the hidden prompt (a key — never written here). */

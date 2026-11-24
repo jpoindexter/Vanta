@@ -6,6 +6,7 @@ import {
   sandboxState, toggle, withSandbox, toConfig, cycleOverride, sandboxDoctor,
   type SandboxState, type ToggleKey, type DoctorCheck,
 } from "../settings/sandbox.js";
+import { settingsErrorMessage } from "./settings-recovery.js";
 
 // Live IO + callback wiring for the /sandbox overlay. Mirrors ui/mcp-panel's
 // reconnect closure: the overlay carries the effective state, the doctor report,
@@ -15,6 +16,7 @@ import {
 
 export type SandboxOverlayState = {
   state: SandboxState;
+  error?: string;
   doctor: DoctorCheck[];
   onToggle: (key: ToggleKey) => void;
   onCycleOverride: (tool: string) => void;
@@ -55,6 +57,8 @@ function buildView(state: SandboxState, repoRoot: string, host: SandboxOverlayHo
   const refresh = (next: SandboxState): void => {
     void persist(repoRoot, next).then((re) => {
       if (host.isOpen()) host.publish(buildView(re, repoRoot, host));
+    }).catch((error: unknown) => {
+      if (host.isOpen()) host.publish({ ...buildView(state, repoRoot, host), error: settingsErrorMessage(error) });
     });
   };
   return {

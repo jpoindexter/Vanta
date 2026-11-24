@@ -107,6 +107,13 @@ describe("brain tool (the agent-facing surface)", () => {
     expect(r.ok).toBe(false);
   });
 
+  it("remember defaults an omitted region to semantic memory", async () => {
+    const r = await brainTool.execute({ action: "remember", content: "a durable business fact" }, {} as never);
+    expect(r.ok).toBe(true);
+    expect(r.output).toContain("remembered [semantic|fact|");
+    expect((await loadEntries()).at(-1)?.region).toBe("semantic");
+  });
+
   it("legacy region actions are unchanged (read/list)", async () => {
     const list = await brainTool.execute({ action: "list" }, {} as never);
     expect(list.ok).toBe(true);

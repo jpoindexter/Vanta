@@ -1,0 +1,462 @@
+{
+  "entries": [
+    {
+      "id": "a-mv6puvw8-000039-r0045",
+      "at": "2026-10-13T13:28:11.000Z",
+      "source": "company",
+      "kind": "worker.paused",
+      "actor": "owner",
+      "summary": "paused support: on leave until Monday",
+      "refs": {
+        "workerId": "support"
+      }
+    },
+    {
+      "id": "a-mv6pkho0-000038-r0044",
+      "at": "2026-10-13T13:20:06.000Z",
+      "source": "company",
+      "kind": "ticket.commented",
+      "actor": "owner",
+      "summary": "commented on T-3",
+      "refs": {
+        "ticketId": "T-3"
+      }
+    },
+    {
+      "id": "a-mv6p5xqw-000037-r0043",
+      "at": "2026-10-13T13:08:47.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "analyst",
+      "summary": "analyst started T-7: Rebuild the search index [hold]",
+      "refs": {
+        "ticketId": "T-7",
+        "workerId": "analyst"
+      }
+    },
+    {
+      "id": "a-mv6opazc-000036-r0041",
+      "at": "2026-10-13T12:55:51.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-7 to analyst",
+      "refs": {
+        "ticketId": "T-7",
+        "workerId": "analyst"
+      }
+    },
+    {
+      "id": "a-mv6oar28-000035-r0040",
+      "at": "2026-10-13T12:44:32.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-7: Rebuild the search index [hold]",
+      "refs": {
+        "ticketId": "T-7"
+      }
+    },
+    {
+      "id": "a-mv6o2fog-000034-r0039",
+      "at": "2026-10-13T12:38:04.000Z",
+      "source": "company",
+      "kind": "ticket.closed",
+      "actor": "designer",
+      "summary": "T-6 closed",
+      "refs": {
+        "ticketId": "T-6",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6o0cu0-000033-r0038",
+      "at": "2026-10-13T12:36:27.000Z",
+      "source": "company",
+      "kind": "run.finished",
+      "actor": "designer",
+      "summary": "designer finished T-6",
+      "refs": {
+        "ticketId": "T-6",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6nu4ao-000032-r0037",
+      "at": "2026-10-13T12:31:36.000Z",
+      "source": "company",
+      "kind": "budget.alert",
+      "actor": "system",
+      "summary": "agent:designer is exceeded: 0.10 of 0.10 USD",
+      "refs": {
+        "scope": "agent:designer"
+      }
+    },
+    {
+      "id": "a-mv6nlsww-000031-r0036",
+      "at": "2026-10-13T12:25:08.000Z",
+      "source": "company",
+      "kind": "work_product.recorded",
+      "actor": "designer",
+      "summary": "product-wp-4 recorded for T-6",
+      "refs": {
+        "ticketId": "T-6",
+        "workerId": "designer",
+        "workProductId": "product-wp-4"
+      }
+    },
+    {
+      "id": "a-mv6nbeoo-000030-r0035",
+      "at": "2026-10-13T12:17:03.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "designer",
+      "summary": "designer started T-6: Polish the empty states",
+      "refs": {
+        "ticketId": "T-6",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6murx4-000029-r0033",
+      "at": "2026-10-13T12:04:07.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-6 to designer",
+      "refs": {
+        "ticketId": "T-6",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6miaug-000028-r0032",
+      "at": "2026-10-13T11:54:25.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-6: Polish the empty states",
+      "refs": {
+        "ticketId": "T-6"
+      }
+    },
+    {
+      "id": "a-mv6m7wm8-000027-r0031",
+      "at": "2026-10-13T11:46:20.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-5: Audit the onboarding emails",
+      "refs": {
+        "ticketId": "T-5"
+      }
+    },
+    {
+      "id": "a-mv6lxie0-000026-r0030",
+      "at": "2026-10-13T11:38:15.000Z",
+      "source": "company",
+      "kind": "run.finished",
+      "actor": "researcher",
+      "summary": "researcher failed on T-4: need the brand colour for the checkout buttons",
+      "refs": {
+        "ticketId": "T-4",
+        "workerId": "researcher"
+      }
+    },
+    {
+      "id": "a-mv6lp708-000025-r0029",
+      "at": "2026-10-13T11:31:47.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "researcher",
+      "summary": "researcher started T-4: Fix the checkout buttons [block]",
+      "refs": {
+        "ticketId": "T-4",
+        "workerId": "researcher"
+      }
+    },
+    {
+      "id": "a-mv6l8k8o-000024-r0027",
+      "at": "2026-10-13T11:18:51.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-4 to researcher",
+      "refs": {
+        "ticketId": "T-4",
+        "workerId": "researcher"
+      }
+    },
+    {
+      "id": "a-mv6kw360-000023-r0026",
+      "at": "2026-10-13T11:09:09.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-4: Fix the checkout buttons [block]",
+      "refs": {
+        "ticketId": "T-4"
+      }
+    },
+    {
+      "id": "a-mv6kloxs-000022-r0025",
+      "at": "2026-10-13T11:01:04.000Z",
+      "source": "company",
+      "kind": "run.finished",
+      "actor": "engineer",
+      "summary": "engineer finished T-3, waiting for review",
+      "refs": {
+        "ticketId": "T-3",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6kbapk-000021-r0024",
+      "at": "2026-10-13T10:52:59.000Z",
+      "source": "company",
+      "kind": "work_product.recorded",
+      "actor": "engineer",
+      "summary": "product-wp-3 recorded for T-3",
+      "refs": {
+        "ticketId": "T-3",
+        "workerId": "engineer",
+        "workProductId": "product-wp-3"
+      }
+    },
+    {
+      "id": "a-mv6k0whc-000020-r0023",
+      "at": "2026-10-13T10:44:54.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "engineer",
+      "summary": "engineer started T-3: Write the launch plan",
+      "refs": {
+        "ticketId": "T-3",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6jk9ps-000019-r0021",
+      "at": "2026-10-13T10:31:58.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-3 to engineer",
+      "refs": {
+        "ticketId": "T-3",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6j7sn4-000018-r0020",
+      "at": "2026-10-13T10:22:16.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-3: Write the launch plan",
+      "refs": {
+        "ticketId": "T-3"
+      }
+    },
+    {
+      "id": "a-mv6it8q0-000017-r0019",
+      "at": "2026-10-13T10:10:57.000Z",
+      "source": "company",
+      "kind": "ticket.closed",
+      "actor": "designer",
+      "summary": "T-2 closed",
+      "refs": {
+        "ticketId": "T-2",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6ir5vk-000016-r0018",
+      "at": "2026-10-13T10:09:20.000Z",
+      "source": "company",
+      "kind": "run.finished",
+      "actor": "designer",
+      "summary": "designer finished T-2",
+      "refs": {
+        "ticketId": "T-2",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6ikxc8-000015-r0017",
+      "at": "2026-10-13T10:04:29.000Z",
+      "source": "company",
+      "kind": "work_product.recorded",
+      "actor": "designer",
+      "summary": "product-wp-2 recorded for T-2",
+      "refs": {
+        "ticketId": "T-2",
+        "workerId": "designer",
+        "workProductId": "product-wp-2"
+      }
+    },
+    {
+      "id": "a-mv6iaj40-000014-r0016",
+      "at": "2026-10-13T09:56:24.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "designer",
+      "summary": "designer started T-2: Redesign the pricing page [free]",
+      "refs": {
+        "ticketId": "T-2",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6htwcg-000013-r0014",
+      "at": "2026-10-13T09:43:28.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-2 to designer",
+      "refs": {
+        "ticketId": "T-2",
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6hhf9s-000012-r0013",
+      "at": "2026-10-13T09:33:46.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-2: Redesign the pricing page [free]",
+      "refs": {
+        "ticketId": "T-2"
+      }
+    },
+    {
+      "id": "a-mv6h711k-000011-r0012",
+      "at": "2026-10-13T09:25:41.000Z",
+      "source": "company",
+      "kind": "ticket.closed",
+      "actor": "engineer",
+      "summary": "T-1 closed",
+      "refs": {
+        "ticketId": "T-1",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6h4y74-000010-r0011",
+      "at": "2026-10-13T09:24:04.000Z",
+      "source": "company",
+      "kind": "run.finished",
+      "actor": "engineer",
+      "summary": "engineer finished T-1",
+      "refs": {
+        "ticketId": "T-1",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6gsh4g-000009-r0010",
+      "at": "2026-10-13T09:14:22.000Z",
+      "source": "company",
+      "kind": "work_product.recorded",
+      "actor": "engineer",
+      "summary": "product-wp-1 recorded for T-1",
+      "refs": {
+        "ticketId": "T-1",
+        "workerId": "engineer",
+        "workProductId": "product-wp-1"
+      }
+    },
+    {
+      "id": "a-mv6gi2w8-000008-r0009",
+      "at": "2026-10-13T09:06:17.000Z",
+      "source": "company",
+      "kind": "run.started",
+      "actor": "engineer",
+      "summary": "engineer started T-1: Migrate invoices to the new ledger [reported]",
+      "refs": {
+        "ticketId": "T-1",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6g1g4o-000007-r0007",
+      "at": "2026-10-13T08:53:21.000Z",
+      "source": "company",
+      "kind": "ticket.assigned",
+      "actor": "owner",
+      "summary": "assigned T-1 to engineer",
+      "refs": {
+        "ticketId": "T-1",
+        "workerId": "engineer"
+      }
+    },
+    {
+      "id": "a-mv6foz20-000006-r0006",
+      "at": "2026-10-13T08:43:39.000Z",
+      "source": "company",
+      "kind": "ticket.created",
+      "actor": "owner",
+      "summary": "created T-1: Migrate invoices to the new ledger [reported]",
+      "refs": {
+        "ticketId": "T-1"
+      }
+    },
+    {
+      "id": "a-mv6fekts-000005-r0005",
+      "at": "2026-10-13T08:35:34.000Z",
+      "source": "company",
+      "kind": "worker.hired",
+      "actor": "owner",
+      "summary": "hired support (Support) on openai, budget 1 USD",
+      "refs": {
+        "workerId": "support"
+      }
+    },
+    {
+      "id": "a-mv6f46lk-000004-r0004",
+      "at": "2026-10-13T08:27:29.000Z",
+      "source": "company",
+      "kind": "worker.hired",
+      "actor": "owner",
+      "summary": "hired researcher (Researcher) on openai, budget 3 USD",
+      "refs": {
+        "workerId": "researcher"
+      }
+    },
+    {
+      "id": "a-mv6etsdc-000003-r0003",
+      "at": "2026-10-13T08:19:24.000Z",
+      "source": "company",
+      "kind": "worker.hired",
+      "actor": "owner",
+      "summary": "hired analyst (Analyst) on openai, budget 2 USD",
+      "refs": {
+        "workerId": "analyst"
+      }
+    },
+    {
+      "id": "a-mv6eje54-000002-r0002",
+      "at": "2026-10-13T08:11:19.000Z",
+      "source": "company",
+      "kind": "worker.hired",
+      "actor": "owner",
+      "summary": "hired designer (Designer) on openai, budget 0.1 USD",
+      "refs": {
+        "workerId": "designer"
+      }
+    },
+    {
+      "id": "a-mv6e8zww-000001-r0001",
+      "at": "2026-10-13T08:03:14.000Z",
+      "source": "company",
+      "kind": "worker.hired",
+      "actor": "owner",
+      "summary": "hired engineer (Engineer) on openai, budget 5 USD",
+      "refs": {
+        "workerId": "engineer"
+      }
+    }
+  ],
+  "nextCursor": null
+}

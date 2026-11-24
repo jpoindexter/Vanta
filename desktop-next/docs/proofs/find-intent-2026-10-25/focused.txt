@@ -1,0 +1,8 @@
+
+ RUN  v4.1.10 /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-integration-20261013/desktop-next/apps/desktop
+
+
+ Test Files  4 passed (4)
+      Tests  101 passed (101)
+   Start at  15:16:19
+   Duration  4.90s (transform 4.99s, setup 1.06s, import 7.28s, tests 2.80s, environment 2.72s)

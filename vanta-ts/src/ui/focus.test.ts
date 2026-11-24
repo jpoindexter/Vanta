@@ -36,7 +36,7 @@ describe("focus traversal", () => {
     expect(prevFocus([{ id: "composer" }], "composer")).toBe("composer");
   });
 
-  it("global focus keys cycle forward/backward and preserve shift-tab mode cycle with only composer", () => {
+  it("global focus keys cycle forward/backward and reserve shift-tab at the composer", () => {
     const setFocus = vi.fn();
     const cycleMode = vi.fn();
     handleFocusKey({ tab: true }, { current: "composer", targets: targets(["composer", "approval-deny"]), setFocus, cycleMode });
@@ -45,6 +45,8 @@ describe("focus traversal", () => {
     expect(setFocus).toHaveBeenLastCalledWith("composer");
     handleFocusKey({ tab: true, shift: true }, { current: "composer", targets: targets(["composer"]), setFocus, cycleMode });
     expect(cycleMode).toHaveBeenCalled();
+    handleFocusKey({ tab: true, shift: true }, { current: "composer", targets: targets(["composer", "prompt-suggestions"]), setFocus, cycleMode });
+    expect(cycleMode).toHaveBeenCalledTimes(2);
   });
 
   it("returns a visible focus indicator only when focused", () => {

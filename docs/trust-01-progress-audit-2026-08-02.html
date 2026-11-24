@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>trust-01-progress-audit-2026-08-02</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1 id="trust-01-universal-effect-gateway-progress-audit">TRUST-01
+universal effect gateway progress audit</h1>
+<p>Date: 2026-08-02 Branch:
+<code>codex/trust-01-universal-effect-gateway-20260802</code> Base HEAD:
+<code>c469c9fa4101570a178f6ba52b2404120a709e91</code> Observed
+<code>origin/main</code>:
+<code>4911ae44bbb35beef4511ba298475ba5a82b7e1c</code></p>
+<h2 id="verdict">Verdict</h2>
+<p><strong>PASS. The written <code>TRUST-01</code> Done contract is
+executed for the supported local Vanta and signed macOS hosts, and the
+roadmap card is <code>shipped</code>.</strong></p>
+<p>The local implementation, adversarial evidence, signed macOS package,
+all three separate Google capability grants, and affected packaged-host
+paths are green. The sanitized live Google proof refreshed Gmail without
+sending, rejected CR/LF header injection before approval, and created,
+conditionally updated, exactly read back, and cleaned up one opaque
+Calendar event and Drive file. It logged no provider content, account
+identity, or credential. This does not claim cross-platform packaging,
+notarization, merge, release, publication, deployment, or coverage of
+effect paths added after the checked inventory.</p>
+<h2 id="before-and-after">Before and after</h2>
+<h3 id="before">Before</h3>
+<ul>
+<li>Ordinary agent dispatch, Desktop terminal, MCP serve, pipelines,
+workflow hosts, voice transcription, vision watch, and several
+self-mediated tools did not share one complete effect boundary.</li>
+<li>Some tools with real effects were labeled as effect-free reads.</li>
+<li>Durable effect claims could bind payload-dependent keys in ways that
+let changed arguments create a new claim rather than fail as drift.</li>
+<li>Calendar and Drive mutations lacked the complete stable-operation,
+immutable-ID, conditional-write, exact-readback, and compensation
+behavior required by the card.</li>
+<li>The inventory validator detected only a narrow literal
+<code>tool.execute(...)</code> pattern and could report zero unmediated
+effects without detecting named executors or browser/provider/sensor
+primitives.</li>
+<li><code>TRUST-01</code> was <code>next</code>.</li>
+</ul>
+<h3 id="after">After</h3>
+<ul>
+<li>A default-deny tool effect policy routes every non-pure tool through
+<code>executeToolEffect</code>; only an explicit local inspection set
+bypasses it.</li>
+<li>Dispatcher, Desktop terminal, MCP serve and its approval bridge,
+pipeline steps, workflow steps, voice transcription, vision watch, MCP
+tools, plugins, shell, loops, self-repair, and other registered effect
+paths use the shared executor or an explicitly classified adapter.</li>
+<li>Authority is bound to scope, operation ID, and a SHA-256 descriptor
+over effect kind, target class, action, and payload hash. A different
+child effect must receive an explicit capability from the central
+gateway.</li>
+<li>Inner approval requests consume an exact reusable decision only when
+action, operation, and scope match. Distinct actions return to the
+central gateway for kernel assessment and a fresh operator
+decision.</li>
+<li>Claims are created before execution, payload drift fails closed,
+settled effects replay without repeating, interrupted consequential
+effects remain unknown, and provider bodies/credentials are not
+journaled.</li>
+<li>Gmail header CR/LF rejection remains covered. Google Gmail,
+Calendar, and Drive authority remains separate and incremental.</li>
+<li>Calendar create/update use stable operation identity,
+client-supplied immutable IDs, ETags, readback, and compensation. Drive
+create/update use reserved immutable IDs, Drive v3 monotonic-version
+preflight, exact byte readback, advanced-version verification, and
+version-guarded compensation. Drive v3 does not expose atomic update
+CAS, so the adapter does not claim it.</li>
+<li>The checked effect surface pins 409 production sources and 1,074
+primitive calls. Eight remaining direct executors have explicit
+rationales; unknown/unmediated executors are zero under the executed
+validator.</li>
+<li>The exact signed app passes nine source and nine packaged desktop
+flows, trusted terminal execution, hostile-origin denial, three-process
+continuity recovery, capture-only privacy, and a real local
+<code>say</code> → Whisper transcription.</li>
+<li>Runtime dependency overrides remove the five previously reported
+high-severity <code>adm-zip</code>/<code>sharp</code> findings;
+<code>npm audit --omit=dev</code> now reports zero vulnerabilities and
+the transcription real path still passes.</li>
+<li>Vanta <code>src/**/*.test.ts(x)</code> files are excluded from the
+app archive. The rebuilt <code>app.asar</code> has no Vanta test source
+and its unpacked contents have zero Gitleaks findings.</li>
+<li>Gmail, Calendar, and Drive authority were granted separately. The
+live proof passed and cleaned up both temporary provider records.</li>
+<li><code>TRUST-01</code> is <code>shipped</code> for the executed hosts
+and exact written Done contract.</li>
+</ul>
+<h2 id="diff-inventory">Diff inventory</h2>
+<ul>
+<li>61 repository paths before final audit rendering: 50 tracked changes
+and 11 untracked files.</li>
+<li>Tracked diff before final audit rendering: 1,586 insertions and 921
+deletions.</li>
+<li>New checked artifacts include the complete effect-surface inventory,
+inventory generator, gateway implementation, and gateway tests.</li>
+<li>Protected paths changed: zero (<code>src/**</code> Rust kernel,
+<code>vanta-ts/src/factory/**</code>, and
+<code>MANIFESTO.md</code>).</li>
+<li>No external reference-implementation or unrelated-project source,
+data, credential, or artifact was copied into the repository.</li>
+</ul>
+<h2 id="independent-adversarial-review">Independent adversarial
+review</h2>
+<p>The independent reviewer was allowed to fail the implementation
+repeatedly. Findings were corrected rather than waived:</p>
+<ol type="1">
+<li>Named direct executors, vision watch, self-mediated tool bypasses,
+and payload-bound replay keys.</li>
+<li>Capture/transcription read exemptions and duplicate inner policy
+boundaries.</li>
+<li>Mutating <code>life_search</code>/<code>recall</code>,
+descriptor-unbound authority, and MCP/pipeline/voice host bypasses.</li>
+<li>MCP JSON-RPC correlation IDs incorrectly reused as durable operation
+IDs.</li>
+<li>Final exact-tree verdict: <strong>PASS — no remaining blockers
+found.</strong></li>
+</ol>
+<p>The final regression proves two identical accepted MCP calls can
+reuse JSON-RPC response ID <code>44</code> while executing as two
+distinct server-owned invocations.</p>
+<h2 id="executed-verification">Executed verification</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 30%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command or criterion</th>
+<th style="text-align: right;">Result</th>
+<th>What it establishes</th>
+<th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>npm test</code></td>
+<td style="text-align: right;">exit 0; 1,520 files; 14,002 passed; 3
+skipped; 0 failed</td>
+<td>Exact final TypeScript tree passes the complete local suite</td>
+<td>Deployment or untested future paths</td>
+</tr>
+<tr>
+<td><code>npx tsx scripts/trust-01-google-live-proof.ts</code></td>
+<td style="text-align: right;">exit 0; Gmail refusal true and sent
+false; Calendar create/update/readback/cleanup true; Drive
+create/update/readback/cleanup true; persisted provider content
+false</td>
+<td>Separate live Google authority and sanitized mutation behavior</td>
+<td>Other Google accounts or every provider failure mode</td>
+</tr>
+<tr>
+<td>Focused TRUST-01 matrix</td>
+<td style="text-align: right;">exit 0; 24 files; 269 passed</td>
+<td>Gateway, authority, provider, permission, host, drift, and recovery
+paths</td>
+<td>Complete product usefulness</td>
+</tr>
+<tr>
+<td>Final MCP/authority regression</td>
+<td style="text-align: right;">exit 0; 3 files; 43 passed</td>
+<td>Descriptor binding and JSON-RPC ID reuse behavior</td>
+<td>Cross-process client retries without a supplied idempotency
+contract</td>
+</tr>
+<tr>
+<td><code>npm run trust:effect-ledger</code></td>
+<td style="text-align: right;">exit 0; 4/4 mutation checks</td>
+<td>409 sources, 1,074 primitives, 8 explicit direct adapters, 0 unknown
+executors</td>
+<td>Undiscovered runtime-generated code outside the checked source
+tree</td>
+</tr>
+<tr>
+<td><code>npm run typecheck</code></td>
+<td style="text-align: right;">exit 0</td>
+<td>Runtime TypeScript contracts compile</td>
+<td>Runtime behavior</td>
+</tr>
+<tr>
+<td><code>npm run desktop:renderer:typecheck</code></td>
+<td style="text-align: right;">exit 0</td>
+<td>Renderer TypeScript contracts compile</td>
+<td>Native packaged execution</td>
+</tr>
+<tr>
+<td><code>node scripts/desktop-flow-proof-suite.mjs</code></td>
+<td style="text-align: right;">exit 0; 9 source + 9 packaged flows</td>
+<td>Exact signed app covers shell, recovery, schema trace, 500-turn
+navigation, queued turns, runtime profiles, attachments, sessions,
+Outputs, and Connect</td>
+<td>External provider mutations</td>
+</tr>
+<tr>
+<td>Packaged local-origin/terminal smoke</td>
+<td style="text-align: right;">exit 0; 9 hostile requests denied;
+trusted terminal effect executed</td>
+<td>Signed app denies hostile local origins while retaining trusted
+terminal capability</td>
+<td>Every possible browser exploit</td>
+</tr>
+<tr>
+<td>Packaged continuity restart</td>
+<td style="text-align: right;">exit 0; 3 launches; 3 receipts; 0 serious
+accessibility violations</td>
+<td>Process restart, exactly-once prepared read, expired uncertainty,
+refusal reset, snooze, and skip</td>
+<td>OS crash at every possible instruction boundary</td>
+</tr>
+<tr>
+<td>Native capture-only proof</td>
+<td style="text-align: right;">exit 0; packaged capture true; provider
+called false; persisted false</td>
+<td>macOS capture works without upload or persistence</td>
+<td>Vision-provider interpretation</td>
+</tr>
+<tr>
+<td><code>VANTA_TEST_VOICE=1 ... whisper-stt.test.ts</code></td>
+<td style="text-align: right;">exit 0; 6/6</td>
+<td>Real local <code>say</code> → Whisper → transcript path</td>
+<td>Microphone hardware quality in every environment</td>
+</tr>
+<tr>
+<td><code>npm run desktop:dist</code> plus deep
+<code>codesign --verify</code></td>
+<td style="text-align: right;">exit 0; app and DMG valid</td>
+<td>Exact macOS app and DMG were rebuilt and satisfy their designated
+requirement</td>
+<td>Notarization or public distribution</td>
+</tr>
+<tr>
+<td>Website <code>npm run build</code></td>
+<td style="text-align: right;">exit 0</td>
+<td>Roadmap/public documentation production build</td>
+<td>Publication</td>
+</tr>
+<tr>
+<td><code>cargo test --quiet</code></td>
+<td style="text-align: right;">exit 0; 70 passed</td>
+<td>Existing Rust kernel tests remain green</td>
+<td>Rust was not changed</td>
+</tr>
+<tr>
+<td><code>npm audit --omit=dev</code></td>
+<td style="text-align: right;">exit 0; 0 vulnerabilities</td>
+<td>Shipped npm dependency graph has no known audit finding after pinned
+transitive remediation</td>
+<td>Zero-days or non-npm components</td>
+</tr>
+<tr>
+<td>Semgrep over 56 changed/untracked files</td>
+<td style="text-align: right;">exit 0; 0 findings</td>
+<td>No configured static-analysis finding in the payload; full-tree
+findings were four localhost-only test requests</td>
+<td>Absence of all possible vulnerabilities</td>
+</tr>
+<tr>
+<td>Gitleaks full history</td>
+<td style="text-align: right;">exit 0; 2,974 commits; 0 findings</td>
+<td>No configured secret finding in Git history</td>
+<td>Word-shaped secrets that do not match a rule</td>
+</tr>
+<tr>
+<td>Gitleaks unpacked signed <code>app.asar</code></td>
+<td style="text-align: right;">exit 0; 0 findings</td>
+<td>The exact rebuilt app archive contains no configured secret
+finding</td>
+<td>Runtime state outside the package</td>
+</tr>
+<tr>
+<td><code>git diff --check</code></td>
+<td style="text-align: right;">exit 0</td>
+<td>No whitespace errors</td>
+<td>Semantic correctness</td>
+</tr>
+<tr>
+<td>Protected-path scan</td>
+<td style="text-align: right;">exit 0; 0 paths</td>
+<td>Required protected source remained unchanged</td>
+<td>Behavior outside those paths</td>
+</tr>
+</tbody>
+</table>
+<h2 id="artifact-hashes-before-this-report">Artifact hashes before this
+report</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>roadmap.json</code></td>
+<td><code>06463001052339fc3623a7e8ded20c332975cbfb00c7d2fe85cf6f1e0c7d5599</code></td>
+</tr>
+<tr>
+<td><code>docs/trust-01-effect-ledger-2026-08-02.json</code></td>
+<td><code>db70c5f4b5b99fc1616da82e15cc27edbb2d0d4dfaca79fe17cb2283b911ea2b</code></td>
+</tr>
+<tr>
+<td><code>docs/trust-01-effect-surface-inventory-2026-08-02.json</code></td>
+<td><code>ee02a7b47a704226164f4cc7c38437e5ecbb7ac47cda7be9eab656410568cc4e</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="remaining-work-before-promotion">Remaining work before
+promotion</h2>
+<p>None. The written Done contract has been executed. Paid GitHub
+Actions are not used; commit, push, and the non-release checkpoint
+remain repository delivery steps rather than product proof.</p>
+<h2 id="git-state">Git state</h2>
+<ul>
+<li>Commit created: no.</li>
+<li>Push performed: no.</li>
+<li>Tag created: no.</li>
+<li>Merge/release/deployment: no.</li>
+<li>Worktree intentionally dirty with the reviewed 61-path
+implementation, exact package hygiene, this audit, and its receipt.</li>
+</ul>
+</body>
+</html>

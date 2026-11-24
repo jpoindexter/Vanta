@@ -1,0 +1,101 @@
+{
+  "app": "/Applications/Vanta.app",
+  "results": [
+    {
+      "run": 1,
+      "load": {
+        "before": "19.50 10.16 7.97",
+        "after": "19.50 10.16 7.97"
+      },
+      "windowVisibleMs": 607,
+      "composerReadyMs": 635,
+      "status": {
+        "kernel": "online",
+        "model": "vanta-proof",
+        "provider": "custom",
+        "modelSettings": {},
+        "providerRoute": {
+          "provider": "custom",
+          "model": "vanta-proof",
+          "baseRoute": "http://127.0.0.1:63728/v1",
+          "billingMode": "local",
+          "authMethod": "local",
+          "authState": "ready"
+        },
+        "tools": 10,
+        "sessionId": "20261015-201209",
+        "root": "/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-next-pkg-Bjxq0L/project/acme-site",
+        "goals": [],
+        "accessMode": "approve",
+        "accessScope": "project"
+      },
+      "statusMs": 910,
+      "app": {
+        "isPackaged": true,
+        "name": "Vanta",
+        "version": "0.1.0",
+        "userData": "/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-next-pkg-Bjxq0L/user-data",
+        "resources": "/Applications/Vanta.app/Contents/Resources"
+      },
+      "chatReplyMs": 407,
+      "processes": [
+        {
+          "pid": 17315,
+          "cpu": 0.68,
+          "rssMb": 202,
+          "command": "<app>/Contents/MacOS/Vanta --inspect=0 --remote-debugging-port=0 --user-data-dir=<sandbox>/user-data --disable-gpu --no-sandbox"
+        },
+        {
+          "pid": 17316,
+          "cpu": 0.79,
+          "rssMb": 184,
+          "command": "<app>/Contents/Frameworks/Vanta Helper.app/Contents/MacOS/Vanta Helper --type=gpu-process --no-sandbox --user-data-dir=/private<sandbox>/user-data --gpu-preferences=SAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAI"
+        },
+        {
+          "pid": 17317,
+          "cpu": 0.03,
+          "rssMb": 44,
+          "command": "<app>/Contents/Frameworks/Vanta Helper.app/Contents/MacOS/Vanta Helper --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=network --no-sandbox --user-data-dir=/private<sand"
+        },
+        {
+          "pid": 17318,
+          "cpu": 1.56,
+          "rssMb": 533,
+          "command": "<app>/Contents/Frameworks/Vanta Helper (Renderer).app/Contents/MacOS/Vanta Helper (Renderer) --type=renderer --user-data-dir=/private<sandbox>/user-data --app-path=<app>/Contents/Resources/app.asar --enable-sandbox --no-"
+        },
+        {
+          "pid": 17319,
+          "cpu": 0.52,
+          "rssMb": 161,
+          "command": "<app>/Contents/MacOS/Vanta <app>/Contents/Resources/vanta-runtime/dist-runtime/cli.mjs desktop 7790 --no-open"
+        },
+        {
+          "pid": 17448,
+          "cpu": 0.07,
+          "rssMb": 59,
+          "command": "<app>/Contents/MacOS/Vanta -e \\012\"use strict\";\\012const { spawn } = require(\"node:child_process\");\\012const fs = require(\"node:fs\");\\012const [, marker, pidFile, supervisorArg, portArg, root, bin, ...kernelArgs] = proce"
+        },
+        {
+          "pid": 17449,
+          "cpu": 0,
+          "rssMb": 2,
+          "command": "<app>/Contents/Resources/kernel/vanta-kernel serve 19006"
+        },
+        {
+          "pid": 17605,
+          "cpu": 0.08,
+          "rssMb": 56,
+          "command": "<app>/Contents/Frameworks/Vanta Helper.app/Contents/MacOS/Vanta Helper --type=utility --utility-sub-type=audio.mojom.AudioService --lang=en-US --service-sandbox-type=audio --no-sandbox --message-loop-type-ui --user-data-"
+        }
+      ],
+      "cpuSecondsTotal": 3.7,
+      "wallMs": 2445,
+      "rendererErrors": [
+        "Error: unsupported: desktopPluginsRoot is not available in Vanta Desktop yet",
+        "Error: unsupported: getRemoteDisplayReason is not available in Vanta Desktop yet"
+      ],
+      "userDataInSandbox": true,
+      "leftRunningAfterClose": 1
+    }
+  ]
+}

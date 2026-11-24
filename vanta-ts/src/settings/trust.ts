@@ -16,7 +16,7 @@ const TrustStateSchema = z
     /** Whether the project's context files are trusted to load. */
     project: z.boolean().optional(),
     /** MCP server name → trusted/denied decision. */
-    mcp: z.record(z.boolean()).optional(),
+    mcp: z.record(z.string(), z.boolean()).optional(),
   })
   .strict();
 

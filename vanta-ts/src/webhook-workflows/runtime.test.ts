@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createWorkflow, listReceipts, setWorkflowEnabled } from "./store.js";
 import { startWorkflowWebhookServer, type WorkflowWebhookServer } from "./runtime.js";
+import { allowTestEffectGate } from "../effects/test-gate.js";
 
 let dataDir = "";
 let server: WorkflowWebhookServer | undefined;
@@ -27,6 +28,7 @@ describe("workflow webhook runtime", () => {
     server = await startWorkflowWebhookServer({
       port: 0, dataDir, handle,
       resolveDeliver: (target) => async (text) => { delivered.push(`${target}:${text}`); },
+      effectGate: allowTestEffectGate(dataDir),
       log: () => {},
     });
     const body = '{"action":"opened","pull_request":{"title":"Fix"}}';

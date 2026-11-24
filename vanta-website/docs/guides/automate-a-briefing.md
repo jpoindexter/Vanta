@@ -6,12 +6,16 @@ sidebar_position: 2
 
 # Automate a daily briefing
 
-Have Vanta assemble a morning brief on a schedule and (optionally) message it to you — every outbound action stays approval-gated.
+Have Vanta assemble a morning brief on a schedule and optionally prepare a
+message. Keep the outbound step at R3 Confirm unless a specifically allowlisted
+R4 workflow has passed its authority, receipt, recovery, and revocation
+acceptance; do not infer universal gateway coverage from this guide.
 
 ## 1. Connect the sources you want
 
 ```bash
-vanta auth google      # one-time OAuth for gmail / calendar
+vanta auth google gmail
+vanta auth google calendar  # separate incremental scope
 ```
 
 See [Comms & gateway](../comms-and-gateway.md). (Skip this if your brief only uses goals/tasks/local data.)
@@ -48,8 +52,17 @@ vanta service install         # keep it alive via launchd (macOS)
 vanta setup messaging         # pick a gateway from the menu (e.g. Telegram — paste a @BotFather token)
 ```
 
-The wizard offers 20 messaging adapters (Telegram, Slack, Discord, WhatsApp, Signal, iMessage, Email, and more). With the gateway running, inbound messages route through the agent and replies come back. You can also have the scheduled brief sent to you. Outbound sends are approval-gated unless you've set an auto/permission rule — see [Permissions & hooks](../permissions-and-hooks.md).
+The wizard offers 22 registered messaging adapters (Telegram, Slack, Discord,
+WhatsApp, Signal, iMessage, Email, and more). With the gateway running, inbound
+messages route through the agent and replies come back. The standard
+`send_message` tool uses the normal approval path; some gateway delivery/reply
+paths are direct adapters and remain part of universal effect-mediation work.
+Keep a scheduled outbound brief at explicit R3 confirmation until its exact
+route has accepted R4 authority and recovery evidence. See [Permissions &
+hooks](../permissions-and-hooks.md).
 
 ## Result
 
-A hands-off daily brief, assembled from your real sources, with the kernel gating anything that sends or writes.
+A scheduled brief assembled from the connected sources. Read-only assembly can
+run unattended; outbound delivery is accepted only on the exact mediated route
+and authority level that has been proven.

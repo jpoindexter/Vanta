@@ -1,5 +1,11 @@
 import { computeDiff, type DiffLine } from "../util/diff.js";
+import { createHash } from "node:crypto";
 import type { WorkflowGraph } from "./schema.js";
+import { defaultCompletionContract } from "./completion-contract.js";
+
+export function workflowFingerprint(graph: WorkflowGraph): string {
+  return createHash("sha256").update(canonicalWorkflow({ ...graph, completion: graph.completion ?? defaultCompletionContract() })).digest("hex");
+}
 
 export function canonicalWorkflow(graph: WorkflowGraph): string {
   const normalized = {

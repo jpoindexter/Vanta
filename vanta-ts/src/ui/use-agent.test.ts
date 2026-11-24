@@ -2,17 +2,41 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runTurnGates, useAgent } from "./use-agent.js";
+import { failureSummary, runTurnGates, terminalTextForTui, useAgent } from "./use-agent.js";
 import { freshGateState } from "../repl/post-turn-gates.js";
 import { startBackgroundResponse } from "../repl/bg-response-cmd.js";
 import { invalidateNdConfig } from "../nd/profile.js";
 import type { ImageAttachment } from "../types.js";
 import type { ReplState } from "../repl/types.js";
+import { TaskApprovalScope } from "./task-approval.js";
 
 // Proves the ND executive-function engine fires in the DEFAULT TUI host (not just
 // the readline REPL): runTurnGates → runPostTurnGates → ndGatesAfterTurn → a note.
 
 type Action = { t: string; text?: string; suggestions?: string[] };
+
+describe("failureSummary", () => {
+  it("selects the actionable diagnostic instead of a test runner banner", () => {
+    const output = [
+      " RUN  v3.2.6 /Users/x/Vanta",
+      " Test Files  1 passed (1)",
+      " Unhandled Rejection: Error: kill EPERM",
+    ].join("\n");
+    expect(failureSummary(output)).toBe("Unhandled Rejection: Error: kill EPERM");
+  });
+
+  it.each([
+    "TypeError: detach is not a function",
+    "AssertionError: expected 1 to be 0",
+  ])("recognizes error-class diagnostics: %s", (diagnostic) => {
+    const output = [
+      " RUN  v3.2.6 /Users/x/Vanta",
+      " Test Files  1 failed (1)",
+      diagnostic,
+    ].join("\n");
+    expect(failureSummary(output)).toBe(diagnostic);
+  });
+});
 
 function makeDeps(messages: { role: string; content: string }[], notes: Action[]) {
   return {
@@ -78,6 +102,8 @@ describe("useAgent send — image attachments", () => {
       repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
       dispatch: (_a?: unknown) => {},
       setPending: () => {},
+      setPendingQuestion: () => {},
+      taskApprovals: new TaskApprovalScope(),
       interruptRef: { current: null },
       convoRef: { current: conv },
       replStateRef: { current: { turnIndex: 0, started: new Date(0).toISOString(), pendingImages } },
@@ -114,6 +140,8 @@ describe("useAgent send — image attachments", () => {
       repoRoot: mkdtempSync(join(tmpdir(), "vanta-send-")),
       dispatch: () => {},
       setPending: () => {},
+      setPendingQuestion: () => {},
+      taskApprovals: new TaskApprovalScope(),
       interruptRef: { current: null },
       convoRef: { current: conv },
       replStateRef: { current: state },
@@ -213,6 +241,19 @@ describe("useAgent send — image attachments", () => {
       if (oldEnabled === undefined) delete process.env.VANTA_NOTIFY_UNFOCUSED;
       else process.env.VANTA_NOTIFY_UNFOCUSED = oldEnabled;
     }
+  });
+});
+
+describe("terminalTextForTui", () => {
+  it("surfaces a non-done loop boundary instead of leaving a blank transcript", () => {
+    expect(terminalTextForTui({
+      finalText: "Reached the 50-iteration limit before completing.",
+      stoppedReason: "max_iterations",
+    })).toContain("before completing");
+  });
+
+  it("does not duplicate a normal streamed final answer", () => {
+    expect(terminalTextForTui({ finalText: "Done.", stoppedReason: "done" })).toBe("");
   });
 });
 

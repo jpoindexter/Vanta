@@ -1,0 +1,37 @@
+{
+  "before": [
+    {
+      "pid": 75179,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 75180,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 75181,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 75186,
+      "command": "node --import file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-done-proof-20261014/vanta-ts/node_modules/tsx/dist/loader.mjs /Users"
+    },
+    {
+      "pid": 75640,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 75321,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-done-proof-20261014/target/debug/vanta-kernel serve 50002"
+    }
+  ],
+  "survivors": [
+    {
+      "pid": 75321,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-done-proof-20261014/target/debug/vanta-kernel serve 50002"
+    }
+  ],
+  "appSurvivors": [],
+  "kernelStayed": true,
+  "leftovers": []
+}

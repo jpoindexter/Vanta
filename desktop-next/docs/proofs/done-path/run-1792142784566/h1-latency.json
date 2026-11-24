@@ -1,0 +1,30 @@
+{
+  "baseline": [
+    18,
+    17,
+    16
+  ],
+  "keys": [
+    92,
+    83,
+    83,
+    84,
+    79
+  ],
+  "pasteMs": 1.2000000476837158,
+  "draftChars": 204821,
+  "receivedChars": 204821,
+  "requests": [
+    {
+      "at": 1792142822869,
+      "stream": true,
+      "toolCall": null,
+      "prompt": "kkk draft-start lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ips",
+      "promptLength": 204821,
+      "hasImage": false,
+      "toolResult": "",
+      "lastRole": "user",
+      "messageCount": 2
+    }
+  ]
+}

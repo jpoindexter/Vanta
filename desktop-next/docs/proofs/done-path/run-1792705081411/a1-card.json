@@ -1,0 +1,8 @@
+{
+  "text": "Edit brief.md | Modifying existing file content. | Allow once | Always allow edit_file in this project | Reject | Always covers every file edit (edit_file, any file) in the alpha project, not just this one. Irreversible actions always ask and do not offer Always.",
+  "buttons": [
+    "Allow once",
+    "Always allow edit_file in this project",
+    "Reject"
+  ]
+}

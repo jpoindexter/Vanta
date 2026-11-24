@@ -1,13 +1,11 @@
+import { gitExecFile } from "../git/process.js";
 import { createHash } from "node:crypto";
-import { execFile } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
-import { promisify } from "node:util";
 import { z } from "zod";
 import { createProfile, listProfiles, profileHome, updateProfileDefinition, type ProfileRecord } from "./store.js";
 
-const exec = promisify(execFile);
 const ManifestSchema = z.object({
   version: z.literal(1),
   name: z.string().min(1),
@@ -65,7 +63,7 @@ async function materialize(source: string): Promise<Materialized> {
   const dir = await mkdtemp(join(tmpdir(), "vanta-profile-source-"));
   const root = join(dir, "repo");
   try {
-    await exec("git", ["clone", "--depth", "1", source, root]);
+    await gitExecFile("git", ["clone", "--depth", "1", source, root]);
     return { root, source, cleanup: () => rm(dir, { recursive: true, force: true }) };
   } catch (error) {
     await rm(dir, { recursive: true, force: true });
@@ -74,7 +72,7 @@ async function materialize(source: string): Promise<Materialized> {
 }
 
 async function sourceCommit(root: string): Promise<string> {
-  try { return (await exec("git", ["rev-parse", "HEAD"], { cwd: root })).stdout.trim(); }
+  try { return (await gitExecFile("git", ["rev-parse", "HEAD"], { cwd: root })).stdout.trim(); }
   catch { return `local-${createHash("sha256").update(await readFile(join(root, "vanta-profile.json"))).digest("hex")}`; }
 }
 

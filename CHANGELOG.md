@@ -1,7 +1,1001 @@
 # Changelog
 
-Notable changes per release. Each release ships prebuilt kernels for macOS + Linux (arm64 / x64),
-attached as assets. Full auto-generated commit notes live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
+## Desktop v0.1.4 — 2026-11-17
+
+- Deliver the MCP-expiry, late cache-usage, worker-cancellation and stream-owner
+  repairs plus the effect-review fence for derived delegation replay/follow-up.
+  Clean follow-up remains a fresh task; child continuation and recovered
+  budgets/authority are not claimed.
+- Notarize/staple the exact tested app using an existing valid saved profile,
+  publish its verified ZIP/manifest/provenance/checksums, and execute the normal
+  0.1.3 → 0.1.4 native replacement/relaunch with app/data backups and rollback.
+  Installed full payload, publisher, ticket and Gatekeeper match the release.
+- Publish the separately signed/notarized/stapled DMG after explicit completed
+  upload/Apple acceptance, exact public download and mounted payload checks.
+  Its copied app passes seven setup/chat/restart criteria in a private install.
+  Preserve earlier artifacts, normal CLI selection and CLI/kernel Latest.
+- Exact delivery, hashes and remaining gates:
+  [Desktop release notes](docs/releases/desktop-v0.1.4.md).
+
+## Desktop v0.1.3 — 2026-11-17
+
+- Restore the complete Send/Stop circle without changing the outer composer.
+- Reject unreadable PNG/JPEG input before custody admission and retain valid
+  drafts/files across restart and chat switching.
+- Recover model setup after a missing-key rejection; retained requests require
+  explicit restoration and sending, never automatic resubmission.
+- Deliver explicit signed native updating with integrity/publisher verification,
+  draft/runtime readiness and retained rollback. Actual two-package replacement
+  and relaunch into 0.1.3 passed on the owner's authorized Mac.
+- Publish a signed/notarized/stapled drag-to-Applications DMG containing the
+  same app as the ZIP. Its public download, mounted identity and installed
+  setup/chat/restart replay passed; no separate source toolchain is required.
+- Fix native publisher-expression syntax and Electron raw ASAR hashing. Preserve
+  withdrawn 0.1.1/0.1.2 candidate artifacts and their failed acceptance evidence.
+- Package identity, delivery gates and remaining limits:
+  [Desktop release notes](docs/releases/desktop-v0.1.3.md).
+
+## Desktop v0.1.0 — 2026-11-17
+
+- Publish one normal Apple silicon Desktop release, superseding the separate
+  Iris prereleases. Preserve their verified archives and source tags for rollback.
+- Preserve explicit uncertain-effect guidance live and after restart, keep
+  recovery edit-only, and update the same terminal reply after settlement failure
+  instead of adding a duplicate failed card. No automatic uncertain-effect retry.
+- Connect project-local file references through the existing native filesystem
+  guards and deliver their relative metadata alongside inline images. External
+  files and remote byte uploads remain unsupported; the original tester incident
+  is not claimed fully resolved.
+
+- Add Help and About entries for private bug/idea reports, exact previews,
+  local drafts and explicit same-ID retry against a separate receipt-backed
+  Vanta receiver. Build facts are opt-in; no automatic chat/log collection.
+- Reserve composer shadow space at narrow Chat/Home pane boundaries without
+  changing the existing surface radius or 720px width cap.
+- Track the tester's failed-image chat recovery regression and real signed
+  Desktop auto-update as separate unfinished cards. A new ZIP is not an updater.
+- Exact package, checksums, notarization and acceptance limits:
+  `docs/releases/desktop-v0.1.0.md`.
+
+Notable changes per release. CLI/kernel releases ship their own platform assets;
+Desktop releases state their supported architecture separately. Release assets
+live on the [Releases](https://github.com/jpoindexter/Vanta/releases) page.
+
+## Transcript math security — 2026-10-29 (source/shared dependency)
+
+- Pin KaTeX0.18.2 across direct/transitive Desktop callers. Real transcript
+  regression rejects test-only inherited rendering permission while ordinary
+  math remains readable. Registry checks, thirteen focused checks, type/build,
+  fresh installation and actual streamed Electron math/font proof pass.
+- Only one advisory disappears; affected Desktop entries fall production11→3
+  and all17→9. Old shared parser retained; installed agent17/CLI12c05ed5 unchanged.
+  [Evidence, conditional threat and limits](docs/dependency-katex-2026-10-29.md).
+
+## Agent17 Desktop — 2026-10-29 (local delivery)
+
+- Install signed, Apple Accepted/stapled agent17 from source9bf6ad3d, retaining
+  exact agent16 rollback and verified archive. Both candidate and installed copies
+  pass sixteen runtime/approval checks, including revoked-grant write/edit
+  refusals, plus six chat/branch/cold-restart checks without observed renderer errors.
+- Normal CLI remains approved12c05ed5; pending voice is excluded. This is not
+  full recurring authority, canonical review clearing or security/parity approval.
+  [Delivery, retained fixture failures and limits](docs/agent17-desktop-delivery-2026-10-29.md).
+
+## Delegated file revalidation — 2026-10-29 (earlier source checkpoint)
+
+- Re-read a fingerprinted delegated grant after awaited preparation and before
+  synchronous write/edit commit. Revoked, replaced or unreadable authority now
+  produces denied receipts and preserves file bytes in the reproduced cases.
+- Thirteen actual source scheduler/kernel/file journeys, 162 focused checks,
+  typecheck and architecture gates pass. This is not atomic cross-process revoke
+  or full recurring authority; installed app/normal CLI remain unchanged.
+  [Evidence and limits](docs/delegated-write-revalidation-2026-10-29.md).
+
+## Website worker-pool security patch — 2026-10-29 (source)
+
+- Scope Docusaurus 3.10.2's Tinypool override to verified 2.1.2. Three benign
+  inherited-option controls fail on the old package and pass on the patch;
+  thirteen focused security checks, full prebuild/build with two SSG workers,
+  and five-page private HTTP proof pass.
+- Website audits fall from 16 critical entries to zero, but 32 affected entries
+  remain. No live deployment or blanket security clearance.
+  [Evidence and compatibility limits](docs/dependency-website-workers-2026-10-29.md).
+
+## Desktop YAML dependency patch — 2026-10-29 (source/shared dependency)
+
+- Pin declared YAML 2.8.1 to 2.8.3 with exact registry integrity, preserving every
+  unrelated manifest/lock field. Bounded old/new parser proof, clean private
+  install, Desktop build and four focused regressions pass. Shared parser updated
+  recoverably; installed app and normal CLI unchanged.
+- Desktop lock-audit findings fall production12→11/all18→17, removing only YAML;
+  unrelated KaTeX remediation-suggestion drift is retained separately. Remaining
+  Desktop/website/default-main findings prevent security-green status.
+  [Evidence and reachability limits](docs/dependency-yaml-2026-10-29.md).
+
+## Approved normal CLI cutover — 2026-10-29 (local delivery)
+
+- Fresh owner approval selects the independently verified `12c05ed5` candidate
+  through the unchanged normal launcher. Full candidate source/dependency/
+  compiled identities rechecked; actual post-switch launcher initialization
+  answers from the exact runtime and exits cleanly.
+- Old `e467a857` runtime and selection backup retained; no credentials/approvals
+  migrated. Installed agent16 unchanged. Later source journal modularization,
+  full recurring authority, canonical review clearing and security remain open.
+  [Delivery and limits](docs/cli-approved-cutover-2026-10-29.md).
+
+## Effect journal modularization — 2026-10-29 (earlier source checkpoint)
+
+- Split the 539-line persistence module into a 78-line compatibility facade
+  and five focused journal/lock/atomic-write/projection modules. Preserve public
+  signatures, journal bytes, serialization, recovery and uncertain-effect holds.
+- Fixed-clock byte comparison, distinct-process SIGKILL recovery, 45 concurrent
+  transitions, actual source Gmail503/attention replay and 32 focused checks pass.
+  Existing size findings fall from 12 to three unchanged compatibility parameter
+  counts. O03-3 remains incomplete; installed app/normal CLI unchanged.
+  [Evidence and remaining boundary](docs/effect-journal-modularization-2026-10-29.md).
+
+## CLI repair delivery readiness — 2026-10-29 (staged, not selected)
+
+- Independently staged committed `12c05ed5`, matching the installed agent16
+  runtime source. Actual global-launcher initialization, real-terminal greeting/
+  streamed response/exit, 19 compiled scheduled-file boundary cases, 11 Gmail
+  cases and 12 LinkedIn cases pass using private fixtures.
+- Normal CLI remains approved `e467a857` pending fresh exact cutover approval.
+  No credentials/approvals copied, production changes, new installation or card
+  completion. Original work and app/CLI rollback retained.
+  [Evidence and limits](docs/cli-target-delivery-readiness-2026-10-29.md).
+
+## Agent16 Desktop delivery — 2026-10-29 (local checkpoint, not a public release)
+
+- Installed signed, Apple Accepted/stapled agent16 from `12c05ed5`, delivering
+  delegated audit-failure and resolved-target protections. Exact agent15
+  rollback retained; candidate/installed/extracted archive fingerprints match.
+- Candidate and installed each pass fourteen actual approval/runtime fixture
+  checks and six chat/branch/cold-restart checks, with zero observed renderer
+  errors. A retained proof-only result-ordering bug was repaired by correlating
+  exact session/tool-call identity; no runtime change or resubmission was needed.
+- Original work/data, pending voice and normal CLI `e467a857` preserved.
+  Recurring authority, canonical review clearing, owner/parity/live-account and
+  dependency security remain open. No main merge or public release/tag.
+  [Delivery and limits](docs/agent16-desktop-delivery-2026-10-29.md).
+
+## Agent15 and subsequent source checkpoints — 2026-10-29 (historical)
+
+- Source fix: delegated file grants now use the active project's resolved
+  target; write/edit reject path redirection after approval. New CLI write
+  grants require absolute scopes; old relative grants remain stored but fall
+  back to host approval. Nineteen scheduled journeys, four source CLI commands
+  and 155 focused checks pass. Not installed or full recurring authority.
+  [Evidence and limits](docs/delegated-target-binding-2026-10-29.md).
+
+- Source fix: failed delegated-authority audit persistence now falls through
+  to existing host approval instead of silently auto-approving. Seven real
+  scheduled agent/kernel/file journeys and 84 focused checks pass. T03-6
+  account/quota/expiry acceptance stays open; installed app/CLI unchanged.
+  [Evidence and limits](docs/delegated-audit-fail-closed-2026-10-29.md).
+
+- Source acceptance for delegated outreach: seven actual parent/delegate/worker/
+  Gmail/kernel fixture journeys prove fresh child decisions, refusal after drift,
+  one freshly approved child submission and no extra submission on replay.
+  No runtime defect reproduced or permission code changed. Unattended grants,
+  installed/live delegation and full Trust acceptance remain unproven.
+  [Evidence and limits](docs/delegated-outreach-boundary-2026-10-29.md).
+
+- Installed the signed, Apple Accepted/stapled agent15 bundle from source
+  `29c370a4`, with the previous exact app retained for rollback. Candidate,
+  extracted archive and installed full fingerprints agree.
+- Candidate and installed copies each pass nine Gmail/LinkedIn approval fixture
+  checks and six chat/branch/cold-restart checks, with zero observed renderer
+  errors. Original work/data and normal CLI `e467a857` remain preserved.
+- Updated delivery identities and current card evidence without closing either
+  Building parent. No live send/post, public release or whole-product claim.
+  [Evidence and limits](docs/agent15-desktop-delivery-2026-10-28.md).
+
+## LinkedIn author binding — 2026-10-28 (source checkpoint)
+
+- Resolve and preview the personal author before fresh publication approval;
+  revalidate token/client, scope/expiry and author before using the approved
+  credential. Preserve cancellation and refuse drift without publication.
+- Twelve actual agent/kernel/local HTTP journeys and 28 focused checks pass.
+  Source only; no live post, readback or installed-preview acceptance.
+  [Evidence and limits](docs/linkedin-author-binding-2026-10-28.md).
+
+## Agent attention routing — 2026-10-28 (source checkpoint)
+
+- Source recovery proof: three real Desktop host exit/restart journeys retain
+  uncertain Gmail actions, exact drafts/arguments and held followers; consumed
+  operations make no duplicate submission or new approval request. HTTP503,
+  reset and missing acknowledgment fixtures pass. No new production change,
+  installed recovery, live-account or review-clearing claim.
+  [Evidence and limits](docs/gmail-cold-recovery-2026-10-28.md).
+
+- Keep Desktop queued work held by typed unknown tool results from live,
+  resuming or saved sessions, including CLI sessions without Desktop receipts.
+  Reuse the agent's existing evidence check. Real source HTTP replay and 32
+  focused checks pass; manual questions and independent chats remain usable.
+  Source only, not review clearing or installed restart acceptance.
+  [Evidence and limits](docs/cross-host-review-continuity-2026-10-28.md).
+
+- Bind automatic blocker identity to its host source and full request; keep
+  registered ticket decisions session-scoped. Resolving one chat's repeated
+  blocker no longer clears another chat's ticket. Two actual agent/kernel/CLI
+  journeys and 39 focused checks pass. Source only; canonical unknown-effect
+  review clearing remains open. [Evidence and limits](docs/attention-chat-ownership-2026-10-28.md).
+
+- Merge repeated uncertainty for the exact session-bound operation set into one
+  Needs You item, retaining both receipts without retrying the action. A separate
+  chat remains independent. Real registered Gmail/kernel replay and 46 focused
+  checks pass. Source only; resolution/clearing and installed delivery remain open.
+  [Evidence and limits](docs/uncertain-attention-deduplication-2026-10-28.md).
+
+- Local delivery: fresh owner-approved normal CLI cutover to independent
+  `e467a857`; exact source/preservation checks and the actual global launcher
+  pass. Previous runtime and selection retained; no credential or approval
+  migration. Agent14 Desktop is now Apple Accepted/stapled and installed with
+  exact archive/app/rollback fingerprints; candidate and installed copies each
+  pass six Gmail/uncertainty and six chat/branch/restart checkpoints.
+  Private fixtures, not live Gmail or full-product acceptance.
+  [Delivery and limits](docs/agent14-cli-delivery-2026-10-28.md).
+
+- Follow-up: retain typed turn uncertainty and explain its existing canonical
+  blocker with a safe review action, original source and receipt link; do not
+  create a duplicate ticket. Actual Gmail503/kernel/conversation plus separate
+  CLI replay and 44 focused/architecture checks pass. Source only, not installed.
+  [Uncertain-action evidence and limits](docs/uncertain-action-attention-2026-10-28.md).
+
+- Keep routine conversation/status/public reads quiet; show genuine active
+  needs-human tickets in the operator view with their reason and next action.
+- Actual isolated CLI/kernel replay and 27 focused/architecture checks pass.
+  No grant/policy change, installed delivery or whole OP-03 completion.
+  [Evidence and limits](docs/agent-attention-routing-2026-10-28.md).
+
+## Website shell-quote — 2026-10-28 (source checkpoint)
+
+- Update one compatible website lock entry to shell-quote1.11.0;18 targeted
+  caller/roundtrip/advisory checks pass. Paired audits remove only this finding
+  (35→34; critical17→16). No site deployment, app update or security-clean claim.
+  [Evidence and limits](docs/website-shell-quote-2026-10-28.md).
+
+## Gmail sender binding — 2026-10-28 (source checkpoint)
+
+- Bind send/draft previews and submissions to the verified mailbox; an account
+  switch, revocation, denial or canceled late approval prevents submission.
+- Eleven local HTTP cases, four separate-process replays, 58 focused/architecture
+  checks, types and strict size checks pass. Uncertain sends are never retried.
+  Installed CLI/Desktop and live Gmail remain unverified for this change.
+  [Evidence and limits](docs/gmail-sender-binding-2026-10-28.md).
+
+## Codex design and feature review — 2026-10-28 (reference only)
+
+- Refresh local Codex26.1023.51421 through Hopper native-launcher inspection,
+  REA inventory/six inert JS files and all383 CSS files; no target code executed.
+- Trace current Vanta gaps rather than duplicate implemented features: retained
+  unapproved chrome candidate, run-next versus immediate-Steer wording and voice
+  transport mismatch. Preserve owner gates; no app source or installation change.
+  [Evidence, useful patterns and limits](docs/codex-design-feature-audit-2026-10-28.md).
+
+## Normal CLI delivery — 2026-10-28 (local, not a release)
+
+- Switch the unchanged normal launcher to independent committed bdf5780a after
+  exact-pin startup, MCP16/HTTP38 and actual TTY same-burst saved-choice/restart
+  checks. Rehash 2,213 compiled files and 70 receipts, with independent review.
+- Preserve CLI70 rollback, original work/owner data and full installed agent11;
+  actual post-switch global-wrapper check passes. No credential/approval migration
+  or Desktop rebuild; full product/security/design/modularization gates stay open.
+  [Delivery and recovery boundary](docs/agent12-cli-cutover-2026-10-28.md).
+
+## Terminal approval ordering — 2026-10-28 (source checkpoint)
+
+- Keep rapid arrow/Enter input on the selected approval, preventing an old
+  one-time Yes from replacing “don't ask again” or No.
+- Forty focused approval checks, native types and a real terminal saved-rule /
+  restart / second-edit replay pass. Normal CLI and installed Desktop remain
+  unchanged pending exact-pin delivery; policy and owner authority are unchanged.
+  [Evidence and retained failures](docs/tui-approval-input-order-2026-10-28.md).
+
+## Agent11 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Install signed, Apple Accepted/stapled agent11 from source94c622b9, delivering
+  MCP request correlation and per-client admission/cleanup/stream ownership.
+- Exact candidate and installed copies pass 16 compiled MCP and 23 compiled HTTP
+  checks, two real approval/reload rounds and six chat/branch/restart checkpoints.
+  Full archive/app/rollback identity and original-work preservation agree.
+- Recover the same Accepted Apple submission after its wait command timed out;
+  no resubmission or validation waiver. Normal CLI70 and full product/security/
+  modularization/owner gates remain open. [Evidence](docs/agent11-installed-2026-10-28.md).
+
+## Agent chat ownership — 2026-10-28 (source checkpoint)
+
+- Reserve per-client admission across body/auth/queue reads; stale cleanup
+  cannot clear its successor. Keep streaming in the shared lifecycle and do
+  not emit public success after a refused request.
+- Five original failures, 68 focused checks and 20 actual production-router
+  checks cover queue preservation, independent clients, Stop and saved history.
+  No new/worse size findings or authority changes; app/CLI are unchanged.
+  [Evidence and limitations](docs/chat-admission-ownership-2026-10-28.md).
+
+## MCP request correlation — 2026-10-28 (source checkpoint)
+
+- Route server requests before matching outbound IDs, preventing false empty
+  tool success and swallowed real errors when peers choose the same ID.
+- Three red-to-green regressions, actual stdio/mapped-effect receipts and 88
+  focused checks pass. No retries or authority changes; installed app/CLI remain
+  unchanged. [Evidence and limits](docs/mcp-request-correlation-2026-10-28.md).
+
+## Website URI dependency — 2026-10-28 (source checkpoint)
+
+- Update only the existing fast-uri override and lock record to compatible3.1.9.
+  Actual Ajv/schema-utils/WDS-option-schema caller checks pass in both phases.
+- Matched lock-only audit36→35 removes onlyfast-uri; every remaining row is
+  identical, including17critical. No canonical dependency install, website
+  build/deployment or delivered app/CLI change; overall security remains open.
+  [Evidence and limits](docs/website-fast-uri-checkpoint-2026-10-28.md).
+
+## Agent10 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Install signed, Apple Accepted/stapled agent10 from sourceb67af10b, retaining
+  agent9 rollback and unchanged original work/data and normal CLI70 selection.
+- Both candidate and installed real Electron journeys pass same-approval reload
+  recovery, actual Allow once/one effect, other-profile draft/focus preservation,
+  and New chat/Branch/switch/cold restart with three exact histories and no errors.
+- Preserve two default-temp archive extraction failures; unchanged maintained
+  validator passes all archive/ticket/signature/fingerprint gates in an owned temp
+  directory, without another Apple submission or weakened checks. Full product,
+  owner/parity/human/live-account, security and modularization gates remain.
+  [Exact delivery and limitations](docs/agent10-installed-2026-10-28.md).
+
+## Live approval recovery — 2026-10-28 (source checkpoint)
+
+- Recover the exact original live client/approval after renderer reload, without
+  replacing its conversation, submitting another task or reusing approval authority.
+- Preserve rich terminal failures and current history across open/completion races;
+  fence stale requests and connection lifetimes, and stop/restart observation safely.
+- Actual current-backend source Electron passes both profile/draft-isolation
+  rounds, same approval ID after reload and real Allow once with one effect.
+  Ninety renderer, 25 backend and one real-router checks pass, with scoped
+  types/size/builds. Installed agent9/CLI70 and whole-card gates stay unchanged.
+  [Evidence, retained failures and limits](docs/live-approval-recovery-checkpoint-2026-10-28.md).
+
+## Draft ownership and runtime ledger — 2026-10-28 (source checkpoint)
+
+- Preserve fresh draft words through delayed profile activation by using the
+  selected profile before its gateway finishes switching.
+- Extract the event-owner ledger into a 70-line module, retaining proven
+  provenance, durable-owner precedence and cleanup semantics.
+- Fifty-eight focused tests and the real source-Electron single-approval round
+  pass. Full-reload approval recovery still fails and is the next repair;
+  installed app, normal CLI and whole-card completion remain unchanged.
+  [Evidence and limits](docs/draft-owner-ledger-checkpoint-2026-10-28.md).
+
+## Website editor dependency — 2026-10-28 (source checkpoint)
+
+- Update one existing lock record to compatible launch-editor2.14.2; retain
+  already-resolved shell-quote1.10.0 and all other1,488 package records.
+- Real webpack-dev-server HTTP→headless Vim old-failure/new-success and five
+  controls per phase pass independently; eight owned editor children exit.
+- Matched warm audit39→38 removes onlylaunch-editor. Origin-only policy and
+  Windows behavior remain unverified; no website deployment, app/CLI change or
+  overall/default-main security clearance is claimed.
+  [Evidence and limits](docs/website-launch-editor-checkpoint-2026-10-28.md).
+
+## Agent9 normal CLI delivery — 2026-10-28 (local, not a release)
+
+- Switch the unchanged normal launcher to verified source70f05035 only after
+  exact source/dependency/readiness and independent review; retain the old pin.
+- Actual terminal saved-choice/restart, two live forks/three exact histories,
+  ACP/MCP26, fresh file approvals, five worker cases and compiled HTTP checks
+  pass. Post-cutover wrapper startup and original-work/data checks pass.
+- Installed agent9 is unchanged. Initial timed-out rehearsal and setup failure
+  remain recorded; no owner/live-model or whole-product acceptance is inferred.
+  [Delivery and remaining gates](docs/agent9-cli-cutover-2026-10-28.md).
+
+## Agent9 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Deliver sourcebcc84cdb as signed/Apple Accepted/stapled installed agent9.
+  Exact candidate AND installed chat/branch/continuation/switch/cold restart
+  preserve three histories and the parent edge with zero observed renderer errors.
+- Both six-turn file-approval regressions, final extracted archive, full installed/
+  agent8 rollback fingerprints and original work/data checks pass. Normal CLI
+  remains2d739e68. No resubmission, guard waiver or new visual acceptance.
+- Whole design/parity/owner/human/live-account, trust/security, normal-CLI cutover
+  and modularization gates remain. No main merge, public release/tag, CI or spend.
+  [Exact delivery and remaining work](docs/agent9-installed-2026-10-28.md).
+
+## Website proxy trust leaf — 2026-10-28 (source checkpoint)
+
+- Update only the existing proxy-addr lock record to compatible 2.0.8.
+  Actual Express HTTP reproduces four old/patched trust-subnet regressions;
+  eight controls and independent 24-request replay pass with closed servers.
+- Matched warm website audit 40→39 removes only proxy-addr; remaining 39 rows
+  are unchanged. No demonstrated ordinary/deployed exploit, website install/build/
+  deployment, app/CLI change or overall/default-main security clearance.
+  [Evidence and limits](docs/website-proxy-addr-checkpoint-2026-10-28.md).
+
+## Durable chat branching — 2026-10-28 (source checkpoint)
+
+- Persist immediate-parent provenance through saves, backend metadata/export and
+  both Desktop projections; retain origin metadata and live unsaved CLI history.
+- Use collision-resistant, create-only fork IDs without switching the CLI after
+  a failed save. Never infer legacy or checkpoint-copy ancestry.
+- Forty-eight runtime/API and 26 Desktop checks, types, build and architecture
+  pass. Actual rebuilt-source Electron retains four exact histories and parent
+  edges through switching/cold restart with zero renderer errors. Installed
+  agent8/normal CLI unchanged; separate delivery and whole-card gates remain.
+  [Evidence and limits](docs/fork-lineage-checkpoint-2026-10-28.md).
+
+## Agent8 Desktop delivery — 2026-10-28 (local, not a release)
+
+- Signed, Apple Accepted/stapled installed agent8 delivers source430530cd and
+  preserved dirty renderer inputs. Normal CLI stays on2d739e68; agent7 rollback,
+  original work and owner data are retained.
+- Exact candidate AND installed New chat/Branch/child continuation/switch/cold
+  restart pass with exact three-chat histories and zero renderer errors. Fresh
+  six-turn file approval, final extracted archive and full fingerprints pass.
+- Retain two Apple timeout failures; acceptance readback and unchanged archive
+  validator recovery pass without a second submission or relaxed checks.
+- Durable fork ancestry, whole design/parity, owner/human/live-account, security
+  and modularization gates remain open. No main merge, release/tag, CI or spend.
+  [Exact delivery and remaining work](docs/agent8-installed-2026-10-28.md).
+
+## New chat/fork route guard and activity reads — 2026-10-28 (source checkpoint)
+
+- Extract the complete pending-created-session route guard, retaining the external
+  owner ref, live finally reads, three-second timer and recovery behavior.
+- Reproduce an existing empty-thread activity subscription error in old and new
+  source renderers; guard the three reads before resolving a removed message.
+  Reject and fully restore an ID-based candidate that failed the real app.
+- Twenty-four focused checks, types and architecture pass. Rebuilt source Electron
+  passes create/branch/continuation/switch/cold restart with exact history and zero
+  renderer errors. At that source checkpoint, installed agent7/normal CLI were
+  unchanged. Agent8 above adds exact package/install evidence; durable fork
+  parent linkage and whole-card gates remain open.
+  [Proof and limits](docs/created-session-guard-2026-10-28.md).
+
+## Website compression cleanup — 2026-10-28 (source only)
+
+- Patch the existing compression lock record to 1.8.2, reusing resolved destroy
+  1.2.0. Actual early-close stream regressions fail before and pass after for
+  gzip/deflate/Brotli; eleven ordinary HTTP cases match, including later responses.
+- Independent parent replay matches. Warm audit 41→40 removes only compression;
+  forty website findings remain. No full website build/deployment, guard waiver,
+  app/CLI rebuild, overall security clearance or whole-card closure.
+  [Evidence and limits](docs/website-compression-checkpoint-2026-10-28.md).
+
+## Verified agent7 delivery and website leaf — 2026-10-28 (local, not a release)
+
+- Normal CLI and signed/Apple Accepted/stapled installed agent7 now deliver
+  source 2d739e68, including startup generations and saved-rule cancellation.
+- Exact candidate and installed chat/restart, fresh file approvals and five
+  worker cases pass. Real-terminal restart and a remembered project choice
+  surviving restart pass; old app/pin, original work and owner data are retained.
+- Retain the initial temporary-directory archive failure; the same complete
+  validator passes with an owned temporary directory, without Apple resubmission.
+  [Delivery identities and remaining gates](docs/agent7-installed-2026-10-28.md).
+- Separately patch compatible website Colord 2.9.4 with actual consumer proof
+  and matched audit 42→41. No website installation/deployment or overall security
+  clearance. [Website evidence](docs/website-colord-checkpoint-2026-10-28.md).
+- No whole-card closure, completed redesign/modularization, main merge, public
+  release/tag, CI or paid services.
+
+## Saved approval cancellation — 2026-10-28 (source checkpoint; delivered above)
+
+- Carry real turn/request cancellation through terminal, Desktop and worker
+  approvals to the shared rule publication point; prevent canceled pending saves.
+- Use unique prompt IDs to reject delayed decisions for replaced requests.
+  Preserve already-committed preferences instead of restoring stale snapshots.
+- 180 focused checks, types, startup compilation and actual compiled HTTP/turn/
+  filesystem replay pass with private fixtures. Normal CLI/installed agent6 are
+  unchanged; no whole trust/security/parity closure or public release/tag.
+  [Evidence and remaining delivery gates](docs/saved-rule-cancellation-2026-10-28.md).
+
+## Startup repair CLI delivery — 2026-10-28 (local, not a public release)
+
+- Switch normal `vanta` to verified pin05271e95/runtime4036609c after exact source,
+  locked-dependency, kernel and actual launcher/agent/MCP/worker checks.
+- Real-terminal conversation → `/restart` → saved-context re-entry → quit passes
+  through the unchanged global wrapper using private model/kernel fixtures.
+- Preserve previous pin/location, original work and owner data. Desktop remains
+  agent6; no new app/site deployment, whole-card closure, public release/tag or CI.
+  [Delivery evidence and remaining gates](docs/startup-cli-delivered-2026-10-28.md).
+
+## Startup and CSS-consumer repairs — 2026-10-28 (source only)
+
+- Pin each launch to a retained complete startup generation; reject source edits
+  during compilation and refresh the selected generation on exit 75. Eleven focused
+  checks, actual concurrent compiled launches and 26 ACP/MCP behavior checks pass.
+- Patch only the website source-map-js lock leaf to 1.2.2. Eight actual consumer
+  checks pass; a matched audit removes one finding, leaving 42. No guards waived.
+- Installed agent6 and the selected normal CLI remain unchanged. No new app/site
+  delivery, whole-security/parity clearance, main merge, public release/tag or CI.
+  [Startup evidence](docs/startup-cache-generations-2026-10-28.md) ·
+  [CSS-consumer evidence](docs/website-source-map-checkpoint-2026-10-28.md).
+
+## Verified agent6 delivery — 2026-10-28 (local, not a public release)
+
+- Deliver source `d6260ace` to normal CLI and signed, Apple Accepted/stapled
+  installed agent6. Exact final archive, installed app and agent5 rollback verify.
+- Candidate and installed chat/restart, six-turn fresh approval and five swarm
+  cases pass; separate actual source-terminal approval dismissal/success passes.
+- Preserve original work/data, pins and recovery; update evidence without closing
+  unmet trust/security/parity gates. Startup-cache publication and in-flight
+  saved-rule cancellation limits remain. No main merge, public release/tag or CI.
+  [Delivery identities and limits](docs/agent6-installed-2026-10-28.md).
+
+## Foreground swarm containment — 2026-10-28 (source only)
+
+- Cancel pending foreground siblings after an uncertain child result; retain
+  independent success/read-only completion and explicit background lifetimes.
+- Preserve child approval cancellation through nested wrappers; settle canceled
+  TUI prompts and ignore stale decisions without dismissing a newer prompt.
+- Five sequential actual CLI/Rust cases, focused agent/TUI checks, runtime types
+  and architecture pass. Installed agent5 is unchanged; real-TTY and transactional
+  saved-rule cancellation remain open. Original work and rollback are preserved.
+  [Evidence and limits](docs/swarm-containment-2026-10-28.md).
+
+## Verified agent5 delivery — 2026-10-28 (local, not a public release)
+
+- Deliver code `166aff7f` to the normal CLI and signed, Apple Accepted/stapled
+  `/Applications/Vanta.app`. The final ZIP, extracted app and installed app match.
+- Candidate and installed chat/restart, six-turn fresh approval, team refusal,
+  completion, running-child Cancel and unanswered-approval Cancel pass using
+  private profiles and real bundled runtimes/kernels. Previous app/CLI retained.
+- Preserve original work and current owner data; update evidence without closing
+  unmet agent/security/parity gates. No main merge, public release/tag or deployment.
+  [Delivery identities and limits](docs/agent5-installed-2026-10-28.md).
+
+## Team-run truth checkpoint — 2026-10-28 (source evidence; subsequently delivered above)
+
+- Incomplete, refused or canceled team children no longer become done/success;
+  forward Stop and preserve existing task transition/review/artifact gates.
+- Actual CLI/Rust refusal, completion and Cancel journeys pass; retain the
+  unexplained adjacent background-custody timeout alongside the focused rerun.
+  [Evidence and limits](docs/team-run-truth-2026-10-28.md).
+- [Recoverable old-build cleanup](docs/old-build-cleanup-2026-10-28.md) removes
+  verified redundant generated copies while retaining source, installed app,
+  rollback apps and signed recovery installers. No new delivery is implied.
+
+## Website image-parser checkpoint — 2026-10-28 (not deployed)
+
+- Pin compatible image-size 2.0.4 without unrelated dependency changes. Actual
+  parser/Docusaurus checks and current prebuild pass; the private locked candidate
+  also passed its production build. Matched audit removes only the two target
+  advisories, with 41 other package findings remaining.
+- Keep input guards, disabled formats and expired-exception rejection unchanged.
+  No app/CLI update or whole-security clearance.
+  [Exact evidence boundaries](docs/website-image-parser-checkpoint-2026-10-28.md).
+
+## ACP permission cancellation — 2026-10-28 (source only)
+
+- Cancel settles unanswered foreground permissions, removes the exact pending
+  request/listener and prevents stale replies from arming a session edit grant.
+  Other sessions and explicitly detached approval retain their own lifetime.
+- Actual CLI/file/kernel replay settles before any client reply with original
+  bytes retained and no retry; 104 focused tests, types and strict size pass.
+  Installed app/normal CLI delivery remains separate.
+  [Evidence and limits](docs/acp-permission-cancellation-2026-10-28.md).
+
+## Foreground Stop checkpoint — 2026-10-28 (source only)
+
+- Carry turn cancellation into foreground delegate/swarm workers, stop later
+  batch calls and reject late inner approvals after Cancel. Preserve observed
+  effects, conservative receipts and explicit background lifecycle/approval scope.
+- Actual private CLI/file/kernel replays and focused source checks pass; pending
+  ACP permission settlement and rebuilt installed delivery remain open.
+  [Evidence and next boundary](docs/foreground-stop-checkpoint-2026-10-28.md).
+
+## Website sanitizer checkpoint — 2026-10-28 (not deployed)
+
+- Update only the existing website DOMPurify leaf to 3.4.17. Isolated locked
+  installation, unchanged production build and actual hydrated diagram/reload
+  checks pass. Make the expired-exception test deterministic without extending
+  the production risk acceptance; eight focused security checks pass.
+- Broader dependency findings and the expired image-size exception remain open;
+  installed agent4/CLI and owner work are unchanged.
+  [Evidence and remaining limits](docs/website-sanitizer-checkpoint-2026-10-28.md).
+
+## Verified agent4 delivery — 2026-10-27 (local, not a public release)
+
+- Deliver verified code `7d32e58f` to the normal CLI and Developer ID signed,
+  Apple Accepted/stapled `agent4` app. Exact candidate and installed chat/restart
+  and six-turn deny/approve-once/re-deny journeys pass with private fixtures.
+- Preserve original work/data and previous app/CLI rollback; update roadmap and
+  Trello evidence without closing unmet security, agent or owner-acceptance gates.
+  [Delivery identity and limits](docs/agent4-installed-2026-10-27.md).
+
+## Scoped replacement and runtime checkpoint — 2026-10-27 (source only)
+
+- Require exact fresh approval for ordinary in-project file replacement under
+  the owner-authorized narrow kernel policy; retain existing hard blocks and
+  captured-file revalidation. Preserve ACP one-time authority and exact previews.
+- Route two Node messaging WebSocket adapters through the existing patched
+  Undici package; share the existing runtime-path resolver without changing its
+  behavior. Focused source, actual kernel and private transport checks passed;
+  new packaged/notarized/installed acceptance remains separate.
+  [Source evidence and gaps](docs/scoped-replacement-and-runtime-checkpoint-2026-10-27.md).
+
+## Verified agent/app delivery — 2026-10-27 (local, not a public release)
+
+- Deliver agent checkpoint `1d18f846` to the normal CLI and signed/notarized,
+  installed agent3 app. Exact candidate and installed chat/restart, delegation,
+  uncertain-result, cancellation and depth-limit paths pass with private fixtures.
+- Preserve owner app data, original dirty work and previous app/CLI rollback;
+  archive eight superseded generated items without deletion. Update planning
+  evidence without closing unmet card contracts. Nested overwrite approval,
+  live-account/parity/human, security and modularization gates remain open.
+  [Delivery identity and evidence](docs/agent-rebuild-installed-2026-10-27.md).
+
+## Background and worker-auth checkpoint — 2026-10-27 (source only)
+
+- Keep durable background custody and truthful parent outcomes; uncertain or
+  incomplete work pauses automatic followers without blocking explicit input.
+- Authenticate child-agent launches with the existing project/profile authority;
+  reject unavailable or unverified checks and preserve worktree safety scope.
+  Parent combined 81 focused checks, types and strict size pass; independent
+  real conversation and unchanged Rust proofs retain exact source identities.
+  [Evidence and remaining limits](docs/agent-background-and-spawn-truth-2026-10-27.md).
+
+## Foreground worker checkpoint — 2026-10-27 (source only)
+
+- Preserve uncertain/incomplete delegate and swarm outcomes instead of reporting
+  unconditional success. Keep partial summaries, separate child usage and truthful
+  delegation receipts. Parent 37 focused checks, runtime types/strict size and
+  an independent actual mixed-worker proof pass. Running-sibling cancellation,
+  background recovery and delivered app behavior remain separate boundaries.
+  [Evidence and limits](docs/foreground-worker-outcome-truth-2026-10-27.md).
+
+## ACP outcome checkpoint — 2026-10-27 (source only)
+
+- Report blocked/review-required ACP work as `refusal`, not normal `end_turn`;
+  preserve cancellation and existing ordinary outcomes. Parent real stdio
+  baseline/current execution, 88 focused checks and runtime typecheck pass.
+  Local CLI pin and installed Desktop are unchanged by this source checkpoint.
+  [Evidence and limits](docs/acp-outcome-truth-2026-10-27.md).
+
+## Agent-first local CLI delivery — 2026-10-27 (not a public release)
+
+- Select verified pinned agent source `2f39a2b0` after explicit owner approval;
+  preserve the old checkout, dirty work and launcher selection for rollback.
+  Formal cold/warm/cache and 26 real Rust ACP/MCP checks pass, plus isolated
+  global-wrapper initialization. No credentials or approvals migrated.
+- Build/sign same-source agent2 Desktop candidate; four packaged chat/restart
+  criteria pass. Do not replace valid installed home1 while Apple notarization
+  is blocked by missing saved Keychain credentials. Shift active lanes to agent
+  trust and review/recovery; no card marked shipped or owner gates bypassed.
+  [Delivery evidence and limits](docs/agent-delivery-and-priority-2026-10-27.md).
+
+## CLI startup asset checkpoint — 2026-10-27 (source now in the local CLI pin)
+
+- Include the maintained Fetch helpers in startup compilation and metadata;
+  refuse missing/incomplete outputs before cache reuse or replacement. Five
+  parent regressions pass under normal CLI Node 22.23.1. A private real-launcher
+  cold/warm/cache-hit and 23 ACP/MCP checks pass; joint later-agent verification
+  is still required before the owner-approved pinned launcher switch.
+  [Evidence and delivery boundary](docs/cli-startup-assets-2026-10-27.md).
+
+## Uncertain agent-action checkpoint — 2026-10-27 (not installed or released)
+
+- Stop direct agent execution after an unknown effect; retain usage/partial work,
+  consistent needs-review receipts and safe queue admission across reload and
+  compaction. Refuse blind Retry/Replay and workflow continuation. Parent actual
+  MCP/agent proof, 50 focused checks, one legacy regression and runtime typecheck
+  pass; independent review caught and closed a compound queue-write failure.
+  Nested-worker propagation, review-clear UX and installed delivery remain open.
+  [Evidence and limits](docs/agent-uncertain-effect-settlement-2026-10-27.md).
+
+## MCP connection lifecycle checkpoint — 2026-10-27 (not installed or released)
+
+- Pending and later tool requests now reject after clean process exit, signal
+  termination or explicit close, without dropping a complete final response.
+  Temporary HTTP failures can still recover. Parent actual child/client proof,
+  109 focused tests and runtime typecheck pass. No remote-effect cancellation,
+  universal timeout or new installed bundle is claimed.
+- Audited the real launcher split: normal `vanta` still selects an older, dirty
+  checkout; Desktop installation does not update it. Preserve that work and use
+  a separately proven, owner-approved delivery rather than a destructive update.
+  [Evidence and delivery limits](docs/mcp-tool-error-truth-2026-10-27.md).
+
+## MCP tool-error checkpoint — 2026-10-27 (not installed or released)
+
+- Explicit MCP errors no longer become confirmed successes. Preserve diagnostics,
+  unknown partial effects, human-readback guidance and replay prevention. Three
+  canonical regression failures become 79 focused passes; actual agent-to-stdio
+  fixture preserves uncertainty. Existing external ACP read-to-draft/cancel flow
+  also executes; no real model/research or GUI connection claim. Agent work now
+  takes priority; Desktop stays maintenance/delivery-only.
+  [Evidence and open gaps](docs/mcp-tool-error-truth-2026-10-27.md).
+
+## Agent cancellation checkpoint — 2026-10-27 (not installed or released)
+
+- Late Stop after a provider result now settles interrupted before text/tool
+  handling, preserving reported usage. Three canonical regression failures become
+  30 focused passing checks. Existing streaming AbortError behavior remains.
+- Verified the existing MCP stdio read/refusal entry with source and installed
+  runtime pairings. This is not full agent delegation, a connected Codex GUI,
+  MCP cancellation or the separate pending MCP error-propagation repair.
+  [Evidence and exact limits](docs/agent-cancellation-and-mcp-entry-2026-10-27.md).
+
+## Owned runtime transport checkpoint — 2026-10-27 (not installed or released)
+
+- Select maintained Fetch before owned CLI consumers capture defaults; inject it
+  into native readiness/request/events and the classic tray without changing
+  browser globals or the SDK. Include the exact production dependency, notices
+  and fallback bootstrap files. Real compiled/fallback chat and restart, malformed
+  response, main events/cancel, provider, Telegram and download checks pass.
+  Installed home1 remains unchanged; agent/MCP settlement and broader security
+  remain open. [Evidence and limits](desktop-next/docs/MAINTAINED-FETCH-SOURCE-2026-10-27.md).
+
+## Download tooling checkpoint — 2026-10-27 (not installed or released)
+
+- Patched both existing npm Undici lines within their consumer ranges. Actual
+  canonical node-gyp response-failure proof changes process termination to controlled
+  rejection/natural exit; eight integrity cases, tree and typecheck pass. Runtime
+  npm audit two→one development high, production zero. Separate installed/host
+  built-in fetch probes still fail: this patch does not repair Node's embedded
+  implementation. No whole-security claim or new installed build.
+  [Evidence and runtime gap](desktop-next/docs/UNDICI-TOOLING-SECURITY-2026-10-27.md).
+
+## Shared native helper checkpoint — 2026-10-27 (not installed or released)
+
+- Extracted the unchanged runtime-environment helper into the existing shared
+  native folder, retaining the classic import and explicit package inclusion.
+  Added that folder to source provenance after a red→green same-commit regression
+  exposed missing fingerprint coverage. Parent focused helper/launcher/provenance
+  checks, child environment probes, types/native bundle and four actual source
+  chat/restart checks pass. Installed home1 remains unchanged; full modularization
+  and classic-renderer retirement are not claimed.
+  [Evidence](desktop-next/docs/SHARED-RUNTIME-ENV-SOURCE-2026-10-27.md).
+
+## Source-map tooling checkpoint — 2026-10-27 (not installed or released)
+
+- Updated source-map-js 1.2.1→1.2.2 within the existing PostCSS range. Actual
+  canonical caller rejects malformed offsets while retaining valid lookup and
+  generated CSS source contents. Scoped tree/typecheck pass; runtime audit
+  three→two development high, production zero. No stress, full app build or
+  installed security claim; home1 remains unchanged.
+  [Evidence](desktop-next/docs/SOURCE-MAP-TOOLING-SECURITY-2026-10-27.md).
+
+## XML tooling source checkpoint — 2026-10-27 (not installed or released)
+
+- Patched the two existing xmldom consumer lines to 0.9.12/0.8.15 within their
+  existing ranges. Parent actual parser/plist/app-builder/native-run checks,
+  dependency tree and runtime typecheck pass. Runtime all-dependency audit
+  four→three high, production-only zero. Default callers still recover malformed
+  XML after diagnostics; strict rejection and whole security remain unresolved.
+  Installed home1 is unchanged.
+  [Evidence and limits](desktop-next/docs/XML-TOOLING-SECURITY-2026-10-27.md).
+
+## Durable Home installed checkpoint — 2026-10-27 (local, not released)
+
+- Delivered code `feea5a4f` as signed, Apple Accepted/stapled
+  `0.1.0-local.20261027.home1` at `/Applications/Vanta.app`, with verified final
+  ZIP and recoverable archive2 rollback. Candidate and installed paths separately
+  pass 24 text/project/attachment/restart checks, zero renderer errors. Fresh
+  owner app-data and original work hashes remain unchanged.
+- Full visual/parity, account, hardware, human, security and modularization gates
+  remain open. Static Electron fuse inspection confirms remaining packaging
+  hardening gaps; notarization is not security approval. No main merge, release,
+  tag, CI, paid service or whole-card closure.
+  [Exact delivery and proof limits](desktop-next/docs/HOME-DURABLE-INSTALLED-2026-10-27.md).
+
+## Home attachment source chronology — 2026-10-27 (later delivered above)
+
+- Added durable Home words/project/revision, one-use pending-action guards and
+  possibly-sent recovery markers. Failed cleanup never silently offers retry;
+  full/corrupt storage retains prior bytes. Fixed stale cold-Home readiness.
+  Parent current-source native replay passes 13 checks, two explicit requests,
+  three cold restart cycles and zero renderer errors; 122 focused tests pass.
+  A separate current-source image-only/restart regression passes 11 checks
+  with exact PNG bytes and zero renderer errors (24 journey checks total).
+  [Later durable-source evidence](desktop-next/docs/HOME-DURABLE-SOURCE-2026-10-27.md)
+  supersedes the earlier pre-capture gap below, not the installed-app boundary.
+
+- Route Home Attach through an owner-bound fresh draft and the existing picker,
+  retaining selected project/text without sending or borrowing another chat.
+- Guard acknowledgement rerenders and stale image reads; keep Quick Entry's
+  text path unchanged. Extract new-chat entry orchestration without growing the
+  existing oversized wiring or session-actions index.
+- Honor explicitly remembered fresh navigation on restart rather than donate
+  its words/images to the older stored chat. Preserve resume/deep-link/owner gates.
+- Parent canonical source: 90 Home UI tests, nine native-handler tests and 70
+  restart tests pass; types/build pass. Actual cross-project/text/image-only
+  restart/send journey passes 11 checks with zero renderer errors.
+- Immediate quit before the Home handoff is captured remains a persistence gap.
+  Installed archive2 is unchanged; no full design, continuity or security closure.
+  [Evidence and limits](desktop-next/docs/HOME-ATTACHMENT-CONTINUITY-2026-10-27.md).
+
+## Source security checkpoints — 2026-10-27 (not installed or released)
+
+- Updated packaging Fast URI 3.1.5→3.1.9 within Ajv's existing range. Parent
+  actual URI/Ajv/caller red→green checks and real packaging-schema checks pass;
+  runtime all-dependency audit five→four high, production zero. No installed
+  exploit or new package is claimed.
+  [Fast URI evidence](desktop-next/docs/FAST-URI-SECURITY-2026-10-27.md).
+
+- Updated legacy developer Vite 6.4.3→6.4.4 within its existing range. Parent
+  actual file/HTML boundary fixtures change red→green; legacy renderer build,
+  fourteen focused tests and dependency tree pass. Runtime all-dependency audit
+  six→five high, production zero. Ordinary legacy optimizer/close failure remains;
+  new Desktop and installed app are unchanged.
+  [Legacy Vite evidence](desktop-next/docs/LEGACY-VITE-SECURITY-2026-10-27.md).
+
+- Updated Desktop Vite to 8.3.3: reproduced file-boundary cases reject and the
+  unchanged app-config server closes naturally. Specific production-lock audit
+  falls from 13 findings to 12; other inventories remain separate.
+- Updated runtime development-only Vitest/mocker to 4.1.12, removing tinypool;
+  two test-helper type declarations changed, no production implementation edits.
+  Parent package API proof, 174 selected tests, full typecheck, startup compile
+  and runtime build pass. All 340 current emitted runtime files match baseline.
+  Runtime audit critical findings fall from two to zero; six high remain.
+- Preserved original work and dependency/source rollback copies. The full
+  test-framework migration suite and installed/native acceptance are not claimed.
+  [Desktop Vite evidence](desktop-next/docs/DESKTOP-VITE-SOURCE-2026-10-27.md),
+  [runtime tooling evidence](desktop-next/docs/RUNTIME-TEST-SECURITY-2026-10-27.md).
+
+## Local Desktop checkpoint — 2026-10-27 (not merged or publicly released)
+
+- Installed signed, Apple Accepted/stapled `0.1.0-local.20261027.archive2`
+  from code `2d31393f`, retaining recoverable app/data/source backups.
+- Restored keyboard access to Archived when the last ordinary chat is archived;
+  extracted archive/restore logic while preserving ownership and rollback.
+- Bound file-tool writes to their pre-approval target/source; stale replacements
+  refuse, and explicit edit denial produces a denied/stopped outcome.
+- Patched Desktop brace/source-map packages and compatible nested resolutions;
+  updated cache Vary handling. The disputed max-stale behavior remains unchanged.
+- Ran42 bounded installed-path checks: approval swaps, archive/restart, profiles,
+  native approvals, image recovery and queues; zero renderer errors. Preserved
+  original239 work files and82 existing owner app-data files unchanged.
+- [Exact artifact, rollback, proof and remaining gates](desktop-next/docs/ARCHIVE-APPROVAL-INSTALLED-2026-10-27.md).
+  Home attachment handoff, Vite integration, complete design/parity, security,
+  modularization and owner/live-account/human acceptance remain open.
+
+## Development checkpoint — 2026-10-02 (not merged or released)
+
+- Added bounded chat-result routing into the document workbench, including
+  mini-to-full handoff and recoverable preview errors. This follows a real
+  installed Desktop research/file readback that exposed inert result links.
+  [Proof layers and pending installed-app acceptance](docs/desktop-document-link-repair-2026-10-02.md).
+- Saved the ambient Desktop implementation alongside its tests and notes:
+  chat-first navigation, white/grey appearance, same-workspace mini/avatar,
+  current model discovery, remembered routine approvals, safe previews and
+  guarded local app replacement.
+- Split conversation, inventory, rendering, approval and turn-execution modules
+  while retaining existing public facades and safety/persistence ordering.
+- Closed all measured size violations in changed production source. Full
+  TypeScript regression run: 14,451 passed, 3 existing optional live tests skipped.
+- [Current evidence, Git publication boundary and remaining work](docs/development-checkpoint-2026-10-02.md).
+  Whole-workflow acceptance and dependency integration remain open.
+
+## Unreleased — 2026-08-17
+
+### Added
+- Consolidated the bounded `TRUST-02`, `UX-03`, `TRUST-04`, `TRUST-01`, and
+  `OP-01` source stack on current `main`: one checked effect gateway, typed
+  cross-host receipts, accessible interruption/re-entry, and a deterministic
+  read-only operator-spine projection. These are source capabilities with
+  retained receipts, not a new public release.
+- Added a guarded optional Scrapling MCP connector. The read-mostly default
+  exposes HTTP, browser, and stealth extraction; Vanta validates every target,
+  proxy, and CDP URL against its public-network SSRF boundary before dispatch.
+- Added the active-provider TUI model picker, visible queued-message editing,
+  and provider-supported model settings without reopening provider selection on
+  every `/model` invocation.
+- Added six checked-in, no-paid-service product-validation playbooks covering
+  problem hypotheses, customer discovery, MVP scope, PMF diagnosis, founder
+  bottlenecks, and GTM planning.
+- Added a repository-owned secret scanner for complete Git history plus the
+  current tracked/non-ignored snapshot, and restored executable npm dependency
+  audit commands.
+- Opt-in first-clause streaming TTS now feeds live model deltas through a
+  deterministic clause splitter and bounded sequential speech queue in both
+  push-to-talk and wake-word voice loops. Tool boundaries discard unspoken
+  drafts, synthesis failures stop the remaining queue, and disabled or
+  non-streaming paths retain whole-response synthesis.
+- An optional Memory Sparse Attention backend now connects through a typed
+  TypeScript service contract, keeps Vanta's local memory authoritative, and
+  exposes status, index, query, and generation through the kernel-gated
+  `msa_memory` tool and MCP server. The official Python/PyTorch/CUDA runtime
+  remains external, so this adds no Python dependency to Vanta.
+- Added the bounded `sparge_attention` tool for compatibility diagnostics,
+  pinned installation guidance, integration snippets, and local CUDA
+  benchmarks through the separately installed SpargeAttention Kit. Hosted
+  model APIs remain explicitly out of scope.
+- A versioned true-first-token harness now measures five fresh and five warm-profile runs for readline CLI, Ink TUI, authenticated SSE gateway, and Developer ID-signed packaged Desktop. Content-free timestamps separate process readiness, submit dispatch, first live provider delta, and first surface paint; receipts report median, p95, and worst with machine/build/model provenance.
+- TTFT regression budgets reject mocked or unverified providers, incomplete sample groups, and unsigned or unpackaged Desktop runs, then identify the exact surface, profile mode, and stage that regressed.
+- Added explicit, capability-gated fast-mode controls. Anthropic requests use the documented Opus-only fast-mode parameter and beta header; Codex retains its service-tier path. Standard remains the default and premium usage is disclosed before selection.
+- Added a tool-call pairing invariant plus preflight transcript repair so every emitted call has an adjacent, ordered result even when a batch stops early.
+
+### Fixed
+- Telegram repair/status commands now stay inside the TUI, while the explicit
+  shell wizard owns hidden token input and pre-save verification. Bot API calls
+  use a bounded IPv4 fallback that preserves Telegram Host/SNI when local
+  dual-stack routing is broken.
+- Pasted multiline text no longer hides subsequent typing, structured question
+  navigation remains responsive after choosing Other, and the launcher reuses
+  persistent setup across isolated worktrees instead of re-running onboarding.
+- Refreshed compatible runtime and documentation dependencies. The exact
+  runtime graph is npm-audit clean; the static documentation toolchain retains
+  one upstream `image-size` advisory with no patched release.
+- Bounded Desktop TTFT observations so a missing first paint produces a useful
+  failure with recent process diagnostics instead of hanging indefinitely.
+- Documented three reviewed Semgrep boundaries: ACP writes JSON-RPC rather than
+  HTML, and Desktop companion/public API origins are echoed only after exact
+  allowlist checks covered by integration tests.
+- Bounded deletion now enters the normal approval flow instead of hitting an
+  unoverrideable Rule Zero block. An approved exact `rmdir`, `unlink`, or
+  non-forced removal can execute, while forced-recursive deletion, device
+  writes, wipes, and protected-path mutations remain blocked.
+- Desktop chat now accepts Finder file and folder drops across the full Electron preload/IPC path, keeps each folder as one icon-only composer chip while retaining its filtered files for submission, skips private/noise entries and symlinks, and submits files as structured context. The paperclip opens the native file/folder picker instead of the Files inspector, and file-only context can be sent without typing a placeholder prompt.
+- The per-turn tool budget now reserves its final ten calls for bounded synthesis, verification, output, and checklist closure. At the 30-call acquisition threshold Vanta removes broad web/browser acquisition tools and continues from collected evidence instead of halting to ask what to do next; the predeclared 40-call hard ceiling remains enforced, including streamed tool prefetch.
+- A successful `todo` update is now part of the completion predicate: a clean-looking answer cannot end the turn while its observed checklist still has open or in-progress items.
+- Automatic and manual context compaction now render a labeled square-cell progress meter with numeric phase milestones, replacing the generic spinner without using slanted track glyphs.
+- The readline host now uses the provider streaming path while preserving its single clean final print, making first-delta timing and interruption observable without duplicating output.
+- The TypeScript suite caps workers below total CPU saturation so Seatbelt, Node, browser, and tmux child-process tests retain startup headroom instead of intermittently crossing real timeout boundaries.
+- `browser_read` now uses Vanta's shared system-browser fallback, so an installed Chrome, Brave, or Edge keeps browser tasks working when Playwright's versioned Chromium cache is absent.
+- `shell_cmd` now marks macOS `mdfind` query-parser failures as failed even when `mdfind` exits zero. Timeout failures explain the recovery path and can be retried with a bounded `timeout_ms` override capped at two minutes instead of requiring the sandbox to be disabled.
+- Turn tracing ignores comparison operators and strings inside heredoc bodies, preventing read-only inspection scripts from producing false `trace[blind-write]` warnings.
+- Large TUI pastes now collapse to an in-buffer marker while text typed afterward stays visible; submission restores the original bytes, and deleting a marker cannot silently orphan its payload.
+- Queued TUI messages remain visible in a bounded panel and Up from an empty composer pulls the newest item back for editing without stealing palette or history navigation.
+- Desktop clears a submitted draft immediately, restores it after failure only when no newer text would be overwritten, bounds long activity traces, and keeps model selection open only when the selected provider exposes effort or speed settings.
+- Rejected an unpublished direct Claude OAuth/token-store implementation and a broad Auto-mode bypass during consolidation. Claude subscription authentication remains owned by the official Claude Code client; unmatched kernel `Ask` actions still ask.
+
+### Verified boundary
+- The live kernel classified an exact empty-directory `rmdir` as `Ask` and
+  `rm -rf ~/Desktop` as `Block`. A disposable end-to-end agent dispatch accepted
+  one approval, removed the empty temporary directory, and preserved the
+  catastrophic-delete block floor.
+- The production Electron context smoke opened the native picker, dispatched Chromium native drag events for normal file, Shift-file, and folder drops, rendered their chips, omitted a dropped `.env`, and submitted the resolved paths through `/api/chat`.
+- The full TypeScript suite passes: 1,536 test files and 14,158 tests, with
+  3 intentional skips; core and renderer TypeScript checks also pass.
+- The streaming-TTS proof drove a real Vanta conversation stream and emitted
+  `STREAMING_TTS_FIRST_CLAUSE_OK` with the first clause dispatched before
+  provider completion and both clauses drained in order. Its injected silent
+  synthesis sink does not establish speaker hardware, provider latency, or
+  audio quality.
+- The authenticated MSA loopback proof exercised health, index, query, and
+  generation through the real TypeScript provider resolver, including durable
+  local writes and remote recall. It proves the adapter contract, not official
+  checkpoint inference, CUDA performance, or 100M-token behavior.
+- The installed `/Users/jasonpoindexter/.local/bin/vanta mcp serve` completed a
+  real MCP handshake and advertised `msa_memory` in its 10-tool default
+  allowlist, proving other local MCP clients can discover the capability.
+- A real tmux TUI run crossed the 30-call acquisition threshold with two open tasks, entered the bounded closure phase, marked both tasks done, and returned the requested result without an operator restart prompt. A separate oversized batch executed exactly the 40-call hard ceiling and recorded the skipped remainder.
+- A live local Ollama baseline completed 40/40 samples across all four TTFT surfaces and both profile modes; no mocked response counted. The packaged macOS app passed strict Developer ID signature verification, and Desktop first paint was observed after a rendered DOM animation frame.
+- The automatic-compaction launcher proof completed six real TUI turns, crossed the configured threshold, rendered the square-cell 25% phase, issued the summary request, and resumed the provider turn.
+- The 2026-08-17 consolidation reran the real tmux model-settings path and the 42-capture Desktop visual matrix. Complete local gate results and evidence boundaries are recorded in [`docs/final-consolidation-audit-2026-08-17.md`](docs/final-consolidation-audit-2026-08-17.md).
+
+## v0.9.8 — 2026-07-24
+
+**Reusable runs and more reliable operator handoffs.** Desktop work can now be saved, inspected, forked, and replayed as a fresh kernel-gated turn. This release also adds Buzz ACP connectivity, broadens the integration catalog, and closes PDF, terminal-resize, model-identity, and Claude authentication failures.
+
+### Added
+- A local reusable run library records one redacted, versioned run per user turn with structured file inputs, bounded snapshots, tool/approval provenance, lineage, and content-free reuse metrics.
+- Desktop adds **Threads | Saved runs**, run search and inspection, safe deletion, editable forks, and drift-reviewed replay across files, project root, provider, model, and available tools.
+- Buzz ACP status/configure/test/serve commands and client-supplied MCP/session instruction preservation.
+- A first-class integration catalog for Buzz, Dropbox, Google Drive, Slack, and Trello.
+- A per-turn tool-budget circuit breaker that yields control instead of allowing an unbounded tool loop.
+- The terminal now shows a Claude-style live task checklist for multi-step work, with total/done/in-progress/open counts and visible ✓/■/□ status rows.
+- The terminal now pauses live turns for Claude-style structured questions with numbered options, multi-select, previews, and an operator-authored Other answer.
+- Terminal answers now use a calmer Claude-style hierarchy: long successful tool runs collapse into one categorized evidence line, failures stay expanded, Markdown headings render without literal hash prefixes, and the model avoids duplicating the host's receipts in its final answer.
+
+### Fixed
+- Replay never reuses recorded tool calls or approvals; a replayed action passes through the current kernel and asks again even when an older rule or access mode would otherwise allow it.
+- Desktop file attachments reach run capture as structured metadata, while unsafe, oversized, out-of-scope, private, or credential-bearing files are not snapshotted.
+- Interrupted checkpointed turns recover as explicit incomplete-provenance legacy runs after restart.
+- PDF reading gives pdf.js the expected `Uint8Array` view.
+- Terminal resize recovery, clipboard-image parsing, and model/provider identity reporting no longer leave stale or corrupted state.
+- Claude Code authentication prefers a refreshed keychain credential when the legacy credentials file has expired.
+- Task tracking remains available under per-turn and local-runtime tool scoping; completed checklists stay visible through the final response and clear before unrelated work.
+- A safe approval can continue matching reversible work for the current task without repeated prompts; task grants clear on the next turn and never cover one-way or fresh-transaction boundaries.
+- Auto mode continues after explicit unfinished status such as “Not done,” “haven’t written it yet,” or “I’ll finish,” and uses the normal bounded tool ceiling instead of the tighter manual correction leash.
+- Tool-budget, repeated-failure, interruption, and iteration-limit exits now persist and render their terminal reason in the TUI instead of ending on a receipt-only “Ready for review” state.
+
+### Verified boundary
+- Full TypeScript suite: 1,482 test files and 13,764 tests passed, with 3 intentional skips.
+- TypeScript typecheck, production Desktop build, architecture tests, and the production Electron layout/replay smoke passed.
+- The Desktop smoke executed saved-run discovery, provenance inspection, drift review, and a fresh replay dispatch with structured file metadata; its final chat response was deterministic fixture data, not a live paid-provider completion.
+- Production feature sources and built assets produced zero secret-scanner hits, and the smoke left no records in the operator's `~/.vanta/runs`.
+- A real tmux TUI/provider-fixture run executed an unfinished Auto-mode answer, automatically continued into a verified edit and final response, then rendered a deliberate repeated-call terminal receipt.
+- GitHub Actions kernel assets and public release publication remain the tagged workflow boundary; this release does not claim a new notarized Desktop DMG.
 
 ## v0.9.7 — 2026-07-21
 
@@ -75,6 +1069,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - Updated the Docusaurus deployment path and repository links for the Cloudflare Pages project serving `docs.vanta.theft.studio`.
 
 ### Added
+- **Buzz ACP connection** — `vanta buzz status|configure|test|serve` checks the local Buzz harness/CLI, performs a bounded authenticated relay read, and launches Vanta as Buzz's custom ACP agent. ACP sessions now preserve client-supplied system instructions and session MCP servers instead of silently discarding the tools and reply contract.
 - **Desktop app v1** — rebuilt the existing renderer as a fixed one-viewport daily workspace with explicit loading/error/setup states, searchable sessions, compact panel navigation, safer approvals, command/model dialogs, and persisted project selection. The Electron host now owns free-port selection, splash/startup receipts, bundled assets/runtime/kernel paths, first-run `.vanta/.env` model setup, Developer ID signing by certificate hash, and ARM64 `.app`/DMG/ZIP production.
 - **Maintenance health** — `vanta maintenance` combines a deduplicated needs-human ticket queue, documentation-router load/reference/staleness/contradiction evidence, and a delivery-versus-maintenance time/token budget. A meaningful over-budget sample creates one actionable operator ticket instead of more automatic meta-work.
 - **System prompt presets** — `/prompt list|show|use|reset` switches a bounded operating-role overlay from project or Vanta-home markdown definitions without replacing the base safety prompt.
@@ -83,6 +1078,7 @@ attached as assets. Full auto-generated commit notes live on the [Releases](http
 - **Bounded runtime readiness** — `GET /api/v1/live` is a cheap, unauthenticated, non-mutating liveness probe. Bearer-authenticated `/api/v1/readiness` and `/status` report redacted status/counts for the kernel, provider config, stores, disk, gateway channels, active turns, background work, and delegated workers without initializing a conversation.
 
 ### Fixed
+- **TUI resize repaint regression** — terminal width and height changes now coalesce into one settled full repaint after Ink and React finish their resize work, preventing stale wide composer frames from stacking at 78×25. A real-tmux grid harness covers idle and animated streaming states, exact 60×20/78×25/100×30/140×45 dimensions, height-only changes, and rapid alternating resizes.
 - **Desktop composer clipped below the native window** — startup and recovery UI now share one explicitly bounded conversation grid track, so an error banner cannot create an implicit row that pushes the empty state and composer offscreen. A packaged Electron smoke locks the reported `1778×1136` viewport in healthy and forced-recovery states.
 - **Desktop Files panel corruption at compact widths** — opening the inspector no longer replaces its two-row grid with a horizontal flex layout. File paths now render as stable single-line rows, ellipsize with full-path tooltips, and stay inside a vertical-only list scroller.
 - **Repeatable notarized desktop releases** — `npm run desktop:release` now signs the DMG container itself before submitting it to Apple, then staples, validates, and Gatekeeper-assesses the accepted artifact. This prevents an accepted app bundle from being wrapped in a DMG that Gatekeeper reports as having no usable signature.

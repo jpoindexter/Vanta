@@ -1,0 +1,848 @@
+{
+ "version": 1,
+ "target": "wireframe",
+ "description": "Selectors for docs/wireframe/vanta-desktop-wireframe.html. Also used as the self-check map (the wireframe checked against itself).",
+ "viewport": {
+  "mode": "fixed",
+  "w": 1600,
+  "h": 1200
+ },
+ "prepare": {
+  "css": ".frame{height:${frameHeight}px!important;border:0!important;border-radius:0!important}*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important;scrollbar-width:none!important}",
+  "initScript": "window.setTimeout=function(){return 0};window.clearTimeout=function(){};"
+ },
+ "frame": {
+  "css": "#frame"
+ },
+ "copyRoot": {
+  "css": "#frame"
+ },
+ "drivers": {
+  "base": [
+   {
+    "reload": true
+   }
+  ],
+  "w:1440": [
+   {
+    "click": {
+     "css": ".bar [data-w=\"1440\"]"
+    }
+   }
+  ],
+  "w:1100": [
+   {
+    "click": {
+     "css": ".bar [data-w=\"1100\"]"
+    }
+   }
+  ],
+  "w:800": [
+   {
+    "click": {
+     "css": ".bar [data-w=\"800\"]"
+    }
+   }
+  ],
+  "chat:empty": [
+   {
+    "click": {
+     "css": ".bar [data-cs=empty]"
+    }
+   }
+  ],
+  "chat:running": [
+   {
+    "click": {
+     "css": ".bar [data-cs=running]"
+    }
+   }
+  ],
+  "chat:waiting": [
+   {
+    "click": {
+     "css": ".bar [data-cs=waiting]"
+    }
+   }
+  ],
+  "chat:blocked": [
+   {
+    "click": {
+     "css": ".bar [data-cs=blocked]"
+    }
+   }
+  ],
+  "chat:done": [
+   {
+    "click": {
+     "css": ".bar [data-cs=done]"
+    }
+   }
+  ],
+  "chat:failed": [
+   {
+    "click": {
+     "css": ".bar [data-cs=failed]"
+    }
+   }
+  ],
+  "chat:offline": [
+   {
+    "click": {
+     "css": ".bar [data-cs=offline]"
+    }
+   }
+  ],
+  "wb:changes": [
+   {
+    "click": {
+     "css": ".bar [data-wb=changes]"
+    }
+   }
+  ],
+  "wb:files": [
+   {
+    "click": {
+     "css": ".bar [data-wb=files]"
+    }
+   }
+  ],
+  "wb:browser": [
+   {
+    "click": {
+     "css": ".bar [data-wb=browser]"
+    }
+   }
+  ],
+  "wb:terminal": [
+   {
+    "click": {
+     "css": ".bar [data-wb=terminal]"
+    }
+   }
+  ],
+  "wb:outputs": [
+   {
+    "click": {
+     "css": ".bar [data-wb=outputs]"
+    }
+   }
+  ],
+  "view:home": [
+   {
+    "click": {
+     "css": ".sidebar [data-view=home]"
+    }
+   }
+  ],
+  "view:schedules": [
+   {
+    "click": {
+     "css": ".sidebar [data-view=schedules]"
+    }
+   }
+  ],
+  "view:connections": [
+   {
+    "click": {
+     "css": ".sidebar [data-view=connections]"
+    }
+   }
+  ],
+  "view:skills": [
+   {
+    "click": {
+     "css": ".sidebar [data-view=skills]"
+    }
+   }
+  ],
+  "view:outputs": [
+   {
+    "click": {
+     "css": ".sidebar [data-view=outputs]"
+    }
+   }
+  ],
+  "overlay:palette": [
+   {
+    "click": {
+     "css": "#b-pal"
+    }
+   }
+  ],
+  "overlay:paletteEmpty": [
+   {
+    "click": {
+     "css": "#b-pal"
+    }
+   },
+   {
+    "fill": {
+     "css": "#palq"
+    },
+    "value": "zzz"
+   }
+  ],
+  "overlay:settings": [
+   {
+    "click": {
+     "css": "#b-set"
+    }
+   }
+  ],
+  "theme:dark": [
+   {
+    "click": {
+     "css": "#b-dark"
+    }
+   }
+  ],
+  "drawer:open": [
+   {
+    "click": {
+     "css": ".titlebar [data-act=drawer]"
+    }
+   }
+  ],
+  "extra:stepOpen": [
+   {
+    "click": {
+     "css": "[data-step=t1]"
+    }
+   }
+  ],
+  "extra:queued": [
+   {
+    "fill": {
+     "css": "#cmp"
+    },
+    "value": "Also update the docs"
+   },
+   {
+    "press": "Enter",
+    "on": {
+     "css": "#cmp"
+    }
+   }
+  ],
+  "extra:toastAlways": [
+   {
+    "click": {
+     "css": "[data-ap=always]"
+    }
+   }
+  ]
+ },
+ "keys": {
+  "titlebar": {
+   "css": ".titlebar",
+   "textMode": "none"
+  },
+  "titlebar.dots": {
+   "css": ".titlebar .dots",
+   "textMode": "none"
+  },
+  "titlebar.drawer": {
+   "css": ".titlebar [data-act=drawer]",
+   "textMode": "none"
+  },
+  "titlebar.new": {
+   "css": ".titlebar [data-act=new]",
+   "textMode": "none"
+  },
+  "titlebar.title": {
+   "css": ".tb-title strong",
+   "hug": true
+  },
+  "titlebar.titleMenu": {
+   "css": ".tb-title > span:nth-of-type(1)",
+   "hug": true,
+   "flow": true
+  },
+  "titlebar.project": {
+   "css": ".tb-title > span:nth-of-type(2)",
+   "hug": true,
+   "flow": true
+  },
+  "titlebar.statusPill": {
+   "css": ".tb-title .pill",
+   "hug": true,
+   "flow": true
+  },
+  "titlebar.changes": {
+   "css": ".tb-right [aria-label=Changes]",
+   "textMode": "none"
+  },
+  "titlebar.terminal": {
+   "css": ".tb-right [aria-label=Terminal]",
+   "textMode": "none"
+  },
+  "titlebar.browser": {
+   "css": ".tb-right [aria-label=Browser]",
+   "textMode": "none"
+  },
+  "titlebar.files": {
+   "css": ".tb-right [aria-label=Files]",
+   "textMode": "none"
+  },
+  "titlebar.more": {
+   "css": ".tb-right [aria-label=More]",
+   "textMode": "none"
+  },
+  "sidebar": {
+   "css": ".sidebar",
+   "textMode": "none"
+  },
+  "nav.new": {
+   "css": ".sidebar [data-act=new]",
+   "textMode": "none"
+  },
+  "nav.new.glyph": {
+   "css": ".sidebar [data-act=new] .g"
+  },
+  "nav.new.label": {
+   "css": ".sidebar [data-act=new] .t"
+  },
+  "nav.new.shortcut": {
+   "css": ".sidebar [data-act=new] .k"
+  },
+  "nav.search": {
+   "css": ".sidebar [data-act=pal]",
+   "textMode": "none"
+  },
+  "nav.search.glyph": {
+   "css": ".sidebar [data-act=pal] .g"
+  },
+  "nav.search.label": {
+   "css": ".sidebar [data-act=pal] .t"
+  },
+  "nav.search.shortcut": {
+   "css": ".sidebar [data-act=pal] .k"
+  },
+  "nav.home": {
+   "css": ".sidebar [data-view=home]",
+   "textMode": "none"
+  },
+  "nav.home.glyph": {
+   "css": ".sidebar [data-view=home] .g"
+  },
+  "nav.home.label": {
+   "css": ".sidebar [data-view=home] .t"
+  },
+  "nav.schedules": {
+   "css": ".sidebar [data-view=schedules]",
+   "textMode": "none"
+  },
+  "nav.schedules.glyph": {
+   "css": ".sidebar [data-view=schedules] .g"
+  },
+  "nav.schedules.label": {
+   "css": ".sidebar [data-view=schedules] .t"
+  },
+  "nav.connections": {
+   "css": ".sidebar [data-view=connections]",
+   "textMode": "none"
+  },
+  "nav.connections.glyph": {
+   "css": ".sidebar [data-view=connections] .g"
+  },
+  "nav.connections.label": {
+   "css": ".sidebar [data-view=connections] .t"
+  },
+  "nav.skills": {
+   "css": ".sidebar [data-view=skills]",
+   "textMode": "none"
+  },
+  "nav.skills.glyph": {
+   "css": ".sidebar [data-view=skills] .g"
+  },
+  "nav.skills.label": {
+   "css": ".sidebar [data-view=skills] .t"
+  },
+  "nav.outputs": {
+   "css": ".sidebar [data-view=outputs]",
+   "textMode": "none"
+  },
+  "nav.outputs.glyph": {
+   "css": ".sidebar [data-view=outputs] .g"
+  },
+  "nav.outputs.label": {
+   "css": ".sidebar [data-view=outputs] .t"
+  },
+  "needsYou.group": {
+   "css": ".sidebar .grouplabel:has(.badge)",
+   "textMode": "none"
+  },
+  "needsYou.label": {
+   "css": ".sidebar .grouplabel:has(.badge) > span:first-child"
+  },
+  "needsYou.badge": {
+   "css": ".sidebar .badge",
+   "hug": true
+  },
+  "sidebar.groupLabel[]": {
+   "css": ".sidebar .grouplabel",
+   "textMode": "none"
+  },
+  "sidebar.groupName[]": {
+   "css": ".sidebar .grouplabel > span:first-child"
+  },
+  "row.session[]": {
+   "css": ".sidebar .row",
+   "textMode": "none"
+  },
+  "row.session.status[]": {
+   "css": ".sidebar .row .dot",
+   "textMode": "none"
+  },
+  "row.session.title[]": {
+   "css": ".sidebar .row .t"
+  },
+  "row.session.time[]": {
+   "css": ".sidebar .row .time"
+  },
+  "sidebar.footer": {
+   "css": ".sbfoot",
+   "textMode": "none"
+  },
+  "sidebar.avatar": {
+   "css": ".sbfoot .chip"
+  },
+  "sidebar.userName": {
+   "css": ".sbfoot .t > div:first-child"
+  },
+  "sidebar.userMeta": {
+   "css": ".sbfoot .t .note"
+  },
+  "sidebar.settings": {
+   "css": ".sbfoot [data-act=set]",
+   "textMode": "none"
+  },
+  "main": {
+   "css": ".main",
+   "textMode": "none"
+  },
+  "banner.offline": {
+   "css": ".banner",
+   "textMode": "own"
+  },
+  "banner.retry": {
+   "css": ".banner button",
+   "hug": true
+  },
+  "thread.scroll": {
+   "css": "#scr",
+   "textMode": "none"
+  },
+  "thread.column": {
+   "css": "#scr .col",
+   "textMode": "none"
+  },
+  "thread.note": {
+   "css": "#scr .col > .note"
+  },
+  "msg.user[]": {
+   "css": "#scr .msg-u",
+   "hug": true
+  },
+  "msg.user.actions[]": {
+   "css": "#scr .msg-u + .hover-actions",
+   "textMode": "none",
+   "hoverOnly": true
+  },
+  "msg.user.action[]": {
+   "css": "#scr .msg-u + .hover-actions button",
+   "hoverOnly": true,
+   "hug": true,
+   "flow": true
+  },
+  "msg.user.time[]": {
+   "css": "#scr .msg-u + .hover-actions .note",
+   "hoverOnly": true
+  },
+  "msg.assistant[]": {
+   "css": "#scr .msg-a > div:first-child"
+  },
+  "msg.assistant.actions[]": {
+   "css": "#scr .msg-a .hover-actions",
+   "textMode": "none",
+   "hoverOnly": true
+  },
+  "msg.assistant.action[]": {
+   "css": "#scr .msg-a .hover-actions button",
+   "hoverOnly": true,
+   "hug": true,
+   "flow": true
+  },
+  "step[]": {
+   "css": "#scr .step[data-step]"
+  },
+  "step.body[]": {
+   "css": "#scr .stepbody"
+  },
+  "running.line": {
+   "css": "#scr .step[aria-live]"
+  },
+  "running.spinner": {
+   "css": "#scr .step[aria-live] .spin",
+   "textMode": "none"
+  },
+  "running.label": {
+   "css": "#scr .step[aria-live] > span:nth-child(2)"
+  },
+  "running.stop": {
+   "css": "#scr .step[aria-live] button",
+   "hug": true
+  },
+  "card.diff": {
+   "css": "#scr .card:has(.diff)",
+   "textMode": "none"
+  },
+  "card.diff.title": {
+   "css": "#scr .card:has(.diff) h4"
+  },
+  "card.diff.summary": {
+   "css": "#scr .card:has(.diff) .sub"
+  },
+  "card.diff.review": {
+   "css": "#scr .card:has(.diff) button",
+   "hug": true
+  },
+  "card.approval": {
+   "css": "#scr .card:has([data-ap=once])",
+   "textMode": "none"
+  },
+  "card.approval.title": {
+   "css": "#scr .card:has([data-ap=once]) h4"
+  },
+  "card.approval.body": {
+   "css": "#scr .card:has([data-ap=once]) .sub"
+  },
+  "card.blocked": {
+   "css": "#scr .card:has([data-ap=skip])",
+   "textMode": "none"
+  },
+  "card.blocked.title": {
+   "css": "#scr .card:has([data-ap=skip]) h4"
+  },
+  "card.blocked.body": {
+   "css": "#scr .card:has([data-ap=skip]) .sub"
+  },
+  "card.error": {
+   "css": "#scr .card:has([data-ap=retry])",
+   "textMode": "none"
+  },
+  "card.error.title": {
+   "css": "#scr .card:has([data-ap=retry]) h4"
+  },
+  "card.error.body": {
+   "css": "#scr .card:has([data-ap=retry]) .sub"
+  },
+  "card.approval.command": {
+   "css": "#scr .card:has([data-ap=once]) .code"
+  },
+  "card.approval.allowOnce": {
+   "css": "[data-ap=once]",
+   "hug": true,
+   "flow": true
+  },
+  "card.approval.always": {
+   "css": "[data-ap=always]",
+   "hug": true,
+   "flow": true
+  },
+  "card.approval.reject": {
+   "css": "[data-ap=reject]",
+   "hug": true,
+   "flow": true
+  },
+  "card.approval.note": {
+   "css": "#scr .card:has([data-ap=once]) .note"
+  },
+  "card.blocked.skip": {
+   "css": "[data-ap=skip]",
+   "hug": true,
+   "flow": true
+  },
+  "card.blocked.paste": {
+   "css": "[data-ap=paste]",
+   "hug": true,
+   "flow": true
+  },
+  "card.blocked.browser": {
+   "css": "[data-ap=browser]",
+   "hug": true,
+   "flow": true
+  },
+  "card.error.retry": {
+   "css": "#scr [data-ap=retry]",
+   "hug": true,
+   "flow": true
+  },
+  "card.error.viewOutput": {
+   "css": "#scr .card:has([data-ap=retry]) [data-wbt=terminal]",
+   "hug": true,
+   "flow": true
+  },
+  "empty": {
+   "css": ".empty",
+   "textMode": "none"
+  },
+  "empty.title": {
+   "css": ".empty h3"
+  },
+  "empty.body": {
+   "css": ".empty p"
+  },
+  "empty.chip[]": {
+   "css": ".empty .chips button",
+   "hug": true,
+   "flow": true
+  },
+  "composer.dock": {
+   "css": ".dock",
+   "textMode": "none"
+  },
+  "composer.queue[]": {
+   "css": ".dock .queue"
+  },
+  "composer.queue.remove[]": {
+   "css": ".dock .queue button",
+   "hug": true
+  },
+  "composer": {
+   "css": ".dock .composer",
+   "textMode": "none"
+  },
+  "composer.input": {
+   "css": "#cmp"
+  },
+  "composer.attach": {
+   "css": ".dock [aria-label=Attach]",
+   "textMode": "none"
+  },
+  "composer.dictate": {
+   "css": ".dock [aria-label=Dictate]",
+   "textMode": "none"
+  },
+  "composer.model": {
+   "css": ".dock .tools .rel > button:nth-of-type(1)",
+   "hug": true,
+   "flow": true
+  },
+  "composer.effort": {
+   "css": ".dock .tools .rel > button:nth-of-type(2)",
+   "hug": true,
+   "flow": true
+  },
+  "composer.permission": {
+   "css": ".dock .tools .rel > button:nth-of-type(3)",
+   "hug": true,
+   "flow": true
+  },
+  "composer.send": {
+   "css": ".dock .send",
+   "textMode": "none"
+  },
+  "composer.hint": {
+   "css": ".dock .hint"
+  },
+  "workbench": {
+   "css": ".wb",
+   "textMode": "none"
+  },
+  "wbtabs": {
+   "css": ".wbtabs",
+   "textMode": "none"
+  },
+  "wbtab.changes": {
+   "css": ".wbtabs [data-wbt=changes]",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.files": {
+   "css": ".wbtabs [data-wbt=files]",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.browser": {
+   "css": ".wbtabs [data-wbt=browser]",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.terminal": {
+   "css": ".wbtabs [data-wbt=terminal]",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.outputs": {
+   "css": ".wbtabs [data-wbt=outputs]",
+   "hug": true,
+   "flow": true
+  },
+  "wbtab.close": {
+   "css": ".wbtabs [aria-label='Close workbench']",
+   "textMode": "none"
+  },
+  "workbench.body": {
+   "css": ".wbbody",
+   "textMode": "none"
+  },
+  "workbench.row[]": {
+   "css": ".wbbody .list-row"
+  },
+  "workbench.code[]": {
+   "css": ".wbbody .code"
+  },
+  "workbench.placeholder": {
+   "css": ".wbbody .ph"
+  },
+  "workbench.action[]": {
+   "css": ".wbbody .acts button",
+   "hug": true
+  },
+  "workbench.urlBar": {
+   "css": ".wbbody .composer"
+  },
+  "page": {
+   "css": ".page",
+   "textMode": "none"
+  },
+  "page.column": {
+   "css": ".page .col",
+   "textMode": "none"
+  },
+  "listpage.title": {
+   "css": ".page .col > .sechead h3"
+  },
+  "listpage.sub": {
+   "css": ".page .col > .sechead p"
+  },
+  "listpage.cta": {
+   "css": ".page .col > .sechead > button",
+   "hug": true
+  },
+  "list.row[]": {
+   "css": ".page .list-row",
+   "textMode": "none"
+  },
+  "list.row.title[]": {
+   "css": ".page .list-row > span:first-child",
+   "textMode": "own"
+  },
+  "list.row.note[]": {
+   "css": ".page .list-row .note"
+  },
+  "list.row.action[]": {
+   "css": ".page .list-row button",
+   "hug": true,
+   "flow": true
+  },
+  "home.composer": {
+   "css": ".page .composer",
+   "textMode": "none"
+  },
+  "home.composer.input": {
+   "css": ".page #cmp"
+  },
+  "home.composer.attach": {
+   "css": ".page .composer .icon",
+   "textMode": "none"
+  },
+  "home.composer.project": {
+   "css": ".page .composer .tools .chip",
+   "hug": true,
+   "flow": true
+  },
+  "home.composer.send": {
+   "css": ".page .composer .send",
+   "textMode": "none"
+  },
+  "home.projectChip[]": {
+   "css": ".page .col > .chips .chip",
+   "hug": true,
+   "flow": true
+  },
+  "home.section[]": {
+   "css": ".page .sec",
+   "textMode": "none"
+  },
+  "home.section.title[]": {
+   "css": ".page .sec h3",
+   "textMode": "own"
+  },
+  "home.needsYou.badge": {
+   "css": ".page .sec .badge",
+   "hug": true
+  },
+  "home.empty": {
+   "css": ".page .sec > p.muted"
+  },
+  "toast": {
+   "css": ".toast",
+   "hug": true
+  },
+  "palette.overlay": {
+   "css": ".overlay:has(#palq)",
+   "textMode": "none"
+  },
+  "palette.sheet": {
+   "css": ".overlay:has(#palq) .sheet",
+   "textMode": "none"
+  },
+  "palette.input": {
+   "css": "#palq"
+  },
+  "palette.option[]": {
+   "css": ".overlay:has(#palq) .sheet .opt",
+   "textMode": "none"
+  },
+  "palette.option.label[]": {
+   "css": ".overlay:has(#palq) .sheet .opt > span:first-child"
+  },
+  "palette.option.shortcut[]": {
+   "css": ".overlay:has(#palq) .sheet .opt > span:last-child"
+  },
+  "palette.empty": {
+   "css": ".overlay:has(#palq) .sheet p.muted"
+  },
+  "settings.overlay": {
+   "css": ".overlay:not(:has(#palq))",
+   "textMode": "none"
+  },
+  "settings.sheet": {
+   "css": ".overlay:not(:has(#palq)) .sheet",
+   "textMode": "none"
+  },
+  "settings.title": {
+   "css": ".overlay:not(:has(#palq)) .sheet .sechead b"
+  },
+  "settings.close": {
+   "css": "[aria-label='Close settings']",
+   "textMode": "none"
+  },
+  "settings.nav[]": {
+   "css": ".overlay:not(:has(#palq)) .sheet .nav"
+  },
+  "settings.panel": {
+   "css": ".overlay:not(:has(#palq)) .sheet .box",
+   "textMode": "none"
+  },
+  "settings.row[]": {
+   "css": ".overlay:not(:has(#palq)) .sheet .list-row",
+   "textMode": "none"
+  },
+  "settings.row.title[]": {
+   "css": ".overlay:not(:has(#palq)) .sheet .list-row > span:first-child",
+   "textMode": "own"
+  },
+  "settings.row.note[]": {
+   "css": ".overlay:not(:has(#palq)) .sheet .list-row .note"
+  },
+  "settings.row.action[]": {
+   "css": ".overlay:not(:has(#palq)) .sheet .list-row button",
+   "hug": true,
+   "flow": true
+  }
+ }
+}

@@ -6,6 +6,7 @@ import {
   configState, nextEffort, nextStyle, nextAnchor,
   type ConfigState, type ConfigAction, type GateKey,
 } from "./config-view.js";
+import { settingsErrorMessage } from "./settings-recovery.js";
 
 // Live IO + callback wiring for the /config overlay. Mirrors ui/sandbox-actions:
 // the overlay carries the effective state + an onAction closure bound to the
@@ -17,6 +18,7 @@ import {
 
 export type ConfigOverlayState = {
   state: ConfigState;
+  error?: string;
   onAction: (action: ConfigAction) => void;
 };
 
@@ -75,6 +77,8 @@ function buildView(state: ConfigState, repoRoot: string, host: ConfigOverlayHost
     if (action.kind === "none") return;
     void persist(repoRoot, action, state).then((re) => {
       if (host.isOpen()) host.publish(buildView(re, repoRoot, host));
+    }).catch((error: unknown) => {
+      if (host.isOpen()) host.publish({ ...buildView(state, repoRoot, host), error: settingsErrorMessage(error) });
     });
   };
   return { kind: "config", state, onAction };

@@ -1,0 +1,2 @@
+approval button label "Allow once" -> "Allow only" (same length, so only the wording is wrong)
+FAIL card.approval.allowOnce:text in 19 state(s)

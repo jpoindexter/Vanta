@@ -1,4 +1,6 @@
 import { EventEmitter } from "node:events";
+import { createElement as h } from "react";
+import { Text, render } from "ink";
 import { describe, it, expect } from "vitest";
 import { attachResizeRepaint, forceFullRepaint, isInkInternals, installResizeGhostFix, type InkInternals } from "./resize-fix.js";
 
@@ -28,31 +30,92 @@ describe("forceFullRepaint", () => {
   });
 });
 
-/** EventEmitter with a mutable `columns` to simulate terminal width changes. */
-function fakeStdout(columns: number): EventEmitter & { columns: number } {
-  return Object.assign(new EventEmitter(), { columns });
+/** EventEmitter with mutable dimensions to simulate terminal resize events. */
+function fakeStdout(columns: number, rows = 24): EventEmitter & { columns: number; rows: number } {
+  return Object.assign(new EventEmitter(), { columns, rows });
+}
+
+function manualScheduler(): {
+  schedule: (repaint: () => void) => () => void;
+  flush: () => void;
+} {
+  let pending: (() => void) | null = null;
+  return {
+    schedule: (repaint) => {
+      pending = repaint;
+      return () => {
+        if (pending === repaint) pending = null;
+      };
+    },
+    flush: () => {
+      const repaint = pending;
+      pending = null;
+      repaint?.();
+    },
+  };
+}
+
+class InkStdout extends EventEmitter {
+  isTTY = true;
+  columns = 80;
+  rows = 24;
+  chunks: string[] = [];
+  write(chunk: string): boolean { this.chunks.push(chunk); return true; }
 }
 
 describe("attachResizeRepaint", () => {
-  it("force-repaints on every WIDTH change (both grow and shrink)", () => {
+  it("force-repaints after width changes in both directions", () => {
     const ink = fakeInk();
     const stdout = fakeStdout(100);
-    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "columns">, ink);
-    stdout.columns = 80; stdout.emit("resize"); // shrink
-    stdout.columns = 120; stdout.emit("resize"); // grow
-    stdout.columns = 90; stdout.emit("resize"); // shrink
+    const scheduler = manualScheduler();
+    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "off" | "columns" | "rows">, ink, scheduler.schedule);
+    stdout.columns = 80; stdout.emit("resize"); scheduler.flush();
+    stdout.columns = 120; stdout.emit("resize"); scheduler.flush();
+    stdout.columns = 90; stdout.emit("resize"); scheduler.flush();
     const renders = ink.calls.filter((c) => c.startsWith("render@"));
-    expect(renders).toHaveLength(3); // one absolute repaint per width change
+    expect(renders).toHaveLength(3);
   });
 
-  it("does NOT repaint on a height-only resize (no rewrap, no ghost — keeps bottom-anchor)", () => {
+  it("force-repaints after a height-only resize", () => {
     const ink = fakeInk();
     const stdout = fakeStdout(100);
-    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "columns">, ink);
-    stdout.emit("resize"); // height changed, width unchanged
+    const scheduler = manualScheduler();
+    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "off" | "columns" | "rows">, ink, scheduler.schedule);
+    stdout.rows = 40;
     stdout.emit("resize");
+    scheduler.flush();
     const renders = ink.calls.filter((c) => c.startsWith("render@"));
-    expect(renders).toHaveLength(0);
+    expect(renders).toHaveLength(1);
+  });
+
+  it("coalesces a resize storm into one repaint at the settled dimensions", () => {
+    const ink = fakeInk();
+    const stdout = fakeStdout(100);
+    const scheduler = manualScheduler();
+    attachResizeRepaint(stdout as unknown as Pick<NodeJS.WriteStream, "on" | "off" | "columns" | "rows">, ink, scheduler.schedule);
+    stdout.columns = 60; stdout.rows = 20; stdout.emit("resize");
+    stdout.columns = 140; stdout.rows = 45; stdout.emit("resize");
+    stdout.columns = 78; stdout.rows = 25; stdout.emit("resize");
+    scheduler.flush();
+    expect(ink.calls.filter((c) => c.startsWith("render@"))).toHaveLength(1);
+  });
+
+  it("returns a cleanup that removes the listener and cancels a pending repaint", () => {
+    const ink = fakeInk();
+    const stdout = fakeStdout(100);
+    const scheduler = manualScheduler();
+    const detach = attachResizeRepaint(
+      stdout as unknown as Pick<NodeJS.WriteStream, "on" | "off" | "columns" | "rows">,
+      ink,
+      scheduler.schedule,
+    );
+    expect(stdout.listenerCount("resize")).toBe(1);
+    stdout.columns = 80;
+    stdout.emit("resize");
+    detach();
+    expect(stdout.listenerCount("resize")).toBe(0);
+    scheduler.flush();
+    expect(ink.calls.filter((c) => c.startsWith("render@"))).toHaveLength(0);
   });
 });
 
@@ -71,7 +134,49 @@ describe("isInkInternals guard", () => {
 describe("installResizeGhostFix", () => {
   it("is a no-op on a non-TTY stream (never throws)", async () => {
     const stream = Object.assign(new EventEmitter(), { isTTY: false });
-    await expect(installResizeGhostFix(stream as unknown as NodeJS.WriteStream)).resolves.toBeUndefined();
+    const detach = await installResizeGhostFix(stream as unknown as NodeJS.WriteStream);
+    expect(detach).toBeTypeOf("function");
+    detach();
     expect(stream.listenerCount("resize")).toBe(0);
+  });
+
+  it("finds Ink's live instance when installed after render", async () => {
+    const stdout = new InkStdout();
+    const stdin = Object.assign(new EventEmitter(), { isTTY: false });
+    const instance = render(h(Text, null, "ready"), {
+      stdout: stdout as unknown as NodeJS.WriteStream,
+      stdin: stdin as unknown as NodeJS.ReadStream,
+      patchConsole: false,
+      interactive: true,
+    });
+    const before = stdout.listenerCount("resize");
+    const detach = await installResizeGhostFix(stdout as unknown as NodeJS.WriteStream);
+    expect(stdout.listenerCount("resize")).toBe(before + 1);
+    detach();
+    expect(stdout.listenerCount("resize")).toBe(before);
+    instance.unmount();
+  });
+
+  it("emits Ink's absolute clear after the resized layout settles", async () => {
+    const stdout = new InkStdout();
+    const stdin = Object.assign(new EventEmitter(), { isTTY: false });
+    const instance = render(h(Text, null, "ready"), {
+      stdout: stdout as unknown as NodeJS.WriteStream,
+      stdin: stdin as unknown as NodeJS.ReadStream,
+      patchConsole: false,
+      interactive: true,
+    });
+    const detach = await installResizeGhostFix(stdout as unknown as NodeJS.WriteStream);
+    stdout.chunks = [];
+    stdout.columns = 78;
+    stdout.rows = 25;
+    stdout.emit("resize");
+    const clear = "\u001b[2J\u001b[3J\u001b[H";
+    for (let attempt = 0; attempt < 100 && !stdout.chunks.join("").includes(clear); attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    expect(stdout.chunks.join("")).toContain(clear);
+    detach();
+    instance.unmount();
   });
 });

@@ -1,10 +1,7 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { gitExecFile } from "../git/process.js";
 import { z } from "zod";
 import type { Tool } from "./types.js";
 export { gitCommitTool, gitPushTool, gitBranchTool, gitCheckoutTool } from "./git-write.js";
-
-const run = promisify(execFile);
 
 const TIMEOUT_MS = 15_000;
 const MAX_OUTPUT = 1024 * 1024;
@@ -15,7 +12,7 @@ export async function runGit(
   cwd: string,
 ): Promise<{ code: number; out: string }> {
   try {
-    const { stdout, stderr } = await run("git", args, {
+    const { stdout, stderr } = await gitExecFile("git", args, {
       cwd,
       timeout: TIMEOUT_MS,
       maxBuffer: MAX_OUTPUT,
@@ -73,9 +70,8 @@ export const gitDiffTool: Tool = {
       return { ok: false, output: "git_diff path must be a non-empty string" };
     }
     const args = ["diff"];
-    if (parsed.data.path) args.push(parsed.data.path);
+    if (parsed.data.path) args.push("--", parsed.data.path);
     const { code, out } = await runGit(args, ctx.root);
     return { ok: code === 0, output: out || "(no output)" };
   },
 };
-

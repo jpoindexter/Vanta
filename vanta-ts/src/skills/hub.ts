@@ -28,9 +28,18 @@ const DEFAULT_GITHUB_TAPS: Tap[] = [
 ];
 const cacheRoot = (env: NodeJS.ProcessEnv) => join(resolveVantaHome(env), "skill-hub-cache");
 const tapsPath = (env: NodeJS.ProcessEnv) => join(resolveVantaHome(env), "skill-hub-taps.json");
-const defaults = (opts: { env?: NodeJS.ProcessEnv; fetcher?: typeof fetch; now?: Date; ttlMs?: number }): Deps => ({
-  env: opts.env ?? process.env, fetcher: opts.fetcher ?? fetch, now: opts.now ?? new Date(), ttlMs: opts.ttlMs ?? 60 * 60 * 1000,
-});
+/** GitHub's API allows 60 unauthenticated requests an hour; a token in the environment raises that. Only api.github.com sees it. */
+function withGithubAuth(fetcher: typeof fetch, env: NodeJS.ProcessEnv): typeof fetch {
+  const token = env.GITHUB_TOKEN?.trim() || env.GH_TOKEN?.trim();
+  if (!token) return fetcher;
+  return ((input, init) => String(input).startsWith("https://api.github.com/")
+    ? fetcher(input, { ...init, headers: { ...(init?.headers as Record<string, string> | undefined), authorization: `Bearer ${token}` } })
+    : fetcher(input, init)) as typeof fetch;
+}
+const defaults = (opts: { env?: NodeJS.ProcessEnv; fetcher?: typeof fetch; now?: Date; ttlMs?: number }): Deps => {
+  const env = opts.env ?? process.env;
+  return { env, fetcher: withGithubAuth(opts.fetcher ?? fetch, env), now: opts.now ?? new Date(), ttlMs: opts.ttlMs ?? 60 * 60 * 1000 };
+};
 
 export async function addHubTap(tap: Tap, env: NodeJS.ProcessEnv = process.env): Promise<void> {
   if (!/^[\w.-]+\/[\w.-]+$/.test(tap.repo) || tap.path.split("/").includes("..")) throw new Error("invalid GitHub tap");
@@ -185,10 +194,16 @@ async function inspectSkillsSh(raw: string, deps: Deps): Promise<HubSkill> {
   const parsed = githubId(raw), tree = await githubTree(parsed.repo, deps), alias = parsed.path.split("/").at(-1)!;
   const direct = [parsed.path, `skills/${alias}`, `.agents/skills/${alias}`, `.claude/skills/${alias}`]
     .find((path) => tree.paths.includes(`${path}/SKILL.md`));
-  const canonical = direct ?? await findFrontmatterAlias(parsed.repo, tree, alias, deps);
+  const canonical = direct ?? nestedFolder(tree.paths, alias) ?? await findFrontmatterAlias(parsed.repo, tree, alias, deps);
   if (!canonical) throw new Error(`skills.sh alias ${raw} did not resolve to a GitHub package`);
   const found = await inspectGitHub(`${parsed.repo}/${canonical}`, "skills-sh", deps);
   return { ...found, identifier: `skills-sh:${raw}`, packageId: `${parsed.repo}/${canonical}` };
+}
+
+/** A skill whose folder is named for the alias but sits deeper than the usual roots (skills/<group>/<alias>). Shortest path wins. */
+function nestedFolder(paths: string[], alias: string): string | undefined {
+  const matches = paths.filter((path) => path.endsWith(`/${alias}/SKILL.md`)).sort((a, b) => a.length - b.length);
+  return matches[0]?.slice(0, -9);
 }
 
 async function findFrontmatterAlias(repo: string, tree: { branch: string; paths: string[] }, alias: string, deps: Deps): Promise<string | undefined> {
@@ -273,7 +288,12 @@ const rawUrl = (repo: string, branch: string, path: string) => `https://raw.gith
 function githubId(id: string): { repo: string; path: string } { const raw = id.replace(/^(github|tap|skills-sh):/, ""), parts = raw.split("/"); if (parts.length < 3) throw new Error("GitHub skill needs owner/repo/path"); return { repo: `${parts[0]}/${parts[1]}`, path: parts.slice(2).join("/") }; }
 async function githubTree(repo: string, deps: Deps): Promise<{ branch: string; paths: string[] }> { const info = await json(`https://api.github.com/repos/${repo}`, deps.fetcher) as { default_branch?: string }; const branch = info.default_branch ?? "main"; const tree = await json(`https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=1`, deps.fetcher) as { tree?: Array<{ type?: string; path?: string }> }; return { branch, paths: (tree.tree ?? []).flatMap((item) => item.type === "blob" && item.path ? [item.path] : []) }; }
 async function githubCategory(repo: string, branch: string, name: string, deps: Deps): Promise<string | undefined> { const data = await json(rawUrl(repo, branch, "skills.sh.json"), deps.fetcher) as { groupings?: Array<{ title?: string; skills?: string[] }> }; return data.groupings?.find((group) => group.skills?.includes(name))?.title; }
-async function text(url: string, fetcher: typeof fetch): Promise<string> { const response = await fetcher(url); if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`); return response.text(); }
+async function text(url: string, fetcher: typeof fetch): Promise<string> {
+  const response = await fetcher(url);
+  if ((response.status === 403 || response.status === 429) && url.startsWith("https://api.github.com/")) throw new Error(`GitHub's request limit was reached (HTTP ${response.status}); try again later or set GITHUB_TOKEN to raise it`);
+  if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+  return response.text();
+}
 async function json(url: string, fetcher: typeof fetch): Promise<unknown> { return JSON.parse(await text(url, fetcher)); }
 function safePath(path: string): void { if (!path || path.startsWith("/") || path.includes("\\") || path.split("/").some((part) => !part || part === "..")) throw new Error(`unsafe package path: ${path}`); }
 const executable = (path: string) => /(^|\/)(scripts?\/.*|.*\.(?:sh|bash|zsh|py|js|mjs|ps1|cmd|bat))$/i.test(path);

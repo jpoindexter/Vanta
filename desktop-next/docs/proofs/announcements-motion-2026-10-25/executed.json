@@ -1,0 +1,89 @@
+{
+  "checks": [
+    "Reduced motion is enabled only for this test window",
+    "A polite empty log exists before the first reply",
+    "Local reply 1 finishes",
+    "Reply 1 adds a fresh completion node within the six-line log",
+    "Local reply 2 finishes",
+    "Reply 2 adds a fresh completion node within the six-line log",
+    "Local reply 3 finishes",
+    "Reply 3 adds a fresh completion node within the six-line log",
+    "Local reply 4 finishes",
+    "Reply 4 adds a fresh completion node within the six-line log",
+    "Native Shift+Tab reaches the timeline",
+    "Timeline Enter actually changes scroll position",
+    "Timeline Enter has no intermediate animated scroll positions",
+    "Tab reaches Scroll to bottom",
+    "Scroll to bottom Enter actually changes scroll position",
+    "Scroll to bottom Enter has no intermediate animated scroll positions",
+    "Navigation preserves the draft",
+    "Navigation does not reannounce completed history",
+    "No extra model request",
+    "No renderer errors"
+  ],
+  "states": [
+    {
+      "name": "announcement-1",
+      "lines": [
+        "Scripted turn finished.",
+        "Response complete"
+      ]
+    },
+    {
+      "name": "announcement-2",
+      "lines": [
+        "Scripted turn finished.",
+        "Response complete",
+        "Scripted turn finished.",
+        "Response complete"
+      ]
+    },
+    {
+      "name": "announcement-3",
+      "lines": [
+        "Scripted turn finished.",
+        "Response complete",
+        "Scripted turn finished.",
+        "Response complete",
+        "Scripted turn finished.",
+        "Response complete"
+      ]
+    },
+    {
+      "name": "announcement-4",
+      "lines": [
+        "Scripted turn finished.",
+        "Response complete",
+        "Scripted turn finished.",
+        "Response complete",
+        "Scripted turn finished.",
+        "Response complete"
+      ]
+    },
+    {
+      "name": "Timeline Enter",
+      "values": [
+        182,
+        182,
+        14
+      ]
+    },
+    {
+      "name": "Scroll to bottom Enter",
+      "values": [
+        14,
+        183,
+        183
+      ]
+    }
+  ],
+  "finalLog": [
+    "Scripted turn finished.",
+    "Response complete",
+    "Scripted turn finished.",
+    "Response complete",
+    "Scripted turn finished.",
+    "Response complete"
+  ],
+  "errors": []
+}

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { RoadmapSchema, RoadmapItemSchema } from "./schema.js";
 
@@ -100,5 +101,11 @@ describe("RoadmapSchema", () => {
       updated: "2026-06-03",
       items: [{ ...validItem, status: "shipped", parkedReason: "external proof" }],
     })).toThrow("parkedReason is only valid for parked roadmap items");
+  });
+
+  it("accepts the current repository roadmap", () => {
+    const path = new URL("../../../roadmap.json", import.meta.url);
+    const roadmap = JSON.parse(readFileSync(path, "utf8"));
+    expect(RoadmapSchema.parse(roadmap).items.length).toBeGreaterThan(0);
   });
 });

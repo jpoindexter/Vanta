@@ -30,6 +30,7 @@ export type TickOpts = {
   getRecentCalls: () => RecentCall[];
   now?: number;
   env?: NodeJS.ProcessEnv;
+  signal?: AbortSignal;
 };
 
 /**
@@ -39,21 +40,39 @@ export type TickOpts = {
  */
 export async function runProgressTick(opts: TickOpts): Promise<boolean> {
   const env = opts.env ?? process.env;
-  if (isDisabled(env)) return false;
+  if (isDisabled(env) || opts.signal?.aborted) return false;
   const now = opts.now ?? Date.now();
   const last = progressStore().snapshot().find((p) => p.id === opts.id)?.updatedAt ?? null;
   if (!dueForUpdate(last, now)) return false;
 
   const calls = opts.getRecentCalls();
   const hint = specificHint(calls);
+  const deadline = new AbortController();
+  const signal = opts.signal ? AbortSignal.any([opts.signal, deadline.signal]) : deadline.signal;
+  const timeout = setTimeout(() => deadline.abort(), SUMMARY_INTERVAL_MS);
+  timeout.unref?.();
+  try {
+    return await refreshSummary(opts, signal, { calls, hint, last, now });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function refreshSummary(opts: TickOpts, signal: AbortSignal, state: {
+  calls: RecentCall[]; hint: string | null; last: number | null; now: number;
+}): Promise<boolean> {
+  const { calls, hint, last, now } = state;
   try {
     const { text } = await opts.provider.complete(
       [{ role: "system", content: SUMMARY_SYS }, { role: "user", content: buildPrompt(opts.goal, calls) }],
       [],
+      { signal },
     );
+    if (signal.aborted) return false;
     progressStore().setSummary(opts.id, toSummary(text, hint), now);
     return true;
   } catch {
+    if (signal.aborted) return false;
     // Best-effort: keep the last summary. Only seed one from the hint if we have
     // nothing yet, so a failing model still shows a specific pill on first tick.
     if (last === null && hint) progressStore().setSummary(opts.id, toSummary("", hint), now);
@@ -80,8 +99,14 @@ export function startProgressReporter(opts: ReporterOpts): () => void {
   progressStore().register(opts.id, opts.goal);
   if (isDisabled(env)) return () => progressStore().clear(opts.id);
 
+  const controller = new AbortController();
+  let inFlight = false;
   const tick = (): void => {
-    void runProgressTick({ id: opts.id, goal: opts.goal, provider: opts.provider, getRecentCalls: opts.getRecentCalls, env });
+    if (inFlight || controller.signal.aborted) return;
+    inFlight = true;
+    // An abort-ignoring provider keeps the slot until its promise actually settles.
+    void runProgressTick({ id: opts.id, goal: opts.goal, provider: opts.provider, getRecentCalls: opts.getRecentCalls, env, signal: controller.signal })
+      .catch(() => false).finally(() => { inFlight = false; });
   };
   // No eager first tick: a worker that finishes inside one interval bills no
   // side-query. The pill still shows immediately (title-only via register); the
@@ -89,6 +114,7 @@ export function startProgressReporter(opts: ReporterOpts): () => void {
   const timer = setInterval(tick, opts.intervalMs ?? SUMMARY_INTERVAL_MS);
   timer.unref?.(); // never keep the process alive for the pill
   return () => {
+    controller.abort();
     clearInterval(timer);
     progressStore().clear(opts.id);
   };

@@ -1,0 +1,2666 @@
+[
+  {
+    "id": "F-001",
+    "feature": "`titlebar.showSidebar`/`hideSidebar` Show/Hide sidebar",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "25"
+  },
+  {
+    "id": "F-002",
+    "feature": "`titlebar.openSettings` Open settings (gear)",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "26"
+  },
+  {
+    "id": "F-003",
+    "feature": "`titlebar.layoutEditor` Layout editor",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "27"
+  },
+  {
+    "id": "F-004",
+    "feature": "`titlebar.enterHud` HUD mode / `exitHud`",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "28"
+  },
+  {
+    "id": "F-005",
+    "feature": "`titlebar.swapSidebarSides` Swap sidebar sides",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "29"
+  },
+  {
+    "id": "F-006",
+    "feature": "`titlebar.showRightSidebar`/`hideRightSidebar` Show/Hide right sidebar",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "30"
+  },
+  {
+    "id": "F-007",
+    "feature": "Unread badge on the sidebar toggle (`titlebar.unreadSessions`)",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "31"
+  },
+  {
+    "id": "F-008",
+    "feature": "Titlebar plugin slots `titleBar.left/center/right`, `titleBar.tools.{left,right}`",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "32"
+  },
+  {
+    "id": "F-009",
+    "feature": "Titlebar app-actions side preference",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "33"
+  },
+  {
+    "id": "F-010",
+    "feature": "WSLg / native window controls and macOS traffic-light inset",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "34"
+  },
+  {
+    "id": "F-011",
+    "feature": "Interface mode Simple / Advanced (`interfaceMode.simple`, `.advanced`)",
+    "category": "titlebar",
+    "proposed_destination": "Shared chrome / View menu",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "35"
+  },
+  {
+    "id": "F-012",
+    "feature": "`sidebar.nav.new-session` New session (\u2318N hint)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "36"
+  },
+  {
+    "id": "F-013",
+    "feature": "New-session split / tile / tab creation (drag, 'Open in split', tab-strip +)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "37"
+  },
+  {
+    "id": "F-014",
+    "feature": "`sidebar.nav.capabilities` Capabilities",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "38"
+  },
+  {
+    "id": "F-015",
+    "feature": "`sidebar.nav.messaging` Messaging",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "39"
+  },
+  {
+    "id": "F-016",
+    "feature": "`sidebar.nav.artifacts` Artifacts (advanced tier)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "40"
+  },
+  {
+    "id": "F-017",
+    "feature": "`sidebar.nav.cron` Scheduled jobs (advanced tier)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "41"
+  },
+  {
+    "id": "F-018",
+    "feature": "Home destination (new)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "42"
+  },
+  {
+    "id": "F-019",
+    "feature": "Contributed sidebar rows (`sidebar.nav` area) + `sidebarNav.prefs`",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "43"
+  },
+  {
+    "id": "F-020",
+    "feature": "`sidebar.searchPlaceholder` Search sessions\u2026",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "44"
+  },
+  {
+    "id": "F-021",
+    "feature": "`sidebar.storageCorrupt.*` Session database is damaged",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "45"
+  },
+  {
+    "id": "F-022",
+    "feature": "Sidebar blank state / New project CTA (`SidebarBlankState`)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "46"
+  },
+  {
+    "id": "F-023",
+    "feature": "Sidebar width and resize sash",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "47"
+  },
+  {
+    "id": "F-024",
+    "feature": "Welcome / tips / tour markers on sidebar (`data-tour`, tips bubbles)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "48"
+  },
+  {
+    "id": "F-025",
+    "feature": "Left-zone tab strip 'SESSIONS / BOTS' (`sidebar.sessions`, `common.bots`; Hide/Show tabs, hide-only chrome)",
+    "category": "sidebar top",
+    "proposed_destination": "Project sidebar / primary navigation",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "49"
+  },
+  {
+    "id": "F-026",
+    "feature": "`sidebar.pinned` Pinned (collapsible, drag-reorder, shift-click pin hint `shiftClickHint`)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "50"
+  },
+  {
+    "id": "F-027",
+    "feature": "`sidebar.sessions` Sessions (recents) header + collapse",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "51"
+  },
+  {
+    "id": "F-028",
+    "feature": "`sidebar.dateDivider.*` Earlier today / Yesterday / Earlier this week / Last week / Earlier this month (+ older by month)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "52"
+  },
+  {
+    "id": "F-029",
+    "feature": "`sidebar.statusDivider.*` Working / Done",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "53"
+  },
+  {
+    "id": "F-030",
+    "feature": "Session row: status dot, title, age, message/tool counts, PR tag, profile tag, task progress, cost/tokens meta, 'Inbox style' card rows",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "54"
+  },
+  {
+    "id": "F-031",
+    "feature": "Row open gestures (click, \u2318-click new tab, \u21e7\u2318-click new window, Ctrl-click macOS)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "55"
+  },
+  {
+    "id": "F-032",
+    "feature": "Row menu: `sidebar.row.rename` Rename\u2026",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "56"
+  },
+  {
+    "id": "F-033",
+    "feature": "Row menu: `sidebar.row.pin`/`unpin`",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "57"
+  },
+  {
+    "id": "F-034",
+    "feature": "Row menu: `sidebar.row.markUnread`/`markRead`",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "58"
+  },
+  {
+    "id": "F-035",
+    "feature": "Row menu: `sidebar.row.branchFrom` Branch",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "59"
+  },
+  {
+    "id": "F-036",
+    "feature": "Row menu: `sidebar.row.export` Export",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "60"
+  },
+  {
+    "id": "F-037",
+    "feature": "Row menu: Appearance (session colour swatches) and Copy ID (`sidebar.row.copyId`)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "61"
+  },
+  {
+    "id": "F-038",
+    "feature": "Row menu: `sidebar.projects.moveToProject` Move to project",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "62"
+  },
+  {
+    "id": "F-039",
+    "feature": "Row menu: `row.openInNewTab`, `row.newWindow`, `row.openInTerminal`",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "63"
+  },
+  {
+    "id": "F-040",
+    "feature": "Row menu: `row.archive`/`unarchive`, `common.delete` (confirm dialog)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "64"
+  },
+  {
+    "id": "F-041",
+    "feature": "Tab-surface menu: Reload, Close, Close others, Close to the right, Close all, Hide tab bar",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "65"
+  },
+  {
+    "id": "F-042",
+    "feature": "`sidebar.markAllRead` Mark all as read (check-all)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "66"
+  },
+  {
+    "id": "F-043",
+    "feature": "Section header '+' (`sidebar.nav.new-session` / `sidebar.projects.newButton`)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "67"
+  },
+  {
+    "id": "F-044",
+    "feature": "Filter menu: `sidebar.filter.grouping` Date / Project / Status / Profile; cycle chord",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "68"
+  },
+  {
+    "id": "F-045",
+    "feature": "Filter menu: Ordering (Updated, Created, Status, Tokens, Cost, Manual)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "69"
+  },
+  {
+    "id": "F-046",
+    "feature": "Filter menu: Show (row meta preview/tokens/cost/PR/profile), Show all sessions, Inbox style",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "70"
+  },
+  {
+    "id": "F-047",
+    "feature": "Filter menu: Filters (Status, Pull request, Profile, Project), Archived view, Reset to defaults, Expand/Collapse all",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "71"
+  },
+  {
+    "id": "F-048",
+    "feature": "Projects overview lanes: enter project, 'All projects' back row, reorder projects, Show all N sessions",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "72"
+  },
+  {
+    "id": "F-049",
+    "feature": "Project menu: Rename\u2026, Appearance (colour/icon), Add folder, Set active, Reveal in folder, Copy path, Hide from sidebar / Delete\u2026",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "73"
+  },
+  {
+    "id": "F-050",
+    "feature": "New project dialog (`sidebar.projects.createTitle`: name, folders, Idea -> IDEA.md, Generate idea, Shuffle)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "74"
+  },
+  {
+    "id": "F-051",
+    "feature": "Open folder as project (`commandCenter.openFolder`)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "75"
+  },
+  {
+    "id": "F-052",
+    "feature": "Worktrees: `sidebar.projects.startWork` New worktree, Convert a branch\u2026, Remove worktree/Force remove",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "76"
+  },
+  {
+    "id": "F-053",
+    "feature": "Messaging platform groups in the list (Telegram, Slack, \u2026 with avatars, load more)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "77"
+  },
+  {
+    "id": "F-054",
+    "feature": "`sidebar.cronJobs` CRON JOBS section (job rows, next/last run, Trigger now, Manage, Pause/Resume, Delete, Show runs, load more)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "78"
+  },
+  {
+    "id": "F-055",
+    "feature": "Gateway/profile group headers + Screen portal (profile grouping)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "79"
+  },
+  {
+    "id": "F-056",
+    "feature": "Load more rows (`sidebar.loadMore` / `loadCount`)",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "80"
+  },
+  {
+    "id": "F-057",
+    "feature": "Skeleton / error / empty states for the list",
+    "category": "sidebar list",
+    "proposed_destination": "Project sidebar / session menus",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "81"
+  },
+  {
+    "id": "F-058",
+    "feature": "Profile rail strip (`sidebar.profileRail`, `profiles.title`)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "82"
+  },
+  {
+    "id": "F-059",
+    "feature": "Home button (`profiles.switchToProfile`, `profiles.showAllProfiles`)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "83"
+  },
+  {
+    "id": "F-060",
+    "feature": "Profile squares (initial/avatar, status dot, drag reorder, long-press colour)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "84"
+  },
+  {
+    "id": "F-061",
+    "feature": "'+' (`profiles.newProfile` New profile)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "85"
+  },
+  {
+    "id": "F-062",
+    "feature": "Cloud-download icon (`profiles.importProfile` Import profile\u2026)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "86"
+  },
+  {
+    "id": "F-063",
+    "feature": "'\u2026' (`profiles.manageProfiles` Manage profiles\u2026)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "87"
+  },
+  {
+    "id": "F-064",
+    "feature": "Plug icon (`profiles.connectGateway` Manage gateways\u2026)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "88"
+  },
+  {
+    "id": "F-065",
+    "feature": "Condensed profile dropdown (>13 profiles) and fleet groups (other gateways' profiles, 'This device' switch)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "89"
+  },
+  {
+    "id": "F-066",
+    "feature": "Profile right-click menu: Open in new window, Set as default, Color\u2026, Rename\u2026, Edit SOUL.md\u2026, Export\u2026, Connect to remote host\u2026, Delete",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "90"
+  },
+  {
+    "id": "F-067",
+    "feature": "Profile dialogs: Create, Rename (`profiles.renameTitle`), Delete (`profiles.deleteTitle`), Edit SOUL.md, Remote-override",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "91"
+  },
+  {
+    "id": "F-068",
+    "feature": "Identity chip: initial, name ('Default'), 'Local \u00b7 <model>' + popover (version, backend, model, 'Show status bar' switch) + gear (new)",
+    "category": "sidebar footer (profile rail)",
+    "proposed_destination": "Workspace switcher / Settings \u2192 Profiles",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "92"
+  },
+  {
+    "id": "F-069",
+    "feature": "BOTS tab (`common.bots` Bots)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "93"
+  },
+  {
+    "id": "F-070",
+    "feature": "Roster toolbar: activity-toast bell, 'New\u2026' menu (New bot, New group chat, New section), search, filter (kind/activity/gateway)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "94"
+  },
+  {
+    "id": "F-071",
+    "feature": "Bot row (shape/colour/eyes/image avatar, status, click opens canonical 'Bot Chat'; context: Open Bot chat, Screen, Auto-open screen, Pin to top, Hide, Edit profile, Groups, Duplicate, Delete)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "95"
+  },
+  {
+    "id": "F-072",
+    "feature": "New Bot dialog (Name/Title/Description + Advanced = full profile config, MCP setup, skills hub, model picker)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "96"
+  },
+  {
+    "id": "F-073",
+    "feature": "Group chats (rooms of bots, rounds, holds/stop, compress, pin, members)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "97"
+  },
+  {
+    "id": "F-074",
+    "feature": "Routines pane (bot-scoped scheduled jobs tile)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "98"
+  },
+  {
+    "id": "F-075",
+    "feature": "Screen portal / Screen tab per bot (computer-use viewer)",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "99"
+  },
+  {
+    "id": "F-076",
+    "feature": "@bot mentions + `message_agent` middleware, bot-to-bot relay, pets",
+    "category": "sidebar list (BOTS tab)",
+    "proposed_destination": "More \u2192 Workers & budgets",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "100"
+  },
+  {
+    "id": "F-077",
+    "feature": "Status bar container + right-click 'Show in status bar' menu (`shell.statusbar.customizeTitle`, Reset to defaults, Hide status bar)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "101"
+  },
+  {
+    "id": "F-078",
+    "feature": "Command-key glyph (`shell.statusbar.openCommandCenter` / `closeCommandCenter`)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "102"
+  },
+  {
+    "id": "F-079",
+    "feature": "Gateway switcher 'Local \u00b7' (ConnectionSwitcher: connection list, search, 'Manage gateways\u2026')",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "103"
+  },
+  {
+    "id": "F-080",
+    "feature": "Profile switcher (compact) in status bar",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "104"
+  },
+  {
+    "id": "F-081",
+    "feature": "'Backend ready' gateway health (`shell.statusbar.backend`, `gatewayReady/needsSetup/offline/restarting\u2026`) + menu (Gateway connected, Inference ready, Reconnect gateway, Open system panel, Restart gateway, Recent activity, View all logs, Messaging platforms)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "105"
+  },
+  {
+    "id": "F-082",
+    "feature": "Free-tier chip (`freeTier.providerName` + 'Sign in')",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "106"
+  },
+  {
+    "id": "F-083",
+    "feature": "Workspace / project chip (`toggleWorkspace`; menu Change workspace\u2026, Copy path, Open containing folder, Reveal in filetree)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "107"
+  },
+  {
+    "id": "F-084",
+    "feature": "Agents chip (`shell.statusbar.agents`; running/failed counts)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "108"
+  },
+  {
+    "id": "F-085",
+    "feature": "Cron chip (`shell.statusbar.cron`) and Webhooks chip (`shell.statusbar.webhooks`)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "109"
+  },
+  {
+    "id": "F-086",
+    "feature": "Turn timer (`toggleRunningTimer`), Session timer (`focusedSince`)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "110"
+  },
+  {
+    "id": "F-087",
+    "feature": "Context meter (`statusbar.contextUsage`) + panel (conversation/MCP/memory/rules/skills/subagent defs/system prompt/tool defs, % full, compressions)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "111"
+  },
+  {
+    "id": "F-088",
+    "feature": "Cache hit rate, Tokens per second",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "112"
+  },
+  {
+    "id": "F-089",
+    "feature": "RAM 35G/48G (`statusbar.systemResources`) + GPU/VRAM/RAM meters",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "113"
+  },
+  {
+    "id": "F-090",
+    "feature": "'Smart' approval-mode pill (`shell.approvalMode.manual/smart/off`)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "114"
+  },
+  {
+    "id": "F-091",
+    "feature": "Terminal toggle (`showTerminal`/`hideTerminal`)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "115"
+  },
+  {
+    "id": "F-092",
+    "feature": "Client version chip / build hash (`statusbar.clientLabel`, update available, restarting, rollback copy) + backend version chip (remote)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "116"
+  },
+  {
+    "id": "F-093",
+    "feature": "Contributed status-bar items (`statusBar.left/right`, e.g. Radio plugin, page chips)",
+    "category": "status bar",
+    "proposed_destination": "Single runtime status / diagnostics popover",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "117"
+  },
+  {
+    "id": "F-094",
+    "feature": "Right-side zones: Files (`rightSidebar.files` File system), Review (`sidebar.review`), Terminal (`sidebar.terminal`), Logs (`sidebar.logs`), Preview tabs",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "118"
+  },
+  {
+    "id": "F-095",
+    "feature": "Files header: Open folder (`rightSidebar.openFolder`), change working directory, remote folder picker, Refresh tree, Collapse all folders, Show/Hide gitignored",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "119"
+  },
+  {
+    "id": "F-096",
+    "feature": "File tree (expand, open in preview, drag to composer, `rightSidebar.addToChat` Add to chat)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "120"
+  },
+  {
+    "id": "F-097",
+    "feature": "File context menu: Reveal in Finder/Explorer (`fileMenu.revealFinder`), Copy path, Copy relative path, Download, Rename\u2026 (F2), Delete (trash, confirm)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "121"
+  },
+  {
+    "id": "F-098",
+    "feature": "Review pane: scope row (`statusStack.coding.scopeUncommitted/Branch/LastTurn`), changed-file list/tree, churn bar, diff viewer",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "122"
+  },
+  {
+    "id": "F-099",
+    "feature": "Review actions: Stage / Unstage / Stage all, Revert / Revert all (confirm), View as tree/list, Open file",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "123"
+  },
+  {
+    "id": "F-100",
+    "feature": "Ship bar: commit message (\u2318Enter), Generate commit message, Commit, Commit & Push, Create PR / Open PR, 'Ask Hermes to open PR', New branch, Switch branch, base branch",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "124"
+  },
+  {
+    "id": "F-101",
+    "feature": "Terminal: tabs rail, New terminal, Close others/all, Hide terminal, next/prev/close, font, link opening",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "125"
+  },
+  {
+    "id": "F-102",
+    "feature": "Terminal context menu + clipboard (Copy, Paste, Select all; \u2318C/\u2318V, Ctrl+Shift+C/V) and selection-to-composer (\u2318L)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "126"
+  },
+  {
+    "id": "F-103",
+    "feature": "Agent terminal tabs (`rightSidebar.terminalReadOnly` Read-only output, 'Open new terminal')",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "127"
+  },
+  {
+    "id": "F-104",
+    "feature": "Logs pane (`sidebar.logs`; search, level, file, top/bottom)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "128"
+  },
+  {
+    "id": "F-105",
+    "feature": "Preview / Browser pane: back, forward, reload (`preview.web.reload`), address bar, blank page, Open in browser/external, Pin to workspace, Pop out/in, close",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "129"
+  },
+  {
+    "id": "F-106",
+    "feature": "Preview console (select, Copy, Send to chat, Clear, resize) and DevTools toggle",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "130"
+  },
+  {
+    "id": "F-107",
+    "feature": "Annotate mode (`preview.web.annotate`, comment cards, 'Add N comments')",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "131"
+  },
+  {
+    "id": "F-108",
+    "feature": "Ask Hermes to restart the preview server / file-change auto-reload (`preview.web.askRestart`, `watchPreviewFile`)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "132"
+  },
+  {
+    "id": "F-109",
+    "feature": "File preview (SOURCE / PREVIEW / DIFF, Edit, Save, Overwrite / Discard & reload, large/binary guards)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "133"
+  },
+  {
+    "id": "F-110",
+    "feature": "Artifact preview (versions pager `artifactPreview.versionOf`, Copy content, Download, Open in browser)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "134"
+  },
+  {
+    "id": "F-111",
+    "feature": "Real-browser-profile consent dialog",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "135"
+  },
+  {
+    "id": "F-112",
+    "feature": "Tab strip + zone controls (`zones.*`: Show/Hide tabs, Zone options, Minimize/Restore, close-running confirm, tab key hints, drag tabs between zones)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "136"
+  },
+  {
+    "id": "F-113",
+    "feature": "Narrow-width edge overlays (sidebar/right pane reveal)",
+    "category": "right pane",
+    "proposed_destination": "Code workbench / Chat outputs rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "137"
+  },
+  {
+    "id": "F-114",
+    "feature": "Rich input (chips, undo/redo, history \u2191/\u2193, Esc cancels run, Enter send, Shift+Enter newline, type-to-focus, \u2318L focus)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "138"
+  },
+  {
+    "id": "F-115",
+    "feature": "'+' attach menu: Files\u2026, Folder\u2026, Images\u2026, Paste image (`composer.files/folder/images/pasteImage`)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "139"
+  },
+  {
+    "id": "F-116",
+    "feature": "'+' menu: URL\u2026 (`composer.attachUrlTitle`) and Prompt snippets\u2026 (Code review, Implementation plan, Explain this)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "140"
+  },
+  {
+    "id": "F-117",
+    "feature": "'+' menu: contributed attachment providers (`composer.attachments` area)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "141"
+  },
+  {
+    "id": "F-118",
+    "feature": "Attachment chips (preview, remove) and drag-drop overlay (`composer.dropFiles`, `dropSession`)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "142"
+  },
+  {
+    "id": "F-119",
+    "feature": "Large paste collapse, pasted-text attachment, screenshot hotkey capture",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "143"
+  },
+  {
+    "id": "F-120",
+    "feature": "Model pill menu (search, Favorites \u21e7-click star, Edit models\u2026, Use Settings default, Refresh models, fast/limited/price badges, local-setup offer)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "144"
+  },
+  {
+    "id": "F-121",
+    "feature": "Model switch confirm / model picker overlay / Models visibility dialog / Add custom model",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "145"
+  },
+  {
+    "id": "F-122",
+    "feature": "Reasoning pill (`shell.modelOptions` Thinking, Fast, Effort off\u2026Max/Ultra)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "146"
+  },
+  {
+    "id": "F-123",
+    "feature": "Permission chip (new): Ask each time / Accept edits / Plan / Auto / Full access",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "147"
+  },
+  {
+    "id": "F-124",
+    "feature": "Send / Stop / Queue / Steer buttons (`composer.send/stop/queueMessage/steer`)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "148"
+  },
+  {
+    "id": "F-125",
+    "feature": "Queue panel (`composer.queued`: Edit, Expand, Next, Steer, Send, Delete, Resume)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "149"
+  },
+  {
+    "id": "F-126",
+    "feature": "Voice mic: Dictation, Read replies aloud, Wake word, Start voice conversation (fan on hover / VoiceMenu in narrow)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "150"
+  },
+  {
+    "id": "F-127",
+    "feature": "Voice conversation pill (Mute microphone, Stop listening and send, End; states Listening/Transcribing/Thinking/Speaking) and voice engine (speech-to-text + Hermes vs GPT-Live)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "151"
+  },
+  {
+    "id": "F-128",
+    "feature": "Status drawer toggle (`statusStack.hideStack/showStack`) and sections",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "152"
+  },
+  {
+    "id": "F-129",
+    "feature": "Subagents section (`statusStack.subagents`; steer, stop, transcript) and Agents overlay (spawn tree, `agents.steerPlaceholder`)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "153"
+  },
+  {
+    "id": "F-130",
+    "feature": "Todos (Tasks n/m) and Background processes (`statusStack.background`, Stop, Dismiss)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "154"
+  },
+  {
+    "id": "F-131",
+    "feature": "Goal row (/goal: Goal active/blocked/done, View details, Add criterion, Pause/Resume, Clear) + subgoals/criteria",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "155"
+  },
+  {
+    "id": "F-132",
+    "feature": "Loop row (/loop) and Heartbeat row (/heartbeat): pause, resume, stop, dismiss, clear",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "156"
+  },
+  {
+    "id": "F-133",
+    "feature": "Coding row (Working tree: branch, ahead/behind, N changed, Review) and Preview row",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "157"
+  },
+  {
+    "id": "F-134",
+    "feature": "Suggestion pills (Add <MCP>, Use skill, Set up GitHub, Reconnect <server>, Schedule this)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "158"
+  },
+  {
+    "id": "F-135",
+    "feature": "Micro-action badges (`composer.microActions`)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "159"
+  },
+  {
+    "id": "F-136",
+    "feature": "Slash popover '/' (130 registry entries: 90 default-surface, 27 terminal, 8 advanced, 2 messaging, 1 settings, 1 voice, 1 hidden /model)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "160"
+  },
+  {
+    "id": "F-137",
+    "feature": "@ popover (files, folders, URLs, @diff, @staged, @git, session refs, bot mentions)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "161"
+  },
+  {
+    "id": "F-138",
+    "feature": "':' emoji completions, '?' quick help (Common commands, Hotkeys), Restored draft notice (Undo)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "162"
+  },
+  {
+    "id": "F-139",
+    "feature": "Floating composer pop-out (drag handle) and directive actions (::preview 'Open')",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "163"
+  },
+  {
+    "id": "F-140",
+    "feature": "HUD composer controls: Reset HUD size and position, Exit HUD mode (`titlebar.resetHudLayout`, `exitHud`)",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "164"
+  },
+  {
+    "id": "F-141",
+    "feature": "Handoff to a messaging platform (`/handoff`, `desktop.handoff.pickPlatform`, 'Handed off to <platform>')",
+    "category": "composer",
+    "proposed_destination": "Chat and Code composers",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "165"
+  },
+  {
+    "id": "F-142",
+    "feature": "Assistant message actions: Copy, Copy full response, Read aloud (\u21e7 = full), Regenerate (`assistant.thread.refresh`), Branch in new chat, React (emoji), hover time, turn duration, branch pager",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "166"
+  },
+  {
+    "id": "F-143",
+    "feature": "User message actions: Edit message (`assistant.thread.editMessage`), Restore checkpoint (rerun from this prompt; previous/next checkpoint; confirm 'Restore & rerun'), Stop, Expand message",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "167"
+  },
+  {
+    "id": "F-144",
+    "feature": "Tool rows (collapsed activity, Copy output/command/path/URL, failed/recovered counts, raw response, skill activity, memory-write note)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "168"
+  },
+  {
+    "id": "F-145",
+    "feature": "Approval card: Run, Allow this session, Always allow\u2026 (pattern dialog), Reject, 'More approval options', 'Approval needed' jump pill",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "169"
+  },
+  {
+    "id": "F-146",
+    "feature": "Clarify prompts (1-5 questions, options, Other, Skip, Confirm and continue)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "170"
+  },
+  {
+    "id": "F-147",
+    "feature": "Sudo / secret / vault prompts (`prompts.*`: unlock, save login, 2FA code)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "171"
+  },
+  {
+    "id": "F-148",
+    "feature": "MCP setup prompt (Install / Enable / Authorize servers)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "172"
+  },
+  {
+    "id": "F-149",
+    "feature": "Error cards and actions: Retry, Switch provider, Choose a model, Start new session, Compress conversation, Update API key, Sign in again, Open logs, Copy error details, Send diagnostics, scheduled retry at limit reset (`assistant.thread.errorCodes.*`)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "173"
+  },
+  {
+    "id": "F-150",
+    "feature": "'Sign in with a Nous account' error action (`errorSignInFreeTier`) and free-tier errors",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "174"
+  },
+  {
+    "id": "F-151",
+    "feature": "Changed-files card ('N files changed', Review) and thinking disclosure (`thinking`, `thoughtFor`)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "175"
+  },
+  {
+    "id": "F-152",
+    "feature": "Scroll-to-bottom button, 'Show earlier messages', timeline rail, sticky prompt, hover timestamps",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "176"
+  },
+  {
+    "id": "F-153",
+    "feature": "Chat intro / empty state (Hermes intro splash, starter suggestions)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "177"
+  },
+  {
+    "id": "F-154",
+    "feature": "Image lightbox (zoom in/out/reset, Download image, Open image, Save image)",
+    "category": "thread",
+    "proposed_destination": "Conversation / Task context rail",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "178"
+  },
+  {
+    "id": "F-155",
+    "feature": "Settings overlay shell: left nav with sub-pages, breadcrumb, search pill (`settings.search.pill`, \u2318K scoped to settings, type-to-search), deep links `?tab=&page=`",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "179"
+  },
+  {
+    "id": "F-156",
+    "feature": "Nav footer: Export config, Import config, Reset to defaults (`settings.exportConfig/importConfig/resetToDefaults`)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "180"
+  },
+  {
+    "id": "F-157",
+    "feature": "Model: Main model, Auxiliary models (vision/compression/etc.), Mixture of Agents, Fallback models",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "181"
+  },
+  {
+    "id": "F-158",
+    "feature": "Chat: Behavior (personality, timezone, show reasoning) and Attachments (image input mode)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "182"
+  },
+  {
+    "id": "F-159",
+    "feature": "Appearance: Theme (presets, user themes, chat-surface tokens), Typography (chat font, terminal font, text scale), Window & layout (translucency, titlebar actions side, layout presets, Simple/Advanced), Chat display (tool view, timestamps, bubbles, reactions), Pet",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "183"
+  },
+  {
+    "id": "F-160",
+    "feature": "Appearance: theme marketplace (Install theme\u2026 from VS Code Marketplace) and theme live-preview in palette",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "184"
+  },
+  {
+    "id": "F-161",
+    "feature": "Appearance > Pet (pets gallery, adopt, Generate a pet, wake/idle behaviour) and floating pet",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "185"
+  },
+  {
+    "id": "F-162",
+    "feature": "Workspace: Projects & discovery (repo scan roots/excludes), Shell environment, Files & execution",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "186"
+  },
+  {
+    "id": "F-163",
+    "feature": "Safety: Approvals (mode, timeout, allowlist, MCP-reload confirm), Privacy & network (redact secrets, private URLs), Checkpoints",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "187"
+  },
+  {
+    "id": "F-164",
+    "feature": "Browser: Browser profile (use real Chrome profile), Local & private URLs; Passwords & Logins (Credential Vault: Saved credentials, Password managers)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "188"
+  },
+  {
+    "id": "F-165",
+    "feature": "Memory & Context: Persistent memory (providers + provider-config modal), Context & compression",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "189"
+  },
+  {
+    "id": "F-166",
+    "feature": "Voice: Voice conversation (chat mode, GPT-Live voice), Speech to text (provider/model/language/streaming), Text to speech (Edge, OpenAI, ElevenLabs, xAI, MiniMax, Mistral, Gemini, Piper\u2026)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "190"
+  },
+  {
+    "id": "F-167",
+    "feature": "Advanced: Desktop & startup, Agent limits, Tool access (toolsets), Terminal backend (local/docker/singularity/modal/daytona), Output limits, Subagents",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "191"
+  },
+  {
+    "id": "F-168",
+    "feature": "Notifications: Desktop alerts and Sounds (completion sound)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "192"
+  },
+  {
+    "id": "F-169",
+    "feature": "Billing (Overview, Plans) and Nous Portal group in provider list",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "193"
+  },
+  {
+    "id": "F-170",
+    "feature": "Providers: Accounts (OAuth sign-ins/subscriptions), API keys (provider cards), Custom Endpoints, Local Models (flag)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "194"
+  },
+  {
+    "id": "F-171",
+    "feature": "Gateways: This window, Saved connections (local/remote/SSH/cloud), Remote updates",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "195"
+  },
+  {
+    "id": "F-172",
+    "feature": "Keyboard shortcuts: Key bindings (search, click-to-rebind, conflict warning, Reset/Clear/Reset all), HUD gesture, Screen capture",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "196"
+  },
+  {
+    "id": "F-173",
+    "feature": "Tools & Keys: Tools (tool API keys) and Settings (env vars, proxy)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "197"
+  },
+  {
+    "id": "F-174",
+    "feature": "Archive & retention: Archived chats (restore), Default project folder",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "198"
+  },
+  {
+    "id": "F-175",
+    "feature": "Plugins (desktop plugin pages; agent plugins; Install from Git; Rescan; Open plugins folder)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "199"
+  },
+  {
+    "id": "F-176",
+    "feature": "About: Version & updates (channel, check, apply, rollback) and Uninstall",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "200"
+  },
+  {
+    "id": "F-177",
+    "feature": "Language switcher (`language.label`, 'Switch language', \u224820 locales)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "201"
+  },
+  {
+    "id": "F-178",
+    "feature": "Desktop-local toggles: Minimize to tray, Quick Entry shortcut, Pool limits (max parallel bots), Keep awake, Default project directory",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "202"
+  },
+  {
+    "id": "F-179",
+    "feature": "Usage statistics consent / 'Share with Nous' (`sharedMetrics.*`)",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "203"
+  },
+  {
+    "id": "F-180",
+    "feature": "Sound and haptics mute (`titlebar.muteHaptics`/`unmuteHaptics`), completion sound, thinking sound",
+    "category": "settings page",
+    "proposed_destination": "Settings (all existing categories retained)",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "204"
+  },
+  {
+    "id": "F-181",
+    "feature": "Palette shell (cmdk, rank by label/keywords, nested pages with Back/Esc, \u2318/\u2303-Enter variants, HighlightWatcher)",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "205"
+  },
+  {
+    "id": "F-182",
+    "feature": "Go to: New session, New window, Settings, Capabilities (skills/tools/mcp), Messaging, Artifacts, Cron, Profiles, Agents, Memory Graph (`commandCenter.goTo`)",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "206"
+  },
+  {
+    "id": "F-183",
+    "feature": "Projects: Open folder as project\u2026, project rows (\u2318-Enter = new session there), paste absolute path to open",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "207"
+  },
+  {
+    "id": "F-184",
+    "feature": "Commands (contributed): Toggle layout edit mode, Reset layout, Reload desktop plugins, Toggle status bar, Toggle profile rail, Simple mode, Toggle tabs, Keyboard shortcuts, Export profile\u2026, Import profile\u2026",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "208"
+  },
+  {
+    "id": "F-185",
+    "feature": "Plugin palette rows: Kanban 'Open board' / 'New task' (\u2318\u2325N), Bots 'New Bot\u2026', hello-runtime, Radio",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "209"
+  },
+  {
+    "id": "F-186",
+    "feature": "Command Center group: Sessions panel, Import session, System, Usage, Restart gateway, Update Hermes (shows version), Reload window, Toggle browser",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "210"
+  },
+  {
+    "id": "F-187",
+    "feature": "Appearance group: Change theme (live preview), Change color mode\u2026, Pets, Generate a pet",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "211"
+  },
+  {
+    "id": "F-188",
+    "feature": "Settings group + deep settings search (sections, non-config pages, config fields, API keys, plugin settings)",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "212"
+  },
+  {
+    "id": "F-189",
+    "feature": "Search results: pinned / recent / archived sessions, raw session id, MCP servers, capabilities deep links, branches ('New conversation in <branch>')",
+    "category": "command palette",
+    "proposed_destination": "Shared command palette",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "213"
+  },
+  {
+    "id": "F-190",
+    "feature": "Terminal context menu (Copy, Paste, Select all)",
+    "category": "context menus",
+    "proposed_destination": "Context menus at the original object",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "214"
+  },
+  {
+    "id": "F-191",
+    "feature": "DOM context menu: link (Open in in-app browser, Open in external browser, Copy URL, Copy resolved URL), image (Open, Copy image, Copy image address, Save image as\u2026), edit (Cut, Copy, Paste, Select all, spell suggestions, Add to dictionary)",
+    "category": "context menus",
+    "proposed_destination": "Context menus at the original object",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "215"
+  },
+  {
+    "id": "F-192",
+    "feature": "Preview webview (guest) context menu incl. Inspect element",
+    "category": "context menus",
+    "proposed_destination": "Context menus at the original object",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "216"
+  },
+  {
+    "id": "F-193",
+    "feature": "Bare-chrome context menu: New session, New window, Command palette, Toggle status bar, Toggle profile rail, Toggle tabs, Settings, Update Hermes",
+    "category": "context menus",
+    "proposed_destination": "Context menus at the original object",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "217"
+  },
+  {
+    "id": "F-194",
+    "feature": "Pane/zone context menu (Show/Hide tabs, zone options, Close others/right/all, Reload tab)",
+    "category": "context menus",
+    "proposed_destination": "Context menus at the original object",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "218"
+  },
+  {
+    "id": "F-195",
+    "feature": "macOS app menu: About Hermes, Check for Updates\u2026, Services, Hide, Hide Others, Show All, Quit",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "219"
+  },
+  {
+    "id": "F-196",
+    "feature": "File menu: New Window (\u2318\u21e7N), Open Folder\u2026 (\u2318O), Close tab (\u2318W) / Quit",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "220"
+  },
+  {
+    "id": "F-197",
+    "feature": "Edit menu: Undo, Redo, Cut, Copy, Paste, Paste and Match Style (\u2318\u21e7V), Delete, Select All, Substitutions",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "221"
+  },
+  {
+    "id": "F-198",
+    "feature": "View menu: Reload (page), Force Reload, Toggle Developer Tools (\u2325\u2318I / Ctrl+Shift+I), Actual Size \u23180, Zoom In \u2318+, Zoom Out \u2318-, Toggle Full Screen",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "222"
+  },
+  {
+    "id": "F-199",
+    "feature": "Window menu (Minimize, Zoom, Bring All to Front / Close)",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "223"
+  },
+  {
+    "id": "F-200",
+    "feature": "Help menu: Check for Updates\u2026",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "224"
+  },
+  {
+    "id": "F-201",
+    "feature": "Tray icon (minimize to tray): 'Show Hermes', 'Quit Hermes', click/double-click restore",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "225"
+  },
+  {
+    "id": "F-202",
+    "feature": "Quick Entry global hotkey window (\u2318\u21e7Space default; Target session picker; submit relays to main renderer)",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "226"
+  },
+  {
+    "id": "F-203",
+    "feature": "HUD overlay window + global \u2318\u21e7G snap-to-pointer + modifier gesture + game overlay",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "227"
+  },
+  {
+    "id": "F-204",
+    "feature": "Pet overlay window and Wake-word indicator window",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "228"
+  },
+  {
+    "id": "F-205",
+    "feature": "Browser pop-out window and per-session windows (File > New Window, row 'New window', windowRelay)",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "229"
+  },
+  {
+    "id": "F-206",
+    "feature": "Native notifications with actions (focus session, activate) and dock/tray badge",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "230"
+  },
+  {
+    "id": "F-207",
+    "feature": "Find in page (\u2318F bar, Next/Previous match \u2318G / \u2318\u21e7G)",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "231"
+  },
+  {
+    "id": "F-208",
+    "feature": "DevTools / F12 policy and Reload shortcuts (\u2318R in preview)",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "232"
+  },
+  {
+    "id": "F-209",
+    "feature": "Deep links (hermes:// skill install, MCP install, open session) and external-open failed dialog",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "233"
+  },
+  {
+    "id": "F-210",
+    "feature": "Challenge window (Cloudflare/human-check for free-tier sign-in)",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "234"
+  },
+  {
+    "id": "F-211",
+    "feature": "About panel, single-instance lock, keep-awake while work is active, battery/power events",
+    "category": "window menu/tray",
+    "proposed_destination": "Native app menu / tray / mini window",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "235"
+  },
+  {
+    "id": "F-212",
+    "feature": "Provider onboarding screen (`onboarding.headerTitle` 'Let's get you setup with Hermes Agent'; Recommended/featured provider, Other providers, 'I have an API key', 'I'll choose a provider later')",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "236"
+  },
+  {
+    "id": "F-213",
+    "feature": "Provider sign-in flows (PKCE browser, device code, external CLI 'I've signed in', paste authorization code, re-open page)",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "237"
+  },
+  {
+    "id": "F-214",
+    "feature": "API-key entry (Paste API key, Replace current value, Get a key link) and local/self-hosted endpoint (URL, optional key, model name)",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "238"
+  },
+  {
+    "id": "F-215",
+    "feature": "Run models locally option (hardware fit, quickstart, download)",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "239"
+  },
+  {
+    "id": "F-216",
+    "feature": "Setup-slow banner, 'Continue without setup', 'Starting Hermes\u2026'",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "240"
+  },
+  {
+    "id": "F-217",
+    "feature": "Guided onboarding chat (setup profile 'Welcome to Hermes', gate, signpost, skip chip, demo layout, handoff tour of the profile rail)",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "241"
+  },
+  {
+    "id": "F-218",
+    "feature": "Free-tier sign-in dialog, notice strip, setup notice, status chip",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "242"
+  },
+  {
+    "id": "F-219",
+    "feature": "Remote/first-run connection setup (connect to existing gateway, SSH, Hermes Cloud, OAuth login)",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "243"
+  },
+  {
+    "id": "F-220",
+    "feature": "Boot overlays: Gateway connecting (:117), Boot failure with cause/reauth/Send diagnostics (:91), Desktop install (install Hermes locally) (:166), Update hold (:23)",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "244"
+  },
+  {
+    "id": "F-221",
+    "feature": "Legal butterbar ('Use of Hermes Agent is subject to our Terms of Service and Privacy Policy') and notice carousel",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "245"
+  },
+  {
+    "id": "F-222",
+    "feature": "Usage-stats consent strip + dialog ('Share usage stats?', 'Share with Nous')",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "246"
+  },
+  {
+    "id": "F-223",
+    "feature": "Tips bubbles (10 tips), app tour (7 stops), model-pill tips",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "247"
+  },
+  {
+    "id": "F-224",
+    "feature": "Billing banner (credits) and remote-display banner ('Software rendering active\u2026')",
+    "category": "onboarding",
+    "proposed_destination": "First launch / connection recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "248"
+  },
+  {
+    "id": "F-225",
+    "feature": "Capabilities > Skills tab: list, search, category/provenance (Learned/Built-in/Hub), sort (Most used/A-Z), toggle per skill, Enable all / Disable all / Disable unused, Edit, Archive (curator), Skills Hub (browse, preview, scan, install, update, uninstall, official skills)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "249"
+  },
+  {
+    "id": "F-226",
+    "feature": "Capabilities > Tools tab (toolsets enable/disable, configure keys, vision hint)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "250"
+  },
+  {
+    "id": "F-227",
+    "feature": "Capabilities > Connectors tab (directory, categories, connect/disconnect hosted accounts, local MCP servers add/edit/probe/logs/tools editor, plugin tools, Add dialog)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "251"
+  },
+  {
+    "id": "F-228",
+    "feature": "Capabilities > Plugins tab (agent + desktop halves, install from Git, catalog, reload)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "252"
+  },
+  {
+    "id": "F-229",
+    "feature": "Messaging page (platform list with status filter, setup forms: required/recommended/advanced, allowlist, enable switch, Telegram QR setup, pairing approve/revoke, restart gateway)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "253"
+  },
+  {
+    "id": "F-230",
+    "feature": "Artifacts page (All/Images/Files/Links tabs, search, table with Session link, pagination, Open, Copy URL/path)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "254"
+  },
+  {
+    "id": "F-231",
+    "feature": "Cron page: Jobs / Blueprints tabs, search, New cron (name, prompt/script, frequency, custom cron/NL, Deliver to, model), Edit, Run again, Pause/Resume, Trigger now, Delete, run history, blueprint instantiate",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "255"
+  },
+  {
+    "id": "F-232",
+    "feature": "Webhooks page (subscriptions list, enable receiver, New subscription: name/events/skills/deliver-to/prompt, secret shown once, enable/disable, delete, restart gateway)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "256"
+  },
+  {
+    "id": "F-233",
+    "feature": "Profiles page (list, search, details, SOUL.md editor, Copy setup, Rename, Delete, Set default, Export)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "257"
+  },
+  {
+    "id": "F-234",
+    "feature": "Agents overlay 'Spawn tree' (live subagents, Steer, Stop, files, tools, tokens)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "258"
+  },
+  {
+    "id": "F-235",
+    "feature": "Command Center overlay: Sessions (search, pin, export, delete), System (gateway state, restart, update, logs), Usage (tokens, cost, top models/skills), Maintenance (Doctor, Security audit, Backup, Debug share, Skill curator, Memory data reset)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "259"
+  },
+  {
+    "id": "F-236",
+    "feature": "Memory Graph (Starmap): graph view, filters All/Used/Learned, Share map / Import map code, refresh",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "260"
+  },
+  {
+    "id": "F-237",
+    "feature": "Import session (Claude Code / Codex conversations: scan, preview, import, open existing copy)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "261"
+  },
+  {
+    "id": "F-238",
+    "feature": "Updates overlay (check, apply, channel stable/main, rollback, retirement notice `updates.discontinuedTitle`)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "262"
+  },
+  {
+    "id": "F-239",
+    "feature": "Session switcher HUD (ctrl-Tab cycles recent sessions) and Session picker dialog (`/resume`, `/sessions`)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "263"
+  },
+  {
+    "id": "F-240",
+    "feature": "Toast notifications + notification center (success/error/warning, copy, dismiss, actions)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "264"
+  },
+  {
+    "id": "F-241",
+    "feature": "Send diagnostics dialog (consent, upload debug bundle, share link)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "265"
+  },
+  {
+    "id": "F-242",
+    "feature": "Error boundary (Reload window, Open logs, Send diagnostics)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "266"
+  },
+  {
+    "id": "F-243",
+    "feature": "Kanban plugin page + board switcher (titlebar), orchestration, drawer",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "267"
+  },
+  {
+    "id": "F-244",
+    "feature": "Radio plugin and hello-runtime plugin (statusbar radio, runtime example)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Keep existing reachability until owner explicitly approves retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "268"
+  },
+  {
+    "id": "F-245",
+    "feature": "Keyboard shortcuts - complete default map (rebindable, about 75 actions + read-only list)",
+    "category": "page / overlay",
+    "proposed_destination": "Library / Automations / Connections / advanced views",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "269"
+  },
+  {
+    "id": "V-001",
+    "feature": "Look capture",
+    "category": "Vanta capability",
+    "proposed_destination": "Attach menu in both modes; OS permission, cancellation and denial recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "21"
+  },
+  {
+    "id": "V-002",
+    "feature": "Context attachments (drop, pick, folders)",
+    "category": "Vanta capability",
+    "proposed_destination": "Composer chips; scope, symlink/private-file rules and input limits retained",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "22"
+  },
+  {
+    "id": "V-003",
+    "feature": "Clipboard paste (text, images)",
+    "category": "Vanta capability",
+    "proposed_destination": "Composer paste and native bridge; no accidental upload or context switch",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "23"
+  },
+  {
+    "id": "V-004",
+    "feature": "Voice dictation (local Whisper)",
+    "category": "Vanta capability",
+    "proposed_destination": "Composer microphone; actual local availability shown",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "24"
+  },
+  {
+    "id": "V-005",
+    "feature": "Wake word \"Hey Vanta\"",
+    "category": "Vanta capability",
+    "proposed_destination": "Voice settings/tray with opt-in, listening status and Off",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "25"
+  },
+  {
+    "id": "V-006",
+    "feature": "Queued-turn editor",
+    "category": "Vanta capability",
+    "proposed_destination": "Composer queue; revisions, edit, move, cancel, steer, retry, explicit resume",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "26"
+  },
+  {
+    "id": "V-007",
+    "feature": "Long-session navigation",
+    "category": "Vanta capability",
+    "proposed_destination": "Timeline, prompt markers, reading-anchor restore and jump-to-latest",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "27"
+  },
+  {
+    "id": "V-008",
+    "feature": "Run receipt recovery (retry step, edit request, start from checkpoint)",
+    "category": "Vanta capability",
+    "proposed_destination": "Inline stopped/error result and Task context; only server-offered recovery actions",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "28"
+  },
+  {
+    "id": "V-009",
+    "feature": "Schema-trace explorer and counterexample",
+    "category": "Vanta capability",
+    "proposed_destination": "Expandable structured-output diagnostics beside the relevant result",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "29"
+  },
+  {
+    "id": "V-010",
+    "feature": "Task dossier (Outcome / next action banner)",
+    "category": "Vanta capability",
+    "proposed_destination": "Task context and durable re-entry summary",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "30"
+  },
+  {
+    "id": "V-011",
+    "feature": "Model picker, effort, speed, route status",
+    "category": "Vanta capability",
+    "proposed_destination": "Detached composer controls; route/cost/auth details on demand",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "31"
+  },
+  {
+    "id": "V-012",
+    "feature": "Provider setup wizard (API key, local providers)",
+    "category": "Vanta capability",
+    "proposed_destination": "Models & providers; API key/local/custom endpoint paths",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "32"
+  },
+  {
+    "id": "V-013",
+    "feature": "Provider auth recovery (reconnect and resume)",
+    "category": "Vanta capability",
+    "proposed_destination": "Inline reconnect with saved request; explicit retry",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "33"
+  },
+  {
+    "id": "V-014",
+    "feature": "Server-persisted session drafts",
+    "category": "Vanta capability",
+    "proposed_destination": "Per profile/project/session; migrate existing drafts once",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "34"
+  },
+  {
+    "id": "V-015",
+    "feature": "Session management (pin, rename, archive, delete, bulk, safe ops)",
+    "category": "Vanta capability",
+    "proposed_destination": "Project sidebar, title menu, palette and archive/bulk view",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "35"
+  },
+  {
+    "id": "V-016",
+    "feature": "Command palette and shortcuts (incl. \u2318\u21e7M cycle access)",
+    "category": "Vanta capability",
+    "proposed_destination": "Shared shell, including existing access-mode shortcut",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "36"
+  },
+  {
+    "id": "V-017",
+    "feature": "Welcome starters, early composer, theme",
+    "category": "Vanta capability",
+    "proposed_destination": "True empty state; input available while runtime starts",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "37"
+  },
+  {
+    "id": "V-018",
+    "feature": "Access-mode picker (Manual, Accept edits, Plan, Auto, Full)",
+    "category": "Vanta capability",
+    "proposed_destination": "Composer and settings; distinct from R0\u2013R5 and kernel decision",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "38"
+  },
+  {
+    "id": "V-019",
+    "feature": "Full-access warning (versioned acknowledgement per project)",
+    "category": "Vanta capability",
+    "proposed_destination": "Existing versioned per-project warning; no silent widening",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "39"
+  },
+  {
+    "id": "V-020",
+    "feature": "Approval card and scoping (Allow, Always per project, Never, one-way \"fresh\")",
+    "category": "Vanta capability",
+    "proposed_destination": "Single renderer, including out-of-chat requests; no unsafe Always",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "40"
+  },
+  {
+    "id": "V-021",
+    "feature": "Local-origin security, boundary token, telemetry-free",
+    "category": "Vanta capability",
+    "proposed_destination": "Main/engine boundary; never move secrets into renderer",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "41"
+  },
+  {
+    "id": "V-022",
+    "feature": "Microphone and permission lockdown",
+    "category": "Vanta capability",
+    "proposed_destination": "Main-process media policy; denied and revoked states",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "42"
+  },
+  {
+    "id": "V-023",
+    "feature": "Canvas (chart, table, board)",
+    "category": "Vanta capability",
+    "proposed_destination": "Output card and workbench, retaining tool-eligibility disclosure",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "43"
+  },
+  {
+    "id": "V-024",
+    "feature": "Files, Review, Terminal rail",
+    "category": "Vanta capability",
+    "proposed_destination": "Code foreground; available contextually in Chat; preserve gated commands",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "44"
+  },
+  {
+    "id": "V-025",
+    "feature": "Document preview and links",
+    "category": "Vanta capability",
+    "proposed_destination": "Workbench viewer and explicit external-open controls",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "45"
+  },
+  {
+    "id": "V-026",
+    "feature": "Outputs / artifacts",
+    "category": "Vanta capability",
+    "proposed_destination": "Outputs navigation, context cards, and Library",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "46"
+  },
+  {
+    "id": "V-027",
+    "feature": "Capabilities (skills and tools)",
+    "category": "Vanta capability",
+    "proposed_destination": "Customize with installed inventory, hub preview and approvals",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "47"
+  },
+  {
+    "id": "V-028",
+    "feature": "Continuity \"Today\" (inbox, projects, sources, 7 capacity dimensions, capture; show/do/snooze/skip; off by session, pattern or global)",
+    "category": "Vanta capability",
+    "proposed_destination": "More \u2192 Today / Chat landing; no taxonomy requirement; optional support",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "48"
+  },
+  {
+    "id": "V-029",
+    "feature": "Workflow-run ledger",
+    "category": "Vanta capability",
+    "proposed_destination": "Automations workflow runs and run details; checkpoint acknowledgements",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "49"
+  },
+  {
+    "id": "V-030",
+    "feature": "Run library (save, search, preview drift, fork, replay)",
+    "category": "Vanta capability",
+    "proposed_destination": "Library \u2192 Runs; search/save/fork; replay/drift remains gated where not built",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "50"
+  },
+  {
+    "id": "V-031",
+    "feature": "\"Runs\" operate summary and execution contract (Classic only)",
+    "category": "Vanta capability",
+    "proposed_destination": "Task context and run details; preserve semantic content rather than Classic-only UI",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "51"
+  },
+  {
+    "id": "V-032",
+    "feature": "Schedules",
+    "category": "Vanta capability",
+    "proposed_destination": "More \u2192 Automations; time zone, host, missed wake, last/next run, pause/cancel",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "52"
+  },
+  {
+    "id": "V-033",
+    "feature": "Release-proofs panel",
+    "category": "Vanta capability",
+    "proposed_destination": "Prior explicit owner-approved retirement; do not restore automatically",
+    "decision": "Respect existing owner-approved retirement (CUTOVER-PARITY owner decisions)",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "53"
+  },
+  {
+    "id": "V-034",
+    "feature": "MCP connectors (trust, deny, revoke trust, status)",
+    "category": "Vanta capability",
+    "proposed_destination": "Connections; inspect, trust, deny, revoke and capability state",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "54"
+  },
+  {
+    "id": "V-035",
+    "feature": "Integration catalog (Trello, Dropbox, Box, Google Drive, Atlassian Rovo, Slack, Telegram; test, install, configure, manage_mcp)",
+    "category": "Vanta capability",
+    "proposed_destination": "Connections: existing Trello/Dropbox/Box/Google/Rovo/Slack/Telegram paths",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "55"
+  },
+  {
+    "id": "V-036",
+    "feature": "Google Workspace connect",
+    "category": "Vanta capability",
+    "proposed_destination": "Separate account binding and consent/setup; no fictitious connected state",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "56"
+  },
+  {
+    "id": "V-037",
+    "feature": "Messaging, gateway start, Telegram setup, chat-intent setup",
+    "category": "Vanta capability",
+    "proposed_destination": "Connections \u2192 Messaging; platform readiness and gateway lifetime",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "57"
+  },
+  {
+    "id": "V-038",
+    "feature": "Companion: LAN pairing and mobile web surface",
+    "category": "Vanta capability",
+    "proposed_destination": "Settings \u2192 Devices; retain separate deferred status and paired-host scope",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "58"
+  },
+  {
+    "id": "V-039",
+    "feature": "Native iOS Capacitor shell",
+    "category": "Vanta capability",
+    "proposed_destination": "Prior explicit owner-approved retirement; LAN companion remains separate",
+    "decision": "Respect existing owner-approved retirement (CUTOVER-PARITY owner decisions)",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "59"
+  },
+  {
+    "id": "V-040",
+    "feature": "Public API (`/api/v1`)",
+    "category": "Vanta capability",
+    "proposed_destination": "Settings \u2192 Advanced/API; preserve existing API, no redesign prerequisite",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "60"
+  },
+  {
+    "id": "V-041",
+    "feature": "Runtime strip and controller",
+    "category": "Vanta capability",
+    "proposed_destination": "Compact runtime footer and diagnostics/restart; real lifecycle facts",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "61"
+  },
+  {
+    "id": "V-042",
+    "feature": "Runtime profiles (create, clone, select, import, export)",
+    "category": "Vanta capability",
+    "proposed_destination": "Profiles footer: create, clone, select, import, export; no app login/logout",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "62"
+  },
+  {
+    "id": "V-043",
+    "feature": "Model downloads queue",
+    "category": "Vanta capability",
+    "proposed_destination": "Models & providers \u2192 Downloads; progress, cancel, disk/error states",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "63"
+  },
+  {
+    "id": "V-044",
+    "feature": "Project-switch handoff (new task in another project keeps its draft)",
+    "category": "Vanta capability",
+    "proposed_destination": "Preview target/context; carry draft exactly once through runtime switch",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "64"
+  },
+  {
+    "id": "V-045",
+    "feature": "Surface mode (full / mini)",
+    "category": "Vanta capability",
+    "proposed_destination": "View menu, tray and shortcuts; same task/runtime identity",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "65"
+  },
+  {
+    "id": "V-046",
+    "feature": "Avatar presence window",
+    "category": "Vanta capability",
+    "proposed_destination": "Prior explicit owner-approved retirement; do not revive it as required UI",
+    "decision": "Respect existing owner-approved retirement (CUTOVER-PARITY owner decisions)",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "66"
+  },
+  {
+    "id": "V-047",
+    "feature": "Tray menu",
+    "category": "Vanta capability",
+    "proposed_destination": "Native tray menu: status, pending decisions, wake controls and compact entry",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "67"
+  },
+  {
+    "id": "V-048",
+    "feature": "Completion sound",
+    "category": "Vanta capability",
+    "proposed_destination": "Optional attention setting; quiet-hours/meaningful-change rules",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "68"
+  },
+  {
+    "id": "V-049",
+    "feature": "Connection recovery, offline, first launch",
+    "category": "Vanta capability",
+    "proposed_destination": "Distinct states; saved drafts, bounded retry, actionable recovery",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "69"
+  },
+  {
+    "id": "V-050",
+    "feature": "Packaging, signing, notarization, local update",
+    "category": "Vanta capability",
+    "proposed_destination": "Keep packaging infrastructure and validate the exact candidate",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "70"
+  },
+  {
+    "id": "V-051",
+    "feature": "Company completion (Paperclip-style)",
+    "category": "Vanta capability",
+    "proposed_destination": "More \u2192 Workers & budgets; existing routes and capabilities retained",
+    "decision": "Preserve capability; relocate or improve presentation; no backend retirement",
+    "evidence_level": "Inspected inventory; original status is dated and not current runtime proof",
+    "source_line": "71"
+  }
+]

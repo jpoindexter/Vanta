@@ -1,0 +1,284 @@
+{
+ "measured": "2026-10-13",
+ "commit": "9e13cd53 (import of Hermes desktop at 6e7b83a2f1), isolated worktree, node_modules symlinked to the gateway-bridge worktree",
+ "command": "cd desktop-next/apps/desktop && npx vitest run --maxWorkers=4 (both projects: ui + electron)",
+ "totals": {
+  "numTotalTests": 14030,
+  "numPassedTests": 13962,
+  "numFailedTests": 34,
+  "numPendingTests": 34,
+  "numTotalTestSuites": 4156,
+  "numFailedTestSuites": 47
+ },
+ "failedTestFiles": 46,
+ "failedTestFilesBreakdown": {
+  "withFailedTests": 15,
+  "failedToLoad": 31
+ },
+ "failedTests": 34,
+ "note": "The coordinator figure was 27 files / 35 tests; this re-measure in the isolated worktree gives the counts above. The difference is the electron project's load failures (missing upstream repo-root scripts/ and tests/ fixtures outside desktop-next) which only exist in this checkout layout. Cause for every entry is environmental (files, interpreters, SDKs or packages outside desktop-next that the import did not bring) except the two voice-prefs tests, which fail in the upstream import itself.",
+ "failedTestList": [
+  {
+   "file": "src/store/voice-prefs.test.ts",
+   "test": "keeps the desktop toggle local across config refreshes"
+  },
+  {
+   "file": "src/store/voice-prefs.test.ts",
+   "test": "migrates the legacy preference once, not on every refresh"
+  },
+  {
+   "file": "scripts/commit-stamp-identity.test.mjs",
+   "test": "desktop stamp uses the admitted checkout rather than the dispatch SHA"
+  },
+  {
+   "file": "scripts/macos-sysroot-native.test.mjs",
+   "test": "builds both universal helpers under every SDK selection rung"
+  },
+  {
+   "file": "electron/backend-probes-runtime.test.ts",
+   "test": "the real bootstrap supplies ruamel-only dependencies and rejects foreign-path rescue"
+  },
+  {
+   "file": "electron/desktop-uninstall.test.ts",
+   "test": "POSIX cleanup executes gui in its sandbox and preserves its sibling"
+  },
+  {
+   "file": "electron/desktop-uninstall.test.ts",
+   "test": "POSIX cleanup executes lite in its sandbox and preserves its sibling"
+  },
+  {
+   "file": "electron/desktop-uninstall.test.ts",
+   "test": "POSIX cleanup executes full in its sandbox and preserves its sibling"
+  },
+  {
+   "file": "electron/handoff-result-producer.test.ts",
+   "test": "legacy POSIX producer receipt survives heartbeat and a newly opened gate"
+  },
+  {
+   "file": "electron/handoff-result-producer.test.ts",
+   "test": "protocol-2 POSIX producer receipt survives heartbeat and a newly opened gate"
+  },
+  {
+   "file": "electron/mac-usage-strings.test.ts",
+   "test": "mac extendInfo declares a usage string for every TCC-gated desktop service"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "baked runtime identity never evaluates ambient build selectors"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "nonstable runtime pins userData before the app name can change"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "undefined separates stable, canary and independent commits"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "bundled separates stable, canary and independent commits"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "light separates stable, canary and independent commits"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "light and bundled retain distinct OS markers from the full client"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "packaging isolates boot metadata and executable names without renaming release artifacts"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "store inherits the bundled app identity (shared userData) but swaps the MSIX packaging identity"
+  },
+  {
+   "file": "electron/product-identity.test.ts",
+   "test": "store carries the Partner Center MSIX identity and no other variant does"
+  },
+  {
+   "file": "electron/remote-lifecycle.test.ts",
+   "test": "pidIsOurDashboard recognizes an installer wrapper after it execs python + entrypoint"
+  },
+  {
+   "file": "electron/remote-update-marker-programs.test.ts",
+   "test": "the remote marker judge agrees with every corpus judge case"
+  },
+  {
+   "file": "electron/update-handoff-marker.test.ts",
+   "test": "POSIX hand-off preserves the Desktop marker acquisition time"
+  },
+  {
+   "file": "electron/updater/checkout-source.test.ts",
+   "test": "carries each install channel from Python publication checks into the source handoff"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh no .git (ZIP install)"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh .git directory"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh linked worktree: BOM, CRLF, relative gitdir, relative commondir"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh absolute gitdir and commondir"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh .git file that is not a gitdir pointer"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh empty .git file"
+  },
+  {
+   "file": "electron/updater/marker-helper.test.ts",
+   "test": "checkout lock path mirrors marker.sh empty commondir"
+  },
+  {
+   "file": "electron/updater/relaunch-waiter-resource.test.ts",
+   "test": "the windows packaging config ships the relaunch waiter at the resource root"
+  },
+  {
+   "file": "electron/updater/state-db-preflight.test.ts",
+   "test": "the desktop preflight publishes committed WAL rows before its caller can stop the backend"
+  },
+  {
+   "file": "electron/updater/state-db-preflight.test.ts",
+   "test": "a managed installation runs the snapshot through the installation launcher"
+  }
+ ],
+ "failedToLoadList": [
+  {
+   "file": "src/lib/speech-text.identifier-corpus.test.ts",
+   "reason": "ENOENT: no such file or directory, open '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/tests/fixtures/identifier_speech_corpus.json'"
+  },
+  {
+   "file": "src/plugins/hermes-bots/relay-deliver-budget.test.ts",
+   "reason": "ENOENT: no such file or directory, open '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/hermes_cli/config_defaults.py'"
+  },
+  {
+   "file": "src/app/session/hooks/use-session-actions.test.tsx",
+   "reason": "Failed to resolve import \"../../../../../../tests/fixtures/session-resume-active-turn.json\" from \"src/app/session/hooks/use-session-actions.test.tsx\". Does the file exist?"
+  },
+  {
+   "file": "e2e/window-input.unit.test.ts",
+   "reason": "Cannot find module '../../../tests/install/e2e-assets/window-input.cjs'"
+  },
+  {
+   "file": "scripts/after-extract.test.mjs",
+   "reason": "Cannot find module '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-"
+  },
+  {
+   "file": "scripts/after-pack-toolchain.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/after-pack.mjs"
+  },
+  {
+   "file": "scripts/after-pack.test.mjs",
+   "reason": "Cannot find module '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-"
+  },
+  {
+   "file": "scripts/batch-sign-binaries.test.mjs",
+   "reason": "Cannot find module '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-"
+  },
+  {
+   "file": "scripts/before-pack.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/build-hud-modif"
+  },
+  {
+   "file": "scripts/build.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/build.mjs"
+  },
+  {
+   "file": "scripts/bundle-electron-main.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/bundle-electron"
+  },
+  {
+   "file": "scripts/cli-launchers.test.mjs",
+   "reason": "Cannot find module '../../../scripts/msix-shared.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/before-build.mjs"
+  },
+  {
+   "file": "scripts/desktop-update-ui.test.mjs",
+   "reason": "ENOENT: no such file or directory, open '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/scripts/desktop-update/ui.html'"
+  },
+  {
+   "file": "scripts/i18n-keys.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/i18n-keys.mjs"
+  },
+  {
+   "file": "scripts/mac-sign.test.mjs",
+   "reason": "Cannot find module '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-"
+  },
+  {
+   "file": "scripts/msix-manifest-roundtrip.test.mjs",
+   "reason": "Cannot find module '/scripts/msix-shared.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/msix-manifest-roundtrip.test.mjs"
+  },
+  {
+   "file": "scripts/msix-shared.test.mjs",
+   "reason": "Cannot find module '/scripts/msix-shared.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/msix-shared.test.mjs"
+  },
+  {
+   "file": "scripts/native-quad.test.mjs",
+   "reason": "Cannot find module '../../../scripts/msix-shared.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/native-quad.test.mjs"
+  },
+  {
+   "file": "scripts/prepare-dmgbuild.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/prepare-dmgbuild.mjs"
+  },
+  {
+   "file": "scripts/prepared-native-deps.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/build-hud-modif"
+  },
+  {
+   "file": "scripts/prepared-packaging.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/prepare-dmgbuild.mjs"
+  },
+  {
+   "file": "scripts/probe-prepared-native.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/build-hud-modif"
+  },
+  {
+   "file": "scripts/run-electron-builder.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/python.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/prepare-dmgbuild.mjs"
+  },
+  {
+   "file": "scripts/side-by-side-launchers.test.mjs",
+   "reason": "Cannot find module '../../scripts/msix-shared.mjs'"
+  },
+  {
+   "file": "scripts/stage-native-deps.test.mjs",
+   "reason": "Cannot find module '../../../scripts/build/frontend-common.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/build-hud-modif"
+  },
+  {
+   "file": "scripts/store-package-version.test.mjs",
+   "reason": "Cannot find module '../../../scripts/msix-shared.mjs' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/scripts/store-package-version.tes"
+  },
+  {
+   "file": "scripts/write-build-stamp.test.mjs",
+   "reason": "Cannot find module '../../scripts/msix-shared.mjs'"
+  },
+  {
+   "file": "electron/channel-build-version.test.ts",
+   "reason": "Cannot find module '../../scripts/msix-shared.mjs'"
+  },
+  {
+   "file": "electron/source-backend.test.ts",
+   "reason": "Cannot find package 'ws' imported from /Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/apps/desktop/electron/source-backend.test.ts"
+  },
+  {
+   "file": "electron/update-marker-corpus.test.ts",
+   "reason": "ENOENT: no such file or directory, open '/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-dn-baseline2-20261013/desktop-next/tests/fixtures/update_marker_corpus.json'"
+  },
+  {
+   "file": "electron/updater/updater.test.ts",
+   "reason": "Cannot find module '../../scripts/msix-shared.mjs'"
+  }
+ ]
+}

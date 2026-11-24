@@ -19,6 +19,8 @@
 }
 
 .message-markdown {
+  /* HTML block spacing owns rhythm; source newlines must not create line boxes. */
+  white-space: normal;
   color: var(--text);
   font-size: 14px;
   line-height: 1.62;
@@ -34,18 +36,18 @@
 }
 
 .message-markdown p {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 
 .message-markdown ul,
 .message-markdown ol {
-  margin: 8px 0 12px;
-  padding-left: 22px;
+  margin: var(--space-2) 0 var(--space-3);
+  padding-inline-start: var(--space-6);
 }
 
 .message-markdown li {
-  margin: 4px 0;
-  padding-left: 2px;
+  margin: var(--space-1) 0;
+  padding-inline-start: 0;
 }
 
 .message-markdown h1,

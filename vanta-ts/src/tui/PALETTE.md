@@ -34,6 +34,25 @@ Integrates fuzzy search into the TUI:
 - Adds risk labels from command-risk.ts
 - Caps results to 8 matches (readable and scannable)
 
+## Provider Model Settings
+
+The model picker exposes one **Model settings** row when the active provider and
+model declare effort or speed capabilities. The same capability contract drives
+the desktop picker, so unsupported controls stay hidden in both hosts.
+
+- `/model-settings` opens the nested settings view or reports current values in
+  the readline REPL.
+- `/effort <level> [--session|--global]` supports only the active provider's
+  declared levels, including Codex `ultra`.
+- `/speed <standard|fast> [--session|--global]` is shown only when declared.
+- Session is the safe default. `--global` writes only the selected project
+  defaults after the write succeeds.
+- The status bar displays the live effort and speed that will be sent on the
+  next provider request.
+
+The nested list uses the existing keyboard contract: Up/Down moves, Enter
+selects, and Escape returns to the previous view.
+
 ## Usage
 
 ### Example: User types `/go`
@@ -91,6 +110,9 @@ npm test -- src/tui/command-risk.test.ts
 
 # Run all TUI tests
 npm test -- src/tui/
+
+# Run focused provider-settings behavior
+npx vitest run src/repl/provider-settings-cmd.test.ts src/ui/overlays.test.ts src/ui/status-rich-render.test.tsx
 ```
 
 All tests pass (186 tests, 25 test files).

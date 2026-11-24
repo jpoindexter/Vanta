@@ -1,0 +1,36 @@
+{
+  "before": [
+    {
+      "pid": 97232,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 97233,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 97234,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 97239,
+      "command": "node --import file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-pw-access-trust-20261014/vanta-ts/node_modules/tsx/dist/loader.mjs /"
+    },
+    {
+      "pid": 97692,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-desktop-next-20261013/desktop-next/apps/desktop/node_modules/electron/dist/Electron.app/C"
+    },
+    {
+      "pid": 97367,
+      "command": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node -e \\012\"use strict\";\\012const { spawn } = require(\"node:child_process\");\\012const fs = require(\""
+    },
+    {
+      "pid": 97368,
+      "command": "/Users/jasonpoindexter/Documents/GitHub/docs/Vanta-pw-access-trust-20261014/target/debug/vanta-kernel serve 57580"
+    }
+  ],
+  "survivors": [],
+  "appSurvivors": [],
+  "kernelStayed": false,
+  "leftovers": []
+}

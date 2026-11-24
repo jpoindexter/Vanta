@@ -2,6 +2,7 @@ import type { CompletionConfig, CompletionResult, LLMProvider, StreamChunk, Tool
 import type { Message } from "../types.js";
 import { buildAnthropicEffortParams, debugEffort } from "./effort.js";
 import { buildAnthropicBetas } from "./interleaved-thinking.js";
+import { buildAnthropicSpeedParams, withFastModeBeta } from "./fast-mode.js";
 import { toAnthropicMessages, toAnthropicTool, parseResponse, streamAnthropicEvents } from "./anthropic-convert.js";
 import type { AnthropicTextBlock } from "./anthropic-convert.js";
 
@@ -45,6 +46,7 @@ export class AnthropicProvider implements LLMProvider {
       authToken: this.authToken,
       apiKey: this.apiKey,
       thinking: { model: this.model, thinkingActive },
+      fastMode: createParams.speed === "fast",
     });
     let response;
     try {
@@ -71,7 +73,7 @@ export class AnthropicProvider implements LLMProvider {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createParams = buildCreateParams({ model: this.model, system, amsgs, tools, config }) as any;
     const thinkingActive = Boolean(createParams.thinking);
-    const client = buildAnthropicClient(Anthropic, { oauth, authToken: this.authToken, apiKey: this.apiKey, thinking: { model: this.model, thinkingActive } });
+    const client = buildAnthropicClient(Anthropic, { oauth, authToken: this.authToken, apiKey: this.apiKey, thinking: { model: this.model, thinkingActive }, fastMode: createParams.speed === "fast" });
     let sdkStream: AsyncIterable<unknown>;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,12 +109,15 @@ type ClientOpts = {
   authToken?: string;
   apiKey?: string;
   thinking?: { model: string; thinkingActive: boolean };
+  /** Fast mode active on this request → add the fast-mode beta header. */
+  fastMode?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildAnthropicClient(Anthropic: any, opts: ClientOpts): any {
   const base = [opts.oauth ? OAUTH_BETA : null, promptCache1hEnabled(process.env) ? EXTENDED_CACHE_BETA : null].filter(Boolean) as string[];
-  const betas = opts.thinking ? buildAnthropicBetas(base, opts.thinking) : base;
+  const withThinking = opts.thinking ? buildAnthropicBetas(base, opts.thinking) : base;
+  const betas = withFastModeBeta(withThinking, Boolean(opts.fastMode), process.env);
   const defaultHeaders: Record<string, string> = {};
   if (betas.length) defaultHeaders["anthropic-beta"] = betas.join(",");
   if (opts.oauth) defaultHeaders["user-agent"] = OAUTH_USER_AGENT;
@@ -152,6 +157,7 @@ function buildCreateParams(opts: CreateParamsOpts): Record<string, unknown> {
     messages: opts.amsgs,
     tools: opts.tools.length ? opts.tools.map(toAnthropicTool) : undefined,
     ...(effortParams.thinking ? { thinking: effortParams.thinking } : {}),
+    ...buildAnthropicSpeedParams(opts.model, opts.config, process.env, debugEffort),
   };
 }
 

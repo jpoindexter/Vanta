@@ -1,6 +1,7 @@
 # Managed Installation
 
-Vanta supports two installation paths that share the same `VANTA_HOME` data directory (`~/.vanta` by default):
+Vanta supports three installation paths. Preserve existing profiles and data
+when changing an installation; do not run two app versions on the same profile.
 
 - **Desktop app:** download the signed and notarized Apple Silicon macOS release when you want the native operator workbench without a source checkout.
 - **Managed runtime:** for normal use, the public installer clones Vanta into `~/.vanta/app`, installs the global `vanta` command, and keeps the runtime separate from your projects.
@@ -8,7 +9,30 @@ Vanta supports two installation paths that share the same `VANTA_HOME` data dire
 
 ## Desktop App
 
-[Download Vanta v0.9.5 for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/v0.9.5/Vanta-0.9.5-arm64.dmg). The DMG is Developer ID signed, Apple notarized, stapled, and distributed with SHA-256 `b1c97ecd59bc8c37a6d2c843e81d4a74f44c75cf4a7f9bdb8a0e46594554f122` on the [v0.9.5 release](https://github.com/jpoindexter/Vanta/releases/tag/v0.9.5). Open the DMG and drag Vanta into Applications.
+[Download Vanta Desktop v0.1.4 DMG for Apple Silicon macOS](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.dmg).
+The normal release replaces Iris downloads. It contains the signed, notarized
+and stapled app with bundled runtime/kernel; no source build or Python setup
+is required. The same app remains available as a
+[ZIP](https://github.com/jpoindexter/Vanta/releases/download/desktop-v0.1.4/Vanta-0.1.4-arm64.zip)
+for manual installation and native updating.
+
+1. Verify the download against `SHA256SUMS` on the
+   [Desktop release](https://github.com/jpoindexter/Vanta/releases/tag/desktop-v0.1.4).
+2. Quit Vanta and keep a rollback copy of an existing app. Open the DMG, drag
+   `Vanta.app` to Applications and eject the image afterward. For the ZIP,
+   extract it and move the app to Applications instead.
+3. Open Vanta normally. No Gatekeeper bypass is required. Configure the chosen
+   provider through existing settings if needed; credentials and approval grants
+   are not copied from another installation.
+
+Use **Vanta → Check for Updates…** for native update discovery. Installation
+requires exact confirmation and safe work preparation; app rollback is retained.
+Actual signed 0.1.3 → 0.1.4 replacement/relaunch passed on the authorized owner's
+Mac. This is not clean-Mac acceptance or a complete native failure/rollback test.
+Do not use the historical `v0.9.5` DMG as the current download. See the
+[release evidence](releases/desktop-v0.1.4.md),
+[native update record](desktop-update-integration-2026-11-17.md) and
+[Desktop help](desktop-help.md) for setup, recovery and known limits.
 
 ## Managed Runtime
 
@@ -38,11 +62,10 @@ curl -fsSL https://raw.githubusercontent.com/jpoindexter/Vanta/main/install.sh |
 
 From a managed runtime, `vanta update` updates the runtime and refreshes dependencies. For a locally modified managed runtime, review or commit your changes before re-running the bootstrap installer; it intentionally refuses to overwrite them.
 
-For an installed app, rebuild the desktop artifact from the managed runtime with:
-
-```bash
-cd "$HOME/.vanta/app/vanta-ts"
-npm run desktop:pack
-```
+Desktop 0.1.4 supports **Check for Updates…**. Finish active work and approve
+the exact version before restart. Do not reopen Vanta during replacement;
+the updater relaunches it. Custom-profile/development launches use manual
+installation. Quit and retain rollback before manually replacing an app; never
+delete your profile to update. `vanta update` updates CLI/runtime, not Desktop.
 
 The source-checkout installer remains the correct choice when contributing or making local code changes.

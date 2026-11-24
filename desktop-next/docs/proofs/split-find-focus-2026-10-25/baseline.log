@@ -1,0 +1,4 @@
+/private/var/folders/rj/nj_9qs2s7zs52nsc90yl2q700000gn/T/vanta-donepath-eqYTa2
+AssertionError [ERR_ASSERTION]: Find searches the focused Alpha chat
+    at check (file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/find-visibility-candidate-20261024-voMWss/desktop-next/tools/proof/split-find-focus.mjs:13:38)
+    at file:///Users/jasonpoindexter/Documents/GitHub/docs/Vanta-backups/find-visibility-candidate-20261024-voMWss/desktop-next/tools/proof/split-find-focus.mjs:60:5

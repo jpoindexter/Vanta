@@ -37,18 +37,29 @@ try {
   await queueInstruction(page, "Run source proof");
   await queueInstruction(page, "Run packaged proof");
 
-  await page.getByRole("button", { name: "Open queued turns, 2 queued" }).click();
-  await page.getByRole("dialog", { name: "Queued turns 2" }).waitFor();
+  const openQueue = page.locator(".inline-queue-trigger");
+  await openQueue.waitFor();
+  assert.equal(await openQueue.getAttribute("aria-label"), "Open queue, 2 next");
+  await openQueue.click();
+  await page.getByRole("dialog", { name: "Queue 2" }).waitFor();
   assert.equal(await page.locator(".queued-turn-list li").count(), 2);
   if (accessibilityProof) accessibilityResults.push(await scanAccessibility(page, "queue"));
   await editFirst(page, "Run source proof with receipts");
-  await page.locator(".queued-turn-list li").nth(1).getByRole("button", { name: "Move queued turn up" }).click();
+  await page.locator(".queued-turn-list li").nth(1).getByRole("button", { name: "Move earlier" }).click();
   await expectFirst(page, "Run packaged proof");
-  await page.locator(".queued-turn-list li").first().getByRole("button", { name: "Steer with this turn next" }).click();
-  await page.locator(".queued-turn-list li").nth(1).getByRole("button", { name: "Cancel queued turn" }).click();
+  await page.locator(".queued-turn-list li").first().getByRole("button", { name: "Steer now" }).click();
+  await page.locator(".queued-turn-list li").nth(1).getByRole("button", { name: "Remove from queue" }).click();
   await page.waitForFunction(() => document.querySelectorAll(".queued-turn-list li").length === 1);
   await expectFirst(page, "Run packaged proof");
-  await page.getByText("Steers the next turn").waitFor();
+  await page.locator(".queued-turn-list li").first().locator(".queue-copy > span").filter({ hasText: "Steer now" }).waitFor();
+
+  queue[0].status = "failed";
+  queue[0].failure = { reason: "Task stopped after repeated failures.", at: "2026-07-17T12:01:00.000Z", attempts: 1 };
+  queue[0].revision += 1;
+  revision += 1;
+  await page.getByText("Task stopped after repeated failures.", { exact: false }).waitFor();
+  await page.getByRole("button", { name: "Retry message" }).click();
+  await page.waitForFunction(() => document.querySelector(".queued-turn-list li")?.getAttribute("data-status") === "queued");
 
   queue[0].status = "starting";
   queue[0].revision += 1;
@@ -63,7 +74,7 @@ try {
   const compact = await page.locator(".queue-drawer").evaluate((element) => ({ width: element.getBoundingClientRect().width, viewport: window.innerWidth, overflow: document.documentElement.scrollWidth - window.innerWidth }));
   assert.equal(compact.width, compact.viewport, `compact queue drawer should fill the viewport: ${JSON.stringify(compact)}`);
   assert.ok(compact.overflow <= 1, `compact queue drawer must not overflow: ${JSON.stringify(compact)}`);
-  await page.getByRole("button", { name: "Close queued turns" }).click();
+  await page.getByRole("button", { name: "Close queue" }).click();
   releaseChat();
   await page.getByRole("button", { name: "Send" }).waitFor();
 
@@ -73,12 +84,18 @@ try {
   app = await launch();
   page = await readyPage(app);
   await installRoutes(page);
+  await page.reload();
+  await page.locator(".app-shell").waitFor();
+  await page.getByLabel("Message Vanta").waitFor({ state: "visible" });
   await openProofSession(page);
-  await page.getByRole("button", { name: /Open queued turns/ }).click();
+  const restoredQueue = page.locator(".inline-queue-trigger");
+  await restoredQueue.waitFor();
+  assert.match(await restoredQueue.getAttribute("aria-label") ?? "", /^Open queue, \d+ next$/);
+  await restoredQueue.click();
   await page.getByText("Run packaged proof").waitFor();
   await page.getByText("Starting now").waitFor();
   if (rendererErrors.length) throw new Error(`Renderer errors: ${rendererErrors.join(" | ")}`);
-  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", enqueue: true, edit: true, reorder: true, steer: true, cancel: true, startingRace: true, reconnect: true, relaunch: true, compact: "760x700", persistedScope: ["controller", "model", "approval"], accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, target: executablePath ? "packaged" : "source", enqueue: true, edit: true, reorder: true, steer: true, remove: true, failedReason: true, retry: true, startingRace: true, reconnect: true, relaunch: true, compact: "760x700", persistedScope: ["controller", "model", "approval"], accessibilityProof: accessibilityProof ? accessibilityResults : undefined })}\n`);
 } finally {
   releaseChat();
   await app?.close().catch(() => undefined);
@@ -129,9 +146,13 @@ async function installRoutes(page) {
     } else {
       const index = queue.findIndex((item) => item.id === body.id);
       const item = queue[index];
-      if (!item || item.revision !== body.revision || item.status !== "queued") {
+      if (!item || item.revision !== body.revision || item.status === "starting") {
         await route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "This queued turn has already started." }) });
         return;
+      }
+      if (body.action === "retry" && item.status === "failed") {
+        item.status = "queued";
+        delete item.failure;
       }
       if (body.action === "edit") item.instruction = body.message;
       if (body.action === "move") {
@@ -158,20 +179,34 @@ async function openProofSession(page) {
 }
 
 async function startLongTurn(page) {
+  await page.waitForTimeout(250);
   await page.getByLabel("Message Vanta").fill("Keep the primary turn running");
+  await page.waitForFunction(() => {
+    const submit = document.querySelector(".send-button");
+    return submit instanceof HTMLButtonElement && !submit.disabled;
+  });
   await page.getByRole("button", { name: "Send" }).click();
-  await page.getByRole("button", { name: "Queue", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Queue next", exact: true }).waitFor();
 }
 
 async function queueInstruction(page, instruction) {
   await page.getByLabel("Message Vanta").fill(instruction);
-  await page.getByRole("button", { name: "Queue", exact: true }).click();
+  const button = page.getByRole("button", { name: "Queue next", exact: true });
+  await page.waitForFunction(() => {
+    const submit = document.querySelector(".queue-button");
+    return submit instanceof HTMLButtonElement && !submit.disabled;
+  });
+  await button.click();
+  await page.waitForFunction(() => {
+    const composer = document.querySelector("#vanta-composer");
+    return composer instanceof HTMLTextAreaElement && composer.value === "";
+  });
 }
 
 async function editFirst(page, instruction) {
   const first = page.locator(".queued-turn-list li").first();
-  await first.getByRole("button", { name: "Edit queued turn" }).click();
-  await first.getByLabel("Edit queued instruction").fill(instruction);
+  await first.getByRole("button", { name: "Edit message" }).click();
+  await first.getByRole("textbox", { name: "Edit message" }).fill(instruction);
   await first.getByRole("button", { name: "Save" }).click();
   await first.getByText(instruction).waitFor();
 }

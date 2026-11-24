@@ -1,23 +1,23 @@
 # Vanta TUI composer — complete keybinding spec
 
-> Roadmap: `TUI-KEYS` (line editing) + `TUI-SELECT` (selection + clipboard). The "build every
-> known shortcut" spec. **Shipped today:** `Ctrl+U`, `Ctrl+W`, `Esc` (abort), `↑/↓` history,
-> `Shift+Enter` newline. Everything below `[ ]` is to build. Target = full readline/Emacs parity
-> + macOS Cmd conventions in `tui/composer.tsx`.
+> Roadmap: `TUI-KEYS` (line editing) + `TUI-SELECT` (selection + clipboard). This is the
+> implementation matrix as of 2026-08-17; `[ ]` remains future work. The composer also keeps
+> large pasted text behind a visible in-buffer marker, restores the original bytes at submit,
+> and lets `↑` pull the newest queued message back only when the composer is empty.
 
 ## Cursor movement
 
 | Key | Action | Status |
 |---|---|---|
-| `Ctrl+A` / `Home` | start of line | [ ] |
-| `Ctrl+E` / `End` | end of line | [ ] |
-| `Ctrl+B` / `←` | back one char | [ ] |
-| `Ctrl+F` / `→` | forward one char | [ ] |
-| `Alt/Option+B` / `Ctrl+←` | back one word | [ ] |
-| `Alt/Option+F` / `Ctrl+→` | forward one word | [ ] |
+| `Ctrl+A` / `Home` | start of line | ✅ `Ctrl+A` |
+| `Ctrl+E` / `End` | end of line | ✅ `Ctrl+E` |
+| `Ctrl+B` / `←` | back one char | ✅ |
+| `Ctrl+F` / `→` | forward one char | ✅ |
+| `Alt/Option+B` / `Ctrl+←` | back one word | ✅ `Alt/Option+B` |
+| `Alt/Option+F` / `Ctrl+→` | forward one word | ✅ `Alt/Option+F` |
 | `Cmd+←` | start of line (macOS) | [ ] |
 | `Cmd+→` | end of line (macOS) | [ ] |
-| `↑` / `↓` | history prev/next (or line nav in multiline) | ✅ history |
+| `↑` / `↓` | queued edit from empty composer, otherwise history prev/next | ✅ |
 | `Cmd+↑` / `Cmd+↓` | top / bottom of input | [ ] |
 | `Alt+↑` / `Alt+↓` | move line up / down | [ ] |
 
@@ -26,46 +26,46 @@
 | Key | Action | Status |
 |---|---|---|
 | `Backspace` / `Ctrl+H` | delete char before | ✅ |
-| `Ctrl+D` / `Delete` | delete char after (forward) | [ ] |
-| `Ctrl+W` / `Alt+Backspace` / `Ctrl+Backspace` | delete word before | ✅ `Ctrl+W` |
+| `Ctrl+D` / `Delete` | delete char after (forward) | ✅ `Ctrl+D` |
+| `Ctrl+W` / `Alt+Backspace` / `Ctrl+Backspace` | delete word before | ✅ `Ctrl+W`, `Alt/Option+Backspace` |
 | `Alt/Option+D` | delete word after (forward) | [ ] |
 | `Ctrl+U` | delete to start of line | ✅ |
-| `Ctrl+K` | kill to end of line | [ ] |
-| `Cmd+Backspace` | delete to start of line (macOS) | [ ] |
+| `Ctrl+K` | kill to end of line | ✅ |
+| `Cmd+Backspace` | delete to start of line (macOS) | ✅ when forwarded by the terminal |
 | `Cmd+Delete` | delete to end of line (macOS) | [ ] |
 
 ## Edit / kill-ring
 
 | Key | Action | Status |
 |---|---|---|
-| `Ctrl+Y` | yank (paste last killed text) | [ ] |
+| `Ctrl+Y` | yank (paste last killed text) | ✅ |
 | `Alt+Y` | yank-pop (cycle kill ring) | [ ] |
 | `Ctrl+T` | transpose chars | [ ] |
 | `Alt/Option+T` | transpose words | [ ] |
 | `Alt/Option+U` / `L` / `C` | uppercase / lowercase / capitalize word | [ ] |
-| `Ctrl+_` / `Cmd+Z` | undo | [ ] |
+| `Ctrl+Z` | swap with the previous edit buffer | ✅ |
 | `Cmd+Shift+Z` / `Ctrl+Y`(redo) | redo | [ ] |
 
 ## Selection (shift-select) — `TUI-SELECT`
 
 | Key | Action | Status |
 |---|---|---|
-| `Shift+←` / `Shift+→` | extend selection by char | [ ] |
-| `Shift+Alt+←` / `Shift+Alt+→` | extend selection by word | [ ] |
+| `Shift+←` / `Shift+→` | extend selection by char | ✅ |
+| `Shift+Alt+←` / `Shift+Alt+→` | extend selection by word | ✅ when forwarded as Meta |
 | `Shift+Cmd+←` / `Shift+Cmd+→` | extend selection to line start / end | [ ] |
-| `Shift+↑` / `Shift+↓` | extend selection by line | [ ] |
+| `Shift+↑` / `Shift+↓` | extend selection by line | ✅ |
 | `Shift+Home` / `Shift+End` | extend to line start / end | [ ] |
-| `Cmd+A` / `Ctrl+Shift+A` | select all | [ ] |
-| typing with a selection | replaces the selection | [ ] |
+| `Cmd+A` / `Ctrl+Shift+A` | select all | ✅ `Cmd+A` when forwarded |
+| typing with a selection | replaces the selection | ✅ |
 
 ## Clipboard
 
 | Key | Action | Status |
 |---|---|---|
-| `Cmd+C` | copy selection | ✅ `/copy` (whole) |
-| `Cmd+X` | cut selection | [ ] |
+| `Cmd+C` | copy selection | ✅ when forwarded; `/copy` copies the whole response |
+| `Cmd+X` | cut selection | ✅ when forwarded |
 | `Cmd+V` / `Ctrl+Shift+V` | paste | ✅ `/paste` |
-| `Cmd+A` then `Cmd+C` | select-all + copy | [ ] |
+| `Cmd+A` then `Cmd+C` | select-all + copy | ✅ when forwarded |
 
 ## Submission / multiline / control
 
